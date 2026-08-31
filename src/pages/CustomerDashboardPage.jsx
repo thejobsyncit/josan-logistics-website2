@@ -25,9 +25,21 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     setCustomerSubTab
   } = useLogistics();
 
-  const activeSubTab = customerSubTab || 'orders';
-  const setActiveSubTab = setCustomerSubTab || (() => {});
+  const [localSubTab, setLocalSubTab] = useState('orders');
+  const activeSubTab = customerSubTab || localSubTab || 'orders';
+  const setActiveSubTab = (tab) => {
+    setLocalSubTab(tab);
+    if (setCustomerSubTab) setCustomerSubTab(tab);
+  };
   const [expandedMapId, setExpandedMapId] = useState(null);
+
+  const displayUser = currentUser || {
+    name: 'Razer Asia-Pacific HQ',
+    email: 'shipping@razer.com',
+    company: 'Razer (Asia-Pacific) Pte Ltd',
+    phone: '67890123',
+    role: 'customer'
+  };
 
   const [addressList, setAddressList] = useState([
     { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
@@ -43,11 +55,11 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
   const [ticketMessage, setTicketMessage] = useState('');
 
   // Profile Edit State
-  const [profileName, setProfileName] = useState(currentUser?.name || 'Razer Asia-Pacific HQ');
-  const [profileEmail, setProfileEmail] = useState(currentUser?.email || 'shipping@razer.com');
-  const [profileCompany, setProfileCompany] = useState(currentUser?.company || 'Razer (Asia-Pacific) Pte Ltd');
-  const [profilePhone, setProfilePhone] = useState(currentUser?.phone || '67890123');
-  const [profileAddress, setProfileAddress] = useState(currentUser?.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438');
+  const [profileName, setProfileName] = useState(displayUser.name || 'Razer Asia-Pacific HQ');
+  const [profileEmail, setProfileEmail] = useState(displayUser.email || 'shipping@razer.com');
+  const [profileCompany, setProfileCompany] = useState(displayUser.company || 'Razer (Asia-Pacific) Pte Ltd');
+  const [profilePhone, setProfilePhone] = useState(displayUser.phone || '67890123');
+  const [profileAddress, setProfileAddress] = useState(displayUser.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438');
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [emailInvoices, setEmailInvoices] = useState(true);
 
@@ -122,14 +134,14 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
       <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 rounded-2xl bg-orange-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-orange-sm">
-            {currentUser?.name ? currentUser.name.charAt(0) : 'C'}
+            {displayUser.name ? displayUser.name.charAt(0) : 'R'}
           </div>
           <div>
             <span className="text-xs font-bold text-orange-600 uppercase tracking-widest bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
               Customer Account
             </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">{currentUser?.name || 'TechCorp Solutions'}</h1>
-            <p className="text-xs text-slate-500">{currentUser?.email || 'shipping@techcorp.com'} | Company: {currentUser?.company || 'TechCorp Corp'}</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">{displayUser.name || 'Razer Asia-Pacific HQ'}</h1>
+            <p className="text-xs text-slate-500">{displayUser.email || 'shipping@razer.com'} | Company: {displayUser.company || 'Razer (Asia-Pacific) Pte Ltd'}</p>
           </div>
         </div>
 
