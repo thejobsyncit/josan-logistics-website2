@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
@@ -14,7 +14,7 @@ import {
 
 export const CustomerDashboardPage = ({ setActiveTab }) => {
   const { 
-    shipments, 
+    shipments = [], 
     currentUser, 
     currentRole,
     setActiveTrackingId, 
@@ -50,6 +50,16 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
   const [profileAddress, setProfileAddress] = useState(currentUser?.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438');
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [emailInvoices, setEmailInvoices] = useState(true);
+
+  useEffect(() => {
+    if (currentUser) {
+      setProfileName(currentUser.name || 'Razer Asia-Pacific HQ');
+      setProfileEmail(currentUser.email || 'shipping@razer.com');
+      setProfileCompany(currentUser.company || 'Razer (Asia-Pacific) Pte Ltd');
+      setProfilePhone(currentUser.phone || '67890123');
+      setProfileAddress(currentUser.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438');
+    }
+  }, [currentUser]);
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -143,7 +153,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
           }`}
         >
           <Package className="w-4 h-4" />
-          <span>My Freight Orders ({shipments.length})</span>
+          <span>My Freight Orders ({(shipments || []).length})</span>
         </button>
 
         <button
@@ -347,11 +357,11 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-extrabold text-slate-900">Shipment History & Live Trackers</h2>
-            <span className="text-xs text-slate-500 font-semibold">Total Orders: {shipments.length}</span>
+            <span className="text-xs text-slate-500 font-semibold">Total Orders: {(shipments || []).length}</span>
           </div>
 
           <div className="divide-y divide-slate-100">
-            {shipments.map((s) => (
+            {(shipments || []).map((s) => (
               <div key={s.id} className="py-5 hover:bg-slate-50 p-4 rounded-2xl transition-colors space-y-4">
                 
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
