@@ -28,6 +28,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const [headerSearch, setHeaderSearch] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleHeaderSearch = (e) => {
     e.preventDefault();
@@ -104,20 +105,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             </form>
 
             {currentUser ? (
-              <div className="flex items-center space-x-2 border-l border-slate-200 pl-3">
+              <div className="flex items-center space-x-2 border-l border-slate-200 pl-3 relative">
                 <button
-                  onClick={() => {
-                    if (currentRole === 'customer') {
-                      setCustomerSubTab('profile');
-                      setActiveTab('customer-dashboard');
-                    } else if (currentRole === 'driver') {
-                      setDriverSubTab('profile');
-                      setActiveTab('driver-dashboard');
-                    } else {
-                      setActiveTab('admin-dashboard');
-                    }
-                  }}
-                  className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm border border-orange-200">
                     {currentUser.name.charAt(0)}
@@ -130,10 +121,88 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 <button
                   onClick={logoutUser}
                   title="Logout"
-                  className="p-2 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors"
+                  className="p-2 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
+
+                {/* Floating Profile Details Dropdown Card */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 z-50 text-slate-950 space-y-4 animate-fade-in">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-orange-600">Profile Details</span>
+                      <button 
+                        onClick={() => setIsProfileOpen(false)}
+                        className="text-slate-450 hover:text-slate-700 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-3 text-xs text-left">
+                      {/* Name */}
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase">Full Name</span>
+                        <span className="font-bold text-slate-800">{currentUser.name}</span>
+                      </div>
+
+                      {/* Email */}
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase">Email Address</span>
+                        <span className="font-bold text-slate-800">{currentUser.email}</span>
+                      </div>
+
+                      {/* Phone */}
+                      {currentUser.phone && (
+                        <div>
+                          <span className="block text-[10px] text-slate-400 font-bold uppercase">Phone Number</span>
+                          <span className="font-bold text-slate-800">{currentUser.phone}</span>
+                        </div>
+                      )}
+
+                      {/* Company (if Customer) */}
+                      {currentRole === 'customer' && currentUser.company && (
+                        <div>
+                          <span className="block text-[10px] text-slate-400 font-bold uppercase">Company Name</span>
+                          <span className="font-bold text-slate-800">{currentUser.company}</span>
+                        </div>
+                      )}
+
+                      {/* License Number (if Driver) */}
+                      {currentRole === 'driver' && currentUser.licenseNumber && (
+                        <div>
+                          <span className="block text-[10px] text-slate-400 font-bold uppercase">License Number</span>
+                          <span className="font-bold text-slate-800">{currentUser.licenseNumber}</span>
+                        </div>
+                      )}
+
+                      {/* Date of Birth (if Driver) */}
+                      {currentRole === 'driver' && currentUser.dob && (
+                        <div>
+                          <span className="block text-[10px] text-slate-400 font-bold uppercase">Date of Birth</span>
+                          <span className="font-bold text-slate-800">{currentUser.dob}</span>
+                        </div>
+                      )}
+
+                      {/* Status */}
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase">Account Status</span>
+                        <span className="text-emerald-600 font-extrabold flex items-center space-x-1 mt-0.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                          <span>Active & Verified</span>
+                        </span>
+                      </div>
+
+                      {/* Access Level */}
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase">Access Level</span>
+                        <span className="inline-block px-2 py-0.5 bg-orange-100 text-orange-800 text-[9px] font-extrabold rounded-full uppercase mt-1">
+                          {currentRole}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <button

@@ -312,55 +312,6 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         </div>
       )}
 
-      {/* SUB-TAB 4: MY PROFILE */}
-      {activeSubTab === 'profile' && (
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card max-w-2xl space-y-6">
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-900">Account Profile Details</h2>
-            <p className="text-xs text-slate-500">Manage and view your credentials and account information.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
-              <span className="text-xs text-slate-400 font-bold uppercase">Full Name</span>
-              <p className="font-extrabold text-slate-900">{currentUser?.name || 'Enterprise Customer'}</p>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
-              <span className="text-xs text-slate-400 font-bold uppercase">Email Address</span>
-              <p className="font-extrabold text-slate-900">{currentUser?.email || 'shipping@techcorp.com'}</p>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
-              <span className="text-xs text-slate-400 font-bold uppercase">Phone Number</span>
-              <p className="font-extrabold text-slate-900">{currentUser?.phone || '+65 8765 4321'}</p>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
-              <span className="text-xs text-slate-400 font-bold uppercase">Company Name</span>
-              <p className="font-extrabold text-slate-900">{currentUser?.company || 'Global Client Corp'}</p>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
-              <span className="text-xs text-slate-400 font-bold uppercase">Account Status</span>
-              <p className="font-extrabold text-emerald-600 flex items-center space-x-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                <span>Active & Verified</span>
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
-              <span className="text-xs text-slate-400 font-bold uppercase">Access Level</span>
-              <div>
-                <span className="inline-block px-2.5 py-0.5 bg-orange-100 text-orange-800 text-[10px] font-extrabold rounded-full uppercase">
-                  {currentUser?.role || 'Customer'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };
