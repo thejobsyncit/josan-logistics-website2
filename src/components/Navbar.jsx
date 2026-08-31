@@ -11,7 +11,9 @@ import {
   LayoutDashboard, 
   LogOut, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Edit2,
+  Save
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab }) => {
@@ -21,11 +23,44 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     toggleRole, 
     setIsAuthModalOpen, 
     setActiveTrackingId,
-    logoutUser
+    logoutUser,
+    setCustomerSubTab,
+    setDriverSubTab,
+    updateUserProfile
   } = useLogistics();
 
   const [headerSearch, setHeaderSearch] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editCompany, setEditCompany] = useState('');
+  const [editLicense, setEditLicense] = useState('');
+  const [editDob, setEditDob] = useState('');
+
+  const startEditing = () => {
+    setEditName(currentUser?.name || '');
+    setEditPhone(currentUser?.phone || '');
+    setEditCompany(currentUser?.company || '');
+    setEditLicense(currentUser?.licenseNumber || '');
+    setEditDob(currentUser?.dob || '');
+    setIsEditing(true);
+  };
+
+  const saveProfileChanges = (e) => {
+    e.preventDefault();
+    const updated = {
+      name: editName,
+      phone: editPhone,
+      company: currentRole === 'customer' ? editCompany : currentUser?.company,
+      licenseNumber: currentRole === 'driver' ? editLicense : currentUser?.licenseNumber,
+      dob: currentRole === 'driver' ? editDob : currentUser?.dob
+    };
+    updateUserProfile(updated);
+    setIsEditing(false);
+  };
 
   const handleHeaderSearch = (e) => {
     e.preventDefault();
@@ -37,7 +72,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  const navItems = [
+  let navItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services' },
@@ -49,6 +84,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   if (currentRole === 'customer') {
     navItems.push({ id: 'customer-dashboard', label: 'My Orders' });
   } else if (currentRole === 'driver') {
+    navItems = navItems.filter(item => item.id !== 'track' && item.id !== 'book');
     navItems.push({ id: 'driver-dashboard', label: 'Driver Portal' });
   }
 
@@ -102,10 +138,18 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             </form>
 
             {currentUser ? (
-              <div className="flex items-center space-x-2 border-l border-slate-200 pl-3">
+              <div className="flex items-center space-x-2 border-l border-slate-200 pl-3 relative">
                 <button
-                  onClick={() => setActiveTab(currentRole === 'admin' ? 'admin-dashboard' : currentRole === 'driver' ? 'driver-dashboard' : 'customer-dashboard')}
-                  className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                  onClick={() => {
+                    if (currentRole === 'driver') {
+                      setActiveTab('driver-dashboard');
+                    } else if (currentRole === 'admin') {
+                      setActiveTab('admin-dashboard');
+                    } else {
+                      setIsProfileOpen(!isProfileOpen);
+                    }
+                  }}
+                  className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm border border-orange-200">
                     {currentUser.name.charAt(0)}
@@ -118,10 +162,189 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 <button
                   onClick={logoutUser}
                   title="Logout"
-                  className="p-2 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors"
+                  className="p-2 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
+
+                {/* Floating Profile Details Dropdown Card */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 top-12 w-[380px] bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 z-50 text-slate-955 space-y-4 animate-fade-in">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <span className="text-sm font-extrabold uppercase tracking-wider text-orange-600">
+                        {isEditing ? 'Edit Profile Details' : 'Profile Details'}
+                      </span>
+                      <button 
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          setIsEditing(false);
+                        }}
+                        className="text-slate-450 hover:text-slate-700 cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {isEditing ? (
+                      <form onSubmit={saveProfileChanges} className="space-y-4 text-xs text-left">
+                        {/* Name Input */}
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
+                            required
+                          />
+                        </div>
+
+                        {/* Phone Input */}
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Phone Number</label>
+                          <input
+                            type="text"
+                            value={editPhone}
+                            onChange={(e) => setEditPhone(e.target.value)}
+                            className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
+                            required
+                          />
+                        </div>
+
+                        {/* Company Name (if Customer) */}
+                        {currentRole === 'customer' && (
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Company Name</label>
+                            <input
+                              type="text"
+                              value={editCompany}
+                              onChange={(e) => setEditCompany(e.target.value)}
+                              className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
+                              required
+                            />
+                          </div>
+                        )}
+
+                        {/* License Number (if Driver) */}
+                        {currentRole === 'driver' && (
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">License Number</label>
+                            <input
+                              type="text"
+                              value={editLicense}
+                              onChange={(e) => setEditLicense(e.target.value)}
+                              className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
+                              required
+                            />
+                          </div>
+                        )}
+
+                        {/* DOB (if Driver) */}
+                        {currentRole === 'driver' && (
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date of Birth</label>
+                            <input
+                              type="date"
+                              value={editDob}
+                              onChange={(e) => setEditDob(e.target.value)}
+                              className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
+                              required
+                            />
+                          </div>
+                        )}
+
+                        <div className="pt-2 flex items-center space-x-3">
+                          <button
+                            type="submit"
+                            className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center space-x-1.5 cursor-pointer shadow-orange-sm"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Save Changes</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsEditing(false)}
+                            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="space-y-4 text-xs text-left">
+                        {/* Name */}
+                        <div>
+                          <span className="block text-xs text-slate-400 font-bold uppercase">Full Name</span>
+                          <span className="font-bold text-sm text-slate-800">{currentUser.name}</span>
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                          <span className="block text-xs text-slate-400 font-bold uppercase">Email Address</span>
+                          <span className="font-bold text-sm text-slate-800">{currentUser.email}</span>
+                        </div>
+
+                        {/* Phone */}
+                        <div>
+                          <span className="block text-xs text-slate-400 font-bold uppercase">Phone Number</span>
+                          <span className="font-bold text-sm text-slate-800">{currentUser.phone || '+65 8765 4321'}</span>
+                        </div>
+
+                        {/* Company (if Customer) */}
+                        {currentRole === 'customer' && (
+                          <div>
+                            <span className="block text-xs text-slate-400 font-bold uppercase">Company Name</span>
+                            <span className="font-bold text-sm text-slate-800">{currentUser.company || 'Global Client Corp'}</span>
+                          </div>
+                        )}
+
+                        {/* License Number (if Driver) */}
+                        {currentRole === 'driver' && (
+                          <div>
+                            <span className="block text-xs text-slate-400 font-bold uppercase">License Number</span>
+                            <span className="font-bold text-sm text-slate-800">{currentUser.licenseNumber || 'S9876543A'}</span>
+                          </div>
+                        )}
+
+                        {/* Date of Birth (if Driver) */}
+                        {currentRole === 'driver' && (
+                          <div>
+                            <span className="block text-xs text-slate-400 font-bold uppercase">Date of Birth</span>
+                            <span className="font-bold text-sm text-slate-800">{currentUser.dob || '1990-05-12'}</span>
+                          </div>
+                        )}
+
+                        {/* Status */}
+                        <div>
+                          <span className="block text-xs text-slate-400 font-bold uppercase">Account Status</span>
+                          <span className="text-emerald-600 font-extrabold flex items-center space-x-1.5 mt-0.5 text-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                            <span>Active & Verified</span>
+                          </span>
+                        </div>
+
+                        {/* Access Level */}
+                        <div>
+                          <span className="block text-xs text-slate-400 font-bold uppercase">Access Level</span>
+                          <span className="inline-block px-2.5 py-0.5 bg-orange-100 text-orange-800 text-[10px] font-extrabold rounded-full uppercase mt-1">
+                            {currentRole}
+                          </span>
+                        </div>
+
+                        <div className="pt-2">
+                          <button
+                            type="button"
+                            onClick={startEditing}
+                            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
+                          >
+                            <Edit2 className="w-4 h-4 text-orange-400" />
+                            <span>Edit Profile Info</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <button

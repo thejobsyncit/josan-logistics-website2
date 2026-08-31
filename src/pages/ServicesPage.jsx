@@ -1,5 +1,94 @@
-import React, { useState } from 'react';
-import { Plane, Truck, Ship, Warehouse, Thermometer, ShieldCheck, ArrowRight, CheckCircle2, DollarSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plane, Truck, Ship, Thermometer, ArrowRight, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const DynamicServiceGallery = ({ images, title }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Auto slide every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Main Image Container */}
+      <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-72 bg-slate-900">
+        <img
+          src={images[currentIndex]}
+          alt={`${title} view ${currentIndex + 1}`}
+          className="w-full h-full object-cover transition-all duration-500 transform group-hover:scale-105"
+        />
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60"></div>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={handlePrev}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer"
+          title="Previous Image"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        <button
+          onClick={handleNext}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer"
+          title="Next Image"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Indicator Dots */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1.5 z-10">
+          {images.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
+                idx === currentIndex
+                  ? 'bg-orange-500 w-6'
+                  : 'bg-white/60 hover:bg-white'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Thumbnail Selection Bar */}
+      <div className="grid grid-cols-3 gap-2">
+        {images.map((imgUrl, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentIndex(idx)}
+            className={`relative rounded-lg overflow-hidden h-16 border-2 transition-all cursor-pointer ${
+              idx === currentIndex
+                ? 'border-orange-500 ring-2 ring-orange-500/30 scale-[1.02]'
+                : 'border-transparent opacity-70 hover:opacity-100'
+            }`}
+          >
+            <img
+              src={imgUrl}
+              alt={`Thumbnail ${idx + 1}`}
+              className="w-full h-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export const ServicesPage = ({ setActiveTab }) => {
   const [calculatorWeight, setCalculatorWeight] = useState(25);
@@ -9,6 +98,57 @@ export const ServicesPage = ({ setActiveTab }) => {
   // Rate calculator formula
   const baseRate = calculatorService === 'express' ? 12 : calculatorService === 'ground' ? 4 : calculatorService === 'sea' ? 2 : 15;
   const estimatedTotal = (calculatorWeight * baseRate + (calculatorInsurance ? 35 : 0)).toFixed(2);
+
+  const servicesData = [
+    {
+      id: 'express-air',
+      title: 'Express Air Cargo & Priority Charter',
+      icon: Plane,
+      images: [
+        'https://images.unsplash.com/photo-1570710891163-6d3b5c47248b?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Dedicated priority air freight servicing major global hubs with guaranteed next-day delivery SLAs and real-time flight tracking.',
+      features: ['Next-Day & Same-Day Priority Flights', 'Airport-to-Door Telematics Tracking', 'Hazmat & High-Value Secured Vaults', 'Customs Clearance Fast-Track']
+    },
+    {
+      id: 'land-haulage',
+      title: 'Freight Trucking & Land Haulage (FTL / LTL)',
+      icon: Truck,
+      images: [
+        'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Modern fleet of 18-wheeler semi-trucks and sprinter vans equipped with satellite GPS telematics for seamless highway freight.',
+      features: ['Full Truckload (FTL) & Partial (LTL)', 'Automated Route Optimization', 'Hydraulic Lift-gate Vans Available', '24/7 Driver Telemetry Feed']
+    },
+    {
+      id: 'ocean-freight',
+      title: 'Ocean Cargo Shipping & Container Lines',
+      icon: Ship,
+      images: [
+        'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Cost-effective global sea freight handling 20ft/40ft containers, oversized machinery, and consolidated ocean cargo.',
+      features: ['FCL (Full Container) & LCL Shipping', 'Port Terminal Intermodal Transfer', 'Automated Ocean Bill of Lading', 'Global Customs Brokerage']
+    },
+    {
+      id: 'cold-chain',
+      title: 'Pharma Cold Chain & Refrigerated Transit',
+      icon: Thermometer,
+      images: [
+        'https://images.unsplash.com/photo-1586528116493-a029325540fa?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Precision temperature-controlled transport ranging from -20°C to +8°C for pharmaceuticals, medical vaccines, and perishables.',
+      features: ['Continuous Temperature Data-Logger', 'ISO 9001 & GDP Compliant', 'Emergency Backup Refrigeration', 'Sterile Sealed Packaging']
+    }
+  ];
 
   return (
     <div className="space-y-16 pb-20">
@@ -21,10 +161,10 @@ export const ServicesPage = ({ setActiveTab }) => {
             Logistics & Freight Services
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
-            End-To-End Global Multimodal Shipping
+            End-To-End Multimodal Shipping
           </h1>
           <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            From express air cargo to heavy land haulage and automated storage hubs, Josan Logistics provides full supply chain execution.
+            Mainly focusing on Singapore and surrounding countries, Josan Logistics provides full supply chain execution with dynamic live tracking.
           </p>
         </div>
       </section>
@@ -32,45 +172,13 @@ export const ServicesPage = ({ setActiveTab }) => {
       {/* Services Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-12">
-          {[
-            {
-              id: 'express-air',
-              title: 'Express Air Cargo & Priority Charter',
-              icon: Plane,
-              img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80',
-              desc: 'Dedicated priority air freight servicing major global hubs with guaranteed next-day delivery SLAs and real-time flight tracking.',
-              features: ['Next-Day & Same-Day Priority Flights', 'Airport-to-Door Telematics Tracking', 'Hazmat & High-Value Secured Vaults', 'Customs Clearance Fast-Track']
-            },
-            {
-              id: 'land-haulage',
-              title: 'Freight Trucking & Land Haulage (FTL / LTL)',
-              icon: Truck,
-              img: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80',
-              desc: 'Modern fleet of 18-wheeler semi-trucks and sprinter vans equipped with satellite GPS telematics for seamless highway freight.',
-              features: ['Full Truckload (FTL) & Partial (LTL)', 'Automated Route Optimization', 'Hydraulic Lift-gate Vans Available', '24/7 Driver Telemetry Feed']
-            },
-            {
-              id: 'ocean-freight',
-              title: 'Ocean Cargo Shipping & Container Lines',
-              icon: Ship,
-              img: 'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&auto=format&fit=crop&q=80',
-              desc: 'Cost-effective global sea freight handling 20ft/40ft containers, oversized machinery, and consolidated ocean cargo.',
-              features: ['FCL (Full Container) & LCL Shipping', 'Port Terminal Intermodal Transfer', 'Automated Ocean Bill of Lading', 'Global Customs Brokerage']
-            },
-            {
-              id: 'cold-chain',
-              title: 'Pharma Cold Chain & Refrigerated Transit',
-              icon: Thermometer,
-              img: 'https://images.unsplash.com/photo-1586528116493-a029325540fa?w=800&auto=format&fit=crop&q=80',
-              desc: 'Precision temperature-controlled transport ranging from -20°C to +8°C for pharmaceuticals, medical vaccines, and perishables.',
-              features: ['Continuous Temperature Data-Logger', 'ISO 9001 & GDP Compliant', 'Emergency Backup Refrigeration', 'Sterile Sealed Packaging']
-            }
-          ].map((service, index) => {
+          {servicesData.map((service, index) => {
             const IconComp = service.icon;
             const isEven = index % 2 === 0;
             return (
               <div key={service.id} className={`grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-8 rounded-3xl border border-slate-200 shadow-card ${!isEven ? 'lg:flex-row-reverse' : ''}`}>
                 
+                {/* Details Column */}
                 <div className={`lg:col-span-6 space-y-4 ${!isEven ? 'lg:order-2' : ''}`}>
                   <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
                     <IconComp className="w-6 h-6 stroke-[2]" />
@@ -90,7 +198,7 @@ export const ServicesPage = ({ setActiveTab }) => {
                   <div className="pt-4">
                     <button
                       onClick={() => setActiveTab('book')}
-                      className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-orange-sm transition-all inline-flex items-center space-x-1.5"
+                      className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer"
                     >
                       <span>Book This Service</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -98,8 +206,9 @@ export const ServicesPage = ({ setActiveTab }) => {
                   </div>
                 </div>
 
+                {/* Dynamic Image Gallery Column */}
                 <div className={`lg:col-span-6 ${!isEven ? 'lg:order-1' : ''}`}>
-                  <img src={service.img} alt={service.title} className="w-full h-72 object-cover rounded-2xl border border-slate-100 shadow-sm" />
+                  <DynamicServiceGallery images={service.images} title={service.title} />
                 </div>
 
               </div>
@@ -148,7 +257,7 @@ export const ServicesPage = ({ setActiveTab }) => {
               <select
                 value={calculatorService}
                 onChange={(e) => setCalculatorService(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange"
+                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
               >
                 <option value="express">Express Air Freight ($12/kg)</option>
                 <option value="ground">Land Trucking ($4/kg)</option>
@@ -169,7 +278,7 @@ export const ServicesPage = ({ setActiveTab }) => {
           <div className="text-center pt-2">
             <button
               onClick={() => setActiveTab('book')}
-              className="px-8 py-3.5 bg-orange-gradient hover:bg-orange-600 text-white font-extrabold text-sm rounded-xl shadow-orange-glow transition-all inline-flex items-center space-x-2"
+              className="px-8 py-3.5 bg-orange-gradient hover:bg-orange-600 text-white font-extrabold text-sm rounded-xl shadow-orange-glow transition-all inline-flex items-center space-x-2 cursor-pointer"
             >
               <span>Proceed To Book With This Rate</span>
               <ArrowRight className="w-4 h-4" />

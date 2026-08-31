@@ -22,7 +22,7 @@ export const ContactPage = () => {
 
   return (
     <div className="space-y-16 pb-20">
-      
+
       {/* Header Banner */}
       <section className="bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -42,7 +42,7 @@ export const ContactPage = () => {
       {/* Main Grid: Form + Office Locations */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
+
           {/* Contact Form */}
           <div className="lg:col-span-7 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-card space-y-6">
             <div>
@@ -126,7 +126,7 @@ export const ContactPage = () => {
 
           {/* Hub Locations & Direct Hotlines */}
           <div className="lg:col-span-5 space-y-6">
-            
+
             <div className="bg-slate-900 text-white p-8 rounded-3xl space-y-6">
               <h3 className="text-xl font-extrabold flex items-center space-x-2">
                 <Building2 className="w-5 h-5 text-orange-400" />

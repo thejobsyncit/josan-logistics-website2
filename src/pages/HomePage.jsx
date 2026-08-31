@@ -75,6 +75,7 @@ export const HomePage = ({ setActiveTab }) => {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-100 bg-white group">
                 <img
                   src={heroLogisticsImg}
+<<<<<<< HEAD
                   onError={(e) => {
                     if (!e.target.dataset.tried1) {
                       e.target.dataset.tried1 = 'true';
@@ -86,6 +87,9 @@ export const HomePage = ({ setActiveTab }) => {
                       e.target.src = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&auto=format&fit=crop&q=80';
                     }
                   }}
+=======
+                  onError={(e) => { e.target.onerror = null; e.target.src = '/hero_logistics_3d.jpg'; }}
+>>>>>>> 854782f4d2a83145f0c8b4c19ee573a45837e1ed
                   alt="3D Global Freight Supply Chain Render"
                   className="w-full h-auto max-h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
                 />

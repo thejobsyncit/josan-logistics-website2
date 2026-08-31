@@ -44,6 +44,13 @@ export const LogisticsProvider = ({ children }) => {
   // Active modal state for invoices or auth
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
+<<<<<<< HEAD
+=======
+
+  // Sub-tab navigation state
+  const [customerSubTab, setCustomerSubTab] = useState('orders');
+  const [driverSubTab, setDriverSubTab] = useState('dashboard');
+>>>>>>> 854782f4d2a83145f0c8b4c19ee573a45837e1ed
 
   // Save to localStorage
   useEffect(() => {
@@ -113,21 +120,24 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Auth login
-  const loginUser = (email, role, setActiveTab) => {
+  const loginUser = (email, role, setActiveTab, details = {}) => {
     const userRole = role || (email.includes('admin') ? 'admin' : email.includes('driver') ? 'driver' : 'customer');
     const userObj = {
-      name: userRole === 'admin' 
+      name: details.fullName || (userRole === 'admin' 
         ? 'Fleet Admin Manager' 
         : userRole === 'driver' 
         ? 'Robert Martinez (Driver)' 
-        : 'Enterprise Customer',
+        : 'Enterprise Customer'),
       email: email,
       role: userRole,
       company: userRole === 'admin' 
         ? 'Josan Logistics Operations' 
         : userRole === 'driver' 
         ? 'Josan Fleet Operations' 
-        : 'Global Client Corp'
+        : 'Global Client Corp',
+      phone: details.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
+      licenseNumber: details.licenseNumber || (userRole === 'driver' ? 'S9876543A' : ''),
+      dob: details.dob || (userRole === 'driver' ? '1990-05-12' : '')
     };
     setCurrentUser(userObj);
     setCurrentRole(userRole);
@@ -151,6 +161,14 @@ export const LogisticsProvider = ({ children }) => {
   const logoutUser = () => {
     setCurrentUser(null);
     showToast('Logged out successfully', 'info');
+  };
+
+  const updateUserProfile = (updatedDetails) => {
+    setCurrentUser(prev => ({
+      ...prev,
+      ...updatedDetails
+    }));
+    showToast("Profile details updated successfully!");
   };
 
   // Shipment operations
@@ -354,6 +372,10 @@ export const LogisticsProvider = ({ children }) => {
       activeTrackingId,
       selectedInvoiceShipment,
       isAuthModalOpen,
+      customerSubTab,
+      setCustomerSubTab,
+      driverSubTab,
+      setDriverSubTab,
       setActiveTrackingId,
       setSelectedInvoiceShipment,
       setIsAuthModalOpen,

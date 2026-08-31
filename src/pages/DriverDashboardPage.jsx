@@ -24,7 +24,10 @@ import {
   Compass,
   ArrowRight,
   Zap,
-  Award
+  Award,
+  User,
+  Calendar,
+  FileText
 } from 'lucide-react';
 
 export const DriverDashboardPage = ({ setActiveTab }) => {
@@ -34,11 +37,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     currentUser, 
     updateShipmentStatus, 
     toggleDriverStatus,
-    showToast 
+    showToast,
+    driverSubTab: driverTab,
+    setDriverSubTab: setDriverTab
   } = useLogistics();
-
-  // Active sub-tab state inside Driver Layout: 'dashboard' | 'navigation' | 'update'
-  const [driverTab, setDriverTab] = useState('dashboard');
 
   const defaultDriver = {
     id: 'DRV-101',
