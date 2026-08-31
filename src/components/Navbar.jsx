@@ -54,46 +54,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all duration-300">
-      {/* Top Notification Bar / Quick Stats */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <span className="flex items-center text-orange-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping mr-2"></span>
-              24/7 Global Dispatch Active
-            </span>
-            <span className="hidden md:inline text-slate-400">|</span>
-            <span className="hidden md:inline">Hotline: +1 (800) 555-JOSAN</span>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {/* Quick Role Switcher Button: Customer Mode vs Driver Portal */}
-            <div className="flex items-center bg-slate-800 rounded-full p-0.5 border border-slate-700">
-              <button
-                onClick={() => toggleRole('customer', setActiveTab)}
-                className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
-                  currentRole === 'customer' 
-                    ? 'bg-orange-500 text-white shadow' 
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Customer Mode
-              </button>
-              <button
-                onClick={() => toggleRole('driver', setActiveTab)}
-                className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
-                  currentRole === 'driver' 
-                    ? 'bg-orange-500 text-white shadow' 
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Driver Portal
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">

@@ -82,21 +82,29 @@ export const Footer = ({ setActiveTab }) => {
             </ul>
           </div>
 
-          {/* Newsletter & Contact */}
+          {/* 24/7 Global Dispatch & Contact Info */}
           <div>
-            <h4 className="text-white text-base font-bold mb-4 font-sans border-b border-slate-800 pb-2">Dispatch Hotline</h4>
-            <div className="space-y-3 text-xs text-slate-400 mb-4">
-              <div className="flex items-start space-x-2">
+            <h4 className="text-white text-base font-bold mb-4 font-sans border-b border-slate-800 pb-2 flex items-center justify-between">
+              <span>Singapore HQ & Dispatch</span>
+              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full border border-orange-500/30 font-extrabold">24/7 Live</span>
+            </h4>
+            <div className="space-y-3 text-xs text-slate-300 mb-4">
+              <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 space-y-1">
+                <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">Singapore Dispatch Hotline</p>
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4 text-orange-500 shrink-0" />
+                  <a href="tel:+6567890123" className="text-white font-extrabold text-sm hover:text-orange-400 transition-colors">+65 6789 0123</a>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2 pt-1">
                 <MapPin className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-                <span>Global HQ: 450 Logistics Parkway, Suite 100, Chicago, IL 60607</span>
+                <span className="text-slate-400">Regional HQ: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-orange-500 shrink-0" />
-                <span className="text-white font-semibold">+1 (800) 555-JOSAN</span>
-              </div>
+              
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>support@josanlogistics.com</span>
+                <a href="mailto:contact@josanlogistics.com.sg" className="text-slate-300 hover:text-white transition-colors font-medium">contact@josanlogistics.com.sg</a>
               </div>
             </div>
 

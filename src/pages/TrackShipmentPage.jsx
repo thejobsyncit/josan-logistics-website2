@@ -28,7 +28,7 @@ export const TrackShipmentPage = () => {
     showToast
   } = useLogistics();
 
-  const [searchInput, setSearchInput] = useState(activeTrackingId || 'JOS-89421-US');
+  const [searchInput, setSearchInput] = useState(activeTrackingId || 'JOS-88190-SG');
   const [currentShipment, setCurrentShipment] = useState(() => getShipmentByTracking(searchInput));
 
   useEffect(() => {
@@ -48,8 +48,8 @@ export const TrackShipmentPage = () => {
         setActiveTrackingId(found.id);
         showToast(`Tracking record loaded for ${found.id}`);
       } else {
-        showToast(`No shipment found matching "${searchInput}". Showing demo order JOS-89421-US`, 'warning');
-        const fallback = getShipmentByTracking('JOS-89421-US');
+        showToast(`No shipment found matching "${searchInput}". Showing Singapore demo order JOS-88190-SG`, 'warning');
+        const fallback = getShipmentByTracking('JOS-88190-SG');
         setCurrentShipment(fallback);
       }
     }
@@ -72,9 +72,9 @@ export const TrackShipmentPage = () => {
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold mb-2 border border-orange-200">
               <Navigation className="w-3.5 h-3.5" />
-              <span>Real-Time Satellite Dispatch Network</span>
+              <span>Singapore Telematics Satellite Network</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900">Live Shipment Tracking</h1>
+            <h1 className="text-3xl font-extrabold text-slate-900 font-sans">Live Freight Tracking (Singapore)</h1>
           </div>
 
           <button
@@ -95,7 +95,7 @@ export const TrackShipmentPage = () => {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Enter Tracking Number (e.g. JOS-89421-US)..."
+                placeholder="Enter Tracking Number (e.g. JOS-88190-SG)..."
                 className="w-full pl-11 pr-4 py-3 text-sm font-extrabold text-slate-900 bg-transparent border-none focus:outline-none placeholder:text-slate-400 uppercase font-mono"
               />
             </div>
@@ -110,12 +110,12 @@ export const TrackShipmentPage = () => {
 
         {/* Demo Selector Pills */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-bold text-slate-500">Quick Test Samples:</span>
+          <span className="font-bold text-slate-500">Singapore Dispatch Samples:</span>
           {[
-            { id: 'JOS-89421-US', label: 'In Transit (USA)' },
-            { id: 'JOS-33104-EU', label: 'Out for Delivery (EU)' },
-            { id: 'JOS-77210-IN', label: 'Delivered (Pharma)' },
-            { id: 'JOS-55912-UK', label: 'Traffic Delay (UK)' }
+            { id: 'JOS-88190-SG', label: 'In Transit (Changi → Jurong)' },
+            { id: 'JOS-44021-SG', label: 'Out for Delivery (Pasir Panjang)' },
+            { id: 'JOS-66301-SG', label: 'Delivered (Pharma Bio-Hub)' },
+            { id: 'JOS-99210-SG', label: 'Monsoon Rain Delay (Tuas Port)' }
           ].map((sample) => (
             <button
               key={sample.id}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import heroLogisticsImg from '../assets/hero_logistics_3d.jpg';
 import { 
   Search, 
   Truck, 
@@ -73,7 +74,8 @@ export const HomePage = ({ setActiveTab }) => {
             <div className="lg:col-span-6">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-100 bg-white group">
                 <img
-                  src="/assets/hero_logistics_3d.jpg"
+                  src={heroLogisticsImg}
+                  onError={(e) => { e.target.onerror = null; e.target.src = '/hero_logistics_3d.jpg'; }}
                   alt="3D Global Freight Supply Chain Render"
                   className="w-full h-auto max-h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -193,7 +195,7 @@ export const HomePage = ({ setActiveTab }) => {
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-gradient group-hover:text-white transition-all duration-300 shadow-sm">
+                    <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:text-slate-900 transition-all duration-300 shadow-sm">
                       <IconComponent className="w-7 h-7 stroke-[2]" />
                     </div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200">
