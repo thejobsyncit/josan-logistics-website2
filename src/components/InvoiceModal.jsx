@@ -45,8 +45,8 @@ export const InvoiceModal = () => {
       <body>
         <div class="header">
           <div>
-            <div class="brand">JOSAN <span>LOGISTICS</span></div>
-            <p style="font-size:12px; color:#64748B; margin:4px 0;">Global Freight & Supply Chain Management</p>
+            <img src="/assets/josan_logo.jpg" style="height:48px; object-fit:contain; margin-bottom:4px;" />
+            <p style="font-size:12px; color:#64748B; margin:4px 0;">Regional & Global Supply Chain Management</p>
             <p style="font-size:12px; color:#64748B; margin:0;">450 Logistics Parkway, Chicago, IL 60607</p>
             <p style="font-size:12px; color:#64748B; margin:0;">Tax Reg ID: US-JOS-98210492</p>
           </div>
@@ -188,12 +188,9 @@ export const InvoiceModal = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-orange-500 pb-6">
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <div className="w-9 h-9 rounded-lg bg-orange-gradient text-white flex items-center justify-center font-extrabold text-lg">
-                  JL
-                </div>
-                <span className="text-2xl font-extrabold tracking-tight">JOSAN LOGISTICS</span>
+                <img src="/assets/josan_logo.jpg" alt="Josan Logistics Logo" className="h-12 w-auto object-contain" />
               </div>
-              <p className="text-xs text-slate-500 font-semibold">Global Freight & Supply Chain Management</p>
+              <p className="text-xs text-slate-500 font-semibold">Regional & Global Supply Chain Management</p>
               <p className="text-xs text-slate-500">450 Logistics Parkway, Chicago, IL 60607</p>
               <p className="text-xs text-slate-500">Tax Registration ID: US-JOS-98210492</p>
             </div>

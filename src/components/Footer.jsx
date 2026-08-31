@@ -25,13 +25,11 @@ export const Footer = ({ setActiveTab }) => {
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-              <div className="w-10 h-10 rounded-xl bg-orange-gradient flex items-center justify-center text-white shadow-orange-sm">
-                <Truck className="w-6 h-6 stroke-[2.5]" />
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <span className="text-2xl font-extrabold text-white">JOSAN</span>
-                <span className="text-2xl font-extrabold text-orange-500">LOGISTICS</span>
-              </div>
+              <img 
+                src="/assets/josan_logo.jpg" 
+                alt="Josan Logistics Logo" 
+                className="h-14 w-auto object-contain rounded-xl bg-white p-1" 
+              />
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
               Josan Logistics is a global leader in intelligent supply chain management, offering express freight, air cargo, ocean shipping, and smart automated warehousing.

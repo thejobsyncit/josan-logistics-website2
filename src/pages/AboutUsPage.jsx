@@ -13,10 +13,10 @@ export const AboutUsPage = ({ setActiveTab }) => {
             About Josan Logistics
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
-            Architecting Global Supply Chains Since 2012
+            Architecting Regional & Global Supply Chains
           </h1>
           <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Founded with a vision to eliminate freight friction, Josan Logistics connects over 120 hubs globally with real-time telematics and automated dispatching.
+            Mainly focusing on Singapore, Josan Logistics provides seamless freight delivery within Singapore and to surrounding countries with real-time telematics and efficient dispatching.
           </p>
         </div>
       </section>
@@ -27,10 +27,10 @@ export const AboutUsPage = ({ setActiveTab }) => {
           
           <div className="lg:col-span-6 space-y-6">
             <h2 className="text-3xl font-extrabold text-slate-900">
-              Our Journey: From Single Fleet To Global Freight Powerhouse
+              Our Focus: Singapore Hub & Regional Delivery Excellence
             </h2>
             <p className="text-slate-600 text-sm leading-relaxed">
-              What started as a regional trucking company has expanded into a full-scale multimodal logistics platform handling air cargo, ocean shipping, pharmaceutical cold chain, and automated warehouse hubs.
+              Headquartered and mainly operating out of Singapore, Josan Logistics specializes in fast, reliable delivery throughout Singapore and to all surrounding countries across the region.
             </p>
             <p className="text-slate-600 text-sm leading-relaxed">
               Today, our state-of-the-art telemetry system tracks over 50,000 active parcels every month, ensuring complete visibility from sender pickup to final delivery signature.
@@ -85,46 +85,6 @@ export const AboutUsPage = ({ setActiveTab }) => {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Executive Leadership Team */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2 className="text-3xl font-extrabold text-slate-900">Leadership Team</h2>
-          <p className="text-slate-600 text-sm mt-1">Decades of logistics expertise steering global operations.</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-          {[
-            {
-              name: 'Alexander Josan',
-              role: 'Founder & Chief Executive Officer',
-              photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-              bio: 'Former VP of Global Shipping with 22+ years of supply chain expertise.'
-            },
-            {
-              name: 'Dr. Rebecca Vance',
-              role: 'Chief Technology & AI Officer',
-              photo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80',
-              bio: 'Pioneer in neural fleet dispatch algorithms and telematics tracking.'
-            },
-            {
-              name: 'Michael Sterling',
-              role: 'Head of Global Fleet Operations',
-              photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80',
-              bio: 'Oversees 4,800+ trucks, ocean containers, and airport hubs.'
-            }
-          ].map((m, idx) => (
-            <div key={idx} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow text-center p-6 space-y-4">
-              <img src={m.photo} alt={m.name} className="w-28 h-28 rounded-full object-cover mx-auto border-4 border-orange-100" />
-              <div>
-                <h4 className="font-extrabold text-slate-900 text-lg">{m.name}</h4>
-                <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">{m.role}</p>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{m.bio}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 

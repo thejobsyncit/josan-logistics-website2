@@ -34,10 +34,7 @@ export const AuthModal = ({ setActiveTab }) => {
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-center space-x-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-white text-orange-600 flex items-center justify-center font-bold">
-              JL
-            </div>
-            <span className="text-xl font-extrabold tracking-tight font-sans">JOSAN LOGISTICS</span>
+            <img src="/assets/josan_logo.jpg" alt="Josan Logistics" className="h-10 w-auto object-contain rounded-lg bg-white p-1" />
           </div>
           <h3 className="text-lg font-bold">
             {isLogin ? 'Access Your Freight Portal' : 'Create Enterprise Account'}

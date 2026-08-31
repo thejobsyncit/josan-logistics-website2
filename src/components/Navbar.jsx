@@ -103,18 +103,11 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             onClick={() => setActiveTab('home')}
             className="flex items-center space-x-3 cursor-pointer group"
           >
-            <div className="w-12 h-12 rounded-xl bg-orange-gradient flex items-center justify-center text-white shadow-orange-sm group-hover:scale-105 transition-transform duration-200">
-              <Truck className="w-7 h-7 stroke-[2.5]" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-1.5">
-                <span className="text-2xl font-extrabold tracking-tight text-slate-900 font-sans">JOSAN</span>
-                <span className="text-2xl font-extrabold text-orange-500">LOGISTICS</span>
-              </div>
-              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 -mt-1">
-                Global Freight & Supply Chain
-              </p>
-            </div>
+            <img 
+              src="/assets/josan_logo.jpg" 
+              alt="Josan Logistics Logo" 
+              className="h-12 sm:h-14 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-200" 
+            />
           </div>
 
           {/* Desktop Navigation Links */}
