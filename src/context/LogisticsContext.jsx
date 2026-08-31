@@ -160,6 +160,14 @@ export const LogisticsProvider = ({ children }) => {
     showToast('Logged out successfully', 'info');
   };
 
+  const updateUserProfile = (updatedDetails) => {
+    setCurrentUser(prev => ({
+      ...prev,
+      ...updatedDetails
+    }));
+    showToast("Profile details updated successfully!");
+  };
+
   // Shipment operations
   const addShipment = (newShipmentData) => {
     const trackingId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-${newShipmentData.destinationCountryCode || 'US'}`;
@@ -343,6 +351,7 @@ export const LogisticsProvider = ({ children }) => {
       toggleRole,
       loginUser,
       logoutUser,
+      updateUserProfile,
       addShipment,
       updateShipmentStatus,
       flagWeatherDelay,
