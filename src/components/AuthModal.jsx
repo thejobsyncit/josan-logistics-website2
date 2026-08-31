@@ -31,7 +31,13 @@ export const AuthModal = ({ setActiveTab }) => {
     loginUser(
       email || (role === 'admin' ? 'admin@josanlogistics.com' : role === 'driver' ? 'gurpreet@josanlogistics.com' : 'customer@techcorp.com'),
       role,
-      setActiveTab
+      setActiveTab,
+      {
+        fullName,
+        phone,
+        licenseNumber,
+        dob
+      }
     );
   };
 
