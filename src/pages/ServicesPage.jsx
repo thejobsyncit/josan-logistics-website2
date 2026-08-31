@@ -21,81 +21,45 @@ const DynamicServiceGallery = ({ images, title }) => {
   };
 
   return (
-    <div className="space-y-3">
-      {/* Main Image Container */}
-      <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-72 bg-slate-900">
-        <div 
-          className="flex h-full transition-transform duration-500 ease-in-out"
-          style={{ 
-            transform: `translateX(-${currentIndex * (100 / images.length)}%)`, 
-            width: `${images.length * 100}%` 
-          }}
-        >
-          {images.map((imgUrl, idx) => (
-            <div key={idx} className="h-full shrink-0" style={{ width: `${100 / images.length}%` }}>
-              <img
-                src={imgUrl}
-                alt={`${title} view ${idx + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
+    <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-80 bg-slate-900">
+      <img
+        src={images[currentIndex]}
+        alt={`${title} view ${currentIndex + 1}`}
+        className="w-full h-full object-cover transition-all duration-500 transform group-hover:scale-105"
+      />
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60 pointer-events-none"></div>
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60"></div>
 
-        {/* Navigation Arrows */}
-        <button
-          onClick={handlePrev}
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-85 hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
-          title="Previous Image"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+      {/* Navigation Arrows */}
+      <button
+        onClick={handlePrev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer animate-fade-in"
+        title="Previous Image"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
 
-        <button
-          onClick={handleNext}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-85 hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
-          title="Next Image"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
+      <button
+        onClick={handleNext}
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer animate-fade-in"
+        title="Next Image"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
 
-        {/* Indicator Dots */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1.5 z-10">
-          {images.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
-                idx === currentIndex
-                  ? 'bg-orange-500 w-6'
-                  : 'bg-white/60 hover:bg-white'
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Thumbnail Selection Bar */}
-      <div className="grid grid-cols-3 gap-2">
-        {images.map((imgUrl, idx) => (
+      {/* Indicator Dots */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1.5 z-10">
+        {images.map((_, idx) => (
           <button
             key={idx}
             onClick={() => setCurrentIndex(idx)}
-            className={`relative rounded-lg overflow-hidden h-16 border-2 transition-all cursor-pointer ${
+            className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
               idx === currentIndex
-                ? 'border-orange-500 ring-2 ring-orange-500/30 scale-[1.02]'
-                : 'border-transparent opacity-70 hover:opacity-100'
+                ? 'bg-orange-500 w-6'
+                : 'bg-white/60 hover:bg-white'
             }`}
-          >
-            <img
-              src={imgUrl}
-              alt={`Thumbnail ${idx + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </button>
+          />
         ))}
       </div>
     </div>
