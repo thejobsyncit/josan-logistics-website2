@@ -98,20 +98,7 @@ export const TrackShipmentPage = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchInput.trim()) {
-<<<<<<< HEAD
       openFullscreenMap(searchInput.trim());
-=======
-      const found = getShipmentByTracking(searchInput.trim());
-      if (found) {
-        setCurrentShipment(found);
-        setActiveTrackingId(found.id);
-        showToast(`Tracking record loaded for ${found.id}`);
-      } else {
-        showToast(`No shipment found matching "${searchInput}". Showing Singapore demo order JOS-88190-SG`, 'warning');
-        const fallback = getShipmentByTracking('JOS-88190-SG');
-        setCurrentShipment(fallback);
-      }
->>>>>>> 854782f4d2a83145f0c8b4c19ee573a45837e1ed
     }
   };
 
@@ -165,7 +152,6 @@ export const TrackShipmentPage = () => {
           </div>
         </form>
 
-<<<<<<< HEAD
         {/* Demo Selector Cards - Individual Live Tracking for Each Shipment */}
         <div className="space-y-3 pt-3 border-t border-slate-100">
           <div className="flex items-center justify-between">
@@ -217,29 +203,6 @@ export const TrackShipmentPage = () => {
               </div>
             ))}
           </div>
-=======
-        {/* Demo Selector Pills */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-bold text-slate-500">Singapore Dispatch Samples:</span>
-          {[
-            { id: 'JOS-88190-SG', label: 'In Transit (Changi → Jurong)' },
-            { id: 'JOS-44021-SG', label: 'Out for Delivery (Pasir Panjang)' },
-            { id: 'JOS-66301-SG', label: 'Delivered (Pharma Bio-Hub)' },
-            { id: 'JOS-99210-SG', label: 'Monsoon Rain Delay (Tuas Port)' }
-          ].map((sample) => (
-            <button
-              key={sample.id}
-              onClick={() => handleSelectDemo(sample.id)}
-              className={`px-3 py-1.5 rounded-lg font-mono font-bold text-xs transition-all border ${
-                currentShipment?.id === sample.id
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                  : 'bg-slate-100 text-slate-700 border-slate-200 hover:border-orange-400'
-              }`}
-            >
-              {sample.id} <span className="font-sans font-normal opacity-80">({sample.label})</span>
-            </button>
-          ))}
->>>>>>> 854782f4d2a83145f0c8b4c19ee573a45837e1ed
         </div>
 
       </div>

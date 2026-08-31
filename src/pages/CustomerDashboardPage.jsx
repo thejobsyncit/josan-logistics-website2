@@ -19,28 +19,21 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     currentRole,
     setActiveTrackingId, 
     setSelectedInvoiceShipment, 
-<<<<<<< HEAD
     updateUserProfile,
-    showToast 
-  } = useLogistics();
-
-  const [activeSubTab, setActiveSubTab] = useState('orders'); // 'orders' | 'profile' | 'addresses' | 'support'
-  const [expandedMapId, setExpandedMapId] = useState(null);
-  const [addressList, setAddressList] = useState([
-    { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)' },
-    { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)' }
-=======
     showToast,
-    customerSubTab: activeSubTab,
-    setCustomerSubTab: setActiveSubTab
+    customerSubTab,
+    setCustomerSubTab
   } = useLogistics();
 
+  const activeSubTab = customerSubTab || 'orders';
+  const setActiveSubTab = setCustomerSubTab || (() => {});
+  const [expandedMapId, setExpandedMapId] = useState(null);
+
   const [addressList, setAddressList] = useState([
-    { id: 1, label: 'Primary HQ Warehouse', address: '100 Silicon Way, San Jose, CA 95110', contact: 'TechCorp Shipping Manager', type: 'pickup' },
-    { id: 2, label: 'East Coast Distribution Center', address: '450 Fifth Ave, Suite 1200, New York, NY 10018', contact: 'Marcus Vance', type: 'pickup' },
+    { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
+    { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
     { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
     { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
->>>>>>> 854782f4d2a83145f0c8b4c19ee573a45837e1ed
   ]);
 
   const [newLabel, setNewLabel] = useState('');

@@ -44,13 +44,10 @@ export const LogisticsProvider = ({ children }) => {
   // Active modal state for invoices or auth
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
-<<<<<<< HEAD
-=======
 
   // Sub-tab navigation state
   const [customerSubTab, setCustomerSubTab] = useState('orders');
   const [driverSubTab, setDriverSubTab] = useState('dashboard');
->>>>>>> 854782f4d2a83145f0c8b4c19ee573a45837e1ed
 
   // Save to localStorage
   useEffect(() => {
@@ -349,15 +346,6 @@ export const LogisticsProvider = ({ children }) => {
     if (!id) return null;
     const searchClean = id.trim().toUpperCase();
     return shipments.find(s => s.id.toUpperCase() === searchClean || s.id.toUpperCase().includes(searchClean));
-  };
-
-  const updateUserProfile = (updatedProfile) => {
-    setCurrentUser(prev => {
-      const newObj = { ...prev, ...updatedProfile };
-      localStorage.setItem('josan_user', JSON.stringify(newObj));
-      return newObj;
-    });
-    showToast('Profile information updated successfully!');
   };
 
   return (
