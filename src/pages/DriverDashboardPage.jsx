@@ -91,10 +91,21 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   );
 
   // Delivery Update Form State
-  const [recipientName, setRecipientName] = useState('Marcus Vance');
   const [proofPhotoUploaded, setProofPhotoUploaded] = useState(false);
-  const [proofSignature, setProofSignature] = useState(true);
-  const [deliveryNotes, setDeliveryNotes] = useState('Delivered directly to receiving dock bay #4 with signature.');
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+        setProofPhotoUploaded(true);
+        showToast('Cargo delivery photo uploaded successfully!');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleStatusChange = (shipmentId, newStatus) => {
     updateShipmentStatus(shipmentId, newStatus);
@@ -114,8 +125,8 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
   const handleCompleteDeliverySubmit = (e) => {
     e.preventDefault();
-    if (!recipientName) {
-      showToast('Please enter recipient name before completing delivery', 'warning');
+    if (!proofPhotoUploaded) {
+      showToast('Please upload cargo delivery photo verification before completing delivery', 'warning');
       return;
     }
     updateShipmentStatus(activeJob.id, 'Delivered');
@@ -625,34 +636,38 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 </div>
               </div>
 
-              {/* STEP 2: UPLOAD PROOF (PHOTO & E-SIGNATURE) */}
+              {/* STEP 2: UPLOAD PROOF (PHOTO) */}
               <div className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
                   <Camera className="w-4 h-4 text-orange-500" />
-                  <span>2. Upload Cargo Photo & Recipient Signature</span>
+                  <span>2. Upload Cargo Photo Verification</span>
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                  
-                  {/* Photo Proof Simulator */}
+                <div className="max-w-md mx-auto text-xs">
+                  {/* Photo Proof Input & Preview */}
                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-                    <label className="block font-bold text-slate-700">Cargo Photo Verification</label>
+                    <label className="block font-bold text-slate-700 text-left">Cargo Photo Verification</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      id="cargo-photo-upload" 
+                      className="hidden" 
+                      onChange={handlePhotoChange} 
+                    />
                     <div 
-                      onClick={() => {
-                        setProofPhotoUploaded(true);
-                        showToast('Cargo delivery photo captured and verified!');
-                      }}
-                      className={`h-36 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 cursor-pointer transition-all ${
+                      onClick={() => document.getElementById('cargo-photo-upload').click()}
+                      className={`h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 cursor-pointer transition-all overflow-hidden relative ${
                         proofPhotoUploaded
                           ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
                           : 'border-slate-300 hover:border-orange-500 bg-white text-slate-500'
                       }`}
                     >
-                      {proofPhotoUploaded ? (
-                        <div className="text-center space-y-1">
-                          <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-                          <p className="font-extrabold text-xs">Photo Captured Successfully ✓</p>
-                          <p className="text-[10px] text-emerald-700">Timestamped & GPS Encrypted</p>
+                      {proofPhotoUploaded && photoPreview ? (
+                        <div className="w-full h-full relative group">
+                          <img src={photoPreview} alt="Cargo Proof" className="w-full h-full object-cover rounded-lg" />
+                          <div className="absolute inset-0 bg-slate-950/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity text-white font-extrabold text-xs">
+                            Change Photo
+                          </div>
                         </div>
                       ) : (
                         <div className="text-center space-y-1">
@@ -663,37 +678,6 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                       )}
                     </div>
                   </div>
-
-                  {/* E-Signature Pad Simulator */}
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-                    <label className="block font-bold text-slate-700">Recipient Full Name & Electronic Signature</label>
-                    <input
-                      type="text"
-                      value={recipientName}
-                      onChange={(e) => setRecipientName(e.target.value)}
-                      placeholder="Enter recipient full name..."
-                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange mb-2"
-                      required
-                    />
-
-                    <div className="h-24 bg-white rounded-xl border border-slate-300 p-3 relative flex items-center justify-center">
-                      <span className="font-mono text-slate-400 italic text-sm select-none">
-                        [ Signature: {recipientName || 'Recipient Sign Here'} ]
-                      </span>
-                      <span className="absolute bottom-1 right-2 text-[9px] font-bold text-emerald-600">✓ Digital Signature Valid</span>
-                    </div>
-                  </div>
-
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Delivery Notes / Special Instructions</label>
-                  <textarea
-                    rows={2}
-                    value={deliveryNotes}
-                    onChange={(e) => setDeliveryNotes(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus-orange"
-                  />
                 </div>
               </div>
 
