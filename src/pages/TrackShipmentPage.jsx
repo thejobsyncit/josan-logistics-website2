@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { RealTruckGraphic } from '../components/RealTruckGraphic';
+import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
   Search, 
   Truck, 
@@ -15,7 +17,9 @@ import {
   Package,
   User,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  X,
+  Maximize2
 } from 'lucide-react';
 
 export const TrackShipmentPage = () => {
@@ -23,13 +27,28 @@ export const TrackShipmentPage = () => {
     shipments, 
     activeTrackingId, 
     setActiveTrackingId, 
-    getShipmentByTracking,
+    getShipmentByTracking, 
     setSelectedInvoiceShipment,
     showToast
   } = useLogistics();
 
-  const [searchInput, setSearchInput] = useState(activeTrackingId || 'JOS-89421-US');
+  const [searchInput, setSearchInput] = useState(activeTrackingId || 'JOS-88190-SG');
   const [currentShipment, setCurrentShipment] = useState(() => getShipmentByTracking(searchInput));
+  const [fullscreenMapShipment, setFullscreenMapShipment] = useState(null);
+  const mapSectionRef = useRef(null);
+
+  // Live Moving Anime Truck animation state
+  const [truckProgress, setTruckProgress] = useState(20);
+  const [currentSpeed, setCurrentSpeed] = useState(68);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTruckProgress(prev => (prev >= 80 ? 20 : prev + 0.35));
+      setCurrentSpeed(64 + Math.floor(Math.random() * 8));
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (activeTrackingId) {
@@ -39,27 +58,52 @@ export const TrackShipmentPage = () => {
     }
   }, [activeTrackingId, shipments]);
 
+  const openFullscreenMap = (sampleOrId) => {
+    let found = null;
+    if (typeof sampleOrId === 'string') {
+      found = getShipmentByTracking(sampleOrId) || shipments.find(s => s.id.toUpperCase() === sampleOrId.toUpperCase());
+    } else if (sampleOrId && sampleOrId.id) {
+      found = getShipmentByTracking(sampleOrId.id) || shipments.find(s => s.id.toUpperCase() === sampleOrId.id.toUpperCase());
+    }
+    
+    if (!found && typeof sampleOrId === 'object') {
+      found = {
+        id: sampleOrId.id,
+        origin: sampleOrId.origin,
+        destination: sampleOrId.dest || sampleOrId.destination || 'Singapore Hub',
+        status: sampleOrId.status || 'In Transit',
+        driverName: sampleOrId.driver || 'Tan Wei Ming',
+        estimatedDelivery: 'Today, 4:30 PM (SGT)'
+      };
+    }
+
+    if (!found) {
+      found = shipments[0] || {
+        id: 'JOS-88190-SG',
+        origin: 'Changi Air Cargo Complex',
+        destination: 'Jurong Port Industrial Estate',
+        status: 'In Transit',
+        driverName: 'Tan Wei Ming',
+        estimatedDelivery: 'Today, 4:30 PM (SGT)'
+      };
+    }
+
+    setCurrentShipment(found);
+    setSearchInput(found.id);
+    setActiveTrackingId(found.id);
+    setFullscreenMapShipment(found);
+    showToast(`Fullscreen satellite tracking opened for ${found.id}`);
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchInput.trim()) {
-      const found = getShipmentByTracking(searchInput.trim());
-      if (found) {
-        setCurrentShipment(found);
-        setActiveTrackingId(found.id);
-        showToast(`Tracking record loaded for ${found.id}`);
-      } else {
-        showToast(`No shipment found matching "${searchInput}". Showing demo order JOS-89421-US`, 'warning');
-        const fallback = getShipmentByTracking('JOS-89421-US');
-        setCurrentShipment(fallback);
-      }
+      openFullscreenMap(searchInput.trim());
     }
   };
 
-  const handleSelectDemo = (id) => {
-    setSearchInput(id);
-    setActiveTrackingId(id);
-    const found = getShipmentByTracking(id);
-    if (found) setCurrentShipment(found);
+  const handleSelectDemo = (sampleOrId) => {
+    openFullscreenMap(sampleOrId);
   };
 
   return (
@@ -72,9 +116,9 @@ export const TrackShipmentPage = () => {
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold mb-2 border border-orange-200">
               <Navigation className="w-3.5 h-3.5" />
-              <span>Real-Time Satellite Dispatch Network</span>
+              <span>Singapore Telematics Satellite Network</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900">Live Shipment Tracking</h1>
+            <h1 className="text-3xl font-extrabold text-slate-900 font-sans">Live Freight Tracking (Singapore)</h1>
           </div>
 
           <button
@@ -95,7 +139,7 @@ export const TrackShipmentPage = () => {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Enter Tracking Number (e.g. JOS-89421-US)..."
+                placeholder="Enter Tracking Number (e.g. JOS-88190-SG)..."
                 className="w-full pl-11 pr-4 py-3 text-sm font-extrabold text-slate-900 bg-transparent border-none focus:outline-none placeholder:text-slate-400 uppercase font-mono"
               />
             </div>
@@ -108,27 +152,57 @@ export const TrackShipmentPage = () => {
           </div>
         </form>
 
-        {/* Demo Selector Pills */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-bold text-slate-500">Quick Test Samples:</span>
-          {[
-            { id: 'JOS-89421-US', label: 'In Transit (USA)' },
-            { id: 'JOS-33104-EU', label: 'Out for Delivery (EU)' },
-            { id: 'JOS-77210-IN', label: 'Delivered (Pharma)' },
-            { id: 'JOS-55912-UK', label: 'Traffic Delay (UK)' }
-          ].map((sample) => (
-            <button
-              key={sample.id}
-              onClick={() => handleSelectDemo(sample.id)}
-              className={`px-3 py-1.5 rounded-lg font-mono font-bold text-xs transition-all border ${
-                currentShipment?.id === sample.id
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                  : 'bg-slate-100 text-slate-700 border-slate-200 hover:border-orange-400'
-              }`}
-            >
-              {sample.id} <span className="font-sans font-normal opacity-80">({sample.label})</span>
-            </button>
-          ))}
+        {/* Demo Selector Cards - Individual Live Tracking for Each Shipment */}
+        <div className="space-y-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between">
+            <span className="font-extrabold text-slate-700 text-xs uppercase tracking-wider block">
+              Singapore Live Dispatch Tracking Queue (Click any parcel to track live):
+            </span>
+            <span className="text-[11px] text-orange-600 font-bold">4 Active Telematics Feeds</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {[
+              { id: 'JOS-88190-SG', status: 'In Transit', statusBg: 'bg-orange-100 text-orange-800 border-orange-200', origin: 'Changi Air Cargo', dest: 'Jurong Port Hub', driver: 'Tan Wei Ming' },
+              { id: 'JOS-44021-SG', status: 'Out for Delivery', statusBg: 'bg-blue-100 text-blue-800 border-blue-200', origin: 'Pasir Panjang Terminal', dest: 'Woodlands Tech Park', driver: 'Muhammad Rizal' },
+              { id: 'JOS-66301-SG', status: 'Delivered', statusBg: 'bg-emerald-100 text-emerald-800 border-emerald-200', origin: 'Tuas Mega Port', dest: 'Biopolis Bio-Hub', driver: 'Gurpreet Singh' },
+              { id: 'JOS-99210-SG', status: 'Monsoon Rain Delay', statusBg: 'bg-amber-100 text-amber-800 border-amber-200 animate-pulse', origin: 'Jurong Logistics Hub', dest: 'Woodlands Checkpoint', driver: 'Robert Martinez' }
+            ].map((sample) => (
+              <div
+                key={sample.id}
+                onClick={() => handleSelectDemo(sample.id)}
+                className={`p-4 rounded-2xl transition-all border flex flex-col justify-between cursor-pointer space-y-3 ${
+                  currentShipment?.id === sample.id
+                    ? 'bg-slate-900 text-white border-orange-500 shadow-xl ring-2 ring-orange-500/40'
+                    : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300 hover:shadow-md'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-extrabold text-sm">{sample.id}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase border ${sample.statusBg}`}>
+                    ● {sample.status}
+                  </span>
+                </div>
+
+                <div className="space-y-1 text-xs">
+                  <p className="font-bold text-[11px] opacity-90 truncate">{sample.origin} → {sample.dest}</p>
+                  <p className="text-[10px] opacity-75">Driver: {sample.driver}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openFullscreenMap(sample);
+                  }}
+                  className="w-full py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center space-x-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white shadow-orange-sm active:scale-95"
+                >
+                  <Navigation className="w-3.5 h-3.5 animate-pulse" />
+                  <span>Enter GPS Tracker →</span>
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>
@@ -268,51 +342,39 @@ export const TrackShipmentPage = () => {
             </div>
 
             {/* Simulated Live Route Progress Visual Map */}
-            <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl space-y-4 relative overflow-hidden">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div ref={mapSectionRef} className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl space-y-4 relative overflow-hidden scroll-mt-24">
+              <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 gap-2">
                 <div className="flex items-center space-x-2">
                   <Navigation className="w-5 h-5 text-orange-400" />
                   <span className="font-extrabold text-sm">Live GPS Telematics Map Simulation</span>
                 </div>
-                <span className="text-xs text-slate-400 font-mono">Route: {currentShipment.origin} → {currentShipment.destination}</span>
+                
+                <div className="flex items-center space-x-3">
+                  <span className="text-xs text-slate-400 font-mono hidden sm:inline">Route: {currentShipment.origin} → {currentShipment.destination}</span>
+                  <button
+                    onClick={() => setFullscreenMapShipment(currentShipment)}
+                    className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1 cursor-pointer"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Expand Fullscreen Map</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Simulated Map Container */}
-              <div className="relative h-48 bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex items-center justify-center p-4">
-                
-                {/* SVG Route Line */}
-                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                  <line x1="15%" y1="50%" x2="85%" y2="50%" stroke="#334155" strokeWidth="4" strokeDasharray="6 6" />
-                  <line x1="15%" y1="50%" x2="55%" y2="50%" stroke="#F26722" strokeWidth="4" />
-                </svg>
-
-                {/* Origin Marker */}
-                <div className="absolute left-[15%] flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-600 text-white flex items-center justify-center text-[10px] font-bold">A</div>
-                  <span className="text-[10px] text-slate-400 font-bold mt-1">{currentShipment.origin}</span>
-                </div>
-
-                {/* Moving Pulse Truck Marker */}
-                <div className="absolute left-[55%] -translate-x-1/2 flex flex-col items-center z-10">
-                  <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-orange-glow pulse-badge">
-                    <Truck className="w-5 h-5 animate-pulse" />
-                  </div>
-                  <span className="text-[10px] text-orange-400 font-bold mt-1 bg-slate-900/90 px-2 py-0.5 rounded border border-orange-500/30">
-                    {currentShipment.currentLocation}
-                  </span>
-                </div>
-
-                {/* Destination Marker */}
-                <div className="absolute right-[15%] flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-600 text-white flex items-center justify-center text-[10px] font-bold">B</div>
-                  <span className="text-[10px] text-slate-400 font-bold mt-1">{currentShipment.destination}</span>
-                </div>
-
+              {/* Simulated Map Container with Singapore Google Map Vector */}
+              <div className="relative h-80 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+                <SingaporeGoogleMapBackground 
+                  origin={currentShipment.origin}
+                  destination={currentShipment.destination}
+                  vehicle={currentShipment.driverName ? `${currentShipment.driverName}'s Truck` : 'Josan EV Semi-Truck'}
+                  truckProgress={truckProgress}
+                  currentSpeed={currentSpeed}
+                />
               </div>
 
               <div className="flex items-center justify-between text-xs text-slate-400 pt-2">
                 <span>Telematics Satellite Lock: <strong className="text-emerald-400">ONLINE (100% Signal)</strong></span>
-                <span>Speed: <strong className="text-white">68 mph</strong></span>
+                <span>Speed: <strong className="text-orange-400 font-mono font-bold">{currentSpeed} mph</strong></span>
               </div>
             </div>
 
@@ -388,6 +450,83 @@ export const TrackShipmentPage = () => {
 
           </div>
 
+        </div>
+      )}
+
+      {/* FULLSCREEN LIVE GPS MAP MODAL OVERLAY */}
+      {fullscreenMapShipment && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6 bg-slate-900/85 backdrop-blur-md animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-700 w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden relative">
+            
+            {/* Modal Header Bar */}
+            <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-800 shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-gradient text-white flex items-center justify-center font-extrabold text-sm shadow-orange-sm">
+                  📡
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono font-extrabold text-base sm:text-lg text-white">{fullscreenMapShipment.id}</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-orange-500 text-white shadow-xs">
+                      ● {fullscreenMapShipment.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Live Satellite GPS Telematics | {fullscreenMapShipment.origin} → {fullscreenMapShipment.destination}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setFullscreenMapShipment(null)}
+                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white rounded-xl text-xs font-extrabold transition-all border border-rose-500/40 flex items-center space-x-1.5 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                <span>Close Fullscreen Map</span>
+              </button>
+            </div>
+
+            {/* Main Interactive Google Map Canvas Overlay */}
+            <div className="flex-1 relative w-full h-full bg-slate-100 overflow-hidden">
+              <SingaporeGoogleMapBackground
+                origin={fullscreenMapShipment.origin}
+                destination={fullscreenMapShipment.destination}
+                vehicle={fullscreenMapShipment.driverName ? `${fullscreenMapShipment.driverName}'s Heavy Semi-Truck` : 'Josan EV Express Truck'}
+                truckProgress={truckProgress}
+                currentSpeed={currentSpeed}
+              />
+            </div>
+
+            {/* Modal Footer HUD */}
+            <div className="bg-slate-900 text-white p-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 text-xs shrink-0">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Assigned Driver</p>
+                  <p className="font-extrabold text-white text-xs">{fullscreenMapShipment.driverName || 'Tan Wei Ming'}</p>
+                </div>
+                <div className="border-l border-slate-800 pl-4 sm:pl-6">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Speed Telemetry</p>
+                  <p className="font-extrabold text-orange-400 text-xs font-mono">{currentSpeed} mph</p>
+                </div>
+                <div className="border-l border-slate-800 pl-4 sm:pl-6">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Est Arrival</p>
+                  <p className="font-extrabold text-emerald-400 text-xs">{fullscreenMapShipment.estimatedDelivery || 'Today, 4:30 PM (SGT)'}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setSelectedInvoiceShipment(fullscreenMapShipment);
+                  setFullscreenMapShipment(null);
+                }}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>View Freight Invoice</span>
+              </button>
+            </div>
+
+          </div>
         </div>
       )}
 

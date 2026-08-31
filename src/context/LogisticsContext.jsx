@@ -43,7 +43,7 @@ export const LogisticsProvider = ({ children }) => {
 
   // Active modal state for invoices or auth
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
 
   // Save to localStorage
   useEffect(() => {
@@ -66,12 +66,16 @@ export const LogisticsProvider = ({ children }) => {
     localStorage.setItem('josan_user', JSON.stringify(currentUser));
   }, [currentUser]);
 
-  // Helper toast alert function
-  const showToast = (message, type = 'success') => {
+  // Helper toast alert function (20s duration so Admin & Drivers can view availability status)
+  const showToast = (message, type = 'success', duration = 20000) => {
+    if (!message) {
+      setToast(null);
+      return;
+    }
     setToast({ message, type, id: Date.now() });
     setTimeout(() => {
       setToast(null);
-    }, 4000);
+    }, duration);
   };
 
   // Role toggle action
@@ -303,11 +307,39 @@ export const LogisticsProvider = ({ children }) => {
     showToast(`Driver status updated to ${newStatus}`);
   };
 
+  // Warehouse operations
+  const updateWarehouseBinStatus = (warehouseId, binId, newStatus) => {
+    setWarehouses(prev => prev.map(wh => {
+      if (wh.id === warehouseId) {
+        return {
+          ...wh,
+          bins: (wh.bins || []).map(bin => {
+            if (bin.binId === binId) {
+              return { ...bin, status: newStatus };
+            }
+            return bin;
+          })
+        };
+      }
+      return wh;
+    }));
+    showToast(`Updated Bin ${binId} status to "${newStatus}"!`);
+  };
+
   // Search helper
   const getShipmentByTracking = (id) => {
     if (!id) return null;
     const searchClean = id.trim().toUpperCase();
     return shipments.find(s => s.id.toUpperCase() === searchClean || s.id.toUpperCase().includes(searchClean));
+  };
+
+  const updateUserProfile = (updatedProfile) => {
+    setCurrentUser(prev => {
+      const newObj = { ...prev, ...updatedProfile };
+      localStorage.setItem('josan_user', JSON.stringify(newObj));
+      return newObj;
+    });
+    showToast('Profile information updated successfully!');
   };
 
   return (
@@ -328,6 +360,7 @@ export const LogisticsProvider = ({ children }) => {
       toggleRole,
       loginUser,
       logoutUser,
+      updateUserProfile,
       addShipment,
       updateShipmentStatus,
       flagWeatherDelay,
@@ -335,6 +368,7 @@ export const LogisticsProvider = ({ children }) => {
       addDriver,
       removeDriver,
       toggleDriverStatus,
+      updateWarehouseBinStatus,
       getShipmentByTracking,
       showToast
     }}>

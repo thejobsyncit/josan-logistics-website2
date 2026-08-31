@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { RealTruckGraphic } from '../components/RealTruckGraphic';
+import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
   Truck, 
   MapPin, 
@@ -38,54 +40,85 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   // Active sub-tab state inside Driver Layout: 'dashboard' | 'navigation' | 'update'
   const [driverTab, setDriverTab] = useState('dashboard');
 
-  // Pick current driver or default driver DRV-102
-  const driverInfo = drivers.find(d => d.email === currentUser?.email) || drivers[1] || drivers[0];
+  const defaultDriver = {
+    id: 'DRV-101',
+    name: 'Tan Wei Ming',
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    phone: '+65 9123 4567',
+    email: 'weiming.tan@josanlogistics.com',
+    licenseNumber: 'SG-CLASS4-9182',
+    vehicleType: 'EV Express Cargo Van',
+    vehicleId: 'SG-8819',
+    status: 'On Delivery',
+    deliveriesCompleted: 540,
+    onTimeRate: '99.6%',
+    rating: 4.9,
+    assignedHub: 'Changi Air Cargo Logistics Hub',
+    safetyScore: '99/100',
+    joinedDate: 'Jan 2024'
+  };
+
+  const defaultJob = {
+    id: 'JOS-88190-SG',
+    sender: 'Razer Asia-Pacific HQ',
+    origin: 'Changi Air Cargo Complex',
+    destination: 'Jurong Port Industrial Estate',
+    status: 'In Transit',
+    cargoType: 'High-Tech Electronics & Microchips',
+    weight: '245.5 kg',
+    price: 'S$ 420.00',
+    vehicle: 'Josan EV Express Truck #SG-8819',
+    estimatedDelivery: 'Today, 4:30 PM'
+  };
+
+  // Pick current driver or default driver
+  const driverInfo = (drivers || []).find(d => d.email === currentUser?.email) || drivers?.[0] || defaultDriver;
   const [driverStatus, setDriverStatus] = useState(driverInfo.status || 'On Delivery');
 
   // Available jobs queue for drivers to accept
   const [availableJobs, setAvailableJobs] = useState([
     {
-      id: 'JOB-99201-US',
-      client: 'Apex Medical Supplies',
-      pickup: 'San Jose, CA Depot',
-      dropoff: 'San Francisco General Hospital, CA',
+      id: 'JOB-99201-SG',
+      client: 'Apex Medical Supplies SG',
+      pickup: 'Changi Air Cargo Depot',
+      dropoff: 'Singapore General Hospital (SGH)',
       weight: '120 kg',
-      payout: '$380.00',
-      distance: '48 miles',
+      payout: 'S$ 380.00',
+      distance: '18 km',
       cargo: 'Emergency Medical Kits',
       urgency: 'High Priority'
     },
     {
-      id: 'JOB-44102-US',
-      client: 'Vanguard Electronics',
-      pickup: 'Fremont Logistics Hub',
-      dropoff: 'Oakland Cargo Terminal, CA',
+      id: 'JOB-44102-SG',
+      client: 'Vanguard Electronics APAC',
+      pickup: 'Pasir Panjang Terminal Hub',
+      dropoff: 'Woodlands High-Tech Loop',
       weight: '450 kg',
-      payout: '$520.00',
-      distance: '32 miles',
+      payout: 'S$ 520.00',
+      distance: '24 km',
       cargo: 'Microchip Servers',
       urgency: 'Express SLA'
     },
     {
-      id: 'JOB-77194-US',
-      client: 'GreenEarth Organics',
-      pickup: 'Sacramento Produce Depot',
-      dropoff: 'San Jose Distribution Center, CA',
+      id: 'JOB-77194-SG',
+      client: 'Sheng Siong Logistics',
+      pickup: 'Tuas Bio-Park Depot',
+      dropoff: 'Jurong Industrial Estate, SG',
       weight: '800 kg',
-      payout: '$640.00',
-      distance: '120 miles',
-      cargo: 'Refrigerated Organic Produce',
+      payout: 'S$ 640.00',
+      distance: '30 km',
+      cargo: 'Cold Chain Pharma Products',
       urgency: 'Cold Chain'
     }
   ]);
 
   // Filter shipments assigned to this driver
-  const assignedShipments = shipments.filter(s => 
+  const assignedShipments = (shipments || []).filter(s => 
     s.driverId === driverInfo.id || s.driverName === driverInfo.name
   );
 
   const [activeJob, setActiveJob] = useState(
-    assignedShipments.find(s => s.status !== 'Delivered') || assignedShipments[0] || shipments[0]
+    assignedShipments.find(s => s.status !== 'Delivered') || assignedShipments[0] || shipments?.[0] || defaultJob
   );
 
   // Delivery Update Form State
@@ -93,6 +126,19 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   const [proofPhotoUploaded, setProofPhotoUploaded] = useState(false);
   const [proofSignature, setProofSignature] = useState(true);
   const [deliveryNotes, setDeliveryNotes] = useState('Delivered directly to receiving dock bay #4 with signature.');
+
+  // Live Moving Anime Truck animation state
+  const [truckProgress, setTruckProgress] = useState(15);
+  const [currentSpeed, setCurrentSpeed] = useState(65);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTruckProgress(prev => (prev >= 85 ? 15 : prev + 0.35));
+      setCurrentSpeed(62 + Math.floor(Math.random() * 8));
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const handleStatusChange = (shipmentId, newStatus) => {
     updateShipmentStatus(shipmentId, newStatus);
@@ -422,72 +468,15 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               </div>
             </div>
 
-            {/* INTEGRATED MAP SIMULATION CONTAINER */}
-            <div className="relative h-80 sm:h-96 bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden flex flex-col justify-between p-6 shadow-2xl">
-              
-              {/* Top Map Telematics Header Overlay */}
-              <div className="relative z-10 flex items-center justify-between bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-800 text-xs text-white">
-                <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold">
-                    <Navigation className="w-5 h-5 animate-pulse" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Optimal Route</p>
-                    <p className="font-extrabold text-slate-100">{activeJob.origin} → {activeJob.destination}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Speed & Telemetry</p>
-                  <p className="font-extrabold text-orange-400 font-mono">65 MPH (Cruising Highway)</p>
-                </div>
-              </div>
-
-              {/* Animated Map Route Graphics */}
-              <div className="relative inset-0 flex items-center justify-center my-auto">
-                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                  <line x1="10%" y1="50%" x2="90%" y2="50%" stroke="#334155" strokeWidth="6" strokeDasharray="8 8" />
-                  <line x1="10%" y1="50%" x2="60%" y2="50%" stroke="#F26722" strokeWidth="6" />
-                </svg>
-
-                {/* Origin Marker A */}
-                <div className="absolute left-[10%] flex flex-col items-center">
-                  <div className="w-8 h-8 rounded-full bg-slate-800 border-2 border-emerald-500 text-emerald-400 flex items-center justify-center text-xs font-bold shadow-lg">A</div>
-                  <span className="text-[11px] text-slate-300 font-bold mt-1.5 bg-slate-900/90 px-2 py-0.5 rounded">{activeJob.origin}</span>
-                </div>
-
-                {/* Live Moving Truck Icon */}
-                <div className="absolute left-[60%] flex flex-col items-center -translate-x-1/2">
-                  <div className="w-12 h-12 rounded-2xl bg-orange-gradient text-white flex items-center justify-center shadow-orange-glow animate-bounce">
-                    <Truck className="w-6 h-6" />
-                  </div>
-                  <span className="text-[11px] text-orange-300 font-mono font-bold mt-1 bg-slate-900/90 px-2.5 py-0.5 rounded border border-orange-500/40">
-                    Truck #{driverInfo.vehicleId} (In Route)
-                  </span>
-                </div>
-
-                {/* Destination Marker B */}
-                <div className="absolute right-[10%] flex flex-col items-center">
-                  <div className="w-8 h-8 rounded-full bg-slate-800 border-2 border-rose-500 text-rose-400 flex items-center justify-center text-xs font-bold shadow-lg">B</div>
-                  <span className="text-[11px] text-slate-300 font-bold mt-1.5 bg-slate-900/90 px-2 py-0.5 rounded">{activeJob.destination}</span>
-                </div>
-              </div>
-
-              {/* Bottom Map Stats Bar Overlay */}
-              <div className="relative z-10 grid grid-cols-3 gap-2 bg-slate-900/80 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 text-center text-xs text-white">
-                <div>
-                  <span className="text-slate-400 text-[10px] block font-bold uppercase">Est. Arrival</span>
-                  <span className="font-extrabold text-white font-mono">{activeJob.estimatedDelivery}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-[10px] block font-bold uppercase">Distance Remaining</span>
-                  <span className="font-extrabold text-orange-400 font-mono">1,420 Miles</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-[10px] block font-bold uppercase">Fuel Efficiency</span>
-                  <span className="font-extrabold text-emerald-400 font-mono">8.4 MPG (+14% AI Saved)</span>
-                </div>
-              </div>
-
+            {/* INTEGRATED INTERACTIVE GOOGLE MAPS CONTAINER */}
+            <div className="relative h-96 sm:h-[420px] rounded-3xl border border-slate-300 overflow-hidden shadow-2xl">
+              <SingaporeGoogleMapBackground 
+                origin={activeJob.origin}
+                destination={activeJob.destination}
+                vehicle={activeJob.vehicle || 'Josan EV Semi-Truck'}
+                truckProgress={truckProgress}
+                currentSpeed={currentSpeed}
+              />
             </div>
 
             {/* ROUTE OPTIMIZATION & DELIVERY STEPS CHECKLIST */}

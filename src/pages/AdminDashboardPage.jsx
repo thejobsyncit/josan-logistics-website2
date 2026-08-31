@@ -51,6 +51,7 @@ export const AdminDashboardPage = () => {
     addDriver, 
     removeDriver, 
     toggleDriverStatus,
+    updateWarehouseBinStatus,
     setSelectedInvoiceShipment,
     showToast 
   } = useLogistics();
@@ -78,13 +79,20 @@ export const AdminDashboardPage = () => {
 
   const handleAddDriverSubmit = (e) => {
     e.preventDefault();
-    if (newDriverData.name && newDriverData.phone) {
+    const cleanDigits = newDriverData.phone.replace(/[^0-9]/g, '');
+    if (cleanDigits.length < 8) {
+      showToast('Singapore driver contact number must contain exactly 8 digits (e.g. 91234567)', 'warning');
+      return;
+    }
+
+    if (newDriverData.name && cleanDigits) {
       addDriver({
         ...newDriverData,
+        phone: `+65 ${cleanDigits}`,
         status: 'Available'
       });
       setIsAddDriverOpen(false);
-      setNewDriverData({ name: '', phone: '', vehicleType: 'Refrigerated Van', vehicleId: 'FL-900', licenseNumber: 'DL-99102' });
+      setNewDriverData({ name: '', phone: '', vehicleType: 'EV Express Cargo Van', vehicleId: 'SG-900', licenseNumber: 'SG-CLASS4-991' });
     }
   };
 
@@ -457,74 +465,90 @@ export const AdminDashboardPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {warehouses.map((wh) => (
-                <div key={wh.id} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-extrabold text-slate-900 text-base">{wh.name}</h4>
-                      <p className="text-xs text-slate-500">{wh.location} • Mgr: {wh.manager}</p>
+                <div key={wh.id} className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-6 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    {/* Header Info */}
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className="font-extrabold text-slate-900 text-lg leading-snug font-sans">{wh.name}</h4>
+                        <span className="shrink-0 text-xs font-mono font-extrabold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200">
+                          {wh.capacityPercentage}% Occupied
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                        {wh.location} <br />
+                        <span className="text-slate-400 font-normal">Manager:</span> <strong className="text-slate-700 font-bold">{wh.manager}</strong>
+                      </p>
                     </div>
-                    <span className="text-xs font-mono font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-200">
-                      {wh.capacityPercentage}% Occupied
-                    </span>
-                  </div>
 
-                  {/* Storage Capacity Gauge Progress Bar */}
-                  <div>
-                    <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
-                      <div
-                        className="bg-orange-gradient h-full rounded-full transition-all duration-500"
-                        style={{ width: `${wh.capacityPercentage}%` }}
-                      ></div>
+                    {/* Storage Capacity Gauge Progress Bar */}
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2">
+                      <div className="flex justify-between text-xs text-slate-600 font-bold">
+                        <span>Storage Meter</span>
+                        <span className="text-orange-600 font-extrabold">{wh.activeParcels} Active Parcels</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-orange-gradient h-full rounded-full transition-all duration-500"
+                          style={{ width: `${wh.capacityPercentage}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-medium text-right">Total Hub Area: {wh.capacitySqFt}</p>
                     </div>
-                    <div className="flex justify-between text-[10px] text-slate-500 font-semibold mt-1">
-                      <span>Capacity: {wh.capacitySqFt}</span>
-                      <span>{wh.activeParcels} Active Parcels</span>
-                    </div>
-                  </div>
 
-                  {/* Dispatch Control Stats */}
-                  <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-slate-200 text-xs">
-                    <div>
-                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Incoming Today</span>
-                      <span className="font-extrabold text-emerald-600 flex items-center">
-                        ↓ {wh.incomingToday} Parcels
-                      </span>
+                    {/* Dispatch Control Stats */}
+                    <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs">
+                      <div className="space-y-1">
+                        <span className="text-slate-400 text-[10px] font-extrabold uppercase tracking-wider block">Incoming Today</span>
+                        <span className="font-extrabold text-emerald-600 text-sm flex items-center">
+                          ↓ {wh.incomingToday} <span className="text-xs font-normal text-slate-500 ml-1">Parcels</span>
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-slate-400 text-[10px] font-extrabold uppercase tracking-wider block">Outgoing Dispatch</span>
+                        <span className="font-extrabold text-orange-600 text-sm flex items-center">
+                          ↑ {wh.outgoingToday} <span className="text-xs font-normal text-slate-500 ml-1">Parcels</span>
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Outgoing Dispatch</span>
-                      <span className="font-extrabold text-orange-600 flex items-center">
-                        ↑ {wh.outgoingToday} Parcels
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Bin Parcel Storage Logs */}
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-slate-700 uppercase">Storage Bin Parcel Logs</p>
-                      <button
-                        onClick={() => showToast(`Triggered auto bin-sorting for ${wh.name}`)}
-                        className="text-[10px] font-bold text-orange-600 hover:underline"
-                      >
-                        Sort Bins
-                      </button>
-                    </div>
-                    <div className="space-y-1 text-[11px]">
-                      {wh.bins.map((bin, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200">
-                          <span className="font-mono font-bold text-orange-600">{bin.binId}</span>
-                          <span className="text-slate-800 font-semibold truncate max-w-[110px]">{bin.item}</span>
-                          <span className={`px-1.5 py-0.5 text-[9px] rounded font-extrabold ${
-                            bin.priority === 'High' || bin.priority === 'Critical' || bin.priority === 'Urgent'
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}>
-                            {bin.status}
-                          </span>
-                        </div>
-                      ))}
+                    {/* Bin Parcel Storage Logs */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <p className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Storage Bin Logs</p>
+                        <button
+                          onClick={() => showToast(`Triggered auto bin-sorting for ${wh.name}`)}
+                          className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
+                        >
+                          Sort Bins →
+                        </button>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        {(wh.bins || []).map((bin, i) => (
+                          <div key={i} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 gap-2 hover:border-orange-300 transition-colors">
+                            <span className="font-mono font-extrabold text-orange-600 text-xs shrink-0">{bin.binId}</span>
+                            <span className="text-slate-800 font-bold text-xs flex-1 truncate">{bin.item}</span>
+                            
+                            {/* Interactive Status Selector Dropdown */}
+                            <select
+                              value={bin.status}
+                              onChange={(e) => updateWarehouseBinStatus(wh.id, bin.binId, e.target.value)}
+                              className="px-2.5 py-1 text-[11px] font-extrabold rounded-full border cursor-pointer focus:outline-none transition-all shadow-sm bg-white border-orange-300 text-orange-700 hover:border-orange-500 shrink-0 font-sans"
+                            >
+                              <option value="In Storage">📦 In Storage</option>
+                              <option value="Staged for Load">🚛 Staged for Load</option>
+                              <option value="Cleared Dispatch">✅ Cleared Dispatch</option>
+                              <option value="In Inspection">🔍 In Inspection</option>
+                              <option value="Ready for Trucking">🚚 Ready for Trucking</option>
+                              <option value="Customs Hold">🛡️ Customs Hold</option>
+                              <option value="Hazmat Verified">⚠️ Hazmat Verified</option>
+                              <option value="Dispatched">🚀 Dispatched</option>
+                            </select>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -559,7 +583,7 @@ export const AdminDashboardPage = () => {
               <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-emerald-800 uppercase">Delivery Success Rate</p>
-                  <h3 className="text-2xl font-extrabold text-emerald-900 mt-1">{analyticsData.kpis.onTimeDeliveryRate}</h3>
+                  <h3 className="text-2xl font-extrabold text-emerald-900 mt-1">{analyticsData?.kpis?.onTimeDeliveryRate || analyticsData?.kpis?.onTimeRate || '99.4%'}</h3>
                   <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">SLA Guaranteed Delivery</p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
@@ -570,7 +594,7 @@ export const AdminDashboardPage = () => {
               <div className="bg-orange-50 border border-orange-200 p-5 rounded-2xl flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-orange-800 uppercase">Monthly Revenue Trend</p>
-                  <h3 className="text-2xl font-extrabold text-orange-900 mt-1">{analyticsData.kpis.monthlyRevenue}</h3>
+                  <h3 className="text-2xl font-extrabold text-orange-900 mt-1">{analyticsData?.kpis?.monthlyRevenue || 'S$ 1,480,000'}</h3>
                   <p className="text-[11px] text-orange-700 font-semibold mt-0.5">+18.2% Year-Over-Year</p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold">
@@ -590,16 +614,16 @@ export const AdminDashboardPage = () => {
               </div>
             </div>
 
-            {/* Revenue Trend Line Chart in Lalamove Orange Theme */}
+            {/* Revenue Trend Line Chart in Orange Theme */}
             <div className="space-y-2 pt-2">
-              <h3 className="text-sm font-bold text-slate-700">Monthly Freight Revenue Growth ($)</h3>
-              <div className="h-72 w-full pt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analyticsData.monthlyRevenueChart}>
+              <h3 className="text-sm font-bold text-slate-700">Monthly Freight Revenue Growth (SGD S$)</h3>
+              <div className="h-72 w-full pt-4 min-h-[280px]">
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={analyticsData?.monthlyRevenueChart || analyticsData?.monthlyRevenue || []}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                     <XAxis dataKey="month" stroke="#64748B" />
                     <YAxis stroke="#64748B" />
-                    <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
+                    <Tooltip formatter={(value) => [`S$ ${Number(value).toLocaleString()}`, 'Revenue']} />
                     <Line type="monotone" dataKey="revenue" stroke="#F26722" strokeWidth={3} dot={{ fill: '#F26722', r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -610,9 +634,9 @@ export const AdminDashboardPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4 border-t border-slate-100">
               <div className="space-y-2">
                 <h3 className="text-sm font-bold text-slate-700">Delay Factor Analysis (%)</h3>
-                <div className="h-60 w-full pt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsData.delaysBreakdown}>
+                <div className="h-60 w-full pt-2 min-h-[230px]">
+                  <ResponsiveContainer width="100%" height={230}>
+                    <BarChart data={analyticsData?.delaysBreakdown || []}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                       <XAxis dataKey="reason" stroke="#64748B" />
                       <YAxis stroke="#64748B" />
@@ -627,7 +651,7 @@ export const AdminDashboardPage = () => {
               <div className="space-y-2">
                 <h3 className="text-sm font-bold text-slate-700">Freight Volume by Service Mode</h3>
                 <div className="space-y-3 pt-4 text-xs">
-                  {analyticsData.serviceBreakdown.map((item, idx) => (
+                  {(analyticsData?.serviceBreakdown || []).map((item, idx) => (
                     <div key={idx} className="space-y-1">
                       <div className="flex justify-between font-semibold text-slate-800">
                         <span>{item.service}</span>
@@ -664,15 +688,30 @@ export const AdminDashboardPage = () => {
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Phone Contact</label>
-                <input
-                  type="text"
-                  value={newDriverData.phone}
-                  onChange={(e) => setNewDriverData({ ...newDriverData, phone: e.target.value })}
-                  placeholder="+1 (555) 0192"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
-                  required
-                />
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Phone Contact (Singapore 8-Digit) *</span>
+                  <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
+                </label>
+                <div className="flex items-center">
+                  <span className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-lg text-slate-900 font-extrabold text-xs shrink-0 border-r-0">
+                    🇸🇬 +65
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={8}
+                    value={newDriverData.phone}
+                    onChange={(e) => {
+                      const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+                      setNewDriverData({ ...newDriverData, phone: numericOnly });
+                    }}
+                    placeholder="e.g. 91234567"
+                    className="w-full p-2.5 border border-slate-300 rounded-r-lg focus-orange font-mono font-bold"
+                    required
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly 8 numbers only (Alphabets & extra digits blocked)</span>
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Vehicle Type</label>
