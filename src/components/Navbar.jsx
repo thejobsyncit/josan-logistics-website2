@@ -21,7 +21,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     toggleRole, 
     setIsAuthModalOpen, 
     setActiveTrackingId,
-    logoutUser
+    logoutUser,
+    setCustomerSubTab,
+    setDriverSubTab
   } = useLogistics();
 
   const [headerSearch, setHeaderSearch] = useState('');
@@ -104,7 +106,17 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             {currentUser ? (
               <div className="flex items-center space-x-2 border-l border-slate-200 pl-3">
                 <button
-                  onClick={() => setActiveTab(currentRole === 'admin' ? 'admin-dashboard' : 'customer-dashboard')}
+                  onClick={() => {
+                    if (currentRole === 'customer') {
+                      setCustomerSubTab('profile');
+                      setActiveTab('customer-dashboard');
+                    } else if (currentRole === 'driver') {
+                      setDriverSubTab('profile');
+                      setActiveTab('driver-dashboard');
+                    } else {
+                      setActiveTab('admin-dashboard');
+                    }
+                  }}
                   className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm border border-orange-200">

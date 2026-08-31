@@ -4,15 +4,11 @@ import {
   Package, 
   Search, 
   MapPin, 
-  Clock, 
-  Printer, 
-  User, 
-  Building, 
   Plus, 
   LifeBuoy, 
-  ExternalLink, 
   CheckCircle2, 
-  FileText
+  FileText,
+  User
 } from 'lucide-react';
 
 export const CustomerDashboardPage = ({ setActiveTab }) => {
@@ -21,27 +17,37 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     currentUser, 
     setActiveTrackingId, 
     setSelectedInvoiceShipment, 
-    showToast 
+    showToast,
+    customerSubTab: activeSubTab,
+    setCustomerSubTab: setActiveSubTab
   } = useLogistics();
 
-  const [activeSubTab, setActiveSubTab] = useState('orders'); // 'orders' | 'addresses' | 'support'
   const [addressList, setAddressList] = useState([
-    { id: 1, label: 'Primary HQ Warehouse', address: '100 Silicon Way, San Jose, CA 95110', contact: 'TechCorp Shipping Manager' },
-    { id: 2, label: 'East Coast Distribution Center', address: '450 Fifth Ave, Suite 1200, New York, NY 10018', contact: 'Marcus Vance' }
+    { id: 1, label: 'Primary HQ Warehouse', address: '100 Silicon Way, San Jose, CA 95110', contact: 'TechCorp Shipping Manager', type: 'pickup' },
+    { id: 2, label: 'East Coast Distribution Center', address: '450 Fifth Ave, Suite 1200, New York, NY 10018', contact: 'Marcus Vance', type: 'pickup' },
+    { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
+    { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
   ]);
 
   const [newLabel, setNewLabel] = useState('');
   const [newAddress, setNewAddress] = useState('');
+  const [newAddressType, setNewAddressType] = useState('pickup');
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketMessage, setTicketMessage] = useState('');
 
   const handleAddAddress = (e) => {
     e.preventDefault();
     if (newLabel && newAddress) {
-      setAddressList([...addressList, { id: Date.now(), label: newLabel, address: newAddress, contact: currentUser?.name || 'Customer' }]);
+      setAddressList([...addressList, { 
+        id: Date.now(), 
+        label: newLabel, 
+        address: newAddress, 
+        contact: currentUser?.name || 'Customer',
+        type: newAddressType
+      }]);
       setNewLabel('');
       setNewAddress('');
-      showToast('New saved address added to profile!');
+      showToast(`New saved ${newAddressType} address added!`);
     }
   };
 
@@ -100,7 +106,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
           }`}
         >
           <MapPin className="w-4 h-4" />
-          <span>Saved Pickup Addresses</span>
+          <span>Saved Pickup & Drop Addresses</span>
         </button>
 
         <button
@@ -111,16 +117,6 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         >
           <LifeBuoy className="w-4 h-4" />
           <span>Support & Claims</span>
-        </button>
-
-        <button
-          onClick={() => setActiveSubTab('profile')}
-          className={`pb-3 flex items-center space-x-2 transition-all border-b-2 ${
-            activeSubTab === 'profile' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
-          }`}
-        >
-          <User className="w-4 h-4" />
-          <span>My Profile</span>
         </button>
       </div>
 
@@ -183,21 +179,50 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
       {activeSubTab === 'addresses' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7 bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6">
-            <h2 className="text-lg font-extrabold text-slate-900">Saved Profile Addresses</h2>
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900">Saved Addresses</h2>
+              <p className="text-xs text-slate-500">Manage your saved pickup and drop-off address locations.</p>
+            </div>
 
-            <div className="space-y-4">
-              {addressList.map((addr) => (
-                <div key={addr.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
-                  <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
-                  <p className="text-xs text-slate-600">{addr.address}</p>
-                  <p className="text-[10px] text-slate-400 font-semibold">Contact: {addr.contact}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Pickup Locations */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-orange-600 uppercase tracking-wider flex items-center space-x-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                  <span>Pickup Locations ({addressList.filter(a => a.type === 'pickup').length})</span>
+                </h3>
+                <div className="space-y-3">
+                  {addressList.filter(a => a.type === 'pickup').map((addr) => (
+                    <div key={addr.id} className="p-4 bg-orange-50/40 rounded-2xl border border-orange-100 space-y-1">
+                      <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
+                      <p className="text-xs text-slate-600">{addr.address}</p>
+                      <p className="text-[10px] text-slate-400 font-semibold">Contact: {addr.contact}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Drop-off Locations */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center space-x-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <span>Drop-off Locations ({addressList.filter(a => a.type === 'drop').length})</span>
+                </h3>
+                <div className="space-y-3">
+                  {addressList.filter(a => a.type === 'drop').map((addr) => (
+                    <div key={addr.id} className="p-4 bg-blue-50/40 rounded-2xl border border-blue-100 space-y-1">
+                      <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
+                      <p className="text-xs text-slate-600">{addr.address}</p>
+                      <p className="text-[10px] text-slate-400 font-semibold">Contact: {addr.contact}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="lg:col-span-5 bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-4">
-            <h3 className="text-sm font-extrabold text-slate-900">Add New Pickup Location</h3>
+            <h3 className="text-sm font-extrabold text-slate-900">Add New Address Location</h3>
             <form onSubmit={handleAddAddress} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Address Label</label>
@@ -210,20 +235,34 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                   required
                 />
               </div>
+              
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Address Type</label>
+                <select
+                  value={newAddressType}
+                  onChange={(e) => setNewAddressType(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus-orange font-bold cursor-pointer"
+                >
+                  <option value="pickup">Pickup Location</option>
+                  <option value="drop">Drop-off Location</option>
+                </select>
+              </div>
+
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Full Street & Suite Address</label>
                 <textarea
                   rows="3"
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
-                  placeholder="Enter address..."
+                  placeholder="Enter full address details..."
                   className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
                   required
                 ></textarea>
               </div>
+              
               <button
                 type="submit"
-                className="w-full py-2.5 bg-orange-500 text-white rounded-lg font-bold shadow-orange-sm hover:bg-orange-600 transition-colors"
+                className="w-full py-2.5 bg-orange-500 text-white rounded-lg font-bold shadow-orange-sm hover:bg-orange-600 transition-colors cursor-pointer"
               >
                 Save Location
               </button>

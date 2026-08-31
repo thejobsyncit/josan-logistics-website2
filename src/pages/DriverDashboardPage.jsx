@@ -35,11 +35,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     currentUser, 
     updateShipmentStatus, 
     toggleDriverStatus,
-    showToast 
+    showToast,
+    driverSubTab: driverTab,
+    setDriverSubTab: setDriverTab
   } = useLogistics();
-
-  // Active sub-tab state inside Driver Layout: 'dashboard' | 'navigation' | 'update'
-  const [driverTab, setDriverTab] = useState('dashboard');
 
   // Pick current driver or default driver DRV-102
   const driverInfo = drivers.find(d => d.email === currentUser?.email) || drivers[1] || drivers[0];
@@ -177,13 +176,12 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
         </div>
       </div>
 
-      {/* DRIVER MODULE NAVIGATION SUB-TABS (a. Dashboard | b. Navigation | c. Delivery Update | d. Profile) */}
+      {/* DRIVER MODULE NAVIGATION SUB-TABS (a. Dashboard | b. Navigation | c. Delivery Update) */}
       <div className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm flex flex-wrap gap-2 text-xs font-bold">
         {[
           { id: 'dashboard', label: 'a. Driver Dashboard (Available & Earnings)', icon: Truck },
           { id: 'navigation', label: 'b. Navigation & Route Optimization', icon: Compass },
           { id: 'update', label: 'c. Delivery Update & Proof Uploader', icon: CheckSquare },
-          { id: 'profile', label: 'd. Driver Profile Details', icon: User },
         ].map((tab) => {
           const IconComp = tab.icon;
           return (

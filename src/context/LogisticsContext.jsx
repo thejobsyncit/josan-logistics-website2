@@ -45,6 +45,10 @@ export const LogisticsProvider = ({ children }) => {
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
 
+  // Sub-tab navigation state
+  const [customerSubTab, setCustomerSubTab] = useState('orders');
+  const [driverSubTab, setDriverSubTab] = useState('dashboard');
+
   // Save to localStorage
   useEffect(() => {
     localStorage.setItem('josan_shipments', JSON.stringify(shipments));
@@ -329,6 +333,10 @@ export const LogisticsProvider = ({ children }) => {
       activeTrackingId,
       selectedInvoiceShipment,
       isAuthModalOpen,
+      customerSubTab,
+      setCustomerSubTab,
+      driverSubTab,
+      setDriverSubTab,
       setActiveTrackingId,
       setSelectedInvoiceShipment,
       setIsAuthModalOpen,
