@@ -4,9 +4,9 @@
 
 @layer base {
   :root {
-    --primary-orange: #F26722;
-    --primary-orange-hover: #D9520E;
-    --primary-orange-light: #FFF4EE;
+    --primary-orange: #FF6B00;
+    --primary-orange-hover: #E55C00;
+    --primary-orange-light: #FFF2EB;
     --bg-white: #FFFFFF;
     --bg-slate: #F8FAFC;
     --text-dark: #0F172A;
@@ -34,7 +34,7 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #F26722;
+  background: #FF6B00;
 }
 
 /* Orange Focus State Utility */
@@ -47,7 +47,7 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(242, 103, 34, 0.15);
+  border: 1px solid rgba(255, 107, 0, 0.18);
 }
 
 .glass-card-dark {
@@ -59,15 +59,15 @@
 
 /* Orange Gradient Accents */
 .bg-orange-gradient {
-  background: linear-gradient(135deg, #F26722 0%, #FF7A33 50%, #D9520E 100%);
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8533 50%, #E55C00 100%);
 }
 
 .bg-orange-subtle-gradient {
-  background: linear-gradient(135deg, #FFF4EE 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #FFF2EB 0%, #FFFFFF 100%);
 }
 
 .text-gradient-orange {
-  background: linear-gradient(135deg, #F26722 0%, #D9520E 100%);
+  background: linear-gradient(135deg, #FF6B00 0%, #E55C00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -75,13 +75,13 @@
 /* Pulse animation for live markers */
 @keyframes pulse-orange {
   0% {
-    box-shadow: 0 0 0 0 rgba(242, 103, 34, 0.7);
+    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7);
   }
   70% {
-    box-shadow: 0 0 0 14px rgba(242, 103, 34, 0);
+    box-shadow: 0 0 0 14px rgba(255, 107, 0, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(242, 103, 34, 0);
+    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0);
   }
 }
 
@@ -89,18 +89,42 @@
   animation: pulse-orange 2s infinite;
 }
 
-/* Print styling for Invoice */
+/* Print styling for Invoice - Full Page Rendering */
 @media print {
+  @page {
+    size: portrait;
+    margin: 8mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
   body * {
-    visibility: hidden;
+    visibility: hidden !important;
   }
+
   #printable-invoice, #printable-invoice * {
-    visibility: visible;
+    visibility: visible !important;
   }
+
   #printable-invoice {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

@@ -46,6 +46,7 @@ export const AdminDashboardPage = () => {
     warehouses, 
     analyticsData, 
     updateShipmentStatus, 
+    flagWeatherDelay,
     assignDriver, 
     addDriver, 
     removeDriver, 
@@ -347,7 +348,15 @@ export const AdminDashboardPage = () => {
                       </select>
                     </td>
                     <td className="p-3 font-mono font-bold text-slate-900">{order.price}</td>
-                    <td className="p-3 text-right space-x-2">
+                    <td className="p-3 text-right space-x-1.5 flex items-center justify-end">
+                      <button
+                        onClick={() => flagWeatherDelay(order.id, 'Heavy Thunderstorm & Flash Flood Alert')}
+                        title="Flag automated weather telematics delay & dispatch SMS/Email notifications"
+                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-[11px] font-extrabold transition-all flex items-center space-x-1"
+                      >
+                        <AlertTriangle className="w-3 h-3 text-amber-600" />
+                        <span>⛈️ Weather Delay</span>
+                      </button>
                       <button
                         onClick={() => setSelectedInvoiceShipment(order)}
                         className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-[11px] font-bold"

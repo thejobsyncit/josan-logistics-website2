@@ -48,8 +48,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   if (currentRole === 'customer') {
     navItems.push({ id: 'customer-dashboard', label: 'My Orders' });
-  } else {
-    navItems.push({ id: 'admin-dashboard', label: 'Admin Hub' });
+  } else if (currentRole === 'driver') {
+    navItems.push({ id: 'driver-dashboard', label: 'Driver Portal' });
   }
 
   return (
@@ -67,10 +67,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           </div>
 
           <div className="flex items-center space-x-3">
-            {/* Quick Role Switcher Button */}
+            {/* Quick Role Switcher Button: Customer Mode vs Driver Portal */}
             <div className="flex items-center bg-slate-800 rounded-full p-0.5 border border-slate-700">
               <button
-                onClick={() => toggleRole('customer')}
+                onClick={() => toggleRole('customer', setActiveTab)}
                 className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
                   currentRole === 'customer' 
                     ? 'bg-orange-500 text-white shadow' 
@@ -80,14 +80,14 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 Customer Mode
               </button>
               <button
-                onClick={() => toggleRole('admin')}
+                onClick={() => toggleRole('driver', setActiveTab)}
                 className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
-                  currentRole === 'admin' 
+                  currentRole === 'driver' 
                     ? 'bg-orange-500 text-white shadow' 
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Admin Mode
+                Driver Portal
               </button>
             </div>
           </div>
@@ -232,7 +232,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             </div>
             <button
               onClick={() => {
-                toggleRole();
+                toggleRole(undefined, setActiveTab);
                 setMobileMenuOpen(false);
               }}
               className="text-xs font-bold text-orange-600 underline"

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { X, Lock, Mail, User, Building, ShieldCheck, ArrowRight } from 'lucide-react';
 
-export const AuthModal = () => {
+export const AuthModal = ({ setActiveTab }) => {
   const { isAuthModalOpen, setIsAuthModalOpen, loginUser } = useLogistics();
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState('admin');
@@ -13,12 +13,12 @@ export const AuthModal = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    loginUser(email || (role === 'admin' ? 'admin@josanlogistics.com' : 'customer@techcorp.com'), role);
+    loginUser(email || (role === 'admin' ? 'admin@josanlogistics.com' : 'customer@techcorp.com'), role, setActiveTab);
   };
 
   const handleQuickLogin = (selectedRole) => {
     const demoEmail = selectedRole === 'admin' ? 'alexander@josanlogistics.com' : 'shipping@techcorp.com';
-    loginUser(demoEmail, selectedRole);
+    loginUser(demoEmail, selectedRole, setActiveTab);
   };
 
   return (
@@ -52,16 +52,8 @@ export const AuthModal = () => {
           
           {/* Quick Demo Login Preset Buttons */}
           <div className="bg-orange-50/70 border border-orange-200/60 rounded-xl p-3 text-center">
-            <p className="text-xs font-bold text-orange-900 mb-2">⚡ Quick 1-Click Evaluation Login:</p>
+            <p className="text-xs font-bold text-orange-900 mb-2">⚡ Quick 1-Click Portal Login:</p>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center space-x-1"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-                <span>Admin Manager</span>
-              </button>
               <button
                 type="button"
                 onClick={() => handleQuickLogin('customer')}
@@ -69,6 +61,14 @@ export const AuthModal = () => {
               >
                 <User className="w-3.5 h-3.5" />
                 <span>Customer Portal</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('driver')}
+                className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center space-x-1"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
+                <span>Fleet Driver Login</span>
               </button>
             </div>
           </div>
@@ -93,14 +93,14 @@ export const AuthModal = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setRole('admin')}
+                  onClick={() => setRole('driver')}
                   className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
-                    role === 'admin'
+                    role === 'driver'
                       ? 'border-orange-500 bg-orange-50 text-orange-600'
                       : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  Admin / Fleet Mgr
+                  Fleet Driver
                 </button>
               </div>
             </div>

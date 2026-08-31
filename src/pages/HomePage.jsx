@@ -24,252 +24,105 @@ import {
 } from 'lucide-react';
 
 export const HomePage = ({ setActiveTab }) => {
-  const { setActiveTrackingId, getShipmentByTracking, showToast } = useLogistics();
-  const [heroMode, setHeroMode] = useState('track'); // 'track' | 'rate'
-  const [trackingInput, setTrackingInput] = useState('');
-  
-  // Quick Rate Estimator state inside Hero
-  const [rateOrigin, setRateOrigin] = useState('San Jose, CA');
-  const [rateDest, setRateDest] = useState('New York, NY');
-  const [rateWeight, setRateWeight] = useState('150');
-  const [rateService, setRateService] = useState('express');
-  const [estimatedCost, setEstimatedCost] = useState(580);
-
-  const handleTrackSubmit = (e) => {
-    e.preventDefault();
-    if (trackingInput.trim()) {
-      setActiveTrackingId(trackingInput.trim());
-      setActiveTab('track');
-    }
-  };
-
-  const handleDemoTrack = (id) => {
-    setActiveTrackingId(id);
-    setActiveTab('track');
-  };
-
-  const calculateQuickEstimate = (e) => {
-    e.preventDefault();
-    const weightNum = parseFloat(rateWeight) || 50;
-    const mult = rateService === 'express' ? 3.5 : rateService === 'cold' ? 4.2 : 2.1;
-    const total = Math.round(weightNum * mult + 120);
-    setEstimatedCost(total);
-    showToast(`Estimated Freight Rate: $${total}.00 USD`);
-  };
-
   return (
     <div className="space-y-20 pb-20">
       
-      {/* 1. HERO SECTION (TRACK SHIPMENT & QUICK RATE ESTIMATOR) */}
-      <section className="relative pt-12 pb-24 lg:pt-16 lg:pb-28 overflow-hidden bg-white">
-        {/* Subtle Lalamove orange background grid patterns */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#F26722_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
-        <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      {/* 1. HERO SECTION (JCtrans Reference Style with 3D Artwork & Electric Orange) */}
+      <section className="relative pt-10 pb-16 lg:pt-14 lg:pb-20 overflow-hidden bg-white">
+        {/* Subtle orange background glow */}
+        <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-orange-600 text-xs font-bold shadow-sm">
-                <SparkleIcon />
-                <span>Next-Gen Global Supply Chain & Telematics</span>
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.15] font-sans">
-                Smart Global Logistics <br />
-                <span className="text-gradient-orange">Engineered For Speed</span>
+            <div className="lg:col-span-6 space-y-6">
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight text-slate-900 leading-[1.15] font-sans">
+                Business Opportunities with <br />
+                <span className="text-slate-900">Global Freight Forwarders</span>
               </h1>
 
-              <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl">
-                Josan Logistics powers corporate supply chains worldwide with express air cargo, heavy land haulage, automated warehousing, and real-time telemetry tracking.
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl">
+                Josan Logistics is a premier B2B logistics platform dedicated to serving global freight forwarders, spanning 867 cities across 181 countries. With over 20 years of brand establishment, the platform supports over 11,000 paid member companies and more than 660,000 registered users worldwide. Annually, it facilitates over 3.5 million business opportunities, positioning Josan Logistics as one of the world's leading, fastest-growing logistics platforms.
               </p>
 
-              {/* DUAL-FUNCTION HERO CARD (TRACK SHIPMENT / QUICK RATE CALCULATOR) */}
-              <div className="bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-orange-glow border-2 border-orange-500/40 space-y-3">
-                
-                {/* Hero Mode Tabs */}
-                <div className="flex items-center space-x-2 border-b border-slate-800 pb-2">
-                  <button
-                    onClick={() => setHeroMode('track')}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-extrabold transition-all ${
-                      heroMode === 'track'
-                        ? 'bg-orange-500 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                    }`}
-                  >
-                    <Search className="w-3.5 h-3.5" />
-                    <span>Track Live Shipment</span>
-                  </button>
-                  <button
-                    onClick={() => setHeroMode('rate')}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-extrabold transition-all ${
-                      heroMode === 'rate'
-                        ? 'bg-orange-500 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                    }`}
-                  >
-                    <Calculator className="w-3.5 h-3.5" />
-                    <span>Instant Rate Calculator</span>
-                  </button>
-                </div>
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <button
+                  onClick={() => setActiveTab('book')}
+                  className="px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-sm shadow-orange-sm transition-all flex items-center justify-center space-x-2 active:scale-95 cursor-pointer"
+                >
+                  <span>Join Us</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
 
-                {/* TAB 1: TRACK SHIPMENT INPUT */}
-                {heroMode === 'track' ? (
-                  <div className="space-y-3">
-                    <form onSubmit={handleTrackSubmit} className="bg-white rounded-xl p-2 flex flex-col sm:flex-row items-center gap-2">
-                      <div className="relative w-full flex-1">
-                        <Search className="w-5 h-5 text-orange-500 absolute left-3.5 top-3.5" />
-                        <input
-                          type="text"
-                          value={trackingInput}
-                          onChange={(e) => setTrackingInput(e.target.value)}
-                          placeholder="Enter Tracking ID (e.g. JOS-89421-US)..."
-                          className="w-full pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 bg-transparent border-none focus:outline-none placeholder:text-slate-400"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        className="w-full sm:w-auto px-8 py-3 bg-orange-gradient hover:bg-orange-600 text-white rounded-lg font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2 shrink-0 active:scale-95"
-                      >
-                        <span>Track Live</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </form>
-
-                    {/* Quick Demo Pre-fill Links */}
-                    <div className="px-1 flex flex-wrap items-center gap-2 text-xs text-white">
-                      <span className="font-semibold text-slate-400">Try Live Demo ID:</span>
-                      {['JOS-89421-US', 'JOS-33104-EU', 'JOS-77210-IN'].map((demoId) => (
-                        <button
-                          key={demoId}
-                          onClick={() => handleDemoTrack(demoId)}
-                          className="bg-slate-800 hover:bg-orange-500/20 text-orange-400 border border-slate-700 hover:border-orange-500 px-2.5 py-1 rounded font-mono font-bold text-[11px] transition-all"
-                        >
-                          {demoId}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  /* TAB 2: QUICK RATE CALCULATOR */
-                  <form onSubmit={calculateQuickEstimate} className="space-y-3 pt-1">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Origin City</label>
-                        <div className="flex items-center space-x-1.5 text-white">
-                          <MapPin className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                          <input
-                            type="text"
-                            value={rateOrigin}
-                            onChange={(e) => setRateOrigin(e.target.value)}
-                            className="bg-transparent text-xs font-bold w-full focus:outline-none text-white"
-                          />
-                        </div>
-                      </div>
-                      <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Destination</label>
-                        <div className="flex items-center space-x-1.5 text-white">
-                          <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <input
-                            type="text"
-                            value={rateDest}
-                            onChange={(e) => setRateDest(e.target.value)}
-                            className="bg-transparent text-xs font-bold w-full focus:outline-none text-white"
-                          />
-                        </div>
-                      </div>
-                      <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Weight (KG)</label>
-                        <div className="flex items-center space-x-1.5 text-white">
-                          <Package className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                          <input
-                            type="number"
-                            value={rateWeight}
-                            onChange={(e) => setRateWeight(e.target.value)}
-                            className="bg-transparent text-xs font-bold w-full focus:outline-none text-white"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-                      <div className="flex items-center space-x-3 text-xs text-slate-300">
-                        <span className="font-bold text-slate-400">Estimated Freight Cost:</span>
-                        <span className="text-xl font-extrabold text-orange-400">${estimatedCost}.00 USD</span>
-                      </div>
-                      <div className="flex space-x-2 w-full sm:w-auto">
-                        <button
-                          type="submit"
-                          className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold text-xs border border-slate-700 transition-colors"
-                        >
-                          Calculate Rate
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab('book')}
-                          className="px-5 py-2.5 bg-orange-gradient hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-1.5"
-                        >
-                          <span>Proceed To Book</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                )}
-
-              </div>
-
-              {/* Key Hero Metric Counters */}
-              <div className="pt-4 grid grid-cols-3 gap-4 border-t border-slate-200">
-                <div>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-slate-900">99.8%</p>
-                  <p className="text-xs font-semibold text-slate-500">On-Time SLA Guarantee</p>
-                </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-orange-600">50K+</p>
-                  <p className="text-xs font-semibold text-slate-500">Monthly Cargo Shipments</p>
-                </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-slate-900">120+</p>
-                  <p className="text-xs font-semibold text-slate-500">Global Hub Centers</p>
-                </div>
+                <button
+                  onClick={() => setActiveTab('track')}
+                  className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 shadow-sm"
+                >
+                  <Search className="w-4 h-4 text-orange-400" />
+                  <span>Track Shipment</span>
+                </button>
               </div>
 
             </div>
 
-            {/* Right Hero Visual Card */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-900">
+            {/* Right Hero 3D Logistics Artwork */}
+            <div className="lg:col-span-6">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-100 bg-white group">
                 <img
-                  src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80"
-                  alt="Josan Freight Operations"
-                  className="w-full h-[440px] object-cover opacity-85 hover:scale-105 transition-transform duration-700"
+                  src="/assets/hero_logistics_3d.jpg"
+                  alt="3D Global Freight Supply Chain Render"
+                  className="w-full h-auto max-h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
                 
-                {/* Floating Tracking Badge */}
-                <div className="absolute bottom-6 left-6 right-6 glass-card p-4 rounded-2xl shadow-elevated border border-orange-500/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold">
-                        <Truck className="w-5 h-5 animate-pulse" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 font-bold uppercase">Active Freight Fleet</p>
-                        <p className="text-sm font-extrabold text-slate-900">Truck #FL-408 In Transit</p>
-                      </div>
+                {/* Floating Telematics Pill */}
+                <div className="absolute bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-700 text-white flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center font-bold">
+                      <Truck className="w-4 h-4 animate-pulse" />
                     </div>
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full flex items-center">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span>
-                      On Schedule
-                    </span>
+                    <div>
+                      <p className="font-extrabold text-slate-100">Multi-Modal Freight Dispatch</p>
+                      <p className="text-[10px] text-slate-400">Sea • Air • Land Telematics Active</p>
+                    </div>
                   </div>
+                  <span className="text-[11px] font-bold text-orange-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                    Live Status: 100% Active
+                  </span>
                 </div>
               </div>
             </div>
 
           </div>
+
+          {/* BOTTOM STATISTICS BAR (4 Columns Matching Reference) */}
+          <div className="mt-16 pt-10 border-t border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+            
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">3,500,000+</p>
+              <p className="text-xs sm:text-sm font-medium text-slate-500">Business Opportunities / Year</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">$4,000,000,000+</p>
+              <p className="text-xs sm:text-sm font-medium text-slate-500">Payment Volume / Year</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">$150,000</p>
+              <p className="text-xs sm:text-sm font-medium text-slate-500">Cooperation Risk Protection / Year</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">60,000+</p>
+              <p className="text-xs sm:text-sm font-medium text-slate-500">Total Attendances / Year</p>
+            </div>
+
+          </div>
+
         </div>
       </section>
 

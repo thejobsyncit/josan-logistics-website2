@@ -186,6 +186,36 @@ export const TrackShipmentPage = () => {
                 </div>
               </div>
 
+              {/* AUTOMATED WEATHER & TELEMATICS RADAR ALERT BANNER */}
+              {(currentShipment.status === 'Delayed' || currentShipment.weatherDelay?.active) && (
+                <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 space-y-3 shadow-sm animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5 text-amber-900 font-extrabold text-sm">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 animate-bounce" />
+                      <span>Automated Weather & Telematics Radar Alert</span>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase font-mono text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300">
+                      Live Dispatch Alert Active
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-amber-900 leading-relaxed font-semibold">
+                    ⛈️ <strong>Weather Condition Flagged:</strong> {currentShipment.weatherDelay?.condition || 'Heavy Thunderstorm & Flash Flood Alert on Highway Corridor (Wind: 55 mph)'}. Our automated satellite telematics system flagged route safety hazards and adjusted speed SLA for cargo protection.
+                  </p>
+
+                  <div className="bg-white p-3 rounded-xl border border-amber-200 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-700 font-medium">
+                    <div className="flex items-center space-x-1.5 text-emerald-800">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                      <span>📱 <strong>SMS Notification Sent:</strong> Recipient notified via mobile</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5 text-slate-800">
+                      <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+                      <span>📧 <strong>Email Alert Issued:</strong> Detailed telematics log delivered</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* DELIVERY TIMELINE (ORANGE PROGRESS INDICATORS) */}
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-6">Delivery Timeline Stepper</h3>

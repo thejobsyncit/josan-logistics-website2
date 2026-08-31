@@ -15,6 +15,20 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 
+const countryCodes = [
+  { code: '+1', flag: '🇺🇸', name: 'US/CA' },
+  { code: '+44', flag: '🇬🇧', name: 'UK' },
+  { code: '+91', flag: '🇮🇳', name: 'IN' },
+  { code: '+65', flag: '🇸🇬', name: 'SG' },
+  { code: '+61', flag: '🇦🇺', name: 'AU' },
+  { code: '+49', flag: '🇩🇪', name: 'DE' },
+  { code: '+33', flag: '🇫🇷', name: 'FR' },
+  { code: '+81', flag: '🇯🇵', name: 'JP' },
+  { code: '+971', flag: '🇦🇪', name: 'UAE' },
+  { code: '+60', flag: '🇲🇾', name: 'MY' },
+  { code: '+86', flag: '🇨🇳', name: 'CN' }
+];
+
 export const BookShipmentPage = ({ setActiveTab }) => {
   const { addShipment, setSelectedInvoiceShipment, showToast } = useLogistics();
 
@@ -23,9 +37,13 @@ export const BookShipmentPage = ({ setActiveTab }) => {
   // Single Booking Form State
   const [formData, setFormData] = useState({
     senderName: '',
+    senderCountryCode: '+1',
+    senderPhone: '',
     pickupAddress: '',
     pickupCity: 'San Jose, CA',
     receiverName: '',
+    receiverCountryCode: '+1',
+    receiverPhone: '',
     deliveryAddress: '',
     deliveryCity: 'New York, NY',
     destinationCountryCode: 'US',
@@ -62,14 +80,16 @@ export const BookShipmentPage = ({ setActiveTab }) => {
 
   const handleSingleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.senderName || !formData.pickupAddress || !formData.receiverName || !formData.deliveryAddress) {
-      showToast('Please complete all required pickup and delivery fields', 'warning');
+    if (!formData.senderName || !formData.senderPhone || !formData.pickupAddress || !formData.receiverName || !formData.receiverPhone || !formData.deliveryAddress) {
+      showToast('Please complete all required fields including Sender & Receiver Contact Numbers', 'warning');
       return;
     }
 
     const estimatedPrice = calculateEstimatedPrice();
     const createdShipment = addShipment({
       ...formData,
+      senderPhone: `${formData.senderCountryCode} ${formData.senderPhone}`,
+      receiverPhone: `${formData.receiverCountryCode} ${formData.receiverPhone}`,
       estimatedPrice
     });
 
@@ -96,9 +116,11 @@ export const BookShipmentPage = ({ setActiveTab }) => {
       if (parcel.receiverName) {
         addShipment({
           senderName: 'Enterprise Bulk Account',
+          senderPhone: '+1 4085550199',
           pickupAddress: 'Central Warehouse Hub Gate 4',
           pickupCity: 'San Jose, CA',
           receiverName: parcel.receiverName,
+          receiverPhone: '+1 2125550188',
           deliveryAddress: `${parcel.deliveryCity} Commercial Port`,
           deliveryCity: parcel.deliveryCity,
           weight: parcel.weight,
@@ -189,6 +211,37 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Sender Contact Phone Number *</label>
+                  <div className="flex items-center">
+                    <select
+                      value={formData.senderCountryCode}
+                      onChange={(e) => setFormData({ ...formData, senderCountryCode: e.target.value })}
+                      className="p-3 text-xs font-bold bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 focus-orange border-r-0 shrink-0 cursor-pointer"
+                    >
+                      {countryCodes.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.flag} {c.code}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={15}
+                      value={formData.senderPhone}
+                      onChange={(e) => {
+                        const numericOnly = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({ ...formData, senderPhone: numericOnly });
+                      }}
+                      placeholder="e.g. 4085550199"
+                      className="w-full p-3 text-sm bg-white border border-slate-300 rounded-r-xl text-slate-900 focus-orange font-mono font-bold"
+                      required
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly numbers only</span>
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Pickup City / Hub *</label>
                   <input
                     type="text"
@@ -199,7 +252,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     required
                   />
                 </div>
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Full Street Address & Gate No. *</label>
                   <input
                     type="text"
@@ -238,6 +291,37 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Receiver Contact Phone Number *</label>
+                  <div className="flex items-center">
+                    <select
+                      value={formData.receiverCountryCode}
+                      onChange={(e) => setFormData({ ...formData, receiverCountryCode: e.target.value })}
+                      className="p-3 text-xs font-bold bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 focus-orange border-r-0 shrink-0 cursor-pointer"
+                    >
+                      {countryCodes.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.flag} {c.code}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={15}
+                      value={formData.receiverPhone}
+                      onChange={(e) => {
+                        const numericOnly = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({ ...formData, receiverPhone: numericOnly });
+                      }}
+                      placeholder="e.g. 2125550188"
+                      className="w-full p-3 text-sm bg-white border border-slate-300 rounded-r-xl text-slate-900 focus-orange font-mono font-bold"
+                      required
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly numbers only</span>
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Destination City *</label>
                   <input
                     type="text"
@@ -248,7 +332,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     required
                   />
                 </div>
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Destination Address & Suite *</label>
                   <input
                     type="text"

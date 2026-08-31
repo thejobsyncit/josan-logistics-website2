@@ -75,8 +75,8 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Role toggle action
-  const toggleRole = (role) => {
-    const newRole = role || (currentRole === 'admin' ? 'customer' : 'admin');
+  const toggleRole = (role, setActiveTab) => {
+    const newRole = role || (currentRole === 'customer' ? 'driver' : 'customer');
     setCurrentRole(newRole);
     if (newRole === 'admin') {
       setCurrentUser({
@@ -85,7 +85,17 @@ export const LogisticsProvider = ({ children }) => {
         role: 'admin',
         company: 'Josan Logistics HQ'
       });
+      if (setActiveTab) setActiveTab('admin-dashboard');
       showToast('Switched to Admin Management Portal', 'info');
+    } else if (newRole === 'driver') {
+      setCurrentUser({
+        name: 'Robert Martinez (Driver)',
+        email: 'robert.m@josanlogistics.com',
+        role: 'driver',
+        company: 'Josan Logistics Fleet'
+      });
+      if (setActiveTab) setActiveTab('driver-dashboard');
+      showToast('Switched to Driver Portal', 'info');
     } else {
       setCurrentUser({
         name: 'TechCorp Solutions (Customer)',
@@ -93,23 +103,45 @@ export const LogisticsProvider = ({ children }) => {
         role: 'customer',
         company: 'TechCorp Solutions'
       });
+      if (setActiveTab) setActiveTab('customer-dashboard');
       showToast('Switched to Customer Dashboard', 'info');
     }
   };
 
   // Auth login
-  const loginUser = (email, role) => {
-    const userRole = role || (email.includes('admin') ? 'admin' : 'customer');
+  const loginUser = (email, role, setActiveTab) => {
+    const userRole = role || (email.includes('admin') ? 'admin' : email.includes('driver') ? 'driver' : 'customer');
     const userObj = {
-      name: userRole === 'admin' ? 'Fleet Admin Manager' : 'Enterprise Customer',
+      name: userRole === 'admin' 
+        ? 'Fleet Admin Manager' 
+        : userRole === 'driver' 
+        ? 'Robert Martinez (Driver)' 
+        : 'Enterprise Customer',
       email: email,
       role: userRole,
-      company: userRole === 'admin' ? 'Josan Logistics Operations' : 'Global Client Corp'
+      company: userRole === 'admin' 
+        ? 'Josan Logistics Operations' 
+        : userRole === 'driver' 
+        ? 'Josan Fleet Operations' 
+        : 'Global Client Corp'
     };
     setCurrentUser(userObj);
     setCurrentRole(userRole);
     setIsAuthModalOpen(false);
-    showToast(`Logged in successfully as ${userObj.name}`);
+
+    // Enforce Strict Portal Redirection
+    if (setActiveTab) {
+      if (userRole === 'admin') {
+        setActiveTab('admin-dashboard');
+      } else if (userRole === 'driver') {
+        setActiveTab('driver-dashboard');
+      } else {
+        setActiveTab('customer-dashboard');
+      }
+    }
+
+    const portalName = userRole === 'admin' ? 'Admin Hub' : userRole === 'driver' ? 'Driver Portal' : 'Customer Portal';
+    showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
   };
 
   const logoutUser = () => {
@@ -123,8 +155,10 @@ export const LogisticsProvider = ({ children }) => {
     const newShipment = {
       id: trackingId,
       sender: newShipmentData.senderName || currentUser?.name || 'Valued Customer',
+      senderPhone: newShipmentData.senderPhone || '+1 4085550199',
       senderAddress: newShipmentData.pickupAddress,
       receiver: newShipmentData.receiverName,
+      receiverPhone: newShipmentData.receiverPhone || '+1 2125550188',
       receiverAddress: newShipmentData.deliveryAddress,
       origin: newShipmentData.pickupCity || 'Origin Hub',
       destination: newShipmentData.deliveryCity || 'Destination Hub',
@@ -183,6 +217,44 @@ export const LogisticsProvider = ({ children }) => {
       return s;
     }));
     showToast(`Updated status of ${shipmentId} to "${newStatus}"`);
+  };
+
+  const flagWeatherDelay = (shipmentId, weatherCondition = 'Severe Thunderstorm & High Crosswind Corridor') => {
+    setShipments(prev => prev.map(s => {
+      if (s.id === shipmentId) {
+        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const newTimeline = s.timeline.map((step, idx) => {
+          if (idx === 2) {
+            return {
+              ...step,
+              title: `⛈️ Weather Delay Flagged (${weatherCondition})`,
+              timestamp: timeNow,
+              completed: true,
+              current: true
+            };
+          }
+          return step;
+        });
+
+        return {
+          ...s,
+          status: 'Delayed',
+          statusType: 'warning',
+          weatherDelay: {
+            active: true,
+            condition: weatherCondition,
+            etaImpact: '+45 Minutes Safety Margin Added',
+            smsSent: true,
+            emailSent: true,
+            timestamp: timeNow
+          },
+          timeline: newTimeline
+        };
+      }
+      return s;
+    }));
+
+    showToast(`Weather delay flagged for #${shipmentId}! Automated SMS & Email notifications dispatched to recipient.`, 'warning');
   };
 
   const assignDriver = (shipmentId, driverId) => {
@@ -258,6 +330,7 @@ export const LogisticsProvider = ({ children }) => {
       logoutUser,
       addShipment,
       updateShipmentStatus,
+      flagWeatherDelay,
       assignDriver,
       addDriver,
       removeDriver,

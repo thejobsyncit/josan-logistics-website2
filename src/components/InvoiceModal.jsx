@@ -3,7 +3,7 @@ import { useLogistics } from '../context/LogisticsContext';
 import { X, Printer, Download, Truck, CheckCircle2, ShieldCheck, FileText } from 'lucide-react';
 
 export const InvoiceModal = () => {
-  const { selectedInvoiceShipment, setSelectedInvoiceShipment } = useLogistics();
+  const { selectedInvoiceShipment, setSelectedInvoiceShipment, showToast } = useLogistics();
 
   if (!selectedInvoiceShipment) return null;
 
@@ -18,6 +18,133 @@ export const InvoiceModal = () => {
     window.print();
   };
 
+  const handleDownloadPDF = () => {
+    const invoiceHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Invoice-${shipment.id}</title>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #0F172A; background: #fff; margin: 0; }
+          .header { display: flex; justify-content: space-between; border-bottom: 3px solid #F26722; padding-bottom: 20px; }
+          .brand { font-size: 24px; font-weight: 800; color: #0F172A; }
+          .brand span { color: #F26722; }
+          .status { background: #D1FAE5; color: #065F46; padding: 4px 12px; border-radius: 9999px; font-weight: 700; font-size: 12px; text-transform: uppercase; }
+          .title { font-size: 20px; font-weight: 800; margin-top: 10px; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+          .card { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; font-size: 13px; }
+          .card-title { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
+          th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+          th { background: #F1F5F9; font-weight: 700; color: #334155; }
+          .total { background: #FFF4EE; font-weight: 800; color: #F26722; font-size: 15px; }
+          .footer { margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 15px; font-size: 12px; color: #64748B; display: flex; justify-content: space-between; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="brand">JOSAN <span>LOGISTICS</span></div>
+            <p style="font-size:12px; color:#64748B; margin:4px 0;">Global Freight & Supply Chain Management</p>
+            <p style="font-size:12px; color:#64748B; margin:0;">450 Logistics Parkway, Chicago, IL 60607</p>
+            <p style="font-size:12px; color:#64748B; margin:0;">Tax Reg ID: US-JOS-98210492</p>
+          </div>
+          <div style="text-align:right;">
+            <span class="status">PAID & VERIFIED</span>
+            <div class="title">INVOICE #${shipment.id}</div>
+            <p style="font-size:12px; color:#64748B; margin:4px 0;">Date: ${shipment.createdDate || 'Aug 29, 2026'}</p>
+            <p style="font-size:12px; color:#64748B; margin:0;">Payment Terms: Net 30</p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="card-title">SHIP FROM (ORIGIN)</div>
+            <strong>${shipment.sender}</strong>
+            <p style="margin:4px 0; color:#475569;">${shipment.senderAddress || 'Origin Depot'}</p>
+            <p style="margin:0; color:#64748B;">Hub: ${shipment.origin}</p>
+          </div>
+          <div class="card">
+            <div class="card-title">SHIP TO (DESTINATION)</div>
+            <strong>${shipment.receiver}</strong>
+            <p style="margin:4px 0; color:#475569;">${shipment.receiverAddress || 'Destination Depot'}</p>
+            <p style="margin:0; color:#64748B;">Hub: ${shipment.destination}</p>
+          </div>
+        </div>
+
+        <h4 style="margin-bottom:6px; font-size:13px; text-transform:uppercase;">Freight Specifications</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Service Level</th>
+              <th>Cargo Type</th>
+              <th>Weight</th>
+              <th>Declared Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700; color:#F26722;">${shipment.serviceLevel}</td>
+              <td>${shipment.cargoType}</td>
+              <td>${shipment.weight} (${shipment.pieces || 1} Pcs)</td>
+              <td>${shipment.declaredValue || '$10,000'}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 style="margin-bottom:6px; font-size:13px; text-transform:uppercase;">Itemized Charges</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th style="text-align:right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Base Freight Transportation Fee</td>
+              <td style="text-align:right;">$${basePriceNum.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td>Fuel Surcharge (8%)</td>
+              <td style="text-align:right;">$${fuelSurcharge}</td>
+            </tr>
+            <tr>
+              <td>Cargo Security & Insurance Policy (5%)</td>
+              <td style="text-align:right;">$${insuranceFee}</td>
+            </tr>
+            <tr>
+              <td>GST / Sales Tax (7%)</td>
+              <td style="text-align:right;">$${tax}</td>
+            </tr>
+            <tr class="total">
+              <td>TOTAL DUE / PAID</td>
+              <td style="text-align:right;">$${totalPrice} USD</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div>🛡️ Full Cargo Loss Protection Guarantee by Josan Cover</div>
+          <div>Thank you for choosing Josan Logistics!</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([invoiceHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Invoice-${shipment.id}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    if (showToast) showToast(`Downloaded full Invoice #${shipment.id}`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
@@ -28,14 +155,23 @@ export const InvoiceModal = () => {
             <FileText className="w-5 h-5 text-orange-500" />
             <span className="font-bold text-sm">Official Freight Bill & Invoice</span>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              onClick={handleDownloadPDF}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5 text-orange-400" />
+              <span>Download Invoice File</span>
+            </button>
+
             <button
               onClick={handlePrint}
               className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 shadow-sm"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Download PDF</span>
+              <span>Print Invoice</span>
             </button>
+
             <button
               onClick={() => setSelectedInvoiceShipment(null)}
               className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LogisticsProvider, useLogistics } from './context/LogisticsContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -13,6 +13,7 @@ import { TrackShipmentPage } from './pages/TrackShipmentPage';
 import { BookShipmentPage } from './pages/BookShipmentPage';
 import { CustomerDashboardPage } from './pages/CustomerDashboardPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { DriverDashboardPage } from './pages/DriverDashboardPage';
 import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
 
 const ToastNotification = () => {
@@ -43,7 +44,27 @@ const ToastNotification = () => {
 
 const MainContent = () => {
   const [activeTab, setActiveTab] = useState('home');
-  const { currentRole } = useLogistics();
+  const { currentRole, toggleRole } = useLogistics();
+
+  // Listen for /admin or #admin in the URL bar to strictly open Admin Portal
+  useEffect(() => {
+    const checkAdminUrl = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path === '/admin' || path.endsWith('/admin') || hash === '#admin' || hash === '#/admin') {
+        toggleRole('admin');
+        setActiveTab('admin-dashboard');
+      }
+    };
+
+    checkAdminUrl();
+    window.addEventListener('popstate', checkAdminUrl);
+    window.addEventListener('hashchange', checkAdminUrl);
+    return () => {
+      window.removeEventListener('popstate', checkAdminUrl);
+      window.removeEventListener('hashchange', checkAdminUrl);
+    };
+  }, []);
 
   const renderPage = () => {
     switch (activeTab) {
@@ -61,6 +82,8 @@ const MainContent = () => {
         return <BookShipmentPage setActiveTab={setActiveTab} />;
       case 'customer-dashboard':
         return <CustomerDashboardPage setActiveTab={setActiveTab} />;
+      case 'driver-dashboard':
+        return <DriverDashboardPage setActiveTab={setActiveTab} />;
       case 'admin-dashboard':
         return <AdminDashboardPage />;
       default:
@@ -75,7 +98,7 @@ const MainContent = () => {
         {renderPage()}
       </main>
       <Footer setActiveTab={setActiveTab} />
-      <AuthModal />
+      <AuthModal setActiveTab={setActiveTab} />
       <InvoiceModal />
       <ToastNotification />
     </div>
