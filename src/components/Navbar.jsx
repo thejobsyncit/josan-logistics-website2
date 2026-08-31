@@ -72,7 +72,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  const navItems = [
+  let navItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services' },
@@ -84,6 +84,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   if (currentRole === 'customer') {
     navItems.push({ id: 'customer-dashboard', label: 'My Orders' });
   } else if (currentRole === 'driver') {
+    navItems = navItems.filter(item => item.id !== 'track' && item.id !== 'book');
     navItems.push({ id: 'driver-dashboard', label: 'Driver Portal' });
   }
 
