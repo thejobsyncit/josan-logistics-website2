@@ -86,6 +86,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   } else if (currentRole === 'driver') {
     navItems = navItems.filter(item => item.id !== 'track' && item.id !== 'book');
     navItems.push({ id: 'driver-dashboard', label: 'Driver Portal' });
+  } else if (currentRole === 'admin') {
+    navItems = navItems.filter(item => item.id !== 'book');
+    navItems.push({ id: 'admin-dashboard', label: 'Admin Portal' });
   }
 
   return (
