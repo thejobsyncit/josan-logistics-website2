@@ -130,26 +130,26 @@ export const ContactPage = () => {
             <div className="bg-slate-900 text-white p-8 rounded-3xl space-y-6">
               <h3 className="text-xl font-extrabold flex items-center space-x-2">
                 <Building2 className="w-5 h-5 text-orange-400" />
-                <span>Global HQ & Hub Terminals</span>
+                <span>Singapore HQ & Global Hubs</span>
               </h3>
 
               <div className="space-y-4 text-xs">
                 <div className="border-b border-slate-800 pb-3 space-y-1">
-                  <p className="font-bold text-orange-400 text-sm">Americas HQ - Chicago Hub</p>
-                  <p className="text-slate-300">450 Logistics Parkway, Suite 100, Chicago, IL 60607</p>
-                  <p className="text-slate-400">Phone: +1 (800) 555-JOSAN | Email: us-dispatch@josanlogistics.com</p>
+                  <p className="font-bold text-orange-400 text-sm">🇸🇬 Singapore Regional HQ - Mapletree City</p>
+                  <p className="text-slate-300">10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</p>
+                  <p className="text-slate-400">Phone: +65 6789 0123 | Email: contact@josanlogistics.com.sg</p>
                 </div>
 
                 <div className="border-b border-slate-800 pb-3 space-y-1">
-                  <p className="font-bold text-orange-400 text-sm">Europe Depot - Rotterdam Port</p>
-                  <p className="text-slate-300">Maasvlakte Logistics Gate 3, Rotterdam, Netherlands</p>
-                  <p className="text-slate-400">Phone: +31 10 555 9010 | Email: eu-dispatch@josanlogistics.com</p>
+                  <p className="font-bold text-orange-400 text-sm">🇸🇬 Changi Airport Air Cargo Hub</p>
+                  <p className="text-slate-300">1 Freight Close, Changi Air Cargo Complex, Singapore 819830</p>
+                  <p className="text-slate-400">Phone: +65 6542 1100 | Email: changi-hub@josanlogistics.com.sg</p>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="font-bold text-orange-400 text-sm">Asia-Pacific Airport Hub - Noida</p>
-                  <p className="text-slate-300">Sector 62 Mega Freight Terminal, Noida, UP, India</p>
-                  <p className="text-slate-400">Phone: +91 120 555 3300 | Email: asia-dispatch@josanlogistics.com</p>
+                  <p className="font-bold text-orange-400 text-sm">🇸🇬 Tuas Mega Port Sea Logistics Center</p>
+                  <p className="text-slate-300">20 Tuas South Avenue 2, Singapore 637560</p>
+                  <p className="text-slate-400">Phone: +65 6861 9900 | Email: tuas-port@josanlogistics.com.sg</p>
                 </div>
               </div>
             </div>
@@ -160,9 +160,8 @@ export const ContactPage = () => {
                 <Phone className="w-6 h-6 animate-bounce" />
               </div>
               <div>
-                <p className="text-xs font-extrabold uppercase text-orange-800">24/7 Emergency Dispatch Line</p>
-                <p className="text-lg font-extrabold text-slate-900">+1 (800) 555-5672</p>
-                <p className="text-[10px] text-slate-500">Instant connection to on-duty route controllers</p>
+                <h4 className="font-extrabold text-slate-900 text-sm">24/7 Singapore Hotline</h4>
+                <p className="text-orange-600 font-extrabold text-lg font-mono">+65 6789 0123</p>
               </div>
             </div>
 

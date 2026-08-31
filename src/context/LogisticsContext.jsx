@@ -43,7 +43,7 @@ export const LogisticsProvider = ({ children }) => {
 
   // Active modal state for invoices or auth
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
 
   // Save to localStorage
   useEffect(() => {
@@ -66,12 +66,16 @@ export const LogisticsProvider = ({ children }) => {
     localStorage.setItem('josan_user', JSON.stringify(currentUser));
   }, [currentUser]);
 
-  // Helper toast alert function
-  const showToast = (message, type = 'success') => {
+  // Helper toast alert function (20s duration so Admin & Drivers can view availability status)
+  const showToast = (message, type = 'success', duration = 20000) => {
+    if (!message) {
+      setToast(null);
+      return;
+    }
     setToast({ message, type, id: Date.now() });
     setTimeout(() => {
       setToast(null);
-    }, 4000);
+    }, duration);
   };
 
   // Role toggle action

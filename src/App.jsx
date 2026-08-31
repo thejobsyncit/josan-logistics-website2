@@ -14,15 +14,15 @@ import { BookShipmentPage } from './pages/BookShipmentPage';
 import { CustomerDashboardPage } from './pages/CustomerDashboardPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { DriverDashboardPage } from './pages/DriverDashboardPage';
-import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const ToastNotification = () => {
-  const { toast } = useLogistics();
+  const { toast, showToast } = useLogistics();
   if (!toast) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-bounce">
-      <div className={`px-5 py-3.5 rounded-2xl shadow-2xl border flex items-center space-x-3 text-sm font-extrabold ${
+    <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+      <div className={`px-5 py-4 rounded-2xl shadow-2xl border flex items-center space-x-3 text-sm font-extrabold ${
         toast.type === 'warning'
           ? 'bg-amber-900 text-amber-100 border-amber-700'
           : toast.type === 'info'
@@ -30,13 +30,20 @@ const ToastNotification = () => {
           : 'bg-orange-600 text-white border-orange-500 shadow-orange-glow'
       }`}>
         {toast.type === 'warning' ? (
-          <AlertCircle className="w-5 h-5 text-amber-400" />
+          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
         ) : toast.type === 'info' ? (
-          <Info className="w-5 h-5 text-orange-400" />
+          <Info className="w-5 h-5 text-orange-400 shrink-0" />
         ) : (
-          <CheckCircle2 className="w-5 h-5 text-white" />
+          <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
         )}
         <span>{toast.message}</span>
+        <button
+          onClick={() => showToast(null)}
+          className="ml-3 p-1 hover:bg-white/20 rounded-full transition-colors shrink-0"
+          title="Dismiss notification"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

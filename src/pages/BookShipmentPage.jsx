@@ -16,16 +16,13 @@ import {
 } from 'lucide-react';
 
 const countryCodes = [
+  { code: '+65', flag: '🇸🇬', name: 'SG' },
   { code: '+1', flag: '🇺🇸', name: 'US/CA' },
+  { code: '+60', flag: '🇲🇾', name: 'MY' },
   { code: '+44', flag: '🇬🇧', name: 'UK' },
   { code: '+91', flag: '🇮🇳', name: 'IN' },
-  { code: '+65', flag: '🇸🇬', name: 'SG' },
   { code: '+61', flag: '🇦🇺', name: 'AU' },
-  { code: '+49', flag: '🇩🇪', name: 'DE' },
-  { code: '+33', flag: '🇫🇷', name: 'FR' },
   { code: '+81', flag: '🇯🇵', name: 'JP' },
-  { code: '+971', flag: '🇦🇪', name: 'UAE' },
-  { code: '+60', flag: '🇲🇾', name: 'MY' },
   { code: '+86', flag: '🇨🇳', name: 'CN' }
 ];
 
@@ -37,24 +34,24 @@ export const BookShipmentPage = ({ setActiveTab }) => {
   // Single Booking Form State
   const [formData, setFormData] = useState({
     senderName: '',
-    senderCountryCode: '+1',
+    senderCountryCode: '+65',
     senderPhone: '',
     pickupAddress: '',
-    pickupCity: 'San Jose, CA',
+    pickupCity: 'Singapore (Changi Cargo)',
     receiverName: '',
-    receiverCountryCode: '+1',
+    receiverCountryCode: '+65',
     receiverPhone: '',
     deliveryAddress: '',
-    deliveryCity: 'New York, NY',
-    destinationCountryCode: 'US',
+    deliveryCity: 'Singapore (Jurong Port)',
+    destinationCountryCode: 'SG',
     weight: 15,
     lengthCm: 40,
     widthCm: 30,
     heightCm: 25,
     pieces: 1,
-    cargoType: 'High-Tech Electronics',
-    serviceLevel: 'Express Air Freight',
-    declaredValue: '5,000',
+    cargoType: 'High-Tech Microchips',
+    serviceLevel: 'Express Air Freight (SG Same-Day)',
+    declaredValue: '15,000',
     includeInsurance: true
   });
 
