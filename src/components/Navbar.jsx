@@ -219,12 +219,13 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                             type="text"
                             value={editName}
                             onChange={(e) => {
-                              const alphaOnly = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                              setEditName(alphaOnly);
+                              const lettersOnly = e.target.value.replace(/[0-9]/g, '');
+                              setEditName(lettersOnly);
                             }}
                             className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
                             required
                           />
+                          <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Letters only (no numbers)</span>
                         </div>
 
                         {/* Phone Input */}

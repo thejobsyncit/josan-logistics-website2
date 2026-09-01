@@ -61,7 +61,18 @@ const cargoTypeOptions = [
 ];
 
 export const BookShipmentPage = ({ setActiveTab }) => {
-  const { addShipment, setSelectedInvoiceShipment, showToast } = useLogistics();
+  const { addShipment, setSelectedInvoiceShipment, showToast, addressList = [] } = useLogistics();
+
+  const pickupLocations = addressList.filter(a => a.type === 'pickup');
+  const dropLocations = addressList.filter(a => a.type === 'drop');
+
+  const defaultPickupStr = pickupLocations.length > 0 
+    ? `${pickupLocations[0].label} - ${pickupLocations[0].address}`
+    : '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438';
+
+  const defaultDropStr = dropLocations.length > 0 
+    ? `${dropLocations[0].label} - ${dropLocations[0].address}`
+    : '89 Orchard Road, Singapore 238854';
 
   const [bookingMode, setBookingMode] = useState('single'); // 'single' | 'bulk'
 
@@ -70,12 +81,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
     senderName: '',
     senderCountryCode: '+65',
     senderPhone: '',
-    pickupAddress: '',
+    pickupAddress: defaultPickupStr,
     pickupCity: 'Singapore (Changi Air Cargo Hub)',
     receiverName: '',
     receiverCountryCode: '+65',
     receiverPhone: '',
-    deliveryAddress: '',
+    deliveryAddress: defaultDropStr,
     deliveryCity: 'Singapore (Jurong Port & Logistics Hub)',
     destinationCountryCode: 'SG',
     weight: 15,
@@ -247,11 +258,15 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   <input
                     type="text"
                     value={formData.senderName}
-                    onChange={(e) => setFormData({ ...formData, senderName: e.target.value })}
+                    onChange={(e) => {
+                      const lettersOnly = e.target.value.replace(/[0-9]/g, '');
+                      setFormData({ ...formData, senderName: lettersOnly });
+                    }}
                     placeholder="e.g. TechCorp Solutions Inc"
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly letters only (no numbers)</span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Sender Contact Phone Number *</label>
@@ -311,15 +326,23 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Full Street Address & Gate No. *</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Saved Pickup Location *</label>
+                  <select
                     value={formData.pickupAddress}
                     onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
-                    placeholder="100 Pasir Panjang Road, Mapletree Business City, Singapore 117438"
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-semibold cursor-pointer"
                     required
-                  />
+                  >
+                    {pickupLocations.map((item) => {
+                      const fullVal = `${item.label} - ${item.address}`;
+                      return (
+                        <option key={item.id} value={fullVal}>
+                          📍 {item.label}: {item.address}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly selected from your Saved Pickup Locations ({pickupLocations.length} locations)</span>
                 </div>
               </div>
             </div>
@@ -338,15 +361,19 @@ export const BookShipmentPage = ({ setActiveTab }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Receiver Name / Contact *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Receiver Name *</label>
                   <input
                     type="text"
                     value={formData.receiverName}
-                    onChange={(e) => setFormData({ ...formData, receiverName: e.target.value })}
+                    onChange={(e) => {
+                      const lettersOnly = e.target.value.replace(/[0-9]/g, '');
+                      setFormData({ ...formData, receiverName: lettersOnly });
+                    }}
                     placeholder="e.g. Apex Dynamics SG"
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly letters only (no numbers)</span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Receiver Contact Phone Number *</label>
@@ -406,15 +433,23 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Destination Address & Suite *</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Saved Drop-off Location *</label>
+                  <select
                     value={formData.deliveryAddress}
                     onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
-                    placeholder="89 Orchard Road, Unit #04-12, Singapore 238854"
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-semibold cursor-pointer"
                     required
-                  />
+                  >
+                    {dropLocations.map((item) => {
+                      const fullVal = `${item.label} - ${item.address}`;
+                      return (
+                        <option key={item.id} value={fullVal}>
+                          🏢 {item.label}: {item.address}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly selected from your Saved Drop-off Locations ({dropLocations.length} locations)</span>
                 </div>
               </div>
             </div>
@@ -600,11 +635,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         type="text"
                         value={parcel.receiverName}
                         onChange={(e) => {
+                          const lettersOnly = e.target.value.replace(/[0-9]/g, '');
                           const updated = [...bulkParcels];
-                          updated[idx].receiverName = e.target.value;
+                          updated[idx].receiverName = lettersOnly;
                           setBulkParcels(updated);
                         }}
-                        placeholder="Company name..."
+                        placeholder="Receiver name..."
                         className="w-full p-2 border border-slate-300 rounded-lg focus-orange text-xs"
                       />
                     </td>

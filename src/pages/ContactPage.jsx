@@ -7,8 +7,24 @@ export const ContactPage = () => {
   const [formData, setFormData] = useState({ name: '', email: '', trackingId: '', subject: 'General Support', message: '' });
   const [activeFaq, setActiveFaq] = useState(null);
 
+  const validateEmail = (emailStr) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(emailStr.trim());
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (/[0-9]/.test(formData.name)) {
+      showToast('Full Name cannot contain numbers', 'warning');
+      return;
+    }
+
+    if (!validateEmail(formData.email)) {
+      showToast('Please enter a valid corporate email address (e.g. name@company.com)', 'warning');
+      return;
+    }
+
     showToast('Your inquiry has been submitted to Josan Dispatch Support!', 'success');
     setFormData({ name: '', email: '', trackingId: '', subject: 'General Support', message: '' });
   };
@@ -57,22 +73,29 @@ export const ContactPage = () => {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => {
+                      const lettersOnly = e.target.value.replace(/[0-9]/g, '');
+                      setFormData({ ...formData, name: lettersOnly });
+                    }}
                     placeholder="John Doe"
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly letters only (no numbers)</span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Corporate Email Address *</label>
                   <input
                     type="email"
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                    title="Please enter a valid email address with domain extension (e.g. john@company.com)"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="john@company.com"
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Must be valid email format (e.g. name@company.com)</span>
                 </div>
               </div>
 
@@ -154,14 +177,17 @@ export const ContactPage = () => {
               </div>
             </div>
 
-            {/* Quick 24/7 Hotline Badge */}
-            <div className="bg-orange-50 border-2 border-orange-200 p-6 rounded-2xl flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold shrink-0">
+            {/* Quick 24/7 Hotline Badge with Water Sinking & Spring Jumping Animation */}
+            <div className="bg-orange-50/90 border-2 border-orange-200 p-6 rounded-2xl flex items-center space-x-4 animate-water-sink cursor-pointer hover:border-orange-400 transition-all relative overflow-hidden group">
+              {/* Subtle Animated Water Wave Surface Line */}
+              <div className="absolute inset-x-0 bottom-0 h-1.5 bg-gradient-to-r from-cyan-400 via-orange-400 to-cyan-500 opacity-80 animate-pulse"></div>
+              
+              <div className="w-12 h-12 rounded-xl bg-orange-gradient text-white flex items-center justify-center font-bold shrink-0 shadow-orange-sm group-hover:scale-110 transition-transform">
                 <Phone className="w-6 h-6 animate-bounce" />
               </div>
               <div>
                 <h4 className="font-extrabold text-slate-900 text-sm">24/7 Singapore Hotline</h4>
-                <p className="text-orange-600 font-extrabold text-lg font-mono">+65 6789 0123</p>
+                <p className="text-orange-600 font-extrabold text-lg font-mono tracking-tight">+65 6789 0123</p>
               </div>
             </div>
 

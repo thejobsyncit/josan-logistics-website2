@@ -19,9 +19,19 @@ export const AuthModal = ({ setActiveTab }) => {
 
   if (!isAuthModalOpen) return null;
 
+  const validateEmail = (emailStr) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(emailStr.trim());
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
+
+    if (email && !validateEmail(email)) {
+      setError('Please enter a valid email format (e.g. user@company.com)');
+      return;
+    }
 
     if (!isLogin && password !== confirmPassword) {
       setError('Passwords do not match');
@@ -102,13 +112,17 @@ export const AuthModal = ({ setActiveTab }) => {
                   <input
                     type="text"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={(e) => {
+                      const lettersOnly = e.target.value.replace(/[0-9]/g, '');
+                      setFullName(lettersOnly);
+                    }}
                     placeholder="e.g. John Doe"
                     className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
                     required
                   />
                   <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 </div>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Letters only (no numbers)</span>
               </div>
 
               {/* Email Address */}
@@ -117,6 +131,8 @@ export const AuthModal = ({ setActiveTab }) => {
                 <div className="relative">
                   <input
                     type="email"
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                    title="Please enter a valid email address (e.g. user@company.com)"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="user@company.com"
@@ -125,6 +141,7 @@ export const AuthModal = ({ setActiveTab }) => {
                   />
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 </div>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Must be valid email format (e.g. name@company.com)</span>
               </div>
 
               {/* Phone Number */}

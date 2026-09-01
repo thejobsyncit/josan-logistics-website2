@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
@@ -8,8 +8,9 @@ import {
   Plus, 
   LifeBuoy, 
   FileText,
-  User,
-  ExternalLink
+  ExternalLink,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 export const CustomerDashboardPage = ({ setActiveTab }) => {
@@ -21,7 +22,11 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     setSelectedInvoiceShipment, 
     showToast,
     customerSubTab,
-    setCustomerSubTab
+    setCustomerSubTab,
+    addressList = [],
+    addSavedAddress,
+    updateSavedAddress,
+    deleteSavedAddress
   } = useLogistics();
 
   const [localSubTab, setLocalSubTab] = useState('orders');
@@ -30,7 +35,19 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     setLocalSubTab(tab);
     if (setCustomerSubTab) setCustomerSubTab(tab);
   };
-  const [expandedMapId, setExpandedMapId] = useState(null);
+  const [expandedMapId, setExpandedMapId] = useState('JOS-88190-SG');
+
+  // Live Truck GPS animation loop for Customer Portal
+  const [customerTruckProgress, setCustomerTruckProgress] = useState(35);
+  const [customerSpeed, setCustomerSpeed] = useState(64);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCustomerTruckProgress(prev => (prev >= 85 ? 15 : prev + 0.35));
+      setCustomerSpeed(62 + Math.floor(Math.random() * 8));
+    }, 100);
+    return () => clearInterval(timer);
+  }, []);
 
   const displayUser = currentUser || {
     name: 'Razer Asia-Pacific HQ',
@@ -40,32 +57,55 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     role: 'customer'
   };
 
-  const [addressList, setAddressList] = useState([
-    { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
-    { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
-    { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
-    { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
-  ]);
-
   const [newLabel, setNewLabel] = useState('');
   const [newAddress, setNewAddress] = useState('');
   const [newAddressType, setNewAddressType] = useState('pickup');
+  const [newContact, setNewContact] = useState('');
+  const [editingAddressId, setEditingAddressId] = useState(null);
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketMessage, setTicketMessage] = useState('');
 
+  const handleStartEdit = (addr) => {
+    setEditingAddressId(addr.id);
+    setNewLabel(addr.label);
+    setNewAddressType(addr.type);
+    setNewAddress(addr.address);
+    setNewContact(addr.contact || '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAddressId(null);
+    setNewLabel('');
+    setNewAddress('');
+    setNewAddressType('pickup');
+    setNewContact('');
+  };
+
   const handleAddAddress = (e) => {
     e.preventDefault();
-    if (newLabel && newAddress) {
-      setAddressList([...addressList, { 
+    if (!newLabel || !newAddress) return;
+
+    if (editingAddressId) {
+      updateSavedAddress(editingAddressId, {
+        label: newLabel,
+        type: newAddressType,
+        address: newAddress,
+        contact: newContact || currentUser?.name || 'Customer Manager'
+      });
+      showToast('Saved address location updated successfully!');
+      handleCancelEdit();
+    } else {
+      addSavedAddress({ 
         id: Date.now(), 
         label: newLabel, 
         address: newAddress, 
-        contact: currentUser?.name || 'Customer',
+        contact: newContact || currentUser?.name || 'Customer Manager',
         type: newAddressType
-      }]);
+      });
       setNewLabel('');
       setNewAddress('');
-      showToast(`New saved ${newAddressType} address added!`);
+      setNewContact('');
+      showToast(`New saved ${newAddressType} address added! Available in booking dropdown.`);
     }
   };
 
@@ -225,7 +265,10 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                     <SingaporeGoogleMapBackground
                       origin={s.origin}
                       destination={s.destination}
-                      vehicle={s.vehicle || 'Josan EV Semi-Truck'}
+                      vehicle={s.vehicle || 'Josan EV Express Semi-Truck #SG-8819'}
+                      truckProgress={customerTruckProgress}
+                      currentSpeed={customerSpeed}
+                      showTruck={true}
                     />
                   </div>
                 )}
@@ -254,10 +297,36 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                 </h3>
                 <div className="space-y-3">
                   {addressList.filter(a => a.type === 'pickup').map((addr) => (
-                    <div key={addr.id} className="p-4 bg-orange-50/40 rounded-2xl border border-orange-100 space-y-1">
-                      <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
-                      <p className="text-xs text-slate-600">{addr.address}</p>
-                      <p className="text-[10px] text-slate-400 font-semibold">Contact: {addr.contact}</p>
+                    <div key={addr.id} className="p-4 bg-orange-50/40 rounded-2xl border border-orange-100 space-y-2 group hover:border-orange-300 transition-all">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
+                          <p className="text-xs text-slate-600 leading-relaxed">{addr.address}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold pt-0.5">Contact: {addr.contact}</p>
+                        </div>
+                        <div className="flex items-center space-x-1.5 shrink-0 ml-2">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(addr)}
+                            className="px-2.5 py-1 bg-white border border-slate-200 hover:border-orange-400 text-slate-700 hover:text-orange-600 text-[10px] font-extrabold rounded-lg flex items-center space-x-1 cursor-pointer transition-all shadow-2xs"
+                            title="Edit this saved address"
+                          >
+                            <Pencil className="w-3 h-3 text-orange-500" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              deleteSavedAddress(addr.id);
+                              showToast('Saved address removed from your list.', 'info');
+                            }}
+                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                            title="Delete address"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -271,10 +340,36 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                 </h3>
                 <div className="space-y-3">
                   {addressList.filter(a => a.type === 'drop').map((addr) => (
-                    <div key={addr.id} className="p-4 bg-blue-50/40 rounded-2xl border border-blue-100 space-y-1">
-                      <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
-                      <p className="text-xs text-slate-600">{addr.address}</p>
-                      <p className="text-[10px] text-slate-400 font-semibold">Contact: {addr.contact}</p>
+                    <div key={addr.id} className="p-4 bg-blue-50/40 rounded-2xl border border-blue-100 space-y-2 group hover:border-blue-300 transition-all">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
+                          <p className="text-xs text-slate-600 leading-relaxed">{addr.address}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold pt-0.5">Contact: {addr.contact}</p>
+                        </div>
+                        <div className="flex items-center space-x-1.5 shrink-0 ml-2">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(addr)}
+                            className="px-2.5 py-1 bg-white border border-slate-200 hover:border-blue-400 text-slate-700 hover:text-blue-600 text-[10px] font-extrabold rounded-lg flex items-center space-x-1 cursor-pointer transition-all shadow-2xs"
+                            title="Edit this saved address"
+                          >
+                            <Pencil className="w-3 h-3 text-blue-500" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              deleteSavedAddress(addr.id);
+                              showToast('Saved address removed from your list.', 'info');
+                            }}
+                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                            title="Delete address"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -282,9 +377,25 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
             </div>
           </div>
 
+          {/* Form Panel: Add or Edit Saved Address */}
           <div className="lg:col-span-5 bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-4">
-            <h3 className="text-sm font-extrabold text-slate-900">Add New Address Location</h3>
-            <form onSubmit={handleAddAddress} className="space-y-3 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
+                {editingAddressId ? <Pencil className="w-4 h-4 text-orange-500" /> : <Plus className="w-4 h-4 text-orange-500" />}
+                <span>{editingAddressId ? 'Edit Saved Address Location' : 'Add New Address Location'}</span>
+              </h3>
+              {editingAddressId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="text-[11px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={handleAddAddress} className="space-y-3.5 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Address Label</label>
                 <input
@@ -292,7 +403,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                   value={newLabel}
                   onChange={(e) => setNewLabel(e.target.value)}
                   placeholder="e.g. West Dock Facility"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-bold text-slate-900"
                   required
                 />
               </div>
@@ -316,17 +427,39 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
                   placeholder="Enter full address details..."
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-medium text-slate-800"
                   required
                 ></textarea>
               </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Contact Person / Manager</label>
+                <input
+                  type="text"
+                  value={newContact}
+                  onChange={(e) => setNewContact(e.target.value)}
+                  placeholder="e.g. Tan Wei Ming (Warehouse Manager)"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
+                />
+              </div>
               
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-orange-500 text-white rounded-lg font-bold shadow-orange-sm hover:bg-orange-600 transition-colors cursor-pointer"
-              >
-                Save Location
-              </button>
+              <div className="flex items-center space-x-2 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-extrabold shadow-orange-sm hover:bg-orange-600 transition-all cursor-pointer text-xs"
+                >
+                  {editingAddressId ? 'Update Address Location ✓' : 'Save Location'}
+                </button>
+                {editingAddressId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all cursor-pointer text-xs"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         </div>

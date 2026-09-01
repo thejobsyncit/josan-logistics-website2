@@ -674,22 +674,26 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
               {/* Delivery Steps Timeline */}
               <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
-                <h3 className="text-sm font-extrabold text-slate-900">Delivery Sequential Steps Checklist</h3>
-
+                <h3 className="text-sm font-extrabold text-slate-900">Delivery Sequential Steps Checklist (Click step to update status)</h3>
                 <div className="space-y-3 text-xs">
                   {[
-                    { step: '1', title: 'Arrive at Dispatch Hub & Scan Barcode', desc: activeJob.origin, status: 'Completed', icon: CheckCircle2 },
-                    { step: '2', title: 'Inspect Cargo & Verify Security Seal', desc: 'Seal #JOS-99182 Intact', status: 'Completed', icon: CheckCircle2 },
-                    { step: '3', title: 'En Route Highway Telematics Checkpoint', desc: 'In Transit', status: 'Active', icon: Truck },
-                    { step: '4', title: 'Doorstep Delivery & E-Signature Upload', desc: activeJob.destination, status: 'Pending', icon: MapPin },
+                    { step: '1', title: 'Arrive at Dispatch Hub & Scan Barcode', desc: activeJob.origin, status: activeJob.status === 'Picked Up' || activeJob.status === 'In Transit' || activeJob.status === 'Out for Delivery' || activeJob.status === 'Delivered' ? 'Completed' : 'Active', targetStatus: 'Picked Up' },
+                    { step: '2', title: 'Inspect Cargo & Verify Security Seal', desc: 'Seal #JOS-99182 Intact', status: activeJob.status === 'In Transit' || activeJob.status === 'Out for Delivery' || activeJob.status === 'Delivered' ? 'Completed' : activeJob.status === 'Picked Up' ? 'Active' : 'Pending', targetStatus: 'In Transit' },
+                    { step: '3', title: 'En Route Highway Telematics Checkpoint', desc: 'In Transit', status: activeJob.status === 'Out for Delivery' || activeJob.status === 'Delivered' ? 'Completed' : activeJob.status === 'In Transit' ? 'Active' : 'Pending', targetStatus: 'Out for Delivery' },
+                    { step: '4', title: 'Doorstep Delivery & E-Signature Upload', desc: activeJob.destination, status: activeJob.status === 'Delivered' ? 'Completed' : activeJob.status === 'Out for Delivery' ? 'Active' : 'Pending', targetStatus: 'Delivered' },
                   ].map((s, idx) => (
-                    <div key={idx} className={`p-3.5 rounded-xl border flex items-center justify-between ${
-                      s.status === 'Completed'
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                        : s.status === 'Active'
-                        ? 'bg-orange-50 border-orange-200 text-orange-900 font-bold'
-                        : 'bg-slate-50 border-slate-200 text-slate-500'
-                    }`}>
+                    <div 
+                      key={idx} 
+                      onClick={() => handleStatusChange(activeJob.id, s.targetStatus)}
+                      title={`Click to set status to ${s.targetStatus}`}
+                      className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer hover:border-orange-400 transition-all ${
+                        s.status === 'Completed'
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                          : s.status === 'Active'
+                          ? 'bg-orange-50 border-orange-200 text-orange-900 font-bold shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-500'
+                      }`}
+                    >
                       <div className="flex items-center space-x-3">
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
                           s.status === 'Completed'
@@ -705,7 +709,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                           <p className="text-[11px] opacity-80">{s.desc}</p>
                         </div>
                       </div>
-                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/60">
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/80 border border-slate-200">
                         {s.status}
                       </span>
                     </div>
