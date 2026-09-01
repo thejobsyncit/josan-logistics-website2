@@ -747,15 +747,22 @@ export const AdminDashboardPage = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Driver Full Name</label>
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Driver Full Name *</span>
+                  <span className="text-[10px] text-orange-600 font-bold uppercase">Alphabets Only</span>
+                </label>
                 <input
                   type="text"
                   value={newDriverData.name}
-                  onChange={(e) => setNewDriverData({ ...newDriverData, name: e.target.value })}
+                  onChange={(e) => {
+                    const alphaOnly = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                    setNewDriverData({ ...newDriverData, name: alphaOnly });
+                  }}
                   placeholder="e.g. Alex Morgan"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold"
                   required
                 />
+                <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly letters only (Numbers & symbols blocked)</span>
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">

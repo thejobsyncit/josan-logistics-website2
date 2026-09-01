@@ -209,11 +209,14 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       <form onSubmit={saveProfileChanges} className="space-y-4 text-xs text-left">
                         {/* Name Input */}
                         <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name (Alphabets Only)</label>
                           <input
                             type="text"
                             value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
+                            onChange={(e) => {
+                              const alphaOnly = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                              setEditName(alphaOnly);
+                            }}
                             className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
                             required
                           />
