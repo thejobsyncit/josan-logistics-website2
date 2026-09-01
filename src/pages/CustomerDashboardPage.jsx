@@ -8,6 +8,7 @@ import {
   Plus, 
   LifeBuoy, 
   FileText,
+  User,
   ExternalLink
 } from 'lucide-react';
 

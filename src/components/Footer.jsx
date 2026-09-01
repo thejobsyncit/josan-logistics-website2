@@ -3,7 +3,7 @@ import { Truck, Mail, Phone, MapPin, ArrowRight, ShieldCheck, Globe, Clock, Chec
 import { useLogistics } from '../context/LogisticsContext';
 
 export const Footer = ({ setActiveTab }) => {
-  const { showToast } = useLogistics();
+  const { showToast, currentUser } = useLogistics();
   const [emailInput, setEmailInput] = useState('');
 
   const handleSubscribe = (e) => {
@@ -13,6 +13,10 @@ export const Footer = ({ setActiveTab }) => {
       setEmailInput('');
     }
   };
+
+  const quickLinks = currentUser 
+    ? ['Home', 'About Us', 'Services', 'Track Shipment', 'Book Shipment', 'Contact']
+    : ['Home', 'About Us', 'Services', 'Contact'];
 
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t-4 border-orange-500 relative overflow-hidden">
@@ -51,7 +55,7 @@ export const Footer = ({ setActiveTab }) => {
           <div>
             <h4 className="text-white text-base font-bold mb-4 font-sans border-b border-slate-800 pb-2">Quick Navigation</h4>
             <ul className="space-y-2.5 text-sm">
-              {['Home', 'About Us', 'Services', 'Track Shipment', 'Book Shipment', 'Contact'].map((item) => {
+              {quickLinks.map((item) => {
                 const tabId = item.toLowerCase().replace(' ', '').replace('us', '');
                 return (
                   <li key={item}>

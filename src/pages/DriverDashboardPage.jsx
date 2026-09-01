@@ -27,7 +27,10 @@ import {
   Award,
   User,
   Calendar,
-  FileText
+  FileText,
+  Edit2,
+  Save,
+  X
 } from 'lucide-react';
 
 export const DriverDashboardPage = ({ setActiveTab }) => {
@@ -35,6 +38,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     drivers, 
     shipments, 
     currentUser, 
+    updateUserProfile,
     updateShipmentStatus, 
     toggleDriverStatus,
     showToast,
@@ -44,11 +48,12 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
   const defaultDriver = {
     id: 'DRV-101',
-    name: 'Tan Wei Ming',
+    name: 'Robert Martinez (Driver)',
     photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     phone: '+65 9123 4567',
-    email: 'weiming.tan@josanlogistics.com',
+    email: 'robert.m@josanlogistics.com',
     licenseNumber: 'SG-CLASS4-9182',
+    dob: '1990-05-12',
     vehicleType: 'EV Express Cargo Van',
     vehicleId: 'SG-8819',
     status: 'On Delivery',
@@ -73,9 +78,47 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     estimatedDelivery: 'Today, 4:30 PM'
   };
 
-  // Pick current driver or default driver
-  const driverInfo = (drivers || []).find(d => d.email === currentUser?.email) || drivers?.[0] || defaultDriver;
+  // Pick current driver or default driver with currentUser fallback overrides
+  const baseDriver = (drivers || []).find(d => d.email === currentUser?.email) || drivers?.[0] || defaultDriver;
+  const driverInfo = {
+    ...baseDriver,
+    name: currentUser?.name || baseDriver.name,
+    email: currentUser?.email || baseDriver.email,
+    phone: currentUser?.phone || baseDriver.phone,
+    licenseNumber: currentUser?.licenseNumber || baseDriver.licenseNumber,
+    dob: currentUser?.dob || baseDriver.dob || '1990-05-12',
+    assignedHub: currentUser?.company || baseDriver.assignedHub,
+  };
+
   const [driverStatus, setDriverStatus] = useState(driverInfo.status || 'On Delivery');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editLicense, setEditLicense] = useState('');
+  const [editDob, setEditDob] = useState('');
+  const [editHub, setEditHub] = useState('');
+
+  const startEditingDriverProfile = () => {
+    setEditName(driverInfo.name || '');
+    setEditPhone(driverInfo.phone || '');
+    setEditLicense(driverInfo.licenseNumber || '');
+    setEditDob(driverInfo.dob || '');
+    setEditHub(driverInfo.assignedHub || '');
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveDriverProfile = (e) => {
+    e.preventDefault();
+    updateUserProfile({
+      name: editName,
+      phone: editPhone,
+      licenseNumber: editLicense,
+      dob: editDob,
+      company: editHub
+    });
+    setIsEditingProfile(false);
+    showToast('Driver Profile updated successfully!');
+  };
 
   // Available jobs queue for drivers to accept
   const [availableJobs, setAvailableJobs] = useState([
@@ -210,28 +253,136 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
           </div>
         </div>
 
-        {/* Duty Status Selector */}
-        <div className="relative z-10 flex items-center space-x-3 bg-slate-800 p-2 rounded-2xl border border-slate-700">
-          <span className="text-xs font-bold text-slate-400 pl-2">Duty Status:</span>
-          {['Available', 'On Delivery', 'Off-Duty'].map((st) => (
-            <button
-              key={st}
-              onClick={() => handleToggleDuty(st)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
-                driverStatus === st
-                  ? st === 'Available' 
-                    ? 'bg-emerald-500 text-white shadow-md'
-                    : st === 'On Delivery'
-                    ? 'bg-orange-500 text-white shadow-md'
-                    : 'bg-slate-700 text-slate-200'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              {st}
-            </button>
-          ))}
+        {/* Duty Status Selector & Edit Profile Button */}
+        <div className="relative z-10 flex flex-wrap items-center gap-3">
+          <button
+            onClick={startEditingDriverProfile}
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-orange-sm"
+          >
+            <Edit2 className="w-4 h-4" />
+            <span>Edit Profile</span>
+          </button>
+
+          <div className="flex items-center space-x-2 bg-slate-800 p-1.5 rounded-2xl border border-slate-700">
+            <span className="text-xs font-bold text-slate-400 pl-2">Duty Status:</span>
+            {['Available', 'On Delivery', 'Off-Duty'].map((st) => (
+              <button
+                key={st}
+                onClick={() => handleToggleDuty(st)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  driverStatus === st
+                    ? st === 'Available' 
+                      ? 'bg-emerald-500 text-white shadow-md'
+                      : st === 'On Delivery'
+                      ? 'bg-orange-500 text-white shadow-md'
+                      : 'bg-slate-700 text-slate-200'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* EDIT DRIVER PROFILE MODAL */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2 text-orange-600 font-extrabold text-sm uppercase tracking-wider">
+                <User className="w-5 h-5" />
+                <span>Edit Driver Profile Details</span>
+              </div>
+              <button
+                onClick={() => setIsEditingProfile(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDriverProfile} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Driver Full Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">License Number</label>
+                  <input
+                    type="text"
+                    value={editLicense}
+                    onChange={(e) => setEditLicense(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={editDob}
+                    onChange={(e) => setEditDob(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Assigned Logistics Hub</label>
+                  <input
+                    type="text"
+                    value={editHub}
+                    onChange={(e) => setEditHub(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end space-x-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold flex items-center space-x-2 shadow-orange-sm cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save Driver Profile</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* DRIVER MODULE NAVIGATION SUB-TABS (a. Dashboard | b. Navigation | c. Delivery Update) */}
       <div className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm flex flex-wrap gap-2 text-xs font-bold">

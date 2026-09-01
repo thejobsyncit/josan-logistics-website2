@@ -114,6 +114,15 @@
     height: auto !important;
   }
 
+  /* Reset modal fixed positioning and max-height clipping */
+  .fixed, .max-h-\[90vh\] {
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
   body * {
     visibility: hidden !important;
   }

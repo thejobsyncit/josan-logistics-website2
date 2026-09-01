@@ -51,12 +51,13 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const saveProfileChanges = (e) => {
     e.preventDefault();
+    const activeRole = currentUser?.role || currentRole;
     const updated = {
       name: editName,
       phone: editPhone,
-      company: currentRole === 'customer' ? editCompany : currentUser?.company,
-      licenseNumber: currentRole === 'driver' ? editLicense : currentUser?.licenseNumber,
-      dob: currentRole === 'driver' ? editDob : currentUser?.dob
+      company: activeRole === 'customer' ? editCompany : currentUser?.company,
+      licenseNumber: activeRole === 'driver' ? editLicense : currentUser?.licenseNumber,
+      dob: activeRole === 'driver' ? editDob : currentUser?.dob
     };
     updateUserProfile(updated);
     setIsEditing(false);
@@ -64,6 +65,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const handleHeaderSearch = (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (headerSearch.trim()) {
       setActiveTrackingId(headerSearch.trim());
       setActiveTab('track');
@@ -76,19 +81,39 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services' },
-    { id: 'track', label: 'Track Shipment' },
-    { id: 'book', label: 'Book Shipment' },
     { id: 'contact', label: 'Contact' },
   ];
 
-  if (currentRole === 'customer') {
-    navItems.push({ id: 'customer-dashboard', label: 'My Orders' });
-  } else if (currentRole === 'driver') {
-    navItems = navItems.filter(item => item.id !== 'track' && item.id !== 'book');
-    navItems.push({ id: 'driver-dashboard', label: 'Driver Portal' });
-  } else if (currentRole === 'admin') {
-    navItems = navItems.filter(item => item.id !== 'book');
-    navItems.push({ id: 'admin-dashboard', label: 'Admin Portal' });
+  if (currentUser) {
+    const role = currentUser.role || currentRole;
+    if (role === 'customer') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'track', label: 'Track Shipment' },
+        { id: 'book', label: 'Book Shipment' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'customer-dashboard', label: 'My Orders' },
+      ];
+    } else if (role === 'driver') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'driver-dashboard', label: 'Driver Portal' },
+      ];
+    } else if (role === 'admin') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'track', label: 'Track Shipment' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'admin-dashboard', label: 'Admin Portal' },
+      ];
+    }
   }
 
   return (
@@ -143,15 +168,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             {currentUser ? (
               <div className="flex items-center space-x-2 border-l border-slate-200 pl-3 relative">
                 <button
-                  onClick={() => {
-                    if (currentRole === 'driver') {
-                      setActiveTab('driver-dashboard');
-                    } else if (currentRole === 'admin') {
-                      setActiveTab('admin-dashboard');
-                    } else {
-                      setIsProfileOpen(!isProfileOpen);
-                    }
-                  }}
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm border border-orange-200">
@@ -159,7 +176,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   </div>
                   <div className="text-left">
                     <p className="text-xs font-bold text-slate-900 line-clamp-1">{currentUser.name}</p>
-                    <p className="text-[10px] text-orange-600 font-semibold capitalize">{currentRole}</p>
+                    <p className="text-[10px] text-orange-600 font-semibold capitalize">{currentUser.role || currentRole}</p>
                   </div>
                 </button>
                 <button
@@ -406,18 +423,32 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-xs text-slate-500">
-              Active Mode: <span className="font-bold text-orange-600 capitalize">{currentRole}</span>
-            </div>
-            <button
-              onClick={() => {
-                toggleRole(undefined, setActiveTab);
-                setMobileMenuOpen(false);
-              }}
-              className="text-xs font-bold text-orange-600 underline"
-            >
-              Switch to {currentRole === 'admin' ? 'Customer' : 'Admin'}
-            </button>
+            {currentUser ? (
+              <>
+                <div className="text-xs text-slate-500">
+                  Active Mode: <span className="font-bold text-orange-600 capitalize">{currentUser.role || currentRole}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    logoutUser();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-xs font-bold text-rose-600 underline cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsAuthModalOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold text-center"
+              >
+                Sign In / Register
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -27,12 +27,7 @@ export const LogisticsProvider = ({ children }) => {
 
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('josan_user');
-    return saved ? JSON.parse(saved) : {
-      name: 'Alexander Josan',
-      email: 'alexander@josanlogistics.com',
-      role: 'admin',
-      company: 'Josan Logistics HQ'
-    };
+    return saved ? JSON.parse(saved) : null;
   });
 
   // Toast notification state
@@ -43,7 +38,7 @@ export const LogisticsProvider = ({ children }) => {
 
   // Active modal state for invoices or auth
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Sub-tab navigation state
   const [customerSubTab, setCustomerSubTab] = useState('orders');
@@ -157,6 +152,7 @@ export const LogisticsProvider = ({ children }) => {
 
   const logoutUser = () => {
     setCurrentUser(null);
+    localStorage.removeItem('josan_user');
     showToast('Logged out successfully', 'info');
   };
 

@@ -51,7 +51,16 @@ const ToastNotification = () => {
 
 const MainContent = () => {
   const [activeTab, setActiveTab] = useState('home');
-  const { currentRole, toggleRole } = useLogistics();
+  const { currentUser, currentRole, toggleRole, setIsAuthModalOpen } = useLogistics();
+
+  const handleTabChange = (tab) => {
+    if (!currentUser && (tab === 'book' || tab === 'track' || tab.includes('dashboard'))) {
+      setIsAuthModalOpen(true);
+      setActiveTab('home');
+      return;
+    }
+    setActiveTab(tab);
+  };
 
   // Listen for /admin or #admin in the URL bar to strictly open Admin Portal
   useEffect(() => {
@@ -74,38 +83,42 @@ const MainContent = () => {
   }, []);
 
   const renderPage = () => {
+    if (!currentUser && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard' || activeTab === 'customer-dashboard' || activeTab === 'track' || activeTab === 'book')) {
+      return <HomePage setActiveTab={handleTabChange} />;
+    }
+
     switch (activeTab) {
       case 'home':
-        return <HomePage setActiveTab={setActiveTab} />;
+        return <HomePage setActiveTab={handleTabChange} />;
       case 'about':
-        return <AboutUsPage setActiveTab={setActiveTab} />;
+        return <AboutUsPage setActiveTab={handleTabChange} />;
       case 'services':
-        return <ServicesPage setActiveTab={setActiveTab} />;
+        return <ServicesPage setActiveTab={handleTabChange} />;
       case 'contact':
         return <ContactPage />;
       case 'track':
         return <TrackShipmentPage />;
       case 'book':
-        return <BookShipmentPage setActiveTab={setActiveTab} />;
+        return <BookShipmentPage setActiveTab={handleTabChange} />;
       case 'customer-dashboard':
-        return <CustomerDashboardPage setActiveTab={setActiveTab} />;
+        return <CustomerDashboardPage setActiveTab={handleTabChange} />;
       case 'driver-dashboard':
-        return <DriverDashboardPage setActiveTab={setActiveTab} />;
+        return <DriverDashboardPage setActiveTab={handleTabChange} />;
       case 'admin-dashboard':
         return <AdminDashboardPage />;
       default:
-        return <HomePage setActiveTab={setActiveTab} />;
+        return <HomePage setActiveTab={handleTabChange} />;
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar activeTab={activeTab} setActiveTab={handleTabChange} />
       <main className="flex-1">
         {renderPage()}
       </main>
-      <Footer setActiveTab={setActiveTab} />
-      <AuthModal setActiveTab={setActiveTab} />
+      <Footer setActiveTab={handleTabChange} />
+      <AuthModal setActiveTab={handleTabChange} />
       <InvoiceModal />
       <ToastNotification />
     </div>
