@@ -107,6 +107,33 @@ export const AdminDashboardPage = () => {
     }
   };
 
+  const handleEditWarehouseSubmit = (e) => {
+    e.preventDefault();
+    if (!editingWarehouse) return;
+    
+    const cleanName = editingWarehouse.name ? editingWarehouse.name.replace(/[^a-zA-Z\s]/g, '').trim() : '';
+    const cleanManager = editingWarehouse.manager ? editingWarehouse.manager.replace(/[^a-zA-Z\s]/g, '').trim() : '';
+
+    if (!cleanName) {
+      if (showToast) showToast('Warehouse Hub Name cannot be empty and must contain letters!', 'error');
+      return;
+    }
+
+    if (!cleanManager) {
+      if (showToast) showToast('Hub Manager Name cannot be empty and must contain letters!', 'error');
+      return;
+    }
+
+    const payload = {
+      ...editingWarehouse,
+      name: cleanName,
+      manager: cleanManager
+    };
+
+    updateWarehouse(editingWarehouse.id, payload);
+    setEditingWarehouse(null);
+  };
+
   // Driver Assignment modal state
   const [assignModalShipment, setAssignModalShipment] = useState(null);
 
@@ -543,7 +570,11 @@ export const AdminDashboardPage = () => {
                           </span>
                           <div className="flex items-center space-x-1.5 pt-1">
                             <button
-                              onClick={() => setEditingWarehouse(wh)}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingWarehouse({ ...wh });
+                              }}
                               className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-extrabold transition-colors flex items-center space-x-1 cursor-pointer"
                               title="Edit Warehouse Hub"
                             >
@@ -551,7 +582,11 @@ export const AdminDashboardPage = () => {
                               <span>Edit</span>
                             </button>
                             <button
-                              onClick={() => removeWarehouse(wh.id)}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeWarehouse(wh.id);
+                              }}
                               className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[11px] font-extrabold transition-colors flex items-center space-x-1 cursor-pointer"
                               title="Delete Warehouse Hub"
                             >
@@ -999,11 +1034,7 @@ export const AdminDashboardPage = () => {
               </button>
             </div>
             
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              updateWarehouse(editingWarehouse.id, editingWarehouse);
-              setEditingWarehouse(null);
-            }} className="space-y-3 text-xs">
+            <form onSubmit={handleEditWarehouseSubmit} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Warehouse Hub Name *</span>
