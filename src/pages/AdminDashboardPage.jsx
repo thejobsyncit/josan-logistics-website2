@@ -89,44 +89,10 @@ export const AdminDashboardPage = () => {
     outgoingToday: 410
   });
 
-  const handleOpenEditWarehouse = (wh) => {
-    if (!wh) return;
-    setEditingWarehouse({
-      id: wh.id,
-      name: (wh.name || '').replace(/[^a-zA-Z\s]/g, ''),
-      location: wh.location || '',
-      manager: (wh.manager || '').replace(/[^a-zA-Z\s]/g, ''),
-      capacitySqFt: wh.capacitySqFt || '250,000 sq ft',
-      capacityPercentage: wh.capacityPercentage || 50,
-      activeParcels: wh.activeParcels || 1200,
-      incomingToday: wh.incomingToday || 300,
-      outgoingToday: wh.outgoingToday || 280
-    });
-  };
-
-  const handleSaveEditWarehouse = (e) => {
-    e.preventDefault();
-    if (!editingWarehouse) return;
-    const cleanName = editingWarehouse.name.replace(/[^a-zA-Z\s]/g, '') || 'Global Hub';
-    const cleanManager = editingWarehouse.manager.replace(/[^a-zA-Z\s]/g, '') || 'Depot Lead';
-    updateWarehouse(editingWarehouse.id, {
-      ...editingWarehouse,
-      name: cleanName,
-      manager: cleanManager
-    });
-    setEditingWarehouse(null);
-  };
-
   const handleAddWarehouseSubmit = (e) => {
     e.preventDefault();
-    const cleanName = newWarehouseData.name.replace(/[^a-zA-Z\s]/g, '');
-    const cleanManager = newWarehouseData.manager.replace(/[^a-zA-Z\s]/g, '');
-    if (cleanName && newWarehouseData.location && cleanManager) {
-      addWarehouse({
-        ...newWarehouseData,
-        name: cleanName,
-        manager: cleanManager
-      });
+    if (newWarehouseData.name && newWarehouseData.location && newWarehouseData.manager) {
+      addWarehouse(newWarehouseData);
       setIsAddWarehouseOpen(false);
       setNewWarehouseData({
         name: '',
@@ -138,6 +104,20 @@ export const AdminDashboardPage = () => {
         incomingToday: 450,
         outgoingToday: 410
       });
+    }
+  };
+
+  const handleEditWarehouseSubmit = (e) => {
+    e.preventDefault();
+    if (editingWarehouse && editingWarehouse.id) {
+      const cleanName = (editingWarehouse.name || '').replace(/[^a-zA-Z\s]/g, '');
+      const cleanManager = (editingWarehouse.manager || '').replace(/[^a-zA-Z\s]/g, '');
+      updateWarehouse(editingWarehouse.id, {
+        ...editingWarehouse,
+        name: cleanName || 'Singapore Logistics Hub',
+        manager: cleanManager || 'Logistics Lead'
+      });
+      setEditingWarehouse(null);
     }
   };
 
@@ -580,7 +560,7 @@ export const AdminDashboardPage = () => {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleOpenEditWarehouse(wh);
+                                setEditingWarehouse({ ...wh });
                               }}
                               className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-extrabold transition-colors flex items-center space-x-1 cursor-pointer"
                               title="Edit Warehouse Hub"
@@ -589,7 +569,11 @@ export const AdminDashboardPage = () => {
                               <span>Edit</span>
                             </button>
                             <button
-                              onClick={() => removeWarehouse(wh.id)}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeWarehouse(wh.id);
+                              }}
                               className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[11px] font-extrabold transition-colors flex items-center space-x-1 cursor-pointer"
                               title="Delete Warehouse Hub"
                             >
@@ -1037,7 +1021,7 @@ export const AdminDashboardPage = () => {
               </button>
             </div>
             
-            <form onSubmit={handleSaveEditWarehouse} className="space-y-3 text-xs">
+            <form onSubmit={handleEditWarehouseSubmit} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Warehouse Hub Name *</span>
