@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
@@ -7,9 +7,8 @@ import {
   MapPin, 
   Plus, 
   LifeBuoy, 
-  CheckCircle2, 
   FileText,
-  User
+  ExternalLink
 } from 'lucide-react';
 
 export const CustomerDashboardPage = ({ setActiveTab }) => {
@@ -19,14 +18,13 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     currentRole,
     setActiveTrackingId, 
     setSelectedInvoiceShipment, 
-    updateUserProfile,
     showToast,
     customerSubTab,
     setCustomerSubTab
   } = useLogistics();
 
   const [localSubTab, setLocalSubTab] = useState('orders');
-  const activeSubTab = customerSubTab || localSubTab || 'orders';
+  const activeSubTab = (customerSubTab === 'profile' ? 'orders' : customerSubTab) || localSubTab || 'orders';
   const setActiveSubTab = (tab) => {
     setLocalSubTab(tab);
     if (setCustomerSubTab) setCustomerSubTab(tab);
@@ -53,40 +51,6 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
   const [newAddressType, setNewAddressType] = useState('pickup');
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketMessage, setTicketMessage] = useState('');
-
-  // Profile Edit State
-  const [profileName, setProfileName] = useState(displayUser.name || 'Razer Asia-Pacific HQ');
-  const [profileEmail, setProfileEmail] = useState(displayUser.email || 'shipping@razer.com');
-  const [profileCompany, setProfileCompany] = useState(displayUser.company || 'Razer (Asia-Pacific) Pte Ltd');
-  const [profilePhone, setProfilePhone] = useState(displayUser.phone || '67890123');
-  const [profileAddress, setProfileAddress] = useState(displayUser.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438');
-  const [smsAlerts, setSmsAlerts] = useState(true);
-  const [emailInvoices, setEmailInvoices] = useState(true);
-
-  useEffect(() => {
-    if (currentUser) {
-      setProfileName(currentUser.name || 'Razer Asia-Pacific HQ');
-      setProfileEmail(currentUser.email || 'shipping@razer.com');
-      setProfileCompany(currentUser.company || 'Razer (Asia-Pacific) Pte Ltd');
-      setProfilePhone(currentUser.phone || '67890123');
-      setProfileAddress(currentUser.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438');
-    }
-  }, [currentUser]);
-
-  const handleSaveProfile = (e) => {
-    e.preventDefault();
-    if (profilePhone.length > 0 && profilePhone.length < 8) {
-      showToast('Singapore contact number must be exactly 8 digits!', 'warning');
-      return;
-    }
-    updateUserProfile({
-      name: profileName,
-      email: profileEmail,
-      company: profileCompany,
-      phone: profilePhone,
-      address: profileAddress
-    });
-  };
 
   const handleAddAddress = (e) => {
     e.preventDefault();
@@ -169,16 +133,6 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         </button>
 
         <button
-          onClick={() => setActiveSubTab('profile')}
-          className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
-            activeSubTab === 'profile' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
-          }`}
-        >
-          <User className="w-4 h-4" />
-          <span>My Profile & Settings</span>
-        </button>
-
-        <button
           onClick={() => setActiveSubTab('addresses')}
           className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
             activeSubTab === 'addresses' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
@@ -199,170 +153,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         </button>
       </div>
 
-      {/* SUB-TAB: EDIT MY PROFILE & SETTINGS */}
-      {activeSubTab === 'profile' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* Left Column: Account Details Form */}
-          <div className="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-900">Customer Profile & Account Info</h2>
-                <p className="text-xs text-slate-500">Update your company details, primary contact number, and billing preferences.</p>
-              </div>
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-extrabold rounded-full">
-                Active Verified Account
-              </span>
-            </div>
 
-            <form onSubmit={handleSaveProfile} className="space-y-5 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-extrabold text-slate-700 mb-1.5">Full Contact Name *</label>
-                  <input
-                    type="text"
-                    value={profileName}
-                    onChange={(e) => setProfileName(e.target.value)}
-                    className="w-full p-3 border border-slate-300 rounded-xl focus-orange font-medium"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-extrabold text-slate-700 mb-1.5">Email Address *</label>
-                  <input
-                    type="email"
-                    value={profileEmail}
-                    onChange={(e) => setProfileEmail(e.target.value)}
-                    className="w-full p-3 border border-slate-300 rounded-xl focus-orange font-medium"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-extrabold text-slate-700 mb-1.5">Company / Entity Name *</label>
-                  <input
-                    type="text"
-                    value={profileCompany}
-                    onChange={(e) => setProfileCompany(e.target.value)}
-                    className="w-full p-3 border border-slate-300 rounded-xl focus-orange font-medium"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-extrabold text-slate-700 mb-1.5">Singapore Contact Phone (8 Digits) *</label>
-                  <div className="flex items-center">
-                    <span className="bg-slate-100 border border-r-0 border-slate-300 rounded-l-xl px-3 py-3 font-bold text-slate-700 flex items-center space-x-1">
-                      <span>🇸🇬</span>
-                      <span>+65</span>
-                    </span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={8}
-                      value={profilePhone}
-                      onChange={(e) => setProfilePhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
-                      placeholder="81234567"
-                      className="w-full p-3 border border-slate-300 rounded-r-xl focus-orange font-mono font-bold text-slate-900"
-                      required
-                    />
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1">Strict numeric digits [0-9], max 8 digits for SG hotline.</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1.5">Default Singapore HQ Billing Address</label>
-                <textarea
-                  rows="3"
-                  value={profileAddress}
-                  onChange={(e) => setProfileAddress(e.target.value)}
-                  className="w-full p-3 border border-slate-300 rounded-xl focus-orange font-medium"
-                  placeholder="Enter full Singapore street address, unit number and postal code..."
-                ></textarea>
-              </div>
-
-              {/* Notification Preferences */}
-              <div className="pt-4 border-t border-slate-100 space-y-3">
-                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Telematics & Notification Alerts</h3>
-                
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={smsAlerts}
-                    onChange={(e) => setSmsAlerts(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500"
-                  />
-                  <span className="text-xs text-slate-700 font-semibold">SMS Telematics Dispatch Alerts for Live Shipments (+65 Hotline)</span>
-                </label>
-
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={emailInvoices}
-                    onChange={(e) => setEmailInvoices(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500"
-                  />
-                  <span className="text-xs text-slate-700 font-semibold">Automated PDF Invoices & Delivery Proof Receipts</span>
-                </label>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold rounded-xl shadow-orange-sm transition-all flex items-center justify-center space-x-2"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Save Profile Changes</span>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Right Column: Account Summary Card */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
-              <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 rounded-2xl bg-orange-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-orange-glow">
-                  {profileName.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-base text-white">{profileName}</h3>
-                  <p className="text-xs text-slate-400">{profileCompany}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-4 border-t border-slate-800 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Account Role</span>
-                  <span className="font-bold text-orange-400">Corporate Shipper</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Primary Contact</span>
-                  <span className="font-mono font-bold text-slate-200">+65 {profilePhone}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Default Currency</span>
-                  <span className="font-bold text-emerald-400">SGD (S$)</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Freight SLA Tier</span>
-                  <span className="font-bold text-amber-400">VIP Express SLA</span>
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700 text-[11px] text-slate-300">
-                🔒 Your customer profile is synchronized with Josan 24/7 Satellite Telematics for automated Singapore shipping invoicing.
-              </div>
-            </div>
-          </div>
-
-        </div>
-      )}
 
       {/* SUB-TAB 1: MY SHIPMENT ORDERS */}
       {activeSubTab === 'orders' && (

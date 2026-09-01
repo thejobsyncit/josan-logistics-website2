@@ -16,14 +16,37 @@ import {
 } from 'lucide-react';
 
 const countryCodes = [
-  { code: '+65', flag: '🇸🇬', name: 'SG' },
-  { code: '+1', flag: '🇺🇸', name: 'US/CA' },
-  { code: '+60', flag: '🇲🇾', name: 'MY' },
-  { code: '+44', flag: '🇬🇧', name: 'UK' },
-  { code: '+91', flag: '🇮🇳', name: 'IN' },
-  { code: '+61', flag: '🇦🇺', name: 'AU' },
-  { code: '+81', flag: '🇯🇵', name: 'JP' },
-  { code: '+86', flag: '🇨🇳', name: 'CN' }
+  { code: '+65', flag: '🇸🇬', name: 'SG', length: 8 },
+  { code: '+91', flag: '🇮🇳', name: 'IN', length: 10 },
+  { code: '+1', flag: '🇺🇸', name: 'US/CA', length: 10 },
+  { code: '+60', flag: '🇲🇾', name: 'MY', length: 10 },
+  { code: '+44', flag: '🇬🇧', name: 'UK', length: 10 },
+  { code: '+61', flag: '🇦🇺', name: 'AU', length: 9 },
+  { code: '+81', flag: '🇯🇵', name: 'JP', length: 10 },
+  { code: '+86', flag: '🇨🇳', name: 'CN', length: 11 }
+];
+
+const getPhoneLength = (code) => {
+  const found = countryCodes.find((c) => c.code === code);
+  return found ? found.length : 10;
+};
+
+const getCountryName = (code) => {
+  const found = countryCodes.find((c) => c.code === code);
+  return found ? found.name : 'Country';
+};
+
+const singaporeCities = [
+  'Singapore (Changi Air Cargo Hub)',
+  'Singapore (Jurong Port & Logistics Hub)',
+  'Singapore (Pasir Panjang Terminal)',
+  'Singapore (Tuas Mega Port)',
+  'Singapore (Woodlands Logistics Hub)',
+  'Singapore (Keppel Distripark)',
+  'Singapore (Seletar Aerospace Hub)',
+  'Singapore (Clementi Logistics Depot)',
+  'Singapore (Bedok North Industrial Park)',
+  'Singapore (Alexandra Commercial Hub)'
 ];
 
 export const BookShipmentPage = ({ setActiveTab }) => {
@@ -37,12 +60,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
     senderCountryCode: '+65',
     senderPhone: '',
     pickupAddress: '',
-    pickupCity: 'Singapore (Changi Cargo)',
+    pickupCity: 'Singapore (Changi Air Cargo Hub)',
     receiverName: '',
     receiverCountryCode: '+65',
     receiverPhone: '',
     deliveryAddress: '',
-    deliveryCity: 'Singapore (Jurong Port)',
+    deliveryCity: 'Singapore (Jurong Port & Logistics Hub)',
     destinationCountryCode: 'SG',
     weight: 15,
     lengthCm: 40,
@@ -57,8 +80,8 @@ export const BookShipmentPage = ({ setActiveTab }) => {
 
   // Bulk Booking State (Multiple Parcels)
   const [bulkParcels, setBulkParcels] = useState([
-    { id: 1, receiverName: 'Apex Corp NYC', deliveryCity: 'New York, NY', weight: 45, cargoType: 'Industrial Components', serviceLevel: 'Express Air Freight' },
-    { id: 2, receiverName: 'Rotterdam Port Hub', deliveryCity: 'Rotterdam, NL', weight: 240, cargoType: 'Automotive Parts', serviceLevel: 'Ocean Shipping' }
+    { id: 1, receiverName: 'Apex Corp SG', deliveryCity: 'Singapore (Jurong Port & Logistics Hub)', weight: 45, cargoType: 'Industrial Components', serviceLevel: 'Express Air Freight' },
+    { id: 2, receiverName: 'Changi Logistics Hub', deliveryCity: 'Singapore (Changi Air Cargo Hub)', weight: 240, cargoType: 'Automotive Parts', serviceLevel: 'Ocean Shipping' }
   ]);
 
   // Price Calculation Logic
@@ -82,6 +105,18 @@ export const BookShipmentPage = ({ setActiveTab }) => {
       return;
     }
 
+    const senderMax = getPhoneLength(formData.senderCountryCode);
+    if (formData.senderPhone.length !== senderMax) {
+      showToast(`Sender contact number must be exactly ${senderMax} digits for ${formData.senderCountryCode} (${getCountryName(formData.senderCountryCode)})`, 'warning');
+      return;
+    }
+
+    const receiverMax = getPhoneLength(formData.receiverCountryCode);
+    if (formData.receiverPhone.length !== receiverMax) {
+      showToast(`Receiver contact number must be exactly ${receiverMax} digits for ${formData.receiverCountryCode} (${getCountryName(formData.receiverCountryCode)})`, 'warning');
+      return;
+    }
+
     const estimatedPrice = calculateEstimatedPrice();
     const createdShipment = addShipment({
       ...formData,
@@ -98,7 +133,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
   const handleAddBulkRow = () => {
     setBulkParcels([
       ...bulkParcels,
-      { id: Date.now(), receiverName: '', deliveryCity: 'Chicago, IL', weight: 20, cargoType: 'General Goods', serviceLevel: 'Land Trucking' }
+      { id: Date.now(), receiverName: '', deliveryCity: 'Singapore (Woodlands Logistics Hub)', weight: 20, cargoType: 'General Goods', serviceLevel: 'Land Trucking' }
     ]);
   };
 
@@ -113,12 +148,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
       if (parcel.receiverName) {
         addShipment({
           senderName: 'Enterprise Bulk Account',
-          senderPhone: '+1 4085550199',
+          senderPhone: '+65 91123456',
           pickupAddress: 'Central Warehouse Hub Gate 4',
-          pickupCity: 'San Jose, CA',
+          pickupCity: 'Singapore (Changi Air Cargo Hub)',
           receiverName: parcel.receiverName,
-          receiverPhone: '+1 2125550188',
-          deliveryAddress: `${parcel.deliveryCity} Commercial Port`,
+          receiverPhone: '+65 81234567',
+          deliveryAddress: `${parcel.deliveryCity} Commercial Dock`,
           deliveryCity: parcel.deliveryCity,
           weight: parcel.weight,
           cargoType: parcel.cargoType,
@@ -212,12 +247,20 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   <div className="flex items-center">
                     <select
                       value={formData.senderCountryCode}
-                      onChange={(e) => setFormData({ ...formData, senderCountryCode: e.target.value })}
+                      onChange={(e) => {
+                        const newCode = e.target.value;
+                        const maxLen = getPhoneLength(newCode);
+                        setFormData((prev) => ({
+                          ...prev,
+                          senderCountryCode: newCode,
+                          senderPhone: prev.senderPhone.slice(0, maxLen)
+                        }));
+                      }}
                       className="p-3 text-xs font-bold bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 focus-orange border-r-0 shrink-0 cursor-pointer"
                     >
                       {countryCodes.map((c) => (
                         <option key={c.code} value={c.code}>
-                          {c.flag} {c.code}
+                          {c.flag} {c.code} ({c.length} digits)
                         </option>
                       ))}
                     </select>
@@ -225,29 +268,36 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      maxLength={15}
+                      maxLength={getPhoneLength(formData.senderCountryCode)}
                       value={formData.senderPhone}
                       onChange={(e) => {
-                        const numericOnly = e.target.value.replace(/[^0-9]/g, '');
+                        const maxLen = getPhoneLength(formData.senderCountryCode);
+                        const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, maxLen);
                         setFormData({ ...formData, senderPhone: numericOnly });
                       }}
-                      placeholder="e.g. 4085550199"
+                      placeholder={`e.g. ${'8'.repeat(getPhoneLength(formData.senderCountryCode))}`}
                       className="w-full p-3 text-sm bg-white border border-slate-300 rounded-r-xl text-slate-900 focus-orange font-mono font-bold"
                       required
                     />
                   </div>
-                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly numbers only</span>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                    Strictly max {getPhoneLength(formData.senderCountryCode)} digits for {formData.senderCountryCode} ({getCountryName(formData.senderCountryCode)})
+                  </span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Pickup City / Hub *</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.pickupCity}
                     onChange={(e) => setFormData({ ...formData, pickupCity: e.target.value })}
-                    placeholder="San Jose, CA"
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-semibold cursor-pointer"
                     required
-                  />
+                  >
+                    {singaporeCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Full Street Address & Gate No. *</label>
@@ -255,7 +305,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     type="text"
                     value={formData.pickupAddress}
                     onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
-                    placeholder="100 Silicon Parkway, Building 4, San Jose, CA 95110"
+                    placeholder="100 Pasir Panjang Road, Mapletree Business City, Singapore 117438"
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
@@ -282,7 +332,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     type="text"
                     value={formData.receiverName}
                     onChange={(e) => setFormData({ ...formData, receiverName: e.target.value })}
-                    placeholder="e.g. Apex Dynamics NYC"
+                    placeholder="e.g. Apex Dynamics SG"
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
@@ -292,12 +342,20 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   <div className="flex items-center">
                     <select
                       value={formData.receiverCountryCode}
-                      onChange={(e) => setFormData({ ...formData, receiverCountryCode: e.target.value })}
+                      onChange={(e) => {
+                        const newCode = e.target.value;
+                        const maxLen = getPhoneLength(newCode);
+                        setFormData((prev) => ({
+                          ...prev,
+                          receiverCountryCode: newCode,
+                          receiverPhone: prev.receiverPhone.slice(0, maxLen)
+                        }));
+                      }}
                       className="p-3 text-xs font-bold bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 focus-orange border-r-0 shrink-0 cursor-pointer"
                     >
                       {countryCodes.map((c) => (
                         <option key={c.code} value={c.code}>
-                          {c.flag} {c.code}
+                          {c.flag} {c.code} ({c.length} digits)
                         </option>
                       ))}
                     </select>
@@ -305,29 +363,36 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      maxLength={15}
+                      maxLength={getPhoneLength(formData.receiverCountryCode)}
                       value={formData.receiverPhone}
                       onChange={(e) => {
-                        const numericOnly = e.target.value.replace(/[^0-9]/g, '');
+                        const maxLen = getPhoneLength(formData.receiverCountryCode);
+                        const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, maxLen);
                         setFormData({ ...formData, receiverPhone: numericOnly });
                       }}
-                      placeholder="e.g. 2125550188"
+                      placeholder={`e.g. ${'8'.repeat(getPhoneLength(formData.receiverCountryCode))}`}
                       className="w-full p-3 text-sm bg-white border border-slate-300 rounded-r-xl text-slate-900 focus-orange font-mono font-bold"
                       required
                     />
                   </div>
-                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly numbers only</span>
+                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                    Strictly max {getPhoneLength(formData.receiverCountryCode)} digits for {formData.receiverCountryCode} ({getCountryName(formData.receiverCountryCode)})
+                  </span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Destination City *</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.deliveryCity}
                     onChange={(e) => setFormData({ ...formData, deliveryCity: e.target.value })}
-                    placeholder="New York, NY"
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-semibold cursor-pointer"
                     required
-                  />
+                  >
+                    {singaporeCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Destination Address & Suite *</label>
@@ -335,7 +400,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     type="text"
                     value={formData.deliveryAddress}
                     onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
-                    placeholder="450 Fifth Ave, Suite 1200, New York, NY 10018"
+                    placeholder="89 Orchard Road, Unit #04-12, Singapore 238854"
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
@@ -533,17 +598,21 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       />
                     </td>
                     <td className="p-3">
-                      <input
-                        type="text"
+                      <select
                         value={parcel.deliveryCity}
                         onChange={(e) => {
                           const updated = [...bulkParcels];
                           updated[idx].deliveryCity = e.target.value;
                           setBulkParcels(updated);
                         }}
-                        placeholder="City name..."
-                        className="w-full p-2 border border-slate-300 rounded-lg focus-orange text-xs"
-                      />
+                        className="w-full p-2 border border-slate-300 rounded-lg focus-orange text-xs font-semibold cursor-pointer"
+                      >
+                        {singaporeCities.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="p-3">
                       <input
