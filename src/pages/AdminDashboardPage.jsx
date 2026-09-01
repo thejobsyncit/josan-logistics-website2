@@ -108,29 +108,30 @@ export const AdminDashboardPage = () => {
   };
 
   const handleOpenEditWarehouse = (wh) => {
-    const cleanName = (wh.name || '').replace(/[^a-zA-Z\s]/g, '').trim();
-    const cleanManager = (wh.manager || '').replace(/[^a-zA-Z\s]/g, '').trim();
     setEditingWarehouse({
       ...wh,
-      name: cleanName || 'Global Logistics Hub',
-      manager: cleanManager || 'Logistics Operations Lead',
-      location: wh.location || 'Singapore Hub',
+      name: (wh.name || '').replace(/[^a-zA-Z\s]/g, ''),
+      manager: (wh.manager || '').replace(/[^a-zA-Z\s]/g, ''),
+      location: wh.location || '',
       capacitySqFt: wh.capacitySqFt || '250,000 sq ft',
-      capacityPercentage: wh.capacityPercentage || 75
+      capacityPercentage: wh.capacityPercentage !== undefined ? wh.capacityPercentage : 75,
+      activeParcels: wh.activeParcels !== undefined ? wh.activeParcels : 3200
     });
   };
 
   const handleEditWarehouseSubmit = (e) => {
     e.preventDefault();
     if (editingWarehouse && editingWarehouse.id) {
-      const finalName = (editingWarehouse.name || '').replace(/[^a-zA-Z\s]/g, '').trim() || 'Global Logistics Hub';
-      const finalManager = (editingWarehouse.manager || '').replace(/[^a-zA-Z\s]/g, '').trim() || 'Logistics Operations Lead';
+      const cleanName = (editingWarehouse.name || '').replace(/[^a-zA-Z\s]/g, '').trim() || 'Logistics Depot';
+      const cleanManager = (editingWarehouse.manager || '').replace(/[^a-zA-Z\s]/g, '').trim() || 'Operations Lead';
       
-      updateWarehouse(editingWarehouse.id, {
+      const payload = {
         ...editingWarehouse,
-        name: finalName,
-        manager: finalManager
-      });
+        name: cleanName,
+        manager: cleanManager
+      };
+
+      updateWarehouse(editingWarehouse.id, payload);
       setEditingWarehouse(null);
     }
   };
