@@ -49,6 +49,17 @@ const singaporeCities = [
   'Singapore (Alexandra Commercial Hub)'
 ];
 
+const cargoTypeOptions = [
+  'General Goods',
+  'Automotive Parts',
+  'High-Tech Electronics',
+  'Industrial Components',
+  'Pharma Cold Chain',
+  'Textiles & Apparel',
+  'Perishable Foods & Beverages',
+  'Dangerous Goods / Chemicals'
+];
+
 export const BookShipmentPage = ({ setActiveTab }) => {
   const { addShipment, setSelectedInvoiceShipment, showToast } = useLogistics();
 
@@ -449,13 +460,13 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   <select
                     value={formData.cargoType}
                     onChange={(e) => setFormData({ ...formData, cargoType: e.target.value })}
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-semibold"
+                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-semibold cursor-pointer"
                   >
-                    <option value="High-Tech Electronics">High-Tech Electronics</option>
-                    <option value="Automotive Spare Parts">Automotive Spare Parts</option>
-                    <option value="Textiles & Apparel">Textiles & Apparel</option>
-                    <option value="Pharma Cold Chain">Pharma Cold Chain</option>
-                    <option value="General Freight">General Freight</option>
+                    {cargoTypeOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -627,16 +638,21 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       />
                     </td>
                     <td className="p-3">
-                      <input
-                        type="text"
+                      <select
                         value={parcel.cargoType}
                         onChange={(e) => {
                           const updated = [...bulkParcels];
                           updated[idx].cargoType = e.target.value;
                           setBulkParcels(updated);
                         }}
-                        className="w-full p-2 border border-slate-300 rounded-lg focus-orange text-xs"
-                      />
+                        className="w-full p-2 border border-slate-300 rounded-lg focus-orange text-xs font-semibold cursor-pointer"
+                      >
+                        {cargoTypeOptions.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="p-3">
                       <select
