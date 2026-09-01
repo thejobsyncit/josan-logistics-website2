@@ -344,19 +344,15 @@ export const LogisticsProvider = ({ children }) => {
 
   const updateWarehouse = (whId, updatedData) => {
     setWarehouses(prev => prev.map(w => {
-      if (String(w.id) === String(whId)) {
-        const cleanName = updatedData.name ? updatedData.name.replace(/[^a-zA-Z\s]/g, '') : w.name;
-        const cleanManager = updatedData.manager ? updatedData.manager.replace(/[^a-zA-Z\s]/g, '') : w.manager;
+      if (w.id === whId) {
         return {
           ...w,
-          ...updatedData,
-          name: cleanName || w.name,
-          manager: cleanManager || w.manager
+          ...updatedData
         };
       }
       return w;
     }));
-    showToast(`Saved changes for ${updatedData.name || 'Warehouse Hub'}`);
+    showToast(`Saved changes for Warehouse Hub: ${updatedData.name || ''}`);
   };
 
   const removeWarehouse = (whId) => {

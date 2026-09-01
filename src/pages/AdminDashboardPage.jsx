@@ -107,15 +107,29 @@ export const AdminDashboardPage = () => {
     }
   };
 
+  const handleOpenEditWarehouse = (wh) => {
+    const cleanName = (wh.name || '').replace(/[^a-zA-Z\s]/g, '').trim();
+    const cleanManager = (wh.manager || '').replace(/[^a-zA-Z\s]/g, '').trim();
+    setEditingWarehouse({
+      ...wh,
+      name: cleanName || 'Global Logistics Hub',
+      manager: cleanManager || 'Logistics Operations Lead',
+      location: wh.location || 'Singapore Hub',
+      capacitySqFt: wh.capacitySqFt || '250,000 sq ft',
+      capacityPercentage: wh.capacityPercentage || 75
+    });
+  };
+
   const handleEditWarehouseSubmit = (e) => {
     e.preventDefault();
     if (editingWarehouse && editingWarehouse.id) {
-      const cleanName = (editingWarehouse.name || '').replace(/[^a-zA-Z\s]/g, '');
-      const cleanManager = (editingWarehouse.manager || '').replace(/[^a-zA-Z\s]/g, '');
+      const finalName = (editingWarehouse.name || '').replace(/[^a-zA-Z\s]/g, '').trim() || 'Global Logistics Hub';
+      const finalManager = (editingWarehouse.manager || '').replace(/[^a-zA-Z\s]/g, '').trim() || 'Logistics Operations Lead';
+      
       updateWarehouse(editingWarehouse.id, {
         ...editingWarehouse,
-        name: cleanName || 'Singapore Logistics Hub',
-        manager: cleanManager || 'Logistics Lead'
+        name: finalName,
+        manager: finalManager
       });
       setEditingWarehouse(null);
     }
@@ -560,7 +574,7 @@ export const AdminDashboardPage = () => {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setEditingWarehouse({ ...wh });
+                                handleOpenEditWarehouse(wh);
                               }}
                               className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-extrabold transition-colors flex items-center space-x-1 cursor-pointer"
                               title="Edit Warehouse Hub"
