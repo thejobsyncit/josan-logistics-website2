@@ -319,6 +319,32 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Warehouse operations
+  const addWarehouse = (newWhData) => {
+    const newWh = {
+      id: `WH-${Date.now().toString().slice(-4)}`,
+      name: newWhData.name || 'Singapore Logistics Hub',
+      location: newWhData.location || 'Woodlands, Singapore',
+      manager: newWhData.manager || 'Logistics Lead',
+      capacityPercentage: Number(newWhData.capacityPercentage) || 60,
+      activeParcels: Number(newWhData.activeParcels) || 2500,
+      capacitySqFt: newWhData.capacitySqFt || '250,000 sq ft',
+      incomingToday: Number(newWhData.incomingToday) || 420,
+      outgoingToday: Number(newWhData.outgoingToday) || 390,
+      bins: [
+        { binId: 'BIN-SG01', item: 'High-Tech Microchips', status: 'Staged for Load' },
+        { binId: 'BIN-SG02', item: 'Pharma Cold Storage', status: 'In Storage' },
+        { binId: 'BIN-SG03', item: 'Automotive Spare Parts', status: 'Ready for Trucking' }
+      ]
+    };
+    setWarehouses(prev => [newWh, ...prev]);
+    showToast(`Added new Warehouse Hub: ${newWh.name}`);
+  };
+
+  const removeWarehouse = (whId) => {
+    setWarehouses(prev => prev.filter(w => w.id !== whId));
+    showToast('Warehouse hub removed from roster', 'info');
+  };
+
   const updateWarehouseBinStatus = (warehouseId, binId, newStatus) => {
     setWarehouses(prev => prev.map(wh => {
       if (wh.id === warehouseId) {
@@ -374,6 +400,8 @@ export const LogisticsProvider = ({ children }) => {
       addDriver,
       removeDriver,
       toggleDriverStatus,
+      addWarehouse,
+      removeWarehouse,
       updateWarehouseBinStatus,
       getShipmentByTracking,
       showToast
