@@ -53,48 +53,103 @@ export const TrackShipmentPage = () => {
   useEffect(() => {
     if (activeTrackingId) {
       setSearchInput(activeTrackingId);
-      const full = ensureFullShipment(activeTrackingId);
-      setCurrentShipment(full);
+      const found = getShipmentByTracking(activeTrackingId);
+      if (found) setCurrentShipment(found);
     }
   }, [activeTrackingId, shipments]);
 
-  const openFullscreenMap = (sampleOrId) => {
-    const full = ensureFullShipment(sampleOrId);
-    setCurrentShipment(full);
-    setSearchInput(full.id);
-    setActiveTrackingId(full.id);
-    setFullscreenMapShipment(full);
-    showToast(`Fullscreen satellite tracking opened for ${full.id}`);
+  const resolveShipmentData = (sampleOrId) => {
+    let term = typeof sampleOrId === 'string' ? sampleOrId.trim() : (sampleOrId?.id || '');
+    if (!term) term = 'JOS-88190-SG';
+
+    let found = getShipmentByTracking(term) || shipments.find(s => s.id.toUpperCase() === term.toUpperCase());
+    
+    if (!found && typeof sampleOrId === 'object' && sampleOrId.id) {
+      found = {
+        id: sampleOrId.id,
+        origin: sampleOrId.origin || 'Changi Air Cargo Hub',
+        destination: sampleOrId.dest || sampleOrId.destination || 'Jurong Port Logistics Hub',
+        status: sampleOrId.status || 'In Transit',
+        currentLocation: 'Pan Island Expressway (PIE) KM 18.4',
+        driverName: sampleOrId.driver || 'Tan Wei Ming',
+        driverPhone: '+65 9123 4567',
+        vehicle: 'Josan EV Express Cargo Truck (SG-8819)',
+        sender: 'TechCorp Solutions SG',
+        senderAddress: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        receiver: 'Apex Dynamics SG Hub',
+        receiverAddress: '89 Orchard Road, Singapore 238854',
+        weight: '245.5 kg',
+        pieces: 4,
+        cargoType: 'High-Tech Electronics',
+        serviceLevel: 'Express Air Freight',
+        declaredValue: '$18,500',
+        price: '$1,068.00',
+        createdDate: 'Aug 29, 2026',
+        estimatedDelivery: 'Today, 4:30 PM (SGT)',
+        timeline: [
+          { title: 'Order Dispatched from Origin Depot', timestamp: 'Today 08:30 AM', location: sampleOrId.origin || 'Changi Hub', completed: true },
+          { title: 'GPS Satellite Telematics Locked', timestamp: 'Today 10:15 AM', location: 'PIE Expressway', completed: true, current: true },
+          { title: 'Out for Final Hub Delivery', timestamp: 'Pending', location: sampleOrId.dest || 'Jurong Port', completed: false }
+        ]
+      };
+    }
+
+    if (!found) {
+      found = {
+        id: term.toUpperCase(),
+        origin: 'Changi Air Cargo Complex',
+        destination: 'Jurong Port Industrial Estate',
+        status: 'In Transit',
+        currentLocation: 'Pan Island Expressway (PIE) KM 18.4',
+        driverName: 'Tan Wei Ming',
+        driverPhone: '+65 9123 4567',
+        vehicle: 'Josan EV Express Cargo Truck (SG-8819)',
+        sender: 'TechCorp Solutions SG',
+        senderAddress: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        receiver: 'Apex Dynamics SG Hub',
+        receiverAddress: '89 Orchard Road, Singapore 238854',
+        weight: '180.0 kg',
+        pieces: 2,
+        cargoType: 'General Goods',
+        serviceLevel: 'Express Freight (SG Same-Day)',
+        declaredValue: '$12,000',
+        price: '$890.00',
+        createdDate: 'Aug 29, 2026',
+        estimatedDelivery: 'Today, 4:30 PM (SGT)',
+        timeline: [
+          { title: 'Parcel Registered in Telematics System', timestamp: 'Today 09:00 AM', location: 'Singapore Depot', completed: true },
+          { title: 'Active In-Transit Satellite Tracking', timestamp: 'Today 11:30 AM', location: 'PIE Expressway', completed: true, current: true },
+          { title: 'Delivered to Receiver', timestamp: 'Pending', location: 'Destination Hub', completed: false }
+        ]
+      };
+    }
+
+    return found;
+  };
+
+  const handleSelectDemo = (sampleOrId) => {
+    const found = resolveShipmentData(sampleOrId);
+    setCurrentShipment(found);
+    setSearchInput(found.id);
+    setActiveTrackingId(found.id);
+    showToast(`Live GPS Satellite Tracking updated for #${found.id}`);
+    
+    setTimeout(() => {
+      mapSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!searchInput.trim()) return;
-
-    const query = searchInput.trim();
-    const found = getShipmentByTracking(query);
-    const full = ensureFullShipment(found || query);
-
-    setCurrentShipment(full);
-    setActiveTrackingId(full.id);
-
-    if (found) {
-      showToast(`Loaded live tracking feed for #${full.id}`);
-    } else {
-      showToast(`Showing telematics data for #${full.id}`);
-    }
-
-    if (mapSectionRef.current) {
-      mapSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (searchInput.trim()) {
+      handleSelectDemo(searchInput.trim());
     }
   };
 
-  const handleSelectDemo = (sampleOrId) => {
-    const full = ensureFullShipment(sampleOrId);
-    setCurrentShipment(full);
-    setSearchInput(full.id);
-    setActiveTrackingId(full.id);
-    showToast(`Selected parcel #${full.id}`);
+  const handleViewInvoice = () => {
+    const shipmentToView = currentShipment || shipments[0] || resolveShipmentData('JOS-88190-SG');
+    setSelectedInvoiceShipment(shipmentToView);
+    if (showToast) showToast(`Viewing Official Freight Bill & Invoice for #${shipmentToView.id}`);
   };
 
   return (
@@ -113,7 +168,7 @@ export const TrackShipmentPage = () => {
           </div>
 
           <button
-            onClick={() => setSelectedInvoiceShipment(ensureFullShipment(currentShipment))}
+            onClick={handleViewInvoice}
             className="self-start sm:self-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-2 cursor-pointer"
           >
             <Printer className="w-4 h-4 text-orange-400" />
@@ -136,7 +191,7 @@ export const TrackShipmentPage = () => {
             </div>
             <button
               type="submit"
-              className="w-full sm:w-auto px-8 py-3 bg-orange-gradient hover:bg-orange-600 text-white rounded-lg font-bold text-sm shadow-md transition-all shrink-0"
+              className="w-full sm:w-auto px-8 py-3 bg-orange-gradient hover:bg-orange-600 text-white rounded-lg font-bold text-sm shadow-md transition-all shrink-0 cursor-pointer"
             >
               Search Parcel
             </button>
@@ -161,7 +216,7 @@ export const TrackShipmentPage = () => {
             ].map((sample) => (
               <div
                 key={sample.id}
-                onClick={() => handleSelectDemo(sample.id)}
+                onClick={() => handleSelectDemo(sample)}
                 className={`p-4 rounded-2xl transition-all border flex flex-col justify-between cursor-pointer space-y-3 ${
                   currentShipment?.id === sample.id
                     ? 'bg-slate-900 text-white border-orange-500 shadow-xl ring-2 ring-orange-500/40'
@@ -184,7 +239,7 @@ export const TrackShipmentPage = () => {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    openFullscreenMap(sample);
+                    handleSelectDemo(sample);
                   }}
                   className="w-full py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center space-x-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white shadow-orange-sm active:scale-95"
                 >
@@ -431,8 +486,8 @@ export const TrackShipmentPage = () => {
 
               <div className="pt-2">
                 <button
-                  onClick={() => setSelectedInvoiceShipment(currentShipment)}
-                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-orange-sm transition-all text-center"
+                  onClick={handleViewInvoice}
+                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-orange-sm transition-all text-center cursor-pointer"
                 >
                   Generate Official Bill of Lading
                 </button>
