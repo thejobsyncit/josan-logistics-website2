@@ -320,11 +320,13 @@ export const LogisticsProvider = ({ children }) => {
 
   // Warehouse operations
   const addWarehouse = (newWhData) => {
+    const cleanName = (newWhData.name || 'Singapore Logistics Hub').replace(/[^a-zA-Z\s]/g, '');
+    const cleanManager = (newWhData.manager || 'Logistics Lead').replace(/[^a-zA-Z\s]/g, '');
     const newWh = {
       id: `WH-${Date.now().toString().slice(-4)}`,
-      name: newWhData.name || 'Singapore Logistics Hub',
+      name: cleanName || 'Singapore Logistics Hub',
       location: newWhData.location || 'Woodlands, Singapore',
-      manager: newWhData.manager || 'Logistics Lead',
+      manager: cleanManager || 'Logistics Lead',
       capacityPercentage: Number(newWhData.capacityPercentage) || 60,
       activeParcels: Number(newWhData.activeParcels) || 2500,
       capacitySqFt: newWhData.capacitySqFt || '250,000 sq ft',
@@ -338,6 +340,21 @@ export const LogisticsProvider = ({ children }) => {
     };
     setWarehouses(prev => [newWh, ...prev]);
     showToast(`Added new Warehouse Hub: ${newWh.name}`);
+  };
+
+  const updateWarehouse = (whId, updatedData) => {
+    setWarehouses(prev => prev.map(w => {
+      if (w.id === whId) {
+        return {
+          ...w,
+          ...updatedData,
+          name: updatedData.name ? updatedData.name.replace(/[^a-zA-Z\s]/g, '') : w.name,
+          manager: updatedData.manager ? updatedData.manager.replace(/[^a-zA-Z\s]/g, '') : w.manager
+        };
+      }
+      return w;
+    }));
+    showToast(`Saved changes for Warehouse Hub`);
   };
 
   const removeWarehouse = (whId) => {
@@ -401,6 +418,7 @@ export const LogisticsProvider = ({ children }) => {
       removeDriver,
       toggleDriverStatus,
       addWarehouse,
+      updateWarehouse,
       removeWarehouse,
       updateWarehouseBinStatus,
       getShipmentByTracking,
