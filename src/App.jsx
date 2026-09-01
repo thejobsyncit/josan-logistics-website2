@@ -166,6 +166,10 @@ const MainContent = () => {
   }, []);
 
   const renderPage = () => {
+    if (!currentUser && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard' || activeTab === 'customer-dashboard' || activeTab === 'track' || activeTab === 'book')) {
+      return <HomePage setActiveTab={handleTabChange} />;
+    }
+
     switch (activeTab) {
       case 'home':
         return <HomePage setActiveTab={changeActiveTab} />;

@@ -78,7 +78,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       found = getShipmentByTracking(sampleOrId.id) || shipments.find(s => s?.id?.toUpperCase() === sampleOrId.id.toUpperCase());
     }
     
-    if (!found && typeof sampleOrId === 'object') {
+    if (!found && typeof sampleOrId === 'object' && sampleOrId.id) {
       found = {
         id: sampleOrId.id || 'JOS-88190-SG',
         origin: sampleOrId.origin || 'Changi Air Cargo',
@@ -90,16 +90,40 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     }
 
     if (!found) {
-      found = shipments[0] || {
-        id: 'JOS-88190-SG',
+      found = {
+        id: term.toUpperCase(),
         origin: 'Changi Air Cargo Complex',
         destination: 'Jurong Port Industrial Estate',
         status: 'In Transit',
+        currentLocation: 'Pan Island Expressway (PIE) KM 18.4',
         driverName: 'Tan Wei Ming',
-        estimatedDelivery: 'Today, 4:30 PM (SGT)'
+        driverPhone: '+65 9123 4567',
+        vehicle: 'Josan EV Express Cargo Truck (SG-8819)',
+        sender: 'TechCorp Solutions SG',
+        senderAddress: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        receiver: 'Apex Dynamics SG Hub',
+        receiverAddress: '89 Orchard Road, Singapore 238854',
+        weight: '180.0 kg',
+        pieces: 2,
+        cargoType: 'General Goods',
+        serviceLevel: 'Express Freight (SG Same-Day)',
+        declaredValue: '$12,000',
+        price: '$890.00',
+        createdDate: 'Aug 29, 2026',
+        estimatedDelivery: 'Today, 4:30 PM (SGT)',
+        timeline: [
+          { title: 'Parcel Registered in Telematics System', timestamp: 'Today 09:00 AM', location: 'Singapore Depot', completed: true },
+          { title: 'Active In-Transit Satellite Tracking', timestamp: 'Today 11:30 AM', location: 'PIE Expressway', completed: true, current: true },
+          { title: 'Delivered to Receiver', timestamp: 'Pending', location: 'Destination Hub', completed: false }
+        ]
       };
     }
 
+    return found;
+  };
+
+  const handleSelectDemo = (sampleOrId) => {
+    const found = resolveShipmentData(sampleOrId);
     setCurrentShipment(found);
     setSearchInput(found.id);
     setActiveTrackingId(found.id);
@@ -114,12 +138,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchInput.trim()) {
-      openFullscreenMap(searchInput.trim());
+      handleSelectDemo(searchInput.trim());
     }
   };
 
-  const handleSelectDemo = (sampleOrId) => {
-    openFullscreenMap(sampleOrId);
+  const handleViewInvoice = () => {
+    const shipmentToView = currentShipment || shipments[0] || resolveShipmentData('JOS-88190-SG');
+    setSelectedInvoiceShipment(shipmentToView);
+    if (showToast) showToast(`Viewing Official Freight Bill & Invoice for #${shipmentToView.id}`);
   };
 
   return (
@@ -206,7 +232,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             ].map((sample) => (
               <div
                 key={sample.id}
-                onClick={() => handleSelectDemo(sample.id)}
+                onClick={() => handleSelectDemo(sample)}
                 className={`p-4 rounded-2xl transition-all border flex flex-col justify-between cursor-pointer space-y-3 ${
                   currentShipment?.id === sample.id
                     ? 'bg-slate-900 text-white border-orange-500 shadow-xl ring-2 ring-orange-500/40'
@@ -229,7 +255,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    openFullscreenMap(sample);
+                    handleSelectDemo(sample);
                   }}
                   className="w-full py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center space-x-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white shadow-orange-sm active:scale-95"
                 >
@@ -466,8 +492,8 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
               <div className="pt-2">
                 <button
-                  onClick={() => setSelectedInvoiceShipment(currentShipment)}
-                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-orange-sm transition-all text-center"
+                  onClick={handleViewInvoice}
+                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-orange-sm transition-all text-center cursor-pointer"
                 >
                   Generate Official Bill of Lading
                 </button>

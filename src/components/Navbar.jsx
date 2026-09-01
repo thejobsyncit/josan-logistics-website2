@@ -26,7 +26,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     logoutUser,
     setCustomerSubTab,
     setDriverSubTab,
-    updateUserProfile
+    updateUserProfile,
+    showToast
   } = useLogistics();
 
   const [headerSearch, setHeaderSearch] = useState('');
@@ -51,24 +52,27 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const saveProfileChanges = (e) => {
     e.preventDefault();
+    const activeRole = currentUser?.role || currentRole;
     const updated = {
       name: editName,
       phone: editPhone,
-      company: currentRole === 'customer' ? editCompany : currentUser?.company,
-      licenseNumber: currentRole === 'driver' ? editLicense : currentUser?.licenseNumber,
-      dob: currentRole === 'driver' ? editDob : currentUser?.dob
+      company: activeRole === 'customer' ? editCompany : currentUser?.company,
+      licenseNumber: activeRole === 'driver' ? editLicense : currentUser?.licenseNumber,
+      dob: activeRole === 'driver' ? editDob : currentUser?.dob
     };
     updateUserProfile(updated);
     setIsEditing(false);
   };
 
   const handleHeaderSearch = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (headerSearch.trim()) {
-      setActiveTrackingId(headerSearch.trim());
+      const term = headerSearch.trim();
+      setActiveTrackingId(term);
       setActiveTab('track');
       setHeaderSearch('');
       setMobileMenuOpen(false);
+      if (showToast) showToast(`Loaded Live Satellite Telematics for #${term.toUpperCase()}`);
     }
   };
 
@@ -76,16 +80,39 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services' },
-    { id: 'track', label: 'Track Shipment' },
-    { id: 'book', label: 'Book Shipment' },
     { id: 'contact', label: 'Contact' },
   ];
 
-  if (currentRole === 'customer') {
-    navItems.push({ id: 'customer-dashboard', label: 'My Orders' });
-  } else if (currentRole === 'driver') {
-    navItems = navItems.filter(item => item.id !== 'track' && item.id !== 'book');
-    navItems.push({ id: 'driver-dashboard', label: 'Driver Portal' });
+  if (currentUser) {
+    const role = currentUser.role || currentRole;
+    if (role === 'customer') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'track', label: 'Track Shipment' },
+        { id: 'book', label: 'Book Shipment' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'customer-dashboard', label: 'My Orders' },
+      ];
+    } else if (role === 'driver') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'driver-dashboard', label: 'Driver Portal' },
+      ];
+    } else if (role === 'admin') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'track', label: 'Track Shipment' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'admin-dashboard', label: 'Admin Portal' },
+      ];
+    }
   }
 
   return (
@@ -126,15 +153,21 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           {/* Search Widget & User Profile / Login */}
           <div className="hidden md:flex items-center space-x-3">
             {/* Quick Tracking Search Bar */}
-            <form onSubmit={handleHeaderSearch} className="relative">
+            <form onSubmit={handleHeaderSearch} className="relative flex items-center">
               <input
                 type="text"
                 value={headerSearch}
                 onChange={(e) => setHeaderSearch(e.target.value)}
                 placeholder="Track ID (e.g. JOS-89421-US)..."
-                className="w-48 xl:w-56 pl-9 pr-3 py-1.5 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange placeholder:text-slate-400"
+                className="w-48 xl:w-56 pl-9 pr-7 py-1.5 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange placeholder:text-slate-400 font-semibold"
               />
-              <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
+              <button 
+                type="submit" 
+                title="Search Parcel"
+                className="absolute left-2.5 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
+              >
+                <Search className="w-4 h-4" />
+              </button>
             </form>
 
             {currentUser ? (
@@ -148,7 +181,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   </div>
                   <div className="text-left">
                     <p className="text-xs font-bold text-slate-900 line-clamp-1">{currentUser.name}</p>
-                    <p className="text-[10px] text-orange-600 font-semibold capitalize">{currentRole}</p>
+                    <p className="text-[10px] text-orange-600 font-semibold capitalize">{currentUser.role || currentRole}</p>
                   </div>
                 </button>
                 <button
@@ -181,7 +214,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       <form onSubmit={saveProfileChanges} className="space-y-4 text-xs text-left">
                         {/* Name Input */}
                         <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name (Alphabets Only)</label>
                           <input
                             type="text"
                             value={editName}
@@ -368,15 +401,21 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
-          <form onSubmit={handleHeaderSearch} className="relative mb-3">
+          <form onSubmit={handleHeaderSearch} className="relative mb-3 flex items-center">
             <input
               type="text"
               value={headerSearch}
               onChange={(e) => setHeaderSearch(e.target.value)}
               placeholder="Track Shipment ID..."
-              className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange"
+              className="w-full pl-9 pr-7 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <button 
+              type="submit" 
+              title="Search Parcel"
+              className="absolute left-3 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
+            >
+              <Search className="w-4 h-4" />
+            </button>
           </form>
 
           <div className="grid grid-cols-1 gap-1">
@@ -399,18 +438,32 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-xs text-slate-500">
-              Active Mode: <span className="font-bold text-orange-600 capitalize">{currentRole}</span>
-            </div>
-            <button
-              onClick={() => {
-                toggleRole(undefined, setActiveTab);
-                setMobileMenuOpen(false);
-              }}
-              className="text-xs font-bold text-orange-600 underline"
-            >
-              Switch to {currentRole === 'admin' ? 'Customer' : 'Admin'}
-            </button>
+            {currentUser ? (
+              <>
+                <div className="text-xs text-slate-500">
+                  Active Mode: <span className="font-bold text-orange-600 capitalize">{currentUser.role || currentRole}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    logoutUser();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-xs font-bold text-rose-600 underline cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsAuthModalOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold text-center"
+              >
+                Sign In / Register
+              </button>
+            )}
           </div>
         </div>
       )}

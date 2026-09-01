@@ -15,125 +15,327 @@ export const InvoiceModal = () => {
   const totalPrice = (basePriceNum + parseFloat(fuelSurcharge) + parseFloat(insuranceFee) + parseFloat(tax)).toFixed(2);
 
   const handlePrint = () => {
-    window.print();
+    const printWindow = window.open('', '_blank', 'width=850,height=1100');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const logoUrl = `${window.location.origin}/assets/josan_logo.jpg`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Invoice - ${shipment.id}</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm; }
+          * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #0F172A; background: #ffffff; margin: 0; padding: 0; line-height: 1.5; font-size: 13px; }
+          .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F26722; padding-bottom: 16px; margin-bottom: 20px; }
+          .logo { height: 48px; width: auto; object-fit: contain; }
+          .subtitle { font-size: 11px; color: #64748B; font-weight: 600; margin: 4px 0 2px 0; }
+          .address { font-size: 11px; color: #64748B; margin: 0; }
+          .badge { display: inline-block; background: #D1FAE5; color: #065F46; padding: 4px 12px; border-radius: 9999px; font-weight: 800; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+          .inv-title { font-size: 22px; font-weight: 800; color: #0F172A; margin: 0 0 4px 0; }
+          .inv-meta { font-size: 11px; color: #64748B; margin: 2px 0; }
+          
+          .barcode-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+          .barcode-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; }
+          .barcode-id { font-family: monospace; font-size: 18px; font-weight: 800; color: #F26722; margin-top: 2px; }
+          .barcode-lines { display: flex; align-items: center; gap: 2px; height: 32px; }
+          .line { background: #0F172A; height: 100%; }
+
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+          .card { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; }
+          .card-header { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; }
+          .card-name { font-size: 14px; font-weight: 800; color: #0F172A; }
+          .card-desc { font-size: 12px; color: #475569; margin: 4px 0; }
+          .card-hub { font-size: 11px; color: #64748B; font-weight: 600; }
+
+          .section-title { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 0; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; }
+          th { background: #F1F5F9; font-weight: 700; color: #334155; padding: 10px 14px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+          td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #F1F5F9; color: #334155; }
+          tr:last-child td { border-bottom: none; }
+          .total-row { background: #FFF4EE !important; font-weight: 800; }
+          .total-row td { color: #0F172A; font-size: 14px; padding: 12px 14px; }
+          .total-amount { color: #F26722; font-weight: 800; font-family: monospace; font-size: 16px; }
+          
+          .footer { margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748B; }
+          .footer-guarantee { font-weight: 600; color: #475569; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div>
+              <img src="${logoUrl}" class="logo" alt="Josan Logistics Logo" />
+              <p class="subtitle">Regional & Global Supply Chain Management</p>
+              <p class="address">450 Logistics Parkway, Chicago, IL 60607</p>
+              <p class="address">Tax Registration ID: US-JOS-98210492</p>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge">PAID & VERIFIED</span>
+              <h1 class="inv-title">INVOICE #${shipment.id}</h1>
+              <p class="inv-meta">Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}</p>
+              <p class="inv-meta">Payment Term: Net 30</p>
+            </div>
+          </div>
+
+          <div class="barcode-box">
+            <div>
+              <div class="barcode-label">Tracking Bill of Lading</div>
+              <div class="barcode-id">${shipment.id}</div>
+            </div>
+            <div class="barcode-lines">
+              ${[4, 2, 6, 1, 3, 5, 2, 4, 1, 6, 3, 2, 5, 4, 2, 1, 5, 3, 4, 2].map(w => `<div class="line" style="width: ${w}px;"></div>`).join('')}
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <div class="card-header">SHIP FROM (ORIGIN)</div>
+              <div class="card-name">${shipment.sender}</div>
+              <div class="card-desc">${shipment.senderAddress || 'Origin Depot'}</div>
+              <div class="card-hub">Hub: ${shipment.origin}</div>
+            </div>
+            <div class="card">
+              <div class="card-header">SHIP TO (DESTINATION)</div>
+              <div class="card-name">${shipment.receiver}</div>
+              <div class="card-desc">${shipment.receiverAddress || 'Destination Depot'}</div>
+              <div class="card-hub">Hub: ${shipment.destination}</div>
+            </div>
+          </div>
+
+          <div class="section-title">Freight Specifications</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Service Level</th>
+                <th>Cargo Type</th>
+                <th>Weight</th>
+                <th>Declared Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 700; color: #F26722;">${shipment.serviceLevel}</td>
+                <td>${shipment.cargoType}</td>
+                <td style="font-family: monospace;">${shipment.weight} (${shipment.pieces || 1} Pcs)</td>
+                <td style="font-family: monospace;">${shipment.declaredValue || '$10,000'}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="section-title">Itemized Charges</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th style="text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Base Freight Transportation Fee</td>
+                <td style="text-align: right; font-family: monospace; font-weight: 600;">$${basePriceNum.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>Fuel Surcharge (8%)</td>
+                <td style="text-align: right; font-family: monospace;">$${fuelSurcharge}</td>
+              </tr>
+              <tr>
+                <td>Cargo Security & Insurance Policy (5%)</td>
+                <td style="text-align: right; font-family: monospace;">$${insuranceFee}</td>
+              </tr>
+              <tr>
+                <td>GST / Sales Tax (7%)</td>
+                <td style="text-align: right; font-family: monospace;">$${tax}</td>
+              </tr>
+              <tr class="total-row">
+                <td>TOTAL DUE / PAID</td>
+                <td style="text-align: right;" class="total-amount">$${totalPrice} USD</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <div class="footer-guarantee">🛡️ Full Cargo Loss Protection Guarantee by Josan Cover</div>
+            <div style="font-weight: 700; color: #334155;">Thank you for choosing Josan Logistics!</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    showToast(`Opened print preview for Invoice #${shipment.id}`);
   };
 
   const handleDownloadPDF = () => {
+    const logoUrl = `${window.location.origin}/assets/josan_logo.jpg`;
+
     const invoiceHtml = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8" />
-        <title>Invoice-${shipment.id}</title>
+        <title>Invoice - ${shipment.id}</title>
         <style>
-          body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #0F172A; background: #fff; margin: 0; }
-          .header { display: flex; justify-content: space-between; border-bottom: 3px solid #F26722; padding-bottom: 20px; }
-          .brand { font-size: 24px; font-weight: 800; color: #0F172A; }
-          .brand span { color: #F26722; }
-          .status { background: #D1FAE5; color: #065F46; padding: 4px 12px; border-radius: 9999px; font-weight: 700; font-size: 12px; text-transform: uppercase; }
-          .title { font-size: 20px; font-weight: 800; margin-top: 10px; }
-          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
-          .card { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; font-size: 13px; }
-          .card-title { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 6px; }
-          table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
-          th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
-          th { background: #F1F5F9; font-weight: 700; color: #334155; }
-          .total { background: #FFF4EE; font-weight: 800; color: #F26722; font-size: 15px; }
-          .footer { margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 15px; font-size: 12px; color: #64748B; display: flex; justify-content: space-between; }
+          * { box-sizing: border-box; }
+          body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #0F172A; background: #ffffff; margin: 0; padding: 30px; line-height: 1.5; font-size: 13px; }
+          .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F26722; padding-bottom: 16px; margin-bottom: 20px; }
+          .logo { height: 48px; width: auto; object-fit: contain; }
+          .subtitle { font-size: 11px; color: #64748B; font-weight: 600; margin: 4px 0 2px 0; }
+          .address { font-size: 11px; color: #64748B; margin: 0; }
+          .badge { display: inline-block; background: #D1FAE5; color: #065F46; padding: 4px 12px; border-radius: 9999px; font-weight: 800; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+          .inv-title { font-size: 22px; font-weight: 800; color: #0F172A; margin: 0 0 4px 0; }
+          .inv-meta { font-size: 11px; color: #64748B; margin: 2px 0; }
+          
+          .barcode-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+          .barcode-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; }
+          .barcode-id { font-family: monospace; font-size: 18px; font-weight: 800; color: #F26722; margin-top: 2px; }
+          .barcode-lines { display: flex; align-items: center; gap: 2px; height: 32px; }
+          .line { background: #0F172A; height: 100%; }
+
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+          .card { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; }
+          .card-header { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; }
+          .card-name { font-size: 14px; font-weight: 800; color: #0F172A; }
+          .card-desc { font-size: 12px; color: #475569; margin: 4px 0; }
+          .card-hub { font-size: 11px; color: #64748B; font-weight: 600; }
+
+          .section-title { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 0; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; }
+          th { background: #F1F5F9; font-weight: 700; color: #334155; padding: 10px 14px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+          td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #F1F5F9; color: #334155; }
+          tr:last-child td { border-bottom: none; }
+          .total-row { background: #FFF4EE !important; font-weight: 800; }
+          .total-row td { color: #0F172A; font-size: 14px; padding: 12px 14px; }
+          .total-amount { color: #F26722; font-weight: 800; font-family: monospace; font-size: 16px; }
+          
+          .footer { margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748B; }
+          .footer-guarantee { font-weight: 600; color: #475569; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div>
-            <img src="/assets/josan_logo.jpg" style="height:48px; object-fit:contain; margin-bottom:4px;" />
-            <p style="font-size:12px; color:#64748B; margin:4px 0;">Regional & Global Supply Chain Management</p>
-            <p style="font-size:12px; color:#64748B; margin:0;">450 Logistics Parkway, Chicago, IL 60607</p>
-            <p style="font-size:12px; color:#64748B; margin:0;">Tax Reg ID: US-JOS-98210492</p>
+        <div class="container">
+          <div class="header">
+            <div>
+              <img src="${logoUrl}" class="logo" alt="Josan Logistics Logo" />
+              <p class="subtitle">Regional & Global Supply Chain Management</p>
+              <p class="address">450 Logistics Parkway, Chicago, IL 60607</p>
+              <p class="address">Tax Registration ID: US-JOS-98210492</p>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge">PAID & VERIFIED</span>
+              <h1 class="inv-title">INVOICE #${shipment.id}</h1>
+              <p class="inv-meta">Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}</p>
+              <p class="inv-meta">Payment Term: Net 30</p>
+            </div>
           </div>
-          <div style="text-align:right;">
-            <span class="status">PAID & VERIFIED</span>
-            <div class="title">INVOICE #${shipment.id}</div>
-            <p style="font-size:12px; color:#64748B; margin:4px 0;">Date: ${shipment.createdDate || 'Aug 29, 2026'}</p>
-            <p style="font-size:12px; color:#64748B; margin:0;">Payment Terms: Net 30</p>
+
+          <div class="barcode-box">
+            <div>
+              <div class="barcode-label">Tracking Bill of Lading</div>
+              <div class="barcode-id">${shipment.id}</div>
+            </div>
+            <div class="barcode-lines">
+              ${[4, 2, 6, 1, 3, 5, 2, 4, 1, 6, 3, 2, 5, 4, 2, 1, 5, 3, 4, 2].map(w => `<div class="line" style="width: ${w}px;"></div>`).join('')}
+            </div>
           </div>
-        </div>
 
-        <div class="grid">
-          <div class="card">
-            <div class="card-title">SHIP FROM (ORIGIN)</div>
-            <strong>${shipment.sender}</strong>
-            <p style="margin:4px 0; color:#475569;">${shipment.senderAddress || 'Origin Depot'}</p>
-            <p style="margin:0; color:#64748B;">Hub: ${shipment.origin}</p>
+          <div class="grid">
+            <div class="card">
+              <div class="card-header">SHIP FROM (ORIGIN)</div>
+              <div class="card-name">${shipment.sender}</div>
+              <div class="card-desc">${shipment.senderAddress || 'Origin Depot'}</div>
+              <div class="card-hub">Hub: ${shipment.origin}</div>
+            </div>
+            <div class="card">
+              <div class="card-header">SHIP TO (DESTINATION)</div>
+              <div class="card-name">${shipment.receiver}</div>
+              <div class="card-desc">${shipment.receiverAddress || 'Destination Depot'}</div>
+              <div class="card-hub">Hub: ${shipment.destination}</div>
+            </div>
           </div>
-          <div class="card">
-            <div class="card-title">SHIP TO (DESTINATION)</div>
-            <strong>${shipment.receiver}</strong>
-            <p style="margin:4px 0; color:#475569;">${shipment.receiverAddress || 'Destination Depot'}</p>
-            <p style="margin:0; color:#64748B;">Hub: ${shipment.destination}</p>
+
+          <div class="section-title">Freight Specifications</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Service Level</th>
+                <th>Cargo Type</th>
+                <th>Weight</th>
+                <th>Declared Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 700; color: #F26722;">${shipment.serviceLevel}</td>
+                <td>${shipment.cargoType}</td>
+                <td style="font-family: monospace;">${shipment.weight} (${shipment.pieces || 1} Pcs)</td>
+                <td style="font-family: monospace;">${shipment.declaredValue || '$10,000'}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="section-title">Itemized Charges</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th style="text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Base Freight Transportation Fee</td>
+                <td style="text-align: right; font-family: monospace; font-weight: 600;">$${basePriceNum.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>Fuel Surcharge (8%)</td>
+                <td style="text-align: right; font-family: monospace;">$${fuelSurcharge}</td>
+              </tr>
+              <tr>
+                <td>Cargo Security & Insurance Policy (5%)</td>
+                <td style="text-align: right; font-family: monospace;">$${insuranceFee}</td>
+              </tr>
+              <tr>
+                <td>GST / Sales Tax (7%)</td>
+                <td style="text-align: right; font-family: monospace;">$${tax}</td>
+              </tr>
+              <tr class="total-row">
+                <td>TOTAL DUE / PAID</td>
+                <td style="text-align: right;" class="total-amount">$${totalPrice} USD</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <div class="footer-guarantee">🛡️ Full Cargo Loss Protection Guarantee by Josan Cover</div>
+            <div style="font-weight: 700; color: #334155;">Thank you for choosing Josan Logistics!</div>
           </div>
-        </div>
-
-        <h4 style="margin-bottom:6px; font-size:13px; text-transform:uppercase;">Freight Specifications</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Service Level</th>
-              <th>Cargo Type</th>
-              <th>Weight</th>
-              <th>Declared Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="font-weight:700; color:#F26722;">${shipment.serviceLevel}</td>
-              <td>${shipment.cargoType}</td>
-              <td>${shipment.weight} (${shipment.pieces || 1} Pcs)</td>
-              <td>${shipment.declaredValue || '$10,000'}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h4 style="margin-bottom:6px; font-size:13px; text-transform:uppercase;">Itemized Charges</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th style="text-align:right;">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Base Freight Transportation Fee</td>
-              <td style="text-align:right;">$${basePriceNum.toFixed(2)}</td>
-            </tr>
-            <tr>
-              <td>Fuel Surcharge (8%)</td>
-              <td style="text-align:right;">$${fuelSurcharge}</td>
-            </tr>
-            <tr>
-              <td>Cargo Security & Insurance Policy (5%)</td>
-              <td style="text-align:right;">$${insuranceFee}</td>
-            </tr>
-            <tr>
-              <td>GST / Sales Tax (7%)</td>
-              <td style="text-align:right;">$${tax}</td>
-            </tr>
-            <tr class="total">
-              <td>TOTAL DUE / PAID</td>
-              <td style="text-align:right;">$${totalPrice} USD</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="footer">
-          <div>🛡️ Full Cargo Loss Protection Guarantee by Josan Cover</div>
-          <div>Thank you for choosing Josan Logistics!</div>
         </div>
       </body>
       </html>
     `;
 
-    const blob = new Blob([invoiceHtml], { type: 'text/html' });
+    const blob = new Blob([invoiceHtml], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -142,7 +344,7 @@ export const InvoiceModal = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    if (showToast) showToast(`Downloaded full Invoice #${shipment.id}`);
+    showToast(`Downloaded Invoice File: Invoice-${shipment.id}.html`);
   };
 
   return (

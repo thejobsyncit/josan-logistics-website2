@@ -27,12 +27,7 @@ export const LogisticsProvider = ({ children }) => {
 
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('josan_user');
-    return saved ? JSON.parse(saved) : {
-      name: 'Alexander Josan',
-      email: 'alexander@josanlogistics.com',
-      role: 'admin',
-      company: 'Josan Logistics HQ'
-    };
+    return saved ? JSON.parse(saved) : null;
   });
 
   // Toast notification state
@@ -43,7 +38,7 @@ export const LogisticsProvider = ({ children }) => {
 
   // Active modal state for invoices or auth
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Sub-tab navigation state
   const [customerSubTab, setCustomerSubTab] = useState('orders');
@@ -184,6 +179,7 @@ export const LogisticsProvider = ({ children }) => {
 
   const logoutUser = () => {
     setCurrentUser(null);
+    localStorage.removeItem('josan_user');
     showToast('Logged out successfully', 'info');
   };
 
@@ -350,6 +346,47 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Warehouse operations
+  const addWarehouse = (newWhData) => {
+    const cleanName = (newWhData.name || 'Singapore Logistics Hub').replace(/[^a-zA-Z\s]/g, '');
+    const cleanManager = (newWhData.manager || 'Logistics Lead').replace(/[^a-zA-Z\s]/g, '');
+    const newWh = {
+      id: `WH-${Date.now().toString().slice(-4)}`,
+      name: cleanName || 'Singapore Logistics Hub',
+      location: newWhData.location || 'Woodlands, Singapore',
+      manager: cleanManager || 'Logistics Lead',
+      capacityPercentage: Number(newWhData.capacityPercentage) || 60,
+      activeParcels: Number(newWhData.activeParcels) || 2500,
+      capacitySqFt: newWhData.capacitySqFt || '250,000 sq ft',
+      incomingToday: Number(newWhData.incomingToday) || 420,
+      outgoingToday: Number(newWhData.outgoingToday) || 390,
+      bins: [
+        { binId: 'BIN-SG01', item: 'High-Tech Microchips', status: 'Staged for Load' },
+        { binId: 'BIN-SG02', item: 'Pharma Cold Storage', status: 'In Storage' },
+        { binId: 'BIN-SG03', item: 'Automotive Spare Parts', status: 'Ready for Trucking' }
+      ]
+    };
+    setWarehouses(prev => [newWh, ...prev]);
+    showToast(`Added new Warehouse Hub: ${newWh.name}`);
+  };
+
+  const updateWarehouse = (whId, updatedData) => {
+    setWarehouses(prev => prev.map(w => {
+      if (w.id === whId) {
+        return {
+          ...w,
+          ...updatedData
+        };
+      }
+      return w;
+    }));
+    showToast(`Saved changes for Warehouse Hub: ${updatedData.name || ''}`);
+  };
+
+  const removeWarehouse = (whId) => {
+    setWarehouses(prev => prev.filter(w => w.id !== whId));
+    showToast('Warehouse hub removed from roster', 'info');
+  };
+
   const updateWarehouseBinStatus = (warehouseId, binId, newStatus) => {
     setWarehouses(prev => prev.map(wh => {
       if (wh.id === warehouseId) {
@@ -410,6 +447,9 @@ export const LogisticsProvider = ({ children }) => {
       addDriver,
       removeDriver,
       toggleDriverStatus,
+      addWarehouse,
+      updateWarehouse,
+      removeWarehouse,
       updateWarehouseBinStatus,
       getShipmentByTracking,
       showToast
