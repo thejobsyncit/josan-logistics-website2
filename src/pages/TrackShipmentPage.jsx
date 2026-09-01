@@ -53,57 +53,48 @@ export const TrackShipmentPage = () => {
   useEffect(() => {
     if (activeTrackingId) {
       setSearchInput(activeTrackingId);
-      const found = getShipmentByTracking(activeTrackingId);
-      if (found) setCurrentShipment(found);
+      const full = ensureFullShipment(activeTrackingId);
+      setCurrentShipment(full);
     }
   }, [activeTrackingId, shipments]);
 
   const openFullscreenMap = (sampleOrId) => {
-    let found = null;
-    if (typeof sampleOrId === 'string') {
-      found = getShipmentByTracking(sampleOrId) || shipments.find(s => s.id.toUpperCase() === sampleOrId.toUpperCase());
-    } else if (sampleOrId && sampleOrId.id) {
-      found = getShipmentByTracking(sampleOrId.id) || shipments.find(s => s.id.toUpperCase() === sampleOrId.id.toUpperCase());
-    }
-    
-    if (!found && typeof sampleOrId === 'object') {
-      found = {
-        id: sampleOrId.id,
-        origin: sampleOrId.origin,
-        destination: sampleOrId.dest || sampleOrId.destination || 'Singapore Hub',
-        status: sampleOrId.status || 'In Transit',
-        driverName: sampleOrId.driver || 'Tan Wei Ming',
-        estimatedDelivery: 'Today, 4:30 PM (SGT)'
-      };
-    }
-
-    if (!found) {
-      found = shipments[0] || {
-        id: 'JOS-88190-SG',
-        origin: 'Changi Air Cargo Complex',
-        destination: 'Jurong Port Industrial Estate',
-        status: 'In Transit',
-        driverName: 'Tan Wei Ming',
-        estimatedDelivery: 'Today, 4:30 PM (SGT)'
-      };
-    }
-
-    setCurrentShipment(found);
-    setSearchInput(found.id);
-    setActiveTrackingId(found.id);
-    setFullscreenMapShipment(found);
-    showToast(`Fullscreen satellite tracking opened for ${found.id}`);
+    const full = ensureFullShipment(sampleOrId);
+    setCurrentShipment(full);
+    setSearchInput(full.id);
+    setActiveTrackingId(full.id);
+    setFullscreenMapShipment(full);
+    showToast(`Fullscreen satellite tracking opened for ${full.id}`);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (searchInput.trim()) {
-      openFullscreenMap(searchInput.trim());
+    if (!searchInput.trim()) return;
+
+    const query = searchInput.trim();
+    const found = getShipmentByTracking(query);
+    const full = ensureFullShipment(found || query);
+
+    setCurrentShipment(full);
+    setActiveTrackingId(full.id);
+
+    if (found) {
+      showToast(`Loaded live tracking feed for #${full.id}`);
+    } else {
+      showToast(`Showing telematics data for #${full.id}`);
+    }
+
+    if (mapSectionRef.current) {
+      mapSectionRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   const handleSelectDemo = (sampleOrId) => {
-    openFullscreenMap(sampleOrId);
+    const full = ensureFullShipment(sampleOrId);
+    setCurrentShipment(full);
+    setSearchInput(full.id);
+    setActiveTrackingId(full.id);
+    showToast(`Selected parcel #${full.id}`);
   };
 
   return (
@@ -122,8 +113,8 @@ export const TrackShipmentPage = () => {
           </div>
 
           <button
-            onClick={() => setSelectedInvoiceShipment(currentShipment)}
-            className="self-start sm:self-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-2"
+            onClick={() => setSelectedInvoiceShipment(ensureFullShipment(currentShipment))}
+            className="self-start sm:self-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-2 cursor-pointer"
           >
             <Printer className="w-4 h-4 text-orange-400" />
             <span>View Freight Invoice</span>
