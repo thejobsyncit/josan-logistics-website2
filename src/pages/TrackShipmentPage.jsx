@@ -19,10 +19,11 @@ import {
   ExternalLink,
   ChevronRight,
   X,
-  Maximize2
+  Maximize2,
+  ArrowLeft
 } from 'lucide-react';
 
-export const TrackShipmentPage = () => {
+export const TrackShipmentPage = ({ setActiveTab }) => {
   const { 
     shipments, 
     activeTrackingId, 
@@ -58,21 +59,32 @@ export const TrackShipmentPage = () => {
     }
   }, [activeTrackingId, shipments]);
 
+  // Handle browser back button (popstate) to close fullscreen GPS modal safely without leaving app
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!window.location.hash.startsWith('#track-map-')) {
+        setFullscreenMapShipment(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const openFullscreenMap = (sampleOrId) => {
     let found = null;
     if (typeof sampleOrId === 'string') {
-      found = getShipmentByTracking(sampleOrId) || shipments.find(s => s.id.toUpperCase() === sampleOrId.toUpperCase());
+      found = getShipmentByTracking(sampleOrId) || shipments.find(s => s?.id?.toUpperCase() === sampleOrId.toUpperCase());
     } else if (sampleOrId && sampleOrId.id) {
-      found = getShipmentByTracking(sampleOrId.id) || shipments.find(s => s.id.toUpperCase() === sampleOrId.id.toUpperCase());
+      found = getShipmentByTracking(sampleOrId.id) || shipments.find(s => s?.id?.toUpperCase() === sampleOrId.id.toUpperCase());
     }
     
     if (!found && typeof sampleOrId === 'object') {
       found = {
-        id: sampleOrId.id,
-        origin: sampleOrId.origin,
-        destination: sampleOrId.dest || sampleOrId.destination || 'Singapore Hub',
+        id: sampleOrId.id || 'JOS-88190-SG',
+        origin: sampleOrId.origin || 'Changi Air Cargo',
+        destination: sampleOrId.dest || sampleOrId.destination || 'Jurong Port Hub',
         status: sampleOrId.status || 'In Transit',
-        driverName: sampleOrId.driver || 'Tan Wei Ming',
+        driverName: sampleOrId.driver || sampleOrId.driverName || 'Tan Wei Ming',
         estimatedDelivery: 'Today, 4:30 PM (SGT)'
       };
     }
@@ -92,7 +104,11 @@ export const TrackShipmentPage = () => {
     setSearchInput(found.id);
     setActiveTrackingId(found.id);
     setFullscreenMapShipment(found);
-    showToast(`Fullscreen satellite tracking opened for ${found.id}`);
+    showToast(`Loaded live satellite tracking feed for ${found.id}`);
+  };
+
+  const closeFullscreenMap = () => {
+    setFullscreenMapShipment(null);
   };
 
   const handleSearchSubmit = (e) => {
@@ -107,29 +123,49 @@ export const TrackShipmentPage = () => {
   };
 
   return (
-    <div className="space-y-12 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
       
-      {/* Header & Search Bar Card */}
-      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6">
-        
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Header Card with Prominent Return to Dashboard Button */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+          <button
+            onClick={() => {
+              if (setActiveTab) {
+                setActiveTab('customer-dashboard');
+              } else {
+                window.location.hash = '#customer-dashboard';
+              }
+            }}
+            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-2 cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>← Return to Dashboard</span>
+          </button>
+          
           <div>
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold mb-2 border border-orange-200">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold border border-orange-200">
               <Navigation className="w-3.5 h-3.5" />
               <span>Singapore Telematics Satellite Network</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 font-sans">Live Freight Tracking (Singapore)</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-sans mt-1">Live Demo GPS Tracker</h1>
           </div>
+        </div>
 
+        <div className="flex items-center space-x-3">
           <button
             onClick={() => setSelectedInvoiceShipment(currentShipment)}
-            className="self-start sm:self-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-2"
+            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-2 cursor-pointer"
           >
             <Printer className="w-4 h-4 text-orange-400" />
             <span>View Freight Invoice</span>
           </button>
         </div>
+      </div>
 
+
+
+      {/* Search Bar & Demo Parcel Switcher */}
+      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6">
         {/* Highlighted Orange Tracking Input */}
         <form onSubmit={handleSearchSubmit} className="bg-orange-500 p-2 sm:p-3 rounded-2xl shadow-orange-glow">
           <div className="bg-white rounded-xl p-2 flex flex-col sm:flex-row items-center gap-2">
@@ -145,7 +181,7 @@ export const TrackShipmentPage = () => {
             </div>
             <button
               type="submit"
-              className="w-full sm:w-auto px-8 py-3 bg-orange-gradient hover:bg-orange-600 text-white rounded-lg font-bold text-sm shadow-md transition-all shrink-0"
+              className="w-full sm:w-auto px-8 py-3 bg-orange-gradient hover:bg-orange-600 text-white rounded-lg font-bold text-sm shadow-md transition-all shrink-0 cursor-pointer"
             >
               Search Parcel
             </button>
@@ -197,8 +233,8 @@ export const TrackShipmentPage = () => {
                   }}
                   className="w-full py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center space-x-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white shadow-orange-sm active:scale-95"
                 >
-                  <Navigation className="w-3.5 h-3.5 animate-pulse" />
-                  <span>Enter GPS Tracker →</span>
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>Track Shipment Status →</span>
                 </button>
               </div>
             ))}
@@ -290,6 +326,31 @@ export const TrackShipmentPage = () => {
                 </div>
               )}
 
+              {/* LIVE GPS TELEMATICS MAP WITH MOVING TRUCK FOR CUSTOMER PORTAL */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
+                    <Navigation className="w-4 h-4 text-orange-500" />
+                    <span>Live Customer GPS Satellite Map & Telematics Route</span>
+                  </h3>
+                  <span className="text-xs font-mono font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center space-x-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>Live Signal Active</span>
+                  </span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-300 overflow-hidden h-80 shadow-xl relative">
+                  <SingaporeGoogleMapBackground
+                    origin={currentShipment.origin}
+                    destination={currentShipment.destination}
+                    vehicle={currentShipment.vehicle || 'Josan EV Express Truck #SG-8819'}
+                    truckProgress={truckProgress}
+                    currentSpeed={currentSpeed}
+                    showTruck={true}
+                  />
+                </div>
+              </div>
+
               {/* DELIVERY TIMELINE (ORANGE PROGRESS INDICATORS) */}
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-6">Delivery Timeline Stepper</h3>
@@ -341,42 +402,7 @@ export const TrackShipmentPage = () => {
 
             </div>
 
-            {/* Simulated Live Route Progress Visual Map */}
-            <div ref={mapSectionRef} className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl space-y-4 relative overflow-hidden scroll-mt-24">
-              <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 gap-2">
-                <div className="flex items-center space-x-2">
-                  <Navigation className="w-5 h-5 text-orange-400" />
-                  <span className="font-extrabold text-sm">Live GPS Telematics Map Simulation</span>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <span className="text-xs text-slate-400 font-mono hidden sm:inline">Route: {currentShipment.origin} → {currentShipment.destination}</span>
-                  <button
-                    onClick={() => setFullscreenMapShipment(currentShipment)}
-                    className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1 cursor-pointer"
-                  >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span>Expand Fullscreen Map</span>
-                  </button>
-                </div>
-              </div>
 
-              {/* Simulated Map Container with Singapore Google Map Vector */}
-              <div className="relative h-80 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
-                <SingaporeGoogleMapBackground 
-                  origin={currentShipment.origin}
-                  destination={currentShipment.destination}
-                  vehicle={currentShipment.driverName ? `${currentShipment.driverName}'s Truck` : 'Josan EV Semi-Truck'}
-                  truckProgress={truckProgress}
-                  currentSpeed={currentSpeed}
-                />
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-slate-400 pt-2">
-                <span>Telematics Satellite Lock: <strong className="text-emerald-400">ONLINE (100% Signal)</strong></span>
-                <span>Speed: <strong className="text-orange-400 font-mono font-bold">{currentSpeed} mph</strong></span>
-              </div>
-            </div>
 
           </div>
 
@@ -453,79 +479,81 @@ export const TrackShipmentPage = () => {
         </div>
       )}
 
-      {/* FULLSCREEN LIVE GPS MAP MODAL OVERLAY */}
+      {/* FULL-SCREEN INTERACTIVE LIVE GPS SATELLITE TRACKING MODAL FOR CUSTOMERS */}
       {fullscreenMapShipment && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6 bg-slate-900/85 backdrop-blur-md animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-700 w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden relative">
-            
-            {/* Modal Header Bar */}
-            <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-800 shrink-0">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-gradient text-white flex items-center justify-center font-extrabold text-sm shadow-orange-sm">
-                  📡
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-mono font-extrabold text-base sm:text-lg text-white">{fullscreenMapShipment.id}</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-orange-500 text-white shadow-xs">
-                      ● {fullscreenMapShipment.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Live Satellite GPS Telematics | {fullscreenMapShipment.origin} → {fullscreenMapShipment.destination}
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col animate-fade-in">
+          {/* Top Header Bar */}
+          <div className="bg-slate-900 border-b border-slate-800 p-4 px-6 flex items-center justify-between shadow-2xl text-white">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center font-bold shadow-orange-glow text-lg">
+                🚛
               </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-base font-extrabold font-mono text-white">{fullscreenMapShipment.id}</h2>
+                  <span className="text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>GPS LIVE SIGNAL ACTIVE</span>
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                  {fullscreenMapShipment.origin || 'Changi Air Cargo'} → {fullscreenMapShipment.destination || fullscreenMapShipment.dest || 'Jurong Port Hub'} (Driver: {fullscreenMapShipment.driverName || 'Tan Wei Ming'})
+                </p>
+              </div>
+            </div>
 
+            <div className="flex items-center space-x-3">
               <button
-                onClick={() => setFullscreenMapShipment(null)}
-                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white rounded-xl text-xs font-extrabold transition-all border border-rose-500/40 flex items-center space-x-1.5 cursor-pointer"
+                onClick={closeFullscreenMap}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs border border-slate-700 transition-colors flex items-center space-x-1.5 cursor-pointer"
               >
                 <X className="w-4 h-4" />
-                <span>Close Fullscreen Map</span>
+                <span>Close Live Tracking View</span>
               </button>
             </div>
+          </div>
 
-            {/* Main Interactive Google Map Canvas Overlay */}
-            <div className="flex-1 relative w-full h-full bg-slate-100 overflow-hidden">
-              <SingaporeGoogleMapBackground
-                origin={fullscreenMapShipment.origin}
-                destination={fullscreenMapShipment.destination}
-                vehicle={fullscreenMapShipment.driverName ? `${fullscreenMapShipment.driverName}'s Heavy Semi-Truck` : 'Josan EV Express Truck'}
-                truckProgress={truckProgress}
-                currentSpeed={currentSpeed}
-              />
+          {/* Main Full-Screen Map Container */}
+          <div className="flex-1 relative overflow-hidden bg-slate-900">
+            <SingaporeGoogleMapBackground
+              origin={fullscreenMapShipment.origin}
+              destination={fullscreenMapShipment.destination || fullscreenMapShipment.dest}
+              vehicle={fullscreenMapShipment.vehicle || 'Josan EV Express Truck #SG-8819'}
+              truckProgress={truckProgress}
+              currentSpeed={currentSpeed}
+              showTruck={true}
+            />
+          </div>
+
+          {/* Bottom Telematics Control Dashboard */}
+          <div className="bg-slate-900 border-t border-slate-800 p-4 px-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-300">
+            <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
+              <p className="text-[10px] text-slate-400 font-bold uppercase">Live Vehicle Telemetry</p>
+              <p className="text-sm font-extrabold text-orange-400 font-mono mt-0.5">
+                {currentSpeed} KM/H (PIE Highway)
+              </p>
             </div>
 
-            {/* Modal Footer HUD */}
-            <div className="bg-slate-900 text-white p-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 text-xs shrink-0">
-              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Assigned Driver</p>
-                  <p className="font-extrabold text-white text-xs">{fullscreenMapShipment.driverName || 'Tan Wei Ming'}</p>
-                </div>
-                <div className="border-l border-slate-800 pl-4 sm:pl-6">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Speed Telemetry</p>
-                  <p className="font-extrabold text-orange-400 text-xs font-mono">{currentSpeed} mph</p>
-                </div>
-                <div className="border-l border-slate-800 pl-4 sm:pl-6">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Est Arrival</p>
-                  <p className="font-extrabold text-emerald-400 text-xs">{fullscreenMapShipment.estimatedDelivery || 'Today, 4:30 PM (SGT)'}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setSelectedInvoiceShipment(fullscreenMapShipment);
-                  setFullscreenMapShipment(null);
-                }}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>View Freight Invoice</span>
-              </button>
+            <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
+              <p className="text-[10px] text-slate-400 font-bold uppercase">GPS Satellite Coordinates</p>
+              <p className="text-xs font-extrabold text-white font-mono mt-0.5">
+                1.3521° N, 103.8198° E
+              </p>
             </div>
 
+            <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
+              <p className="text-[10px] text-slate-400 font-bold uppercase">Estimated SLA Arrival</p>
+              <p className="text-xs font-extrabold text-white font-mono mt-0.5">
+                Today, 4:30 PM (SGT)
+              </p>
+            </div>
+
+            <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
+              <p className="text-[10px] text-slate-400 font-bold uppercase">Battery & Efficiency</p>
+              <p className="text-xs font-extrabold text-emerald-400 font-mono mt-0.5">
+                94% (EV SLA Active)
+              </p>
+            </div>
           </div>
         </div>
       )}

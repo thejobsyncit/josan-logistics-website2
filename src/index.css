@@ -100,6 +100,54 @@
   animation: pulse-orange 2s infinite;
 }
 
+/* Straight Water Sink & Spring Bounce Animation (Zero Slant / Perfectly Vertical) */
+@keyframes water-sink-jump {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.15);
+  }
+  25% {
+    /* Upward straight jump before dipping into water */
+    transform: translateY(-18px) scale(1.02);
+    box-shadow: 0 22px 30px rgba(255, 107, 0, 0.25);
+  }
+  50% {
+    /* Sinking straight down into water */
+    transform: translateY(20px) scale(0.96);
+    box-shadow: 0 2px 6px rgba(255, 107, 0, 0.4), inset 0 6px 12px rgba(0, 0, 0, 0.12);
+    filter: brightness(0.95);
+  }
+  75% {
+    /* Buoyant straight rebound springing back up out of water */
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 12px 22px rgba(255, 107, 0, 0.2);
+  }
+  88% {
+    /* Gentle secondary straight dip */
+    transform: translateY(3px) scale(0.99);
+    box-shadow: 0 4px 10px rgba(255, 107, 0, 0.15);
+  }
+}
+
+.animate-water-sink {
+  animation: water-sink-jump 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, box-shadow;
+}
+
+@keyframes route-flow {
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-route-flow {
+  stroke-dasharray: 14 10;
+  animation: route-flow 2.5s linear infinite;
+}
+
 /* Print styling for Invoice - Full Page Rendering */
 @media print {
   @page {

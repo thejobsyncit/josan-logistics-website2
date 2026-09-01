@@ -4,11 +4,11 @@ import { Plane, Truck, Ship, Thermometer, ArrowRight, CheckCircle2, ChevronLeft,
 const DynamicServiceGallery = ({ images, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Auto slide every 5 seconds
+  // Automatic smooth auto-scroll slideshow (every 3 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(timer);
   }, [images.length]);
 
@@ -21,13 +21,14 @@ const DynamicServiceGallery = ({ images, title }) => {
   };
 
   return (
-    <div className="space-y-3">
-      {/* Main Image Container */}
-      <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-72 bg-slate-900">
+    <div className="w-full">
+      {/* Main Auto-Scrolling Image Container */}
+      <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-80 bg-slate-900">
         <img
+          key={currentIndex}
           src={images[currentIndex]}
           alt={`${title} view ${currentIndex + 1}`}
-          className="w-full h-full object-cover transition-all duration-500 transform group-hover:scale-105"
+          className="w-full h-full object-cover transition-all duration-700 ease-in-out transform group-hover:scale-105 animate-fade-in"
         />
 
         {/* Gradient Overlay */}
@@ -36,7 +37,7 @@ const DynamicServiceGallery = ({ images, title }) => {
         {/* Navigation Arrows */}
         <button
           onClick={handlePrev}
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
           title="Previous Image"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -44,7 +45,7 @@ const DynamicServiceGallery = ({ images, title }) => {
 
         <button
           onClick={handleNext}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
           title="Next Image"
         >
           <ChevronRight className="w-5 h-5" />
@@ -64,27 +65,6 @@ const DynamicServiceGallery = ({ images, title }) => {
             />
           ))}
         </div>
-      </div>
-
-      {/* Thumbnail Selection Bar */}
-      <div className="grid grid-cols-3 gap-2">
-        {images.map((imgUrl, idx) => (
-          <button
-            key={idx}
-            onClick={() => setCurrentIndex(idx)}
-            className={`relative rounded-lg overflow-hidden h-16 border-2 transition-all cursor-pointer ${
-              idx === currentIndex
-                ? 'border-orange-500 ring-2 ring-orange-500/30 scale-[1.02]'
-                : 'border-transparent opacity-70 hover:opacity-100'
-            }`}
-          >
-            <img
-              src={imgUrl}
-              alt={`Thumbnail ${idx + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </button>
-        ))}
       </div>
     </div>
   );

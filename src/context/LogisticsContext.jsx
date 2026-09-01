@@ -49,6 +49,33 @@ export const LogisticsProvider = ({ children }) => {
   const [customerSubTab, setCustomerSubTab] = useState('orders');
   const [driverSubTab, setDriverSubTab] = useState('dashboard');
 
+  // Saved Addresses State
+  const [addressList, setAddressList] = useState(() => {
+    const saved = localStorage.getItem('josan_addresses');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
+      { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
+      { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
+      { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
+    ];
+  });
+
+  const addSavedAddress = (newAddressObj) => {
+    setAddressList(prev => [...prev, newAddressObj]);
+  };
+
+  const updateSavedAddress = (id, updatedObj) => {
+    setAddressList(prev => prev.map(a => a.id === id ? { ...a, ...updatedObj } : a));
+  };
+
+  const deleteSavedAddress = (id) => {
+    setAddressList(prev => prev.filter(a => a.id !== id));
+  };
+
+  useEffect(() => {
+    localStorage.setItem('josan_addresses', JSON.stringify(addressList));
+  }, [addressList]);
+
   // Save to localStorage
   useEffect(() => {
     localStorage.setItem('josan_shipments', JSON.stringify(shipments));
@@ -364,6 +391,11 @@ export const LogisticsProvider = ({ children }) => {
       setCustomerSubTab,
       driverSubTab,
       setDriverSubTab,
+      addressList,
+      setAddressList,
+      addSavedAddress,
+      updateSavedAddress,
+      deleteSavedAddress,
       setActiveTrackingId,
       setSelectedInvoiceShipment,
       setIsAuthModalOpen,

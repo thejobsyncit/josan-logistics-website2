@@ -140,15 +140,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             {currentUser ? (
               <div className="flex items-center space-x-2 border-l border-slate-200 pl-3 relative">
                 <button
-                  onClick={() => {
-                    if (currentRole === 'driver') {
-                      setActiveTab('driver-dashboard');
-                    } else if (currentRole === 'admin') {
-                      setActiveTab('admin-dashboard');
-                    } else {
-                      setIsProfileOpen(!isProfileOpen);
-                    }
-                  }}
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm border border-orange-200">
@@ -193,10 +185,14 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                           <input
                             type="text"
                             value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
+                            onChange={(e) => {
+                              const lettersOnly = e.target.value.replace(/[0-9]/g, '');
+                              setEditName(lettersOnly);
+                            }}
                             className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
                             required
                           />
+                          <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Letters only (no numbers)</span>
                         </div>
 
                         {/* Phone Input */}
