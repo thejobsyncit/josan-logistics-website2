@@ -34,64 +34,51 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
   } = useLogistics();
 
   const [searchInput, setSearchInput] = useState(activeTrackingId || 'JOS-88190-SG');
-  const [currentShipment, setCurrentShipment] = useState(() => getShipmentByTracking(searchInput));
-  const [fullscreenMapShipment, setFullscreenMapShipment] = useState(null);
-  const mapSectionRef = useRef(null);
-
-  // Live Moving Anime Truck animation state
-  const [truckProgress, setTruckProgress] = useState(20);
-  const [currentSpeed, setCurrentSpeed] = useState(68);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTruckProgress(prev => (prev >= 80 ? 20 : prev + 0.35));
-      setCurrentSpeed(64 + Math.floor(Math.random() * 8));
-    }, 100);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    if (activeTrackingId) {
-      setSearchInput(activeTrackingId);
-      const found = getShipmentByTracking(activeTrackingId);
-      if (found) setCurrentShipment(found);
-    }
-  }, [activeTrackingId, shipments]);
-
-  // Handle browser back button (popstate) to close fullscreen GPS modal safely without leaving app
-  useEffect(() => {
-    const handlePopState = () => {
-      if (!window.location.hash.startsWith('#track-map-')) {
-        setFullscreenMapShipment(null);
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const openFullscreenMap = (sampleOrId) => {
-    let found = null;
+  
+  const resolveShipmentData = (sampleOrId) => {
+    let searchStr = '';
     if (typeof sampleOrId === 'string') {
-      found = getShipmentByTracking(sampleOrId) || shipments.find(s => s?.id?.toUpperCase() === sampleOrId.toUpperCase());
+      searchStr = sampleOrId.trim();
     } else if (sampleOrId && sampleOrId.id) {
-      found = getShipmentByTracking(sampleOrId.id) || shipments.find(s => s?.id?.toUpperCase() === sampleOrId.id.toUpperCase());
+      searchStr = sampleOrId.id.trim();
     }
-    
+
+    let found = getShipmentByTracking(searchStr) || shipments.find(s => s?.id?.toUpperCase() === searchStr.toUpperCase());
+
     if (!found && typeof sampleOrId === 'object' && sampleOrId.id) {
       found = {
         id: sampleOrId.id || 'JOS-88190-SG',
         origin: sampleOrId.origin || 'Changi Air Cargo',
         destination: sampleOrId.dest || sampleOrId.destination || 'Jurong Port Hub',
         status: sampleOrId.status || 'In Transit',
+        currentLocation: 'Pan Island Expressway (PIE) KM 18.4',
         driverName: sampleOrId.driver || sampleOrId.driverName || 'Tan Wei Ming',
-        estimatedDelivery: 'Today, 4:30 PM (SGT)'
+        driverPhone: '+65 9123 4567',
+        vehicle: 'Josan EV Express Cargo Truck (SG-8819)',
+        sender: 'TechCorp Solutions SG',
+        senderAddress: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        receiver: 'Apex Dynamics SG Hub',
+        receiverAddress: '89 Orchard Road, Singapore 238854',
+        weight: '180.0 kg',
+        pieces: 2,
+        cargoType: 'General Goods',
+        serviceLevel: 'Express Freight (SG Same-Day)',
+        declaredValue: '$12,000',
+        price: '$890.00',
+        createdDate: 'Aug 29, 2026',
+        estimatedDelivery: 'Today, 4:30 PM (SGT)',
+        timeline: [
+          { title: 'Parcel Registered in Telematics System', timestamp: 'Today 09:00 AM', location: 'Singapore Depot', completed: true },
+          { title: 'Active In-Transit Satellite Tracking', timestamp: 'Today 11:30 AM', location: 'PIE Expressway', completed: true, current: true },
+          { title: 'Delivered to Receiver', timestamp: 'Pending', location: 'Destination Hub', completed: false }
+        ]
       };
     }
 
     if (!found) {
+      const trackingCode = (searchStr || 'JOS-88190-SG').toUpperCase();
       found = {
-        id: term.toUpperCase(),
+        id: trackingCode,
         origin: 'Changi Air Cargo Complex',
         destination: 'Jurong Port Industrial Estate',
         status: 'In Transit',
@@ -122,13 +109,53 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     return found;
   };
 
+  const [currentShipment, setCurrentShipment] = useState(() => resolveShipmentData(searchInput));
+  const [fullscreenMapShipment, setFullscreenMapShipment] = useState(null);
+  const mapSectionRef = useRef(null);
+
+  // Live Moving Anime Truck animation state
+  const [truckProgress, setTruckProgress] = useState(20);
+  const [currentSpeed, setCurrentSpeed] = useState(68);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTruckProgress(prev => (prev >= 80 ? 20 : prev + 0.35));
+      setCurrentSpeed(64 + Math.floor(Math.random() * 8));
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (activeTrackingId) {
+      setSearchInput(activeTrackingId);
+      const found = resolveShipmentData(activeTrackingId);
+      if (found) setCurrentShipment(found);
+    }
+  }, [activeTrackingId, shipments]);
+
+  // Handle browser back button (popstate) to close fullscreen GPS modal safely without leaving app
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!window.location.hash.startsWith('#track-map-')) {
+        setFullscreenMapShipment(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const openFullscreenMap = (sampleOrId) => {
+    const found = resolveShipmentData(sampleOrId);
+    setFullscreenMapShipment(found);
+  };
+
   const handleSelectDemo = (sampleOrId) => {
     const found = resolveShipmentData(sampleOrId);
     setCurrentShipment(found);
     setSearchInput(found.id);
     setActiveTrackingId(found.id);
-    setFullscreenMapShipment(found);
-    showToast(`Loaded live satellite tracking feed for ${found.id}`);
+    if (showToast) showToast(`Loaded live satellite tracking feed for ${found.id}`);
   };
 
   const closeFullscreenMap = () => {
