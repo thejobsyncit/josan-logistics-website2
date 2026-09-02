@@ -72,8 +72,6 @@ export const AdminDashboardPage = () => {
 
   // Driver modal state
   const [isAddDriverOpen, setIsAddDriverOpen] = useState(false);
-  // Driver modal state
-  const [isAddDriverOpen, setIsAddDriverOpen] = useState(false);
   const [newDriverData, setNewDriverData] = useState({
     name: '',
     phone: '',
@@ -244,7 +242,6 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
         vehicleType: 'EV Express Cargo Van',
         vehicleId: `SG-${Math.floor(100 + Math.random() * 900)}`,
         photo: defaultDriverPhoto
-      });
       });
     }
   };
@@ -1226,10 +1223,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
         </div>
       )}
 
-      {/* ASSIGN DRIVER MODAL */}
-=======
       {/* ASSIGN DRIVER MODAL WITH DRIVER CREDENTIALS (LOCATION, LICENSE, PHONE, EMAIL) */}
->>>>>>> 277ec45 (Updated driver and admin page)
       {assignModalShipment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 max-w-2xl w-full space-y-6 shadow-2xl">

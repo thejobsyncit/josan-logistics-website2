@@ -214,7 +214,6 @@ export const InvoiceModal = () => {
   };
 
   const handleDownloadPDF = () => {
-  const handleDownloadPDF = () => {
     const logoUrl = `${window.location.origin}/assets/josan_logo.jpg`;
     const statusHtml = isPaid
       ? `<span class="badge" style="background:#D1FAE5; color:#065F46;">PAID & VERIFIED</span>`
