@@ -68,6 +68,7 @@ export const AdminDashboardPage = () => {
   const [isAddDriverOpen, setIsAddDriverOpen] = useState(false);
   const [newDriverData, setNewDriverData] = useState({ 
     name: '', 
+    email: '',
     phone: '', 
     vehicleType: 'Refrigerated Van', 
     vehicleId: 'FL-900', 
@@ -218,8 +219,12 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
     }
 
     if (newDriverData.name && cleanDigits) {
+      const cleanName = newDriverData.name.trim();
+      const defaultEmail = `${cleanName.toLowerCase().replace(/\s+/g, '.')}@josanlogistics.com`;
       addDriver({
         ...newDriverData,
+        name: cleanName,
+        email: newDriverData.email.trim() || defaultEmail,
         phone: `+65 ${cleanDigits}`,
         status: 'Available',
         photo: newDriverData.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80'
@@ -227,6 +232,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
       setIsAddDriverOpen(false);
       setNewDriverData({ 
         name: '', 
+        email: '',
         phone: '', 
         vehicleType: 'Refrigerated Van', 
         vehicleId: 'SG-900', 
@@ -925,6 +931,21 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                   required
                 />
                 <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly letters only (Numbers & symbols blocked)</span>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Driver Email Address *</span>
+                  <span className="text-[10px] text-orange-600 font-bold uppercase">Valid Email</span>
+                </label>
+                <input
+                  type="email"
+                  value={newDriverData.email}
+                  onChange={(e) => setNewDriverData({ ...newDriverData, email: e.target.value })}
+                  placeholder="e.g. alex.morgan@josanlogistics.com"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold"
+                  required
+                />
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
