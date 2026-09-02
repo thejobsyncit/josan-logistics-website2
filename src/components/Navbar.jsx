@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
   Package, 
   Truck, 
@@ -36,14 +37,23 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
-  const [editPhone, setEditPhone] = useState('');
+  const [editCountryCode, setEditCountryCode] = useState('+65');
+  const [editPhoneDigits, setEditPhoneDigits] = useState('');
   const [editCompany, setEditCompany] = useState('');
   const [editLicense, setEditLicense] = useState('');
   const [editDob, setEditDob] = useState('');
 
   const startEditing = () => {
     setEditName(currentUser?.name || '');
-    setEditPhone(currentUser?.phone || '');
+    const phoneVal = currentUser?.phone || '';
+    const matched = countryCodesList.find(c => phoneVal.startsWith(c.code));
+    if (matched) {
+      setEditCountryCode(matched.code);
+      setEditPhoneDigits(phoneVal.replace(matched.code, '').replace(/[^0-9]/g, ''));
+    } else {
+      setEditCountryCode('+65');
+      setEditPhoneDigits(phoneVal.replace(/[^0-9]/g, ''));
+    }
     setEditCompany(currentUser?.company || '');
     setEditLicense(currentUser?.licenseNumber || '');
     setEditDob(currentUser?.dob || '');
@@ -52,10 +62,11 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const saveProfileChanges = (e) => {
     e.preventDefault();
+    const cleanDigits = editPhoneDigits.replace(/[^0-9]/g, '');
     const activeRole = currentUser?.role || currentRole;
     const updated = {
       name: editName,
-      phone: editPhone,
+      phone: `${editCountryCode} ${cleanDigits}`,
       company: activeRole === 'customer' ? editCompany : currentUser?.company,
       licenseNumber: activeRole === 'driver' ? editLicense : currentUser?.licenseNumber,
       dob: activeRole === 'driver' ? editDob : currentUser?.dob
@@ -228,16 +239,42 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                           <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Letters only (no numbers)</span>
                         </div>
 
-                        {/* Phone Input */}
+                        {/* Phone Input with Country Code Selector */}
                         <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Phone Number</label>
-                          <input
-                            type="text"
-                            value={editPhone}
-                            onChange={(e) => setEditPhone(e.target.value)}
-                            className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
-                            required
-                          />
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center justify-between">
+                            <span>Phone Number *</span>
+                            <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
+                          </label>
+                          <div className="flex items-center">
+                            <select
+                              value={editCountryCode}
+                              onChange={(e) => setEditCountryCode(e.target.value)}
+                              className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
+                            >
+                              {countryCodesList.map((item) => (
+                                <option key={item.code} value={item.code}>
+                                  {item.flag} {item.code} ({item.country})
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              maxLength={getPhoneLength(editCountryCode)}
+                              value={editPhoneDigits}
+                              onChange={(e) => {
+                                const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(editCountryCode));
+                                setEditPhoneDigits(numericOnly);
+                              }}
+                              placeholder={`e.g. ${'9'.repeat(getPhoneLength(editCountryCode))}`}
+                              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-r-xl font-mono font-bold text-slate-900 focus-orange text-xs"
+                              required
+                            />
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-medium block mt-1">
+                            Accepts numbers only (max {getPhoneLength(editCountryCode)} digits for {editCountryCode})
+                          </span>
                         </div>
 
                         {/* Company Name (if Customer) */}

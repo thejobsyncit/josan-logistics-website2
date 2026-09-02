@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
   BarChart, 
   Bar, 
@@ -69,6 +70,7 @@ export const AdminDashboardPage = () => {
   const [newDriverData, setNewDriverData] = useState({ 
     name: '', 
     email: '',
+    countryCode: '+65',
     phone: '', 
     vehicleType: 'Refrigerated Van', 
     vehicleId: 'FL-900', 
@@ -213,8 +215,10 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
   const handleAddDriverSubmit = (e) => {
     e.preventDefault();
     const cleanDigits = newDriverData.phone.replace(/[^0-9]/g, '');
-    if (cleanDigits.length < 8) {
-      showToast('Singapore driver contact number must contain exactly 8 digits (e.g. 91234567)', 'warning');
+    const code = newDriverData.countryCode || '+65';
+    const minDigits = getPhoneLength(code);
+    if (cleanDigits.length < minDigits) {
+      showToast(`Driver contact number must contain at least ${minDigits} digits for ${code}`, 'warning');
       return;
     }
 
@@ -225,7 +229,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
         ...newDriverData,
         name: cleanName,
         email: newDriverData.email.trim() || defaultEmail,
-        phone: `+65 ${cleanDigits}`,
+        phone: `${code} ${cleanDigits}`,
         status: 'Available',
         photo: newDriverData.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80'
       });
@@ -233,6 +237,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
       setNewDriverData({ 
         name: '', 
         email: '',
+        countryCode: '+65',
         phone: '', 
         vehicleType: 'Refrigerated Van', 
         vehicleId: 'SG-900', 
@@ -949,29 +954,39 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                  <span>Phone Contact (Singapore 8-Digit) *</span>
+                  <span>Phone Contact *</span>
                   <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
                 </label>
                 <div className="flex items-center">
-                  <span className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-lg text-slate-900 font-extrabold text-xs shrink-0 border-r-0">
-                    🇸🇬 +65
-                  </span>
+                  <select
+                    value={newDriverData.countryCode || '+65'}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, countryCode: e.target.value })}
+                    className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-lg text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
+                  >
+                    {countryCodesList.map((item) => (
+                      <option key={item.code} value={item.code}>
+                        {item.flag} {item.code} ({item.country})
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    maxLength={8}
+                    maxLength={getPhoneLength(newDriverData.countryCode || '+65')}
                     value={newDriverData.phone}
                     onChange={(e) => {
-                      const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+                      const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(newDriverData.countryCode || '+65'));
                       setNewDriverData({ ...newDriverData, phone: numericOnly });
                     }}
-                    placeholder="e.g. 91234567"
-                    className="w-full p-2.5 border border-slate-300 rounded-r-lg focus-orange font-mono font-bold"
+                    placeholder={`e.g. ${'9'.repeat(getPhoneLength(newDriverData.countryCode || '+65'))}`}
+                    className="w-full p-2.5 border border-slate-300 rounded-r-lg focus-orange font-mono font-bold text-xs"
                     required
                   />
                 </div>
-                <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly 8 numbers only (Alphabets & extra digits blocked)</span>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-1">
+                  Accepts numbers only (max {getPhoneLength(newDriverData.countryCode || '+65')} digits for {newDriverData.countryCode || '+65'})
+                </span>
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Vehicle Type</label>

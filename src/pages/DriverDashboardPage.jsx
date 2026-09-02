@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { RealTruckGraphic } from '../components/RealTruckGraphic';
 import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
@@ -93,14 +94,23 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   const [driverStatus, setDriverStatus] = useState(driverInfo.status || 'On Delivery');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState('');
-  const [editPhone, setEditPhone] = useState('');
+  const [editCountryCode, setEditCountryCode] = useState('+65');
+  const [editPhoneDigits, setEditPhoneDigits] = useState('');
   const [editLicense, setEditLicense] = useState('');
   const [editDob, setEditDob] = useState('');
   const [editHub, setEditHub] = useState('');
 
   const startEditingDriverProfile = () => {
     setEditName(driverInfo.name || '');
-    setEditPhone(driverInfo.phone || '');
+    const phoneVal = driverInfo.phone || '';
+    const matched = countryCodesList.find(c => phoneVal.startsWith(c.code));
+    if (matched) {
+      setEditCountryCode(matched.code);
+      setEditPhoneDigits(phoneVal.replace(matched.code, '').replace(/[^0-9]/g, ''));
+    } else {
+      setEditCountryCode('+65');
+      setEditPhoneDigits(phoneVal.replace(/[^0-9]/g, ''));
+    }
     setEditLicense(driverInfo.licenseNumber || '');
     setEditDob(driverInfo.dob || '');
     setEditHub(driverInfo.assignedHub || '');
@@ -109,9 +119,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
   const handleSaveDriverProfile = (e) => {
     e.preventDefault();
+    const cleanDigits = editPhoneDigits.replace(/[^0-9]/g, '');
     updateUserProfile({
       name: editName,
-      phone: editPhone,
+      phone: `${editCountryCode} ${cleanDigits}`,
       licenseNumber: editLicense,
       dob: editDob,
       company: editHub
@@ -324,14 +335,37 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                  <input
-                    type="text"
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
-                    required
-                  />
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Phone Contact *</span>
+                    <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
+                  </label>
+                  <div className="flex items-center">
+                    <select
+                      value={editCountryCode}
+                      onChange={(e) => setEditCountryCode(e.target.value)}
+                      className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
+                    >
+                      {countryCodesList.map((item) => (
+                        <option key={item.code} value={item.code}>
+                          {item.flag} {item.code} ({item.country})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={getPhoneLength(editCountryCode)}
+                      value={editPhoneDigits}
+                      onChange={(e) => {
+                        const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(editCountryCode));
+                        setEditPhoneDigits(numericOnly);
+                      }}
+                      placeholder={`e.g. ${'9'.repeat(getPhoneLength(editCountryCode))}`}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-r-xl text-slate-900 font-mono font-bold focus-orange text-xs"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
