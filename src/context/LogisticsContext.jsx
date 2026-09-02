@@ -456,25 +456,74 @@ export const LogisticsProvider = ({ children }) => {
 
   const acceptDriverIntimation = (intimationId, driverObj) => {
     const intimation = driverIntimations.find(i => i.id === intimationId);
-    if (!intimation) return;
+    if (!intimation) return null;
 
-    setShipments(prev => prev.map(s => {
-      if (s.id === intimation.shipmentId) {
-        return {
-          ...s,
-          driverId: driverObj.id || 'DRV-001',
-          driverName: driverObj.name || 'Active Fleet Driver',
-          driverPhone: driverObj.phone || '+65 9123 4567',
-          vehicle: `${driverObj.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
-          status: 'In Transit',
-          currentLocation: `En Route from ${intimation.pickup}`
-        };
-      }
-      return s;
-    }));
+    let targetShipment = shipments.find(s => s.id === intimation.shipmentId);
+
+    if (targetShipment) {
+      setShipments(prev => prev.map(s => {
+        if (s.id === intimation.shipmentId) {
+          return {
+            ...s,
+            driverId: driverObj.id || 'DRV-001',
+            driverName: driverObj.name || 'Active Fleet Driver',
+            driverPhone: driverObj.phone || '+65 9123 4567',
+            vehicle: `${driverObj.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
+            status: 'In Transit',
+            currentLocation: `En Route from ${intimation.pickup}`
+          };
+        }
+        return s;
+      }));
+      targetShipment = {
+        ...targetShipment,
+        driverId: driverObj.id || 'DRV-001',
+        driverName: driverObj.name || 'Active Fleet Driver',
+        driverPhone: driverObj.phone || '+65 9123 4567',
+        vehicle: `${driverObj.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
+        status: 'In Transit',
+        currentLocation: `En Route from ${intimation.pickup}`
+      };
+    } else {
+      targetShipment = {
+        id: intimation.shipmentId,
+        sender: 'Enterprise Client',
+        senderPhone: '+65 9123 4567',
+        senderAddress: intimation.pickup,
+        receiver: 'Recipient Facility',
+        receiverPhone: '+65 8123 4567',
+        receiverAddress: intimation.delivery,
+        origin: intimation.pickupCity || 'Changi Air Cargo Hub',
+        destination: 'Singapore Regional Destination',
+        currentLocation: `En Route from ${intimation.pickup}`,
+        status: 'In Transit',
+        statusType: 'active',
+        serviceLevel: 'Express Air Freight',
+        cargoType: intimation.cargoType || 'General Freight',
+        weight: intimation.weight || '50 kg',
+        pieces: 1,
+        declaredValue: '$2,500',
+        price: intimation.price || 'S$ 180.00',
+        driverId: driverObj.id || 'DRV-001',
+        driverName: driverObj.name || 'Active Fleet Driver',
+        driverPhone: driverObj.phone || '+65 9123 4567',
+        vehicle: `${driverObj.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
+        estimatedDelivery: 'Same-Day Regional Dispatch',
+        createdDate: new Date().toLocaleString(),
+        timeline: [
+          { title: 'Order Booked & Intimated', location: intimation.pickupCity || 'Changi Hub', timestamp: 'Just Now', completed: true, current: false, icon: 'FileCheck' },
+          { title: 'Accepted by Driver (In Transit)', location: intimation.pickup, timestamp: 'Just Now', completed: true, current: true, icon: 'Truck' },
+          { title: 'In Transit & Sorting Center', location: 'Sorting Hub', timestamp: 'Pending', completed: false, icon: 'PackageCheck' },
+          { title: 'Out for Delivery', location: intimation.delivery, timestamp: 'Pending', completed: false, icon: 'MapPin' },
+          { title: 'Delivered & Signature Verified', location: intimation.delivery, timestamp: 'Pending', completed: false, icon: 'CheckCircle2' }
+        ]
+      };
+      setShipments(prev => [targetShipment, ...prev]);
+    }
 
     setDriverIntimations(prev => prev.filter(i => i.id !== intimationId));
     showToast(`Accepted Order #${intimation.shipmentId}! Live GPS telematics & navigation route initialized.`, 'success');
+    return targetShipment;
   };
 
   const declineDriverIntimation = (intimationId) => {

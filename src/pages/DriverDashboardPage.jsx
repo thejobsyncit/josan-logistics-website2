@@ -383,7 +383,12 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-2 pt-1">
                   <button
-                    onClick={() => acceptDriverIntimation(intimation.id, driverInfo)}
+                    onClick={() => {
+                      const newActive = acceptDriverIntimation(intimation.id, driverInfo);
+                      if (newActive) {
+                        setActiveJob(newActive);
+                      }
+                    }}
                     className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
