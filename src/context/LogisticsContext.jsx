@@ -6,28 +6,48 @@ const LogisticsContext = createContext();
 export const LogisticsProvider = ({ children }) => {
   // Load state from localStorage or initial mock data
   const [shipments, setShipments] = useState(() => {
-    const saved = localStorage.getItem('josan_shipments');
-    return saved ? JSON.parse(saved) : initialShipments;
+    try {
+      const saved = localStorage.getItem('josan_shipments');
+      return saved ? JSON.parse(saved) : initialShipments;
+    } catch (e) {
+      return initialShipments;
+    }
   });
 
   const [drivers, setDrivers] = useState(() => {
-    const saved = localStorage.getItem('josan_drivers');
-    return saved ? JSON.parse(saved) : initialDrivers;
+    try {
+      const saved = localStorage.getItem('josan_drivers');
+      return saved ? JSON.parse(saved) : initialDrivers;
+    } catch (e) {
+      return initialDrivers;
+    }
   });
 
   const [warehouses, setWarehouses] = useState(() => {
-    const saved = localStorage.getItem('josan_warehouses');
-    return saved ? JSON.parse(saved) : initialWarehouses;
+    try {
+      const saved = localStorage.getItem('josan_warehouses');
+      return saved ? JSON.parse(saved) : initialWarehouses;
+    } catch (e) {
+      return initialWarehouses;
+    }
   });
 
   // User & Auth state
   const [currentRole, setCurrentRole] = useState(() => {
-    return localStorage.getItem('josan_role') || 'admin'; // default to admin for instant feature testing
+    try {
+      return localStorage.getItem('josan_role') || 'admin';
+    } catch (e) {
+      return 'admin';
+    }
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('josan_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('josan_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
 
   // Toast notification state
@@ -46,13 +66,22 @@ export const LogisticsProvider = ({ children }) => {
 
   // Saved Addresses State
   const [addressList, setAddressList] = useState(() => {
-    const saved = localStorage.getItem('josan_addresses');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
-      { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
-      { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
-      { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
-    ];
+    try {
+      const saved = localStorage.getItem('josan_addresses');
+      return saved ? JSON.parse(saved) : [
+        { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
+        { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
+        { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
+        { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
+      ];
+    } catch (e) {
+      return [
+        { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
+        { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
+        { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
+        { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
+      ];
+    }
   });
 
   const addSavedAddress = (newAddressObj) => {
