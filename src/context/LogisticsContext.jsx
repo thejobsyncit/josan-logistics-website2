@@ -417,6 +417,8 @@ export const LogisticsProvider = ({ children }) => {
     const driverObj = drivers.find(d => d.id === driverId);
     if (!driverObj) return;
 
+    const targetShipment = shipments.find(s => s.id === shipmentId);
+
     setShipments(prev => prev.map(s => {
       if (s.id === shipmentId) {
         return {
@@ -431,103 +433,86 @@ export const LogisticsProvider = ({ children }) => {
       return s;
     }));
 
-    // Create Direct Admin Assignment Intimation Notification!
-    const targetShipment = shipments.find(s => s.id === shipmentId);
     const adminIntimation = {
-      id: `INT-ADM-${Date.now()}`,
+      id: `INT-ADM-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       shipmentId: shipmentId,
       type: 'admin_assigned',
       targetDriverId: driverId,
       title: `🚨 Direct Admin Order Assignment (#${shipmentId})`,
       message: `Fleet Operations Manager assigned Order #${shipmentId} directly to your roster!`,
-      pickup: targetShipment?.senderAddress || 'Pasir Panjang Terminal Hub 4, Singapore',
-      delivery: targetShipment?.receiverAddress || 'Woodlands Industrial Park E5, Singapore',
-      cargoType: targetShipment?.cargoType || 'General Freight',
-      weight: targetShipment?.weight || '50 kg',
-      price: targetShipment?.price || 'S$ 180.00',
+      pickup: targetShipment?.senderAddress || 'Changi Air Cargo Logistics Hub - 8 Changi South Street 1',
+      delivery: targetShipment?.receiverAddress || 'West Coast Hub Terminal - 12 Pasir Panjang Road',
+      cargoType: targetShipment?.cargoType || 'High-Tech Microchips',
+      weight: targetShipment?.weight || '20 kg',
+      price: targetShipment?.price || '$315.00',
       timestamp: 'Just Now',
       status: 'Assigned'
     };
 
-    setDriverIntimations(prev => [adminIntimation, ...prev]);
+    // Filter out any existing intimations for this shipmentId to avoid duplicate cards!
+    setDriverIntimations(prev => [adminIntimation, ...prev.filter(i => i.shipmentId !== shipmentId)]);
 
     showToast(`Assigned ${driverObj.name} to order ${shipmentId}! Intimation notification dispatched directly to driver's dashboard.`);
   };
 
-  const acceptDriverIntimation = (intimationId, driverObj) => {
-    const intimation = driverIntimations.find(i => i.id === intimationId);
+  const acceptDriverIntimation = (intimationId, driverObj = {}) => {
+    const intimation = driverIntimations.find(i => String(i.id) === String(intimationId) || String(i.shipmentId) === String(intimationId));
     if (!intimation) return null;
 
-    let targetShipment = shipments.find(s => s.id === intimation.shipmentId);
+    // Filter out all intimations matching either ID or shipmentId
+    setDriverIntimations(prev => prev.filter(i => String(i.id) !== String(intimationId) && String(i.shipmentId) !== String(intimation.shipmentId)));
 
-    if (targetShipment) {
-      setShipments(prev => prev.map(s => {
-        if (s.id === intimation.shipmentId) {
-          return {
-            ...s,
-            driverId: driverObj.id || 'DRV-001',
-            driverName: driverObj.name || 'Active Fleet Driver',
-            driverPhone: driverObj.phone || '+65 9123 4567',
-            vehicle: `${driverObj.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
-            status: 'In Transit',
-            currentLocation: `En Route from ${intimation.pickup}`
-          };
-        }
-        return s;
-      }));
-      targetShipment = {
-        ...targetShipment,
-        driverId: driverObj.id || 'DRV-001',
-        driverName: driverObj.name || 'Active Fleet Driver',
-        driverPhone: driverObj.phone || '+65 9123 4567',
-        vehicle: `${driverObj.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
-        status: 'In Transit',
-        currentLocation: `En Route from ${intimation.pickup}`
-      };
-    } else {
-      targetShipment = {
-        id: intimation.shipmentId,
-        sender: 'Enterprise Client',
-        senderPhone: '+65 9123 4567',
-        senderAddress: intimation.pickup,
-        receiver: 'Recipient Facility',
-        receiverPhone: '+65 8123 4567',
-        receiverAddress: intimation.delivery,
-        origin: intimation.pickupCity || 'Changi Air Cargo Hub',
-        destination: 'Singapore Regional Destination',
-        currentLocation: `En Route from ${intimation.pickup}`,
-        status: 'In Transit',
-        statusType: 'active',
-        serviceLevel: 'Express Air Freight',
-        cargoType: intimation.cargoType || 'General Freight',
-        weight: intimation.weight || '50 kg',
-        pieces: 1,
-        declaredValue: '$2,500',
-        price: intimation.price || 'S$ 180.00',
-        driverId: driverObj.id || 'DRV-001',
-        driverName: driverObj.name || 'Active Fleet Driver',
-        driverPhone: driverObj.phone || '+65 9123 4567',
-        vehicle: `${driverObj.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
-        estimatedDelivery: 'Same-Day Regional Dispatch',
-        createdDate: new Date().toLocaleString(),
-        timeline: [
-          { title: 'Order Booked & Intimated', location: intimation.pickupCity || 'Changi Hub', timestamp: 'Just Now', completed: true, current: false, icon: 'FileCheck' },
-          { title: 'Accepted by Driver (In Transit)', location: intimation.pickup, timestamp: 'Just Now', completed: true, current: true, icon: 'Truck' },
-          { title: 'In Transit & Sorting Center', location: 'Sorting Hub', timestamp: 'Pending', completed: false, icon: 'PackageCheck' },
-          { title: 'Out for Delivery', location: intimation.delivery, timestamp: 'Pending', completed: false, icon: 'MapPin' },
-          { title: 'Delivered & Signature Verified', location: intimation.delivery, timestamp: 'Pending', completed: false, icon: 'CheckCircle2' }
-        ]
-      };
-      setShipments(prev => [targetShipment, ...prev]);
-    }
+    let existingShipment = shipments.find(s => s.id === intimation.shipmentId);
 
-    setDriverIntimations(prev => prev.filter(i => i.id !== intimationId));
+    const updatedShipment = {
+      id: intimation.shipmentId,
+      sender: existingShipment?.sender || 'Enterprise Client',
+      senderPhone: existingShipment?.senderPhone || '+65 9123 4567',
+      senderAddress: existingShipment?.senderAddress || intimation.pickup || 'Changi Air Cargo Logistics Hub',
+      receiver: existingShipment?.receiver || 'Recipient Facility',
+      receiverPhone: existingShipment?.receiverPhone || '+65 8123 4567',
+      receiverAddress: existingShipment?.receiverAddress || intimation.delivery || 'West Coast Hub Terminal',
+      origin: intimation.pickupCity || 'Changi Air Cargo Hub',
+      destination: 'Singapore Regional Destination',
+      currentLocation: `En Route from ${intimation.pickup || 'Dispatch Hub'}`,
+      status: 'In Transit',
+      statusType: 'active',
+      serviceLevel: 'Express Air Freight',
+      cargoType: intimation.cargoType || 'General Freight',
+      weight: intimation.weight || '50 kg',
+      pieces: 1,
+      declaredValue: '$2,500',
+      price: intimation.price || 'S$ 180.00',
+      driverId: driverObj?.id || 'DRV-001',
+      driverName: driverObj?.name || 'Active Fleet Driver',
+      driverPhone: driverObj?.phone || '+65 9123 4567',
+      vehicle: `${driverObj?.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
+      estimatedDelivery: 'Same-Day Regional Dispatch',
+      createdDate: new Date().toLocaleString(),
+      timeline: [
+        { title: 'Order Booked & Intimated', location: intimation.pickup || 'Origin Hub', timestamp: 'Just Now', completed: true, current: false, icon: 'FileCheck' },
+        { title: 'Accepted by Driver (In Transit)', location: intimation.pickup || 'Origin Hub', timestamp: 'Just Now', completed: true, current: true, icon: 'Truck' },
+        { title: 'In Transit & Sorting Center', location: 'Sorting Hub', timestamp: 'Pending', completed: false, icon: 'PackageCheck' },
+        { title: 'Out for Delivery', location: intimation.delivery || 'Destination Hub', timestamp: 'Pending', completed: false, icon: 'MapPin' },
+        { title: 'Delivered & Signature Verified', location: intimation.delivery || 'Destination Hub', timestamp: 'Pending', completed: false, icon: 'CheckCircle2' }
+      ]
+    };
+
+    setShipments(prev => {
+      const exists = prev.some(s => s.id === intimation.shipmentId);
+      if (exists) {
+        return prev.map(s => s.id === intimation.shipmentId ? updatedShipment : s);
+      }
+      return [updatedShipment, ...prev];
+    });
+
     showToast(`Accepted Order #${intimation.shipmentId}! Live GPS telematics & navigation route initialized.`, 'success');
-    return targetShipment;
+    return updatedShipment;
   };
 
   const declineDriverIntimation = (intimationId) => {
-    setDriverIntimations(prev => prev.filter(i => i.id !== intimationId));
+    const target = driverIntimations.find(i => String(i.id) === String(intimationId) || String(i.shipmentId) === String(intimationId));
+    setDriverIntimations(prev => prev.filter(i => String(i.id) !== String(intimationId) && (target ? String(i.shipmentId) !== String(target.shipmentId) : true)));
     showToast('Intimation alert dismissed.', 'info');
   };
 
