@@ -10,7 +10,9 @@ import {
   FileText,
   ExternalLink,
   Pencil,
-  Trash2
+  Trash2,
+  CreditCard,
+  CheckCircle2
 } from 'lucide-react';
 
 export const CustomerDashboardPage = ({ setActiveTab }) => {
@@ -191,6 +193,16 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         >
           <LifeBuoy className="w-4 h-4" />
           <span>Support & Claims</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('billing')}
+          className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
+            activeSubTab === 'billing' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
+          }`}
+        >
+          <CreditCard className="w-4 h-4" />
+          <span>Billing & Payments</span>
         </button>
       </div>
 
@@ -503,6 +515,156 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
               Submit Ticket
             </button>
           </form>
+        </div>
+      )}
+
+      {/* SUB-TAB 4: BILLING & PAYMENTS */}
+      {activeSubTab === 'billing' && (
+        <div className="space-y-8 animate-fade-in">
+          
+          {/* Saved Payment Methods Section */}
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900">Saved Payment Methods</h2>
+                <p className="text-xs text-slate-500">Manage corporate credit cards and instant payment authorization.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => showToast('Card authorization window opened. New card saved.')}
+                className="px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Payment Method</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Mock Saved Card 1 */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white space-y-3 shadow-md border border-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold uppercase bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 rounded-full">
+                    ★ Primary Default
+                  </span>
+                  <CreditCard className="w-5 h-5 text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-medium">Razer Corporate Visa</p>
+                  <p className="text-base font-mono font-extrabold tracking-widest text-white mt-1">•••• •••• •••• 4242</p>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
+                  <span>Expires: 12/28</span>
+                  <span className="font-bold text-slate-200">VISA</span>
+                </div>
+              </div>
+
+              {/* Mock Saved Card 2 */}
+              <div className="p-5 rounded-2xl bg-white text-slate-900 space-y-3 shadow-card border border-slate-200 hover:border-orange-300 transition-all">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2.5 py-0.5 rounded-full">
+                    Purchasing
+                  </span>
+                  <CreditCard className="w-5 h-5 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Operations Mastercard</p>
+                  <p className="text-base font-mono font-extrabold tracking-widest text-slate-900 mt-1">•••• •••• •••• 8892</p>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
+                  <span>Expires: 09/27</span>
+                  <span className="font-bold text-slate-700">MASTERCARD</span>
+                </div>
+              </div>
+
+              {/* Mock Saved Card 3 */}
+              <div className="p-5 rounded-2xl bg-white text-slate-900 space-y-3 shadow-card border border-slate-200 hover:border-orange-300 transition-all">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2.5 py-0.5 rounded-full">
+                    Executive
+                  </span>
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Executive Travel AMEX</p>
+                  <p className="text-base font-mono font-extrabold tracking-widest text-slate-900 mt-1">•••• •••• •••• 1004</p>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
+                  <span>Expires: 04/29</span>
+                  <span className="font-bold text-blue-700">AMEX</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Billing & Invoice History Table */}
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900">Billing History & Statements</h2>
+                <p className="text-xs text-slate-500">Track payment status per order and pay pending invoices.</p>
+              </div>
+              <span className="text-xs font-bold text-slate-500">Showing {(shipments || []).length} Records</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="p-3.5">Date</th>
+                    <th className="p-3.5">Shipment ID</th>
+                    <th className="p-3.5">Amount</th>
+                    <th className="p-3.5">Payment Status</th>
+                    <th className="p-3.5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                  {(shipments || []).map((s) => {
+                    const isPaid = s.paymentStatus === 'Paid' || (s.paymentStatus !== 'Unpaid' && !s.isUnpaid);
+                    return (
+                      <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="p-3.5 font-mono text-slate-600">{s.createdDate ? s.createdDate.split(' ')[0] : '2026-08-31'}</td>
+                        <td className="p-3.5 font-mono font-extrabold text-slate-900">{s.id}</td>
+                        <td className="p-3.5 font-mono font-bold text-slate-900">{s.price || '$350.00'}</td>
+                        <td className="p-3.5">
+                          {isPaid ? (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center space-x-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                              <span>Paid</span>
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center space-x-1 animate-pulse">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                              <span>Pending Payment</span>
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-right">
+                          {isPaid ? (
+                            <button
+                              onClick={() => setSelectedInvoiceShipment(s)}
+                              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all inline-flex items-center space-x-1 cursor-pointer"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-slate-600" />
+                              <span>View Invoice</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setSelectedInvoiceShipment(s)}
+                              className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all inline-flex items-center space-x-1 cursor-pointer active:scale-95"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                              <span>Pay Now</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       )}
 

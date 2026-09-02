@@ -39,6 +39,12 @@ export const LogisticsProvider = ({ children }) => {
   // Active modal state for invoices or auth
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalHideClose, setAuthModalHideClose] = useState(false);
+
+  const openAuthModalWithoutClose = () => {
+    setAuthModalHideClose(true);
+    setIsAuthModalOpen(true);
+  };
 
   // Sub-tab navigation state
   const [customerSubTab, setCustomerSubTab] = useState('orders');
@@ -156,15 +162,61 @@ export const LogisticsProvider = ({ children }) => {
         : 'Global Client Corp',
       phone: details.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
       licenseNumber: details.licenseNumber || (userRole === 'driver' ? 'S9876543A' : ''),
-      dob: details.dob || (userRole === 'driver' ? '1990-05-12' : '')
+      dob: details.dob || (userRole === 'driver' ? '1990-05-12' : ''),
+      photo: details.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
     };
     setCurrentUser(userObj);
     setCurrentRole(userRole);
     setIsAuthModalOpen(false);
 
+    // If registering/logging in as driver with details, save/update in driver roster for Admin Portal
+    if (userRole === 'driver') {
+      const driverName = details.fullName || userObj.name;
+      setDrivers(prev => {
+        const existingIdx = prev.findIndex(d => d.email === email || d.name === driverName);
+        if (existingIdx >= 0) {
+          const updated = [...prev];
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            photo: details.photo || updated[existingIdx].photo,
+            licenseNumber: details.licenseNumber || updated[existingIdx].licenseNumber,
+            assignedHub: details.assignedHub || updated[existingIdx].assignedHub,
+            workingLocation: details.assignedHub || updated[existingIdx].workingLocation
+          };
+          return updated;
+        } else {
+          const newDriverRecord = {
+            id: `DRV-${Math.floor(100 + Math.random() * 900)}`,
+            name: driverName,
+            email: email,
+            phone: details.phone || '+65 9123 4567',
+            licenseNumber: details.licenseNumber || 'SG-CLASS4-9910',
+            assignedHub: details.assignedHub || 'Changi Air Cargo Logistics Hub',
+            workingLocation: details.assignedHub || 'Changi Air Cargo Logistics Hub',
+            vehicleType: 'EV Express Cargo Van',
+            vehicleId: `SG-${Math.floor(100 + Math.random() * 900)}`,
+            photo: details.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+            status: 'Available',
+            deliveriesCompleted: 0,
+            onTimeRate: '100%',
+            rating: 5.0,
+            safetyScore: '100/100',
+            joinedDate: 'Just Now'
+          };
+          return [newDriverRecord, ...prev];
+        }
+      });
+    }
+
+    const wasForcedBookingModal = authModalHideClose;
+    setIsAuthModalOpen(false);
+    setAuthModalHideClose(false);
+
     // Enforce Strict Portal Redirection
     if (setActiveTab) {
-      if (userRole === 'admin') {
+      if (wasForcedBookingModal && userRole === 'customer') {
+        setActiveTab('book');
+      } else if (userRole === 'admin') {
         setActiveTab('admin-dashboard');
       } else if (userRole === 'driver') {
         setActiveTab('driver-dashboard');
@@ -207,6 +259,7 @@ export const LogisticsProvider = ({ children }) => {
       currentLocation: `${newShipmentData.pickupCity || 'Origin'} Sorting Facility`,
       status: 'Order Placed',
       statusType: 'active',
+      paymentStatus: 'Paid',
       serviceLevel: newShipmentData.serviceLevel || 'Express Air Freight',
       cargoType: newShipmentData.cargoType || 'General Freight',
       weight: `${newShipmentData.weight || 10} kg`,
@@ -231,6 +284,21 @@ export const LogisticsProvider = ({ children }) => {
     setShipments(prev => [newShipment, ...prev]);
     showToast(`Shipment ${trackingId} booked successfully!`);
     return newShipment;
+  };
+
+  const payShipmentInvoice = (shipmentId, method = 'Credit Card') => {
+    setShipments(prev => prev.map(s => {
+      if (s.id === shipmentId) {
+        return {
+          ...s,
+          paymentStatus: 'Paid',
+          paymentMethod: method
+        };
+      }
+      return s;
+    }));
+    // Also update selectedInvoiceShipment if open
+    setSelectedInvoiceShipment(prev => prev && prev.id === shipmentId ? { ...prev, paymentStatus: 'Paid', paymentMethod: method } : prev);
   };
 
   const updateShipmentStatus = (shipmentId, newStatus, newLocation = '') => {
@@ -422,8 +490,10 @@ export const LogisticsProvider = ({ children }) => {
       currentUser,
       toast,
       activeTrackingId,
-      selectedInvoiceShipment,
       isAuthModalOpen,
+      authModalHideClose,
+      setAuthModalHideClose,
+      openAuthModalWithoutClose,
       customerSubTab,
       setCustomerSubTab,
       driverSubTab,
@@ -441,6 +511,7 @@ export const LogisticsProvider = ({ children }) => {
       logoutUser,
       updateUserProfile,
       addShipment,
+      payShipmentInvoice,
       updateShipmentStatus,
       flagWeatherDelay,
       assignDriver,

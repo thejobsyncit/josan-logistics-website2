@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Sparkles,
   Edit2,
-  Save
+  Save,
+  Camera
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab }) => {
@@ -40,6 +41,18 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const [editCompany, setEditCompany] = useState('');
   const [editLicense, setEditLicense] = useState('');
   const [editDob, setEditDob] = useState('');
+  const [editPhoto, setEditPhoto] = useState('');
+
+  const handleEditPhotoUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditPhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const startEditing = () => {
     setEditName(currentUser?.name || '');
@@ -47,6 +60,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     setEditCompany(currentUser?.company || '');
     setEditLicense(currentUser?.licenseNumber || '');
     setEditDob(currentUser?.dob || '');
+    setEditPhoto(currentUser?.photo || '');
     setIsEditing(true);
   };
 
@@ -58,7 +72,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       phone: editPhone,
       company: activeRole === 'customer' ? editCompany : currentUser?.company,
       licenseNumber: activeRole === 'driver' ? editLicense : currentUser?.licenseNumber,
-      dob: activeRole === 'driver' ? editDob : currentUser?.dob
+      dob: activeRole === 'driver' ? editDob : currentUser?.dob,
+      photo: editPhoto || currentUser?.photo
     };
     updateUserProfile(updated);
     setIsEditing(false);
@@ -83,36 +98,34 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     { id: 'contact', label: 'Contact' },
   ];
 
-  if (currentUser) {
-    const role = currentUser.role || currentRole;
-    if (role === 'customer') {
-      navItems = [
-        { id: 'home', label: 'Home' },
-        { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services' },
-        { id: 'track', label: 'Track Shipment' },
-        { id: 'book', label: 'Book Shipment' },
-        { id: 'contact', label: 'Contact' },
-        { id: 'customer-dashboard', label: 'My Orders' },
-      ];
-    } else if (role === 'driver') {
-      navItems = [
-        { id: 'home', label: 'Home' },
-        { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services' },
-        { id: 'contact', label: 'Contact' },
-        { id: 'driver-dashboard', label: 'Driver Portal' },
-      ];
-    } else if (role === 'admin') {
-      navItems = [
-        { id: 'home', label: 'Home' },
-        { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services' },
-        { id: 'track', label: 'Track Shipment' },
-        { id: 'contact', label: 'Contact' },
-        { id: 'admin-dashboard', label: 'Admin Portal' },
-      ];
-    }
+  const activeRole = currentUser?.role || currentRole;
+  if (activeRole === 'customer') {
+    navItems = [
+      { id: 'home', label: 'Home' },
+      { id: 'about', label: 'About Us' },
+      { id: 'services', label: 'Services' },
+      { id: 'track', label: 'Track Shipment' },
+      { id: 'book', label: 'Book Shipment' },
+      { id: 'contact', label: 'Contact' },
+      { id: 'customer-dashboard', label: 'My Orders' },
+    ];
+  } else if (activeRole === 'driver') {
+    navItems = [
+      { id: 'home', label: 'Home' },
+      { id: 'about', label: 'About Us' },
+      { id: 'services', label: 'Services' },
+      { id: 'contact', label: 'Contact' },
+      { id: 'driver-dashboard', label: 'Driver Portal' },
+    ];
+  } else if (activeRole === 'admin') {
+    navItems = [
+      { id: 'home', label: 'Home' },
+      { id: 'about', label: 'About Us' },
+      { id: 'services', label: 'Services' },
+      { id: 'track', label: 'Track Shipment' },
+      { id: 'contact', label: 'Contact' },
+      { id: 'admin-dashboard', label: 'Admin Hub' },
+    ];
   }
 
   return (
@@ -176,8 +189,12 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm border border-orange-200">
-                    {currentUser.name.charAt(0)}
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-orange-400 bg-orange-100 flex items-center justify-center shrink-0 shadow-sm">
+                    {currentUser.photo ? (
+                      <img src={currentUser.photo} alt={currentUser.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="font-bold text-sm text-orange-600">{currentUser.name.charAt(0)}</span>
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="text-xs font-bold text-slate-900 line-clamp-1">{currentUser.name}</p>
@@ -212,6 +229,31 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
                     {isEditing ? (
                       <form onSubmit={saveProfileChanges} className="space-y-4 text-xs text-left">
+                        {/* Profile Image Edit Field */}
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Profile Picture</label>
+                          <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                            <img
+                              src={editPhoto || currentUser.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                              alt="Profile Preview"
+                              className="w-12 h-12 rounded-full object-cover border-2 border-orange-500 shrink-0"
+                            />
+                            <div>
+                              <label className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[11px] font-extrabold shadow-orange-sm cursor-pointer transition-all inline-flex items-center space-x-1.5">
+                                <Camera className="w-3.5 h-3.5" />
+                                <span>Change Photo</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleEditPhotoUpload}
+                                  className="hidden"
+                                />
+                              </label>
+                              <span className="text-[10px] text-slate-400 block mt-1 font-semibold">Upload new image file</span>
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Name Input */}
                         <div>
                           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name (Alphabets Only)</label>
@@ -301,6 +343,23 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       </form>
                     ) : (
                       <div className="space-y-4 text-xs text-left">
+                        {/* Profile Header Image Display */}
+                        <div className="flex items-center space-x-3.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                          <div className="relative shrink-0">
+                            <img
+                              src={currentUser.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                              alt={currentUser.name}
+                              className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
+                            />
+                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                          </div>
+                          <div className="text-left space-y-0.5 overflow-hidden">
+                            <h4 className="font-extrabold text-slate-900 text-sm leading-tight truncate">{currentUser.name}</h4>
+                            <p className="text-xs text-orange-600 font-bold uppercase tracking-wider">{currentRole} Account</p>
+                            <p className="text-[11px] text-slate-500 font-mono truncate">{currentUser.email}</p>
+                          </div>
+                        </div>
+
                         {/* Name */}
                         <div>
                           <span className="block text-xs text-slate-400 font-bold uppercase">Full Name</span>

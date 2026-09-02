@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLogistics } from '../context/LogisticsContext';
 import { Plane, Truck, Ship, Thermometer, ArrowRight, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DynamicServiceGallery = ({ images, title }) => {
@@ -71,9 +72,19 @@ const DynamicServiceGallery = ({ images, title }) => {
 };
 
 export const ServicesPage = ({ setActiveTab }) => {
+  const { openAuthModalWithoutClose, currentUser } = useLogistics();
+
   const [calculatorWeight, setCalculatorWeight] = useState(25);
   const [calculatorService, setCalculatorService] = useState('express');
   const [calculatorInsurance, setCalculatorInsurance] = useState(true);
+
+  const handleBookServiceClick = () => {
+    if (!currentUser) {
+      openAuthModalWithoutClose();
+    } else {
+      setActiveTab('book');
+    }
+  };
 
   // Rate calculator formula
   const baseRate = calculatorService === 'express' ? 12 : calculatorService === 'ground' ? 4 : calculatorService === 'sea' ? 2 : 15;
@@ -177,7 +188,7 @@ export const ServicesPage = ({ setActiveTab }) => {
 
                   <div className="pt-4">
                     <button
-                      onClick={() => setActiveTab('book')}
+                      onClick={handleBookServiceClick}
                       className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer"
                     >
                       <span>Book This Service</span>
@@ -257,7 +268,7 @@ export const ServicesPage = ({ setActiveTab }) => {
 
           <div className="text-center pt-2">
             <button
-              onClick={() => setActiveTab('book')}
+              onClick={handleBookServiceClick}
               className="px-8 py-3.5 bg-orange-gradient hover:bg-orange-600 text-white font-extrabold text-sm rounded-xl shadow-orange-glow transition-all inline-flex items-center space-x-2 cursor-pointer"
             >
               <span>Proceed To Book With This Rate</span>

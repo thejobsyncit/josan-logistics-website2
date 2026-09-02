@@ -12,7 +12,12 @@ import {
   Printer, 
   ArrowRight,
   Layers,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CreditCard,
+  QrCode,
+  Landmark,
+  Lock,
+  Loader2
 } from 'lucide-react';
 
 const countryCodes = [
@@ -75,6 +80,10 @@ export const BookShipmentPage = ({ setActiveTab }) => {
     : '89 Orchard Road, Singapore 238854';
 
   const [bookingMode, setBookingMode] = useState('single'); // 'single' | 'bulk'
+  const [showPaymentPanel, setShowPaymentPanel] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' | 'paynow'
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
 
   // Single Booking Form State
   const [formData, setFormData] = useState({
@@ -120,10 +129,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
     return `$${subtotal.toFixed(2)}`;
   };
 
-  const handleSingleSubmit = (e) => {
-    e.preventDefault();
+  const handleProceedToPayment = () => {
     if (!formData.senderName || !formData.senderPhone || !formData.pickupAddress || !formData.receiverName || !formData.receiverPhone || !formData.deliveryAddress) {
-      showToast('Please complete all required fields including Sender & Receiver Contact Numbers', 'warning');
+      showToast('Please complete all required fields including Sender & Receiver details before proceeding to payment', 'warning');
       return;
     }
 
@@ -139,17 +147,41 @@ export const BookShipmentPage = ({ setActiveTab }) => {
       return;
     }
 
-    const estimatedPrice = calculateEstimatedPrice();
-    const createdShipment = addShipment({
-      ...formData,
-      senderPhone: `${formData.senderCountryCode} ${formData.senderPhone}`,
-      receiverPhone: `${formData.receiverCountryCode} ${formData.receiverPhone}`,
-      estimatedPrice
-    });
+    setShowPaymentPanel(true);
+  };
 
-    // Prompt user to view invoice or track
-    setSelectedInvoiceShipment(createdShipment);
-    setActiveTab('track');
+  const handleSingleSubmit = (e) => {
+    e.preventDefault();
+    if (!showPaymentPanel) {
+      handleProceedToPayment();
+      return;
+    }
+
+    if (isProcessingPayment || isPaymentSuccess) return;
+
+    setIsProcessingPayment(true);
+
+    setTimeout(() => {
+      setIsProcessingPayment(false);
+      setIsPaymentSuccess(true);
+
+      setTimeout(() => {
+        const estimatedPrice = calculateEstimatedPrice();
+        const createdShipment = addShipment({
+          ...formData,
+          senderPhone: `${formData.senderCountryCode} ${formData.senderPhone}`,
+          receiverPhone: `${formData.receiverCountryCode} ${formData.receiverPhone}`,
+          estimatedPrice,
+          paymentMethod: paymentMethod === 'card' ? 'Credit Card' : 'PayNow QR'
+        });
+
+        const methodText = paymentMethod === 'card' ? 'Credit Card' : 'PayNow SG QR';
+        showToast(`Payment confirmed via ${methodText}! Shipment dispatched.`);
+        setSelectedInvoiceShipment(createdShipment);
+        setActiveTab('track');
+      }, 1200);
+
+    }, 1500);
   };
 
   const handleAddBulkRow = () => {
@@ -580,13 +612,160 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 <p className="text-[10px] text-slate-400">Includes fuel surcharges & customs VAT</p>
               </div>
 
-              <button
-                type="submit"
-                className="w-full py-4 bg-orange-gradient hover:bg-orange-600 text-white rounded-2xl font-extrabold text-sm shadow-orange-glow transition-all flex items-center justify-center space-x-2 active:scale-95"
-              >
-                <span>Confirm & Dispatch Freight</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {!showPaymentPanel ? (
+                <button
+                  type="button"
+                  onClick={handleProceedToPayment}
+                  className="w-full py-4 bg-orange-gradient hover:bg-orange-600 text-white rounded-2xl font-extrabold text-sm shadow-orange-glow transition-all flex items-center justify-center space-x-2 active:scale-95 cursor-pointer"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>Proceed to Payment</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <div className="space-y-4 pt-2 border-t border-slate-800 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center space-x-1.5">
+                      <Lock className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Payment Method</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentPanel(false)}
+                      className="text-[11px] text-slate-400 hover:text-slate-200 underline cursor-pointer"
+                    >
+                      Edit Order
+                    </button>
+                  </div>
+
+                  {/* 2 Clickable Method Cards */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('card')}
+                      className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${
+                        paymentMethod === 'card'
+                          ? 'bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500'
+                          : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200'
+                      }`}
+                    >
+                      <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-orange-400' : ''}`} />
+                      <span className="text-[11px] font-bold">Card</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('paynow')}
+                      className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${
+                        paymentMethod === 'paynow'
+                          ? 'bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500'
+                          : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200'
+                      }`}
+                    >
+                      <QrCode className={`w-5 h-5 ${paymentMethod === 'paynow' ? 'text-orange-400' : ''}`} />
+                      <span className="text-[11px] font-bold">PayNow QR</span>
+                    </button>
+                  </div>
+
+                  {/* Selected Method Details (Only 1 active at a time) */}
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-3">
+                    {paymentMethod === 'card' && (
+                      <div className="space-y-2.5">
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Card Details</p>
+                        <div>
+                          <label className="block text-[10px] text-slate-400 mb-1">Card Number</label>
+                          <input
+                            type="text"
+                            placeholder="4532 •••• •••• 8892"
+                            className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[10px] text-slate-400 mb-1">Expiry Date</label>
+                            <input
+                              type="text"
+                              placeholder="MM/YY"
+                              className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-400 mb-1">CVV / CVC</label>
+                            <input
+                              type="password"
+                              maxLength={4}
+                              placeholder="•••"
+                              className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {paymentMethod === 'paynow' && (
+                      <div className="flex flex-col items-center justify-center text-center space-y-2 py-1">
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Scan SG PayNow QR</p>
+                        <div className="bg-white p-3 rounded-2xl border-2 border-orange-500 shadow-md">
+                          <svg className="w-28 h-28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="100" height="100" fill="white"/>
+                            <rect x="10" y="10" width="30" height="30" fill="#0f172a"/>
+                            <rect x="15" y="15" width="20" height="20" fill="white"/>
+                            <rect x="20" y="20" width="10" height="10" fill="#f97316"/>
+                            <rect x="60" y="10" width="30" height="30" fill="#0f172a"/>
+                            <rect x="65" y="15" width="20" height="20" fill="white"/>
+                            <rect x="70" y="20" width="10" height="10" fill="#f97316"/>
+                            <rect x="10" y="60" width="30" height="30" fill="#0f172a"/>
+                            <rect x="15" y="65" width="20" height="20" fill="white"/>
+                            <rect x="20" y="70" width="10" height="10" fill="#f97316"/>
+                            <rect x="45" y="10" width="10" height="10" fill="#0f172a"/>
+                            <rect x="45" y="25" width="10" height="15" fill="#f97316"/>
+                            <rect x="10" y="45" width="15" height="10" fill="#0f172a"/>
+                            <rect x="30" y="45" width="20" height="10" fill="#0f172a"/>
+                            <rect x="55" y="45" width="15" height="10" fill="#f97316"/>
+                            <rect x="75" y="45" width="15" height="10" fill="#0f172a"/>
+                            <rect x="45" y="60" width="10" height="20" fill="#0f172a"/>
+                            <rect x="60" y="60" width="15" height="15" fill="#0f172a"/>
+                            <rect x="80" y="60" width="10" height="10" fill="#f97316"/>
+                            <rect x="60" y="80" width="30" height="10" fill="#0f172a"/>
+                          </svg>
+                        </div>
+                        <p className="text-[11px] text-slate-300 font-semibold">PayNow UEN: <span className="font-mono text-orange-400">202012345M-JOS</span></p>
+                        <p className="text-[10px] text-slate-400">DBS PayLah!, OCBC, UOB, GrabPay</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Confirm & Pay Button with Live Processing & Success Animation */}
+                  <button
+                    type="submit"
+                    disabled={isProcessingPayment || isPaymentSuccess}
+                    className={`w-full py-4 rounded-2xl font-extrabold text-sm transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-lg ${
+                      isPaymentSuccess
+                        ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                        : isProcessingPayment
+                        ? 'bg-orange-600/90 text-white cursor-wait ring-2 ring-orange-400'
+                        : 'bg-orange-gradient hover:bg-orange-600 text-white shadow-orange-glow active:scale-95'
+                    }`}
+                  >
+                    {isPaymentSuccess ? (
+                      <>
+                        <CheckCircle2 className="w-5 h-5 text-white animate-bounce" />
+                        <span>Payment Successful! Redirecting...</span>
+                      </>
+                    ) : isProcessingPayment ? (
+                      <>
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        <span>Processing payment...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                        <span>Confirm & Pay {calculateEstimatedPrice()}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center space-x-2 text-[11px] text-slate-400 justify-center">
                 <ShieldCheck className="w-4 h-4 text-orange-400" />

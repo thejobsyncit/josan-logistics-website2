@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
-import { X, Lock, Mail, ArrowRight, User, Phone, Calendar, FileText, AlertCircle } from 'lucide-react';
+import { X, Lock, Mail, ArrowRight, User, Phone, Calendar, FileText, AlertCircle, Camera, MapPin } from 'lucide-react';
 
 export const AuthModal = ({ setActiveTab }) => {
-  const { isAuthModalOpen, setIsAuthModalOpen, loginUser } = useLogistics();
+  const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, loginUser } = useLogistics();
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState('customer');
   
@@ -16,6 +16,22 @@ export const AuthModal = ({ setActiveTab }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+
+  // Driver Registration Profile Picture & Hub
+  const defaultDriverPhoto = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  const [driverPhoto, setDriverPhoto] = useState(defaultDriverPhoto);
+  const [assignedHub, setAssignedHub] = useState('Changi Air Cargo Logistics Hub');
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDriverPhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!isAuthModalOpen) return null;
 
@@ -46,13 +62,22 @@ export const AuthModal = ({ setActiveTab }) => {
         fullName,
         phone,
         licenseNumber,
-        dob
+        dob,
+        photo: driverPhoto,
+        assignedHub
       }
     );
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !authModalHideClose) {
+          setIsAuthModalOpen(false);
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+    >
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
         
         {/* Header Banner */}
@@ -67,12 +92,14 @@ export const AuthModal = ({ setActiveTab }) => {
             </div>
           </div>
 
-          <button
-            onClick={() => setIsAuthModalOpen(false)}
-            className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {!authModalHideClose && (
+            <button
+              onClick={() => setIsAuthModalOpen(false)}
+              className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Form Body */}
@@ -163,6 +190,58 @@ export const AuthModal = ({ setActiveTab }) => {
               {/* DRIVER-ONLY FIELDS */}
               {role === 'driver' && (
                 <>
+                  {/* Profile Picture Upload Field */}
+                  <div className="bg-orange-50/80 p-3.5 rounded-2xl border border-orange-200 space-y-2.5">
+                    <label className="block text-xs font-extrabold text-orange-950">
+                      Driver Registration Profile Picture *
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <div className="relative shrink-0">
+                        <img
+                          src={driverPhoto}
+                          alt="Driver Registration Profile"
+                          className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
+                        />
+                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <label className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[11px] font-extrabold shadow-orange-sm cursor-pointer transition-all inline-flex items-center space-x-1.5">
+                          <Camera className="w-3.5 h-3.5" />
+                          <span>Browse & Upload Photo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-[10px] text-slate-500 font-semibold leading-tight">
+                          This uploaded image will be automatically saved to your profile and displayed in the Admin Portal.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preferred Work Location / Hub */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Preferred Work Location / Hub</label>
+                    <div className="relative">
+                      <select
+                        value={assignedHub}
+                        onChange={(e) => setAssignedHub(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium cursor-pointer"
+                        required
+                      >
+                        <option value="Changi Air Cargo Logistics Hub">Changi Air Cargo Logistics Hub</option>
+                        <option value="Tuas Mega Port Terminal">Tuas Mega Port Terminal</option>
+                        <option value="Jurong Port Logistics Hub">Jurong Port Logistics Hub</option>
+                        <option value="Woodlands Logistics Depot">Woodlands Logistics Depot</option>
+                        <option value="Pasir Panjang Container Hub">Pasir Panjang Container Hub</option>
+                      </select>
+                      <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                    </div>
+                  </div>
+
                   {/* License Number */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">License Number</label>
