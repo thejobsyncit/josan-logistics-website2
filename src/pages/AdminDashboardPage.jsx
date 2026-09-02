@@ -230,6 +230,9 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
         name: cleanName,
         email: newDriverData.email.trim() || defaultEmail,
         phone: `${code} ${cleanDigits}`,
+        licenseNumber: newDriverData.licenseNumber || 'SG-CLASS4-881',
+        dob: newDriverData.dob || '1992-06-15',
+        assignedHub: newDriverData.assignedHub || 'Singapore Changi Air Cargo Hub',
         status: 'Available',
         photo: newDriverData.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80'
       });
@@ -239,9 +242,11 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
         email: '',
         countryCode: '+65',
         phone: '', 
+        licenseNumber: '',
+        dob: '1992-06-15',
         vehicleType: 'Refrigerated Van', 
-        vehicleId: 'SG-900', 
-        licenseNumber: 'SG-CLASS4-991',
+        vehicleId: 'SG-8819', 
+        assignedHub: 'Singapore Changi Air Cargo Hub',
         photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80'
       });
     }
@@ -988,17 +993,69 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                   Accepts numbers only (max {getPhoneLength(newDriverData.countryCode || '+65')} digits for {newDriverData.countryCode || '+65'})
                 </span>
               </div>
+              {/* License Number & Date of Birth */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Driver License Number *</label>
+                  <input
+                    type="text"
+                    value={newDriverData.licenseNumber}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, licenseNumber: e.target.value })}
+                    placeholder="e.g. SG-CLASS4-881"
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Date of Birth *</label>
+                  <input
+                    type="date"
+                    value={newDriverData.dob}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, dob: e.target.value })}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Vehicle Type & Vehicle Plate ID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Vehicle Type</label>
+                  <select
+                    value={newDriverData.vehicleType}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, vehicleType: e.target.value })}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold cursor-pointer text-xs"
+                  >
+                    <option value="Refrigerated Van">Refrigerated Van</option>
+                    <option value="Heavy 18-Wheeler Truck">Heavy 18-Wheeler Truck</option>
+                    <option value="Sprinter Express Cargo">Sprinter Express Cargo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Vehicle Plate / ID *</label>
+                  <input
+                    type="text"
+                    value={newDriverData.vehicleId}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, vehicleId: e.target.value })}
+                    placeholder="e.g. SG-8819-EV"
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Assigned Warehouse Hub */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Vehicle Type</label>
-                <select
-                  value={newDriverData.vehicleType}
-                  onChange={(e) => setNewDriverData({ ...newDriverData, vehicleType: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold cursor-pointer"
-                >
-                  <option value="Heavy 18-Wheeler Truck">Heavy 18-Wheeler Truck</option>
-                  <option value="Refrigerated Van">Refrigerated Van</option>
-                  <option value="Sprinter Express Cargo">Sprinter Express Cargo</option>
-                </select>
+                <label className="block font-bold text-slate-700 mb-1">Assigned Warehouse Hub *</label>
+                <input
+                  type="text"
+                  value={newDriverData.assignedHub}
+                  onChange={(e) => setNewDriverData({ ...newDriverData, assignedHub: e.target.value })}
+                  placeholder="e.g. Singapore Changi Air Cargo Hub"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                  required
+                />
               </div>
 
               <div className="flex space-x-2 pt-2">
