@@ -72,14 +72,18 @@ const DynamicServiceGallery = ({ images, title }) => {
 };
 
 export const ServicesPage = ({ setActiveTab }) => {
-  const { openAuthModalWithoutClose, currentUser } = useLogistics();
+  const { openAuthModalWithoutClose, currentUser, setIsAuthModalOpen } = useLogistics();
 
   const [calculatorWeight, setCalculatorWeight] = useState(0);
   const [calculatorService, setCalculatorService] = useState('express');
   const [calculatorInsurance, setCalculatorInsurance] = useState(false);
 
   const handleBookServiceClick = () => {
-    openAuthModalWithoutClose();
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+    } else {
+      setActiveTab('book');
+    }
   };
 
   // Rate calculator formula (always display $0.00 as requested)
