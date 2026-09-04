@@ -23,12 +23,137 @@ import {
   ArrowLeft
 } from 'lucide-react';
 
+const DEMO_SHIPMENTS_MAP = {
+  'JOS-88190-SG': {
+    id: 'JOS-88190-SG',
+    status: 'In Transit',
+    origin: 'Changi Air Cargo Complex',
+    destination: 'Jurong Port Industrial Estate',
+    currentLocation: 'Tampines Logistics Depot, Singapore',
+    estimatedDelivery: 'Today, 4:30 PM (SGT)',
+    serviceLevel: 'Express Air Freight (SG Same-Day)',
+    cargoType: 'High-Tech Electronics & Microchips',
+    driverName: 'Tan Wei Ming',
+    driver: 'Tan Wei Ming',
+    driverPhone: '+65 9123 4567',
+    vehicle: 'Josan EV Express Truck #SG-8819',
+    sender: 'Razer Asia-Pacific HQ',
+    senderAddress: '1 Raffles Place, #20-01, Singapore 048616',
+    receiver: 'Jurong Logistics Hub Gate 4',
+    receiverAddress: '10 Jurong Port Road, Singapore 619114',
+    weight: '245.5 kg',
+    pieces: 4,
+    declaredValue: 'S$ 28,500',
+    price: 'S$ 420.00',
+    timeline: [
+      { title: 'Order Booked & TradeNet Customs Cleared', location: 'Changi Air Cargo Complex (SIN)', timestamp: 'Aug 31, 08:15 AM', completed: true },
+      { title: 'Picked Up by Josan Fleet Courier', location: 'Changi Logistics Depot', timestamp: 'Aug 31, 10:40 AM', completed: true },
+      { title: 'In Transit via TPE Expressway Hub', location: 'Tampines Logistics Depot', timestamp: 'Aug 31, 01:20 PM', completed: true, current: true },
+      { title: 'Out for Final Dispatch', location: 'Jurong Port Hub', timestamp: 'Expected Today, 03:30 PM', completed: false },
+      { title: 'Delivered & Digital E-Signature Signed', location: '10 Jurong Port Road', timestamp: 'Expected Today, 04:30 PM', completed: false }
+    ]
+  },
+  'JOS-44021-SG': {
+    id: 'JOS-44021-SG',
+    status: 'Out for Delivery',
+    origin: 'Pasir Panjang Terminal',
+    destination: 'Woodlands Tech Park',
+    currentLocation: 'AYE Expressway Telematics Gate (BKE Exit 3)',
+    estimatedDelivery: 'Today, 5:15 PM (SGT)',
+    serviceLevel: 'Land Trucking & Container Line',
+    cargoType: 'Industrial Precision Components',
+    driverName: 'Muhammad Rizal',
+    driver: 'Muhammad Rizal',
+    driverPhone: '+65 8234 5678',
+    vehicle: 'Volvo Heavy Container Truck #SG-4402',
+    sender: 'PSA Pasir Panjang Terminal',
+    senderAddress: '33 Harbour Drive, Singapore 117606',
+    receiver: 'Woodlands High-Tech Park',
+    receiverAddress: '21 Woodlands Loop, Singapore 738322',
+    weight: '1,420 kg',
+    pieces: 12,
+    declaredValue: 'S$ 145,000',
+    price: 'S$ 1,280.00',
+    timeline: [
+      { title: 'Container Unloaded at PSA Berth 5', location: 'Pasir Panjang Terminal', timestamp: 'Aug 30, 11:30 AM', completed: true },
+      { title: 'Customs Clearance & Hazmat Scan Passed', location: 'Pasir Panjang Inspection Gate', timestamp: 'Aug 30, 03:00 PM', completed: true },
+      { title: 'Dispatched on Volvo Container Truck', location: 'AYE Expressway Corridor', timestamp: 'Aug 31, 09:00 AM', completed: true },
+      { title: 'Out for Delivery to Woodlands Hub', location: 'BKE Expressway Gate', timestamp: 'Aug 31, 02:00 PM', completed: true, current: true },
+      { title: 'Final Handover', location: 'Woodlands Loop Depot', timestamp: 'Expected Today, 05:15 PM', completed: false }
+    ]
+  },
+  'JOS-66301-SG': {
+    id: 'JOS-66301-SG',
+    status: 'Delivered',
+    origin: 'Tuas Mega Port',
+    destination: 'Biopolis Bio-Hub',
+    currentLocation: 'Biopolis Biomedical Dock Bay 2, Singapore',
+    estimatedDelivery: 'Delivered Today, 11:15 AM (SGT)',
+    serviceLevel: 'Cold Chain Pharma Vault (2°C - 8°C)',
+    cargoType: 'Vaccine & Bio-Therapeutic Samples',
+    driverName: 'Gurpreet Singh',
+    driver: 'Gurpreet Singh',
+    driverPhone: '+65 9876 5432',
+    vehicle: 'Refrigerated Cold-Chain Van #SG-6630',
+    sender: 'Tuas Mega Port Terminal',
+    senderAddress: '20 Tuas South Ave 2, Singapore 637560',
+    receiver: 'Biopolis Medical Research Hub',
+    receiverAddress: '8 Biomedical Grove, Singapore 138665',
+    weight: '85.0 kg',
+    pieces: 2,
+    declaredValue: 'S$ 310,000',
+    price: 'S$ 890.00',
+    timeline: [
+      { title: 'Cryo-Vault Loaded & Calibrated', location: 'Tuas Mega Port Cold Hub', timestamp: 'Aug 31, 06:00 AM', completed: true },
+      { title: 'Temperature Sensor Locked at 4.2°C', location: 'AYE Expressway Express Corridor', timestamp: 'Aug 31, 08:30 AM', completed: true },
+      { title: 'Arrived at Biopolis Campus Gate', location: 'Biopolis Biomedical Grove', timestamp: 'Aug 31, 10:50 AM', completed: true },
+      { title: 'Delivered & Temperature Certificate Signed', location: 'Biopolis Vault Bay 2', timestamp: 'Aug 31, 11:15 AM', completed: true, current: true }
+    ]
+  },
+  'JOS-99210-SG': {
+    id: 'JOS-99210-SG',
+    status: 'Delayed',
+    origin: 'Jurong Logistics Hub',
+    destination: 'Woodlands Checkpoint',
+    currentLocation: 'KPE Expressway Tunnel (Monsoon Rain Slower Zone)',
+    estimatedDelivery: 'Today, 07:45 PM (SGT)',
+    serviceLevel: 'Cross-Border Haulage (SG ↔ MY)',
+    cargoType: 'Heavy Electrical Machinery & Motors',
+    driverName: 'Robert Martinez',
+    driver: 'Robert Martinez',
+    driverPhone: '+65 9112 3456',
+    vehicle: '18-Wheeler Heavy Freight Carrier #SG-9921',
+    sender: 'Singapore Jurong Logistics Hub',
+    senderAddress: '15 Jurong Port Road, Singapore 619116',
+    receiver: 'Woodlands Checkpoint Distribution Center',
+    receiverAddress: '900 Woodlands Centre Rd, Singapore 738991',
+    weight: '3,800 kg',
+    pieces: 6,
+    declaredValue: 'S$ 92,000',
+    price: 'S$ 1,650.00',
+    weatherDelay: {
+      active: true,
+      condition: 'Heavy Monsoon Rain & PIE Flash Flood Warning (Wind 45 km/h)',
+      etaImpact: '+45 Mins Added for Brake Safety',
+      smsSent: true,
+      emailSent: true,
+      timestamp: 'Aug 31, 01:45 PM'
+    },
+    timeline: [
+      { title: 'Manifest Registered & Border Inspection Passed', location: 'Jurong Logistics Hub', timestamp: 'Aug 31, 09:30 AM', completed: true },
+      { title: 'Haulage En Route via Expressway', location: 'PIE Expressway Exit 20', timestamp: 'Aug 31, 11:15 AM', completed: true },
+      { title: '⛈️ Monsoon Rain Delay Flagged (Safety Protocol)', location: 'KPE Expressway Corridor', timestamp: 'Aug 31, 01:45 PM', completed: true, current: true },
+      { title: 'Resume Speed after Rain Subsides', location: 'SLE Expressway Corridor', timestamp: 'Expected 05:30 PM', completed: false },
+      { title: 'Final Handover at Woodlands Gate', location: 'Woodlands Checkpoint Depot', timestamp: 'Expected 07:45 PM', completed: false }
+    ]
+  }
+};
+
 export const TrackShipmentPage = ({ setActiveTab }) => {
   const { 
     shipments, 
     activeTrackingId, 
     setActiveTrackingId, 
-    getShipmentByTracking, 
     setSelectedInvoiceShipment,
     showToast
   } = useLogistics();
@@ -43,70 +168,92 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       searchStr = sampleOrId.id.trim();
     }
 
-    let found = getShipmentByTracking(searchStr) || shipments.find(s => s?.id?.toUpperCase() === searchStr.toUpperCase());
+    const key = searchStr.toUpperCase();
 
-    if (!found && typeof sampleOrId === 'object' && sampleOrId.id) {
-      found = {
+    // 1. Highest Priority: Exact Demo Map matches for default parcel cards
+    if (DEMO_SHIPMENTS_MAP[key]) {
+      return { ...DEMO_SHIPMENTS_MAP[key] };
+    }
+
+    // 2. Second Priority: Find in context shipments array
+    let found = (shipments || []).find(s => s?.id?.toUpperCase() === key);
+    if (found) {
+      const driverNameVal = found.driverName || found.driver || (typeof sampleOrId === 'object' ? (sampleOrId.driverName || sampleOrId.driver) : null) || 'Tan Wei Ming';
+      return {
+        ...found,
+        driverName: driverNameVal,
+        driver: driverNameVal,
+        driverPhone: found.driverPhone || (typeof sampleOrId === 'object' ? sampleOrId.driverPhone : null) || '+65 9123 4567',
+        vehicle: found.vehicle || (typeof sampleOrId === 'object' ? sampleOrId.vehicle : null) || 'Josan EV Express Cargo Truck (SG-8819)',
+        currentLocation: found.currentLocation || 'Singapore Telematics Central Hub',
+        estimatedDelivery: found.estimatedDelivery || 'Today, 5:00 PM (SGT)',
+        serviceLevel: found.serviceLevel || 'Express Freight (SG Same-Day)'
+      };
+    }
+
+    // 3. Third Priority: Direct sample object passed
+    if (typeof sampleOrId === 'object' && sampleOrId.id) {
+      const driverNameVal = sampleOrId.driverName || sampleOrId.driver || 'Tan Wei Ming';
+      return {
         id: sampleOrId.id || 'JOS-88190-SG',
         origin: sampleOrId.origin || 'Changi Air Cargo',
         destination: sampleOrId.dest || sampleOrId.destination || 'Jurong Port Hub',
         status: sampleOrId.status || 'In Transit',
-        currentLocation: 'Pan Island Expressway (PIE) KM 18.4',
-        driverName: sampleOrId.driver || sampleOrId.driverName || 'Tan Wei Ming',
-        driverPhone: '+65 9123 4567',
-        vehicle: 'Josan EV Express Cargo Truck (SG-8819)',
-        sender: 'TechCorp Solutions SG',
-        senderAddress: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
-        receiver: 'Apex Dynamics SG Hub',
-        receiverAddress: '89 Orchard Road, Singapore 238854',
-        weight: '180.0 kg',
-        pieces: 2,
-        cargoType: 'General Goods',
-        serviceLevel: 'Express Freight (SG Same-Day)',
-        declaredValue: '$12,000',
-        price: '$890.00',
-        createdDate: 'Aug 29, 2026',
-        estimatedDelivery: 'Today, 4:30 PM (SGT)',
-        timeline: [
+        currentLocation: sampleOrId.currentLocation || 'Singapore Central Dispatch Corridor',
+        driverName: driverNameVal,
+        driver: driverNameVal,
+        driverPhone: sampleOrId.driverPhone || '+65 9123 4567',
+        vehicle: sampleOrId.vehicle || 'Josan EV Express Cargo Truck (SG-8819)',
+        sender: sampleOrId.sender || 'TechCorp Solutions SG',
+        senderAddress: sampleOrId.senderAddress || '10 Pasir Panjang Road, Singapore 117438',
+        receiver: sampleOrId.receiver || 'Apex Dynamics SG Hub',
+        receiverAddress: sampleOrId.receiverAddress || '89 Orchard Road, Singapore 238854',
+        weight: sampleOrId.weight || '180.0 kg',
+        pieces: sampleOrId.pieces || 2,
+        cargoType: sampleOrId.cargoType || 'General Goods',
+        serviceLevel: sampleOrId.serviceLevel || 'Express Freight (SG Same-Day)',
+        declaredValue: sampleOrId.declaredValue || 'S$ 12,000',
+        price: sampleOrId.price || 'S$ 420.00',
+        createdDate: sampleOrId.createdDate || 'Aug 29, 2026',
+        estimatedDelivery: sampleOrId.estimatedDelivery || 'Today, 5:00 PM (SGT)',
+        timeline: sampleOrId.timeline || [
           { title: 'Parcel Registered in Telematics System', timestamp: 'Today 09:00 AM', location: 'Singapore Depot', completed: true },
-          { title: 'Active In-Transit Satellite Tracking', timestamp: 'Today 11:30 AM', location: 'PIE Expressway', completed: true, current: true },
+          { title: 'Active In-Transit Satellite Tracking', timestamp: 'Today 11:30 AM', location: 'Expressway Corridor', completed: true, current: true },
           { title: 'Delivered to Receiver', timestamp: 'Pending', location: 'Destination Hub', completed: false }
         ]
       };
     }
 
-    if (!found) {
-      const trackingCode = (searchStr || 'JOS-88190-SG').toUpperCase();
-      found = {
-        id: trackingCode,
-        origin: 'Changi Air Cargo Complex',
-        destination: 'Jurong Port Industrial Estate',
-        status: 'In Transit',
-        currentLocation: 'Pan Island Expressway (PIE) KM 18.4',
-        driverName: 'Tan Wei Ming',
-        driverPhone: '+65 9123 4567',
-        vehicle: 'Josan EV Express Cargo Truck (SG-8819)',
-        sender: 'TechCorp Solutions SG',
-        senderAddress: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
-        receiver: 'Apex Dynamics SG Hub',
-        receiverAddress: '89 Orchard Road, Singapore 238854',
-        weight: '180.0 kg',
-        pieces: 2,
-        cargoType: 'General Goods',
-        serviceLevel: 'Express Freight (SG Same-Day)',
-        declaredValue: '$12,000',
-        price: '$890.00',
-        createdDate: 'Aug 29, 2026',
-        estimatedDelivery: 'Today, 4:30 PM (SGT)',
-        timeline: [
-          { title: 'Parcel Registered in Telematics System', timestamp: 'Today 09:00 AM', location: 'Singapore Depot', completed: true },
-          { title: 'Active In-Transit Satellite Tracking', timestamp: 'Today 11:30 AM', location: 'PIE Expressway', completed: true, current: true },
-          { title: 'Delivered to Receiver', timestamp: 'Pending', location: 'Destination Hub', completed: false }
-        ]
-      };
-    }
-
-    return found;
+    // 4. Default fallback for custom tracking numbers
+    const trackingCode = (searchStr || 'JOS-88190-SG').toUpperCase();
+    return {
+      id: trackingCode,
+      origin: 'Changi Air Cargo Complex',
+      destination: 'Jurong Port Industrial Estate',
+      status: 'In Transit',
+      currentLocation: 'Tampines Logistics Depot, Singapore',
+      driverName: 'Tan Wei Ming',
+      driver: 'Tan Wei Ming',
+      driverPhone: '+65 9123 4567',
+      vehicle: 'Josan EV Express Cargo Truck (SG-8819)',
+      sender: 'TechCorp Solutions SG',
+      senderAddress: '10 Pasir Panjang Road, Singapore 117438',
+      receiver: 'Apex Dynamics SG Hub',
+      receiverAddress: '89 Orchard Road, Singapore 238854',
+      weight: '180.0 kg',
+      pieces: 2,
+      cargoType: 'General Goods',
+      serviceLevel: 'Express Freight (SG Same-Day)',
+      declaredValue: 'S$ 12,000',
+      price: 'S$ 420.00',
+      createdDate: 'Aug 29, 2026',
+      estimatedDelivery: 'Today, 4:30 PM (SGT)',
+      timeline: [
+        { title: 'Parcel Registered in Telematics System', timestamp: 'Today 09:00 AM', location: 'Singapore Depot', completed: true },
+        { title: 'Active In-Transit Satellite Tracking', timestamp: 'Today 11:30 AM', location: 'PIE Expressway', completed: true, current: true },
+        { title: 'Delivered to Receiver', timestamp: 'Pending', location: 'Destination Hub', completed: false }
+      ]
+    };
   };
 
   const [currentShipment, setCurrentShipment] = useState(() => resolveShipmentData(searchInput));
@@ -252,10 +399,10 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {[
-              { id: 'JOS-88190-SG', status: 'In Transit', statusBg: 'bg-orange-100 text-orange-800 border-orange-200', origin: 'Changi Air Cargo', dest: 'Jurong Port Hub', driver: 'Tan Wei Ming' },
-              { id: 'JOS-44021-SG', status: 'Out for Delivery', statusBg: 'bg-blue-100 text-blue-800 border-blue-200', origin: 'Pasir Panjang Terminal', dest: 'Woodlands Tech Park', driver: 'Muhammad Rizal' },
-              { id: 'JOS-66301-SG', status: 'Delivered', statusBg: 'bg-emerald-100 text-emerald-800 border-emerald-200', origin: 'Tuas Mega Port', dest: 'Biopolis Bio-Hub', driver: 'Gurpreet Singh' },
-              { id: 'JOS-99210-SG', status: 'Monsoon Rain Delay', statusBg: 'bg-amber-100 text-amber-800 border-amber-200 animate-pulse', origin: 'Jurong Logistics Hub', dest: 'Woodlands Checkpoint', driver: 'Robert Martinez' }
+              { id: 'JOS-88190-SG', status: 'In Transit', statusBg: 'bg-orange-100 text-orange-800 border-orange-200', origin: 'Changi Air Cargo', dest: 'Jurong Port Hub', destination: 'Jurong Port Hub', driver: 'Tan Wei Ming', driverName: 'Tan Wei Ming', driverPhone: '+65 9123 4567', vehicle: 'Josan EV Express Truck #SG-8819' },
+              { id: 'JOS-44021-SG', status: 'Out for Delivery', statusBg: 'bg-blue-100 text-blue-800 border-blue-200', origin: 'Pasir Panjang Terminal', dest: 'Woodlands Tech Park', destination: 'Woodlands Tech Park', driver: 'Muhammad Rizal', driverName: 'Muhammad Rizal', driverPhone: '+65 8234 5678', vehicle: 'Volvo Heavy Container Truck #SG-4402' },
+              { id: 'JOS-66301-SG', status: 'Delivered', statusBg: 'bg-emerald-100 text-emerald-800 border-emerald-200', origin: 'Tuas Mega Port', dest: 'Biopolis Bio-Hub', destination: 'Biopolis Bio-Hub', driver: 'Gurpreet Singh', driverName: 'Gurpreet Singh', driverPhone: '+65 9876 5432', vehicle: 'Refrigerated Cold-Chain Van #SG-6630' },
+              { id: 'JOS-99210-SG', status: 'Monsoon Rain Delay', statusBg: 'bg-amber-100 text-amber-800 border-amber-200 animate-pulse', origin: 'Jurong Logistics Hub', dest: 'Woodlands Checkpoint', destination: 'Woodlands Checkpoint', driver: 'Robert Martinez', driverName: 'Robert Martinez', driverPhone: '+65 9112 3456', vehicle: '18-Wheeler Heavy Freight Carrier #SG-9921' }
             ].map((sample) => (
               <div
                 key={sample.id}
@@ -379,30 +526,6 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 </div>
               )}
 
-              {/* LIVE GPS TELEMATICS MAP WITH MOVING TRUCK FOR CUSTOMER PORTAL */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                    <Navigation className="w-4 h-4 text-orange-500" />
-                    <span>Live Customer GPS Satellite Map & Telematics Route</span>
-                  </h3>
-                  <span className="text-xs font-mono font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center space-x-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span>Live Signal Active</span>
-                  </span>
-                </div>
-
-                <div className="rounded-2xl border border-slate-300 overflow-hidden h-80 shadow-xl relative">
-                  <SingaporeGoogleMapBackground
-                    origin={currentShipment.origin}
-                    destination={currentShipment.destination}
-                    vehicle={currentShipment.vehicle || 'Josan EV Express Truck #SG-8819'}
-                    truckProgress={truckProgress}
-                    currentSpeed={currentSpeed}
-                    showTruck={true}
-                  />
-                </div>
-              </div>
 
               {/* DELIVERY TIMELINE (ORANGE PROGRESS INDICATORS) */}
               <div>
@@ -468,21 +591,21 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               
               <div className="flex items-center space-x-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                 <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center border-2 border-orange-300">
-                  {currentShipment.driverName ? currentShipment.driverName.charAt(0) : 'D'}
+                  {(currentShipment.driverName || currentShipment.driver || 'D').charAt(0)}
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-slate-900 text-sm">{currentShipment.driverName || 'Gurpreet Singh'}</h4>
-                  <p className="text-xs text-orange-600 font-semibold">{currentShipment.vehicle}</p>
+                  <h4 className="font-extrabold text-slate-900 text-sm">{currentShipment.driverName || currentShipment.driver || 'Tan Wei Ming'}</h4>
+                  <p className="text-xs text-orange-600 font-semibold">{currentShipment.vehicle || 'Josan EV Express Truck #SG-8819'}</p>
                   <p className="text-[10px] text-slate-500">License: Valid & Verified</p>
                 </div>
               </div>
 
               <a
-                href={`tel:${currentShipment.driverPhone || '+15553928810'}`}
+                href={`tel:${currentShipment.driverPhone || '+65 9123 4567'}`}
                 className="w-full py-2.5 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl font-bold text-xs border border-orange-200 transition-colors flex items-center justify-center space-x-2"
               >
                 <Phone className="w-4 h-4" />
-                <span>Call Driver ({currentShipment.driverPhone || '+1 555-0192'})</span>
+                <span>Call Driver ({currentShipment.driverPhone || '+65 9123 4567'})</span>
               </a>
             </div>
 

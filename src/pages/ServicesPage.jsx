@@ -74,17 +74,16 @@ const DynamicServiceGallery = ({ images, title }) => {
 export const ServicesPage = ({ setActiveTab }) => {
   const { openAuthModalWithoutClose, currentUser } = useLogistics();
 
-  const [calculatorWeight, setCalculatorWeight] = useState(25);
+  const [calculatorWeight, setCalculatorWeight] = useState(0);
   const [calculatorService, setCalculatorService] = useState('express');
-  const [calculatorInsurance, setCalculatorInsurance] = useState(true);
+  const [calculatorInsurance, setCalculatorInsurance] = useState(false);
 
   const handleBookServiceClick = () => {
     openAuthModalWithoutClose();
   };
 
-  // Rate calculator formula
-  const baseRate = calculatorService === 'express' ? 12 : calculatorService === 'ground' ? 4 : calculatorService === 'sea' ? 2 : 15;
-  const estimatedTotal = (calculatorWeight * baseRate + (calculatorInsurance ? 35 : 0)).toFixed(2);
+  // Rate calculator formula (always display $0.00 as requested)
+  const estimatedTotal = '0.00';
 
   const servicesData = [
     {
@@ -156,6 +155,77 @@ export const ServicesPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      {/* Instant Shipping Rate Estimator Widget */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-orange-subtle-gradient rounded-3xl p-8 sm:p-10 border-2 border-orange-200 shadow-xl space-y-6">
+          <div className="text-center space-y-2">
+            <span className="text-orange-600 font-bold uppercase text-xs tracking-widest bg-white px-3 py-1 rounded-full border border-orange-200">
+              Interactive Estimator
+            </span>
+            <h3 className="text-2xl font-extrabold text-slate-900">Calculate Instant Freight Rate</h3>
+            <p className="text-slate-600 text-xs sm:text-sm">Adjust weight and service speed to get an instant estimate.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            
+            {/* Weight Slider */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-2">
+                Cargo Weight: <span className="text-orange-600 font-mono text-sm">{calculatorWeight} kg</span>
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="500"
+                step="5"
+                value={calculatorWeight}
+                onChange={(e) => setCalculatorWeight(Number(e.target.value))}
+                className="w-full accent-orange-500 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                <span>0 kg</span>
+                <span>250 kg</span>
+                <span>500 kg</span>
+              </div>
+            </div>
+
+            {/* Service Speed */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-2">Service Mode</label>
+              <select
+                value={calculatorService}
+                onChange={(e) => setCalculatorService(e.target.value)}
+                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
+              >
+                <option value="express">Express Air Freight ($12/kg)</option>
+                <option value="ground">Land Trucking ($4/kg)</option>
+                <option value="sea">Ocean Shipping ($2/kg)</option>
+                <option value="cold">Cold Chain Pharma ($15/kg)</option>
+              </select>
+            </div>
+
+            {/* Total Estimated Box */}
+            <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 text-center flex flex-col justify-center">
+              <span className="text-[10px] font-bold uppercase text-orange-800">Estimated Total Rate</span>
+              <span className="text-3xl font-extrabold text-orange-600 font-mono">${estimatedTotal}</span>
+              <span className="text-[10px] text-slate-500 mt-0.5">Includes fuel surcharge & tax</span>
+            </div>
+
+          </div>
+
+          <div className="text-center pt-2">
+            <button
+              onClick={handleBookServiceClick}
+              className="px-8 py-3.5 bg-orange-gradient hover:bg-orange-600 text-white font-extrabold text-sm rounded-xl shadow-orange-glow transition-all inline-flex items-center space-x-2 cursor-pointer"
+            >
+              <span>Proceed To Book</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+        </div>
+      </section>
+
       {/* Services Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-12">
@@ -201,77 +271,6 @@ export const ServicesPage = ({ setActiveTab }) => {
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* Instant Shipping Rate Estimator Widget */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-orange-subtle-gradient rounded-3xl p-8 sm:p-10 border-2 border-orange-200 shadow-xl space-y-6">
-          <div className="text-center space-y-2">
-            <span className="text-orange-600 font-bold uppercase text-xs tracking-widest bg-white px-3 py-1 rounded-full border border-orange-200">
-              Interactive Estimator
-            </span>
-            <h3 className="text-2xl font-extrabold text-slate-900">Calculate Instant Freight Rate</h3>
-            <p className="text-slate-600 text-xs sm:text-sm">Adjust weight and service speed to get an instant estimate.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            
-            {/* Weight Slider */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">
-                Cargo Weight: <span className="text-orange-600 font-mono text-sm">{calculatorWeight} kg</span>
-              </label>
-              <input
-                type="range"
-                min="5"
-                max="500"
-                step="5"
-                value={calculatorWeight}
-                onChange={(e) => setCalculatorWeight(Number(e.target.value))}
-                className="w-full accent-orange-500 cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                <span>5 kg</span>
-                <span>250 kg</span>
-                <span>500 kg</span>
-              </div>
-            </div>
-
-            {/* Service Speed */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Service Mode</label>
-              <select
-                value={calculatorService}
-                onChange={(e) => setCalculatorService(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
-              >
-                <option value="express">Express Air Freight ($12/kg)</option>
-                <option value="ground">Land Trucking ($4/kg)</option>
-                <option value="sea">Ocean Shipping ($2/kg)</option>
-                <option value="cold">Cold Chain Pharma ($15/kg)</option>
-              </select>
-            </div>
-
-            {/* Total Estimated Box */}
-            <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 text-center flex flex-col justify-center">
-              <span className="text-[10px] font-bold uppercase text-orange-800">Estimated Total Rate</span>
-              <span className="text-3xl font-extrabold text-orange-600 font-mono">${estimatedTotal}</span>
-              <span className="text-[10px] text-slate-500 mt-0.5">Includes fuel surcharge & tax</span>
-            </div>
-
-          </div>
-
-          <div className="text-center pt-2">
-            <button
-              onClick={handleBookServiceClick}
-              className="px-8 py-3.5 bg-orange-gradient hover:bg-orange-600 text-white font-extrabold text-sm rounded-xl shadow-orange-glow transition-all inline-flex items-center space-x-2 cursor-pointer"
-            >
-              <span>Proceed To Book With This Rate</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
         </div>
       </section>
 

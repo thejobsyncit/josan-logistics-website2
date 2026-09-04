@@ -101,6 +101,18 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   const [editLicense, setEditLicense] = useState('');
   const [editDob, setEditDob] = useState('');
   const [editHub, setEditHub] = useState('');
+  const [editPhoto, setEditPhoto] = useState('');
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditPhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const startEditingDriverProfile = () => {
     setEditName(driverInfo.name || '');
@@ -116,6 +128,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     setEditLicense(driverInfo.licenseNumber || '');
     setEditDob(driverInfo.dob || '');
     setEditHub(driverInfo.assignedHub || '');
+    setEditPhoto(currentUser?.photo || driverInfo.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80');
     setIsEditingProfile(true);
   };
 
@@ -127,7 +140,8 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
       phone: `${editCountryCode} ${cleanDigits}`,
       licenseNumber: editLicense,
       dob: editDob,
-      company: editHub
+      company: editHub,
+      photo: editPhoto
     });
     setIsEditingProfile(false);
     showToast('Driver Profile updated successfully!');
@@ -436,6 +450,37 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
             </div>
 
             <form onSubmit={handleSaveDriverProfile} className="space-y-4 text-xs">
+              {/* Profile Photo Upload Field */}
+              <div className="bg-orange-50/80 p-3.5 rounded-2xl border border-orange-200 space-y-2">
+                <label className="block text-xs font-extrabold text-orange-950">
+                  Driver Profile Picture
+                </label>
+                <div className="flex items-center space-x-3">
+                  <div className="relative shrink-0">
+                    <img
+                      src={editPhoto || currentUser?.photo || driverInfo.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                      alt="Driver Profile Preview"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
+                    />
+                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[11px] font-extrabold shadow-orange-sm cursor-pointer transition-all inline-flex items-center space-x-1.5">
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>Browse & Upload Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-[10px] text-slate-500 font-semibold leading-tight">
+                      This uploaded image will be automatically updated across your profile and driver roster.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Driver Full Name *</span>
