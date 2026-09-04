@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
   BarChart, 
   Bar, 
@@ -72,15 +73,16 @@ export const AdminDashboardPage = () => {
 
   // Driver modal state
   const [isAddDriverOpen, setIsAddDriverOpen] = useState(false);
-  const [newDriverData, setNewDriverData] = useState({
-    name: '',
-    phone: '',
+  const [newDriverData, setNewDriverData] = useState({ 
+    name: '', 
     email: '',
-    licenseNumber: '',
+    countryCode: '+65',
+    phone: '', 
+    vehicleType: 'Refrigerated Van', 
+    vehicleId: 'FL-900', 
+    licenseNumber: 'SG-CLASS4-881',
+    dob: '1992-06-15',
     assignedHub: 'Changi Air Cargo Logistics Hub',
-    vehicleType: 'Refrigerated Van',
-    vehicleId: 'SG-900',
-    photo: defaultDriverPhoto
   });
 
   // Warehouse modal state
@@ -220,27 +222,39 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
   const handleAddDriverSubmit = (e) => {
     e.preventDefault();
     const cleanDigits = newDriverData.phone.replace(/[^0-9]/g, '');
-    if (cleanDigits.length < 8) {
-      showToast('Singapore driver contact number must contain exactly 8 digits (e.g. 91234567)', 'warning');
+    const code = newDriverData.countryCode || '+65';
+    const minDigits = getPhoneLength(code);
+    if (cleanDigits.length < minDigits) {
+      showToast(`Driver contact number must contain at least ${minDigits} digits for ${code}`, 'warning');
       return;
     }
 
     if (newDriverData.name && cleanDigits) {
+      const cleanName = newDriverData.name.trim();
+      const defaultEmail = `${cleanName.toLowerCase().replace(/\s+/g, '.')}@josanlogistics.com`;
       addDriver({
         ...newDriverData,
-        phone: `+65 ${cleanDigits}`,
+        name: cleanName,
+        email: newDriverData.email.trim() || defaultEmail,
+        phone: `${code} ${cleanDigits}`,
+        licenseNumber: newDriverData.licenseNumber || 'SG-CLASS4-881',
+        dob: newDriverData.dob || '1992-06-15',
+        assignedHub: newDriverData.assignedHub || 'Changi Air Cargo Logistics Hub',
         workingLocation: newDriverData.assignedHub || 'Changi Air Cargo Logistics Hub',
-        status: 'Available'
+        status: 'Available',
+        photo: newDriverData.photo || defaultDriverPhoto
       });
       setIsAddDriverOpen(false);
-      setNewDriverData({
-        name: '',
-        phone: '',
+      setNewDriverData({ 
+        name: '', 
         email: '',
+        countryCode: '+65',
+        phone: '', 
         licenseNumber: '',
+        dob: '1992-06-15',
+        vehicleType: 'Refrigerated Van', 
+        vehicleId: 'SG-8819', 
         assignedHub: 'Changi Air Cargo Logistics Hub',
-        vehicleType: 'EV Express Cargo Van',
-        vehicleId: `SG-${Math.floor(100 + Math.random() * 900)}`,
         photo: defaultDriverPhoto
       });
     }
@@ -918,87 +932,122 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                   required
                 />
                 <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly letters only (Numbers & symbols blocked)</span>
-              </div>
-
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Work Location / Assigned Hub *</label>
-                <select
-                  value={newDriverData.assignedHub}
-                  onChange={(e) => setNewDriverData({ ...newDriverData, assignedHub: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold"
-                  required
-                >
-                  <option value="Changi Air Cargo Logistics Hub">Changi Air Cargo Logistics Hub</option>
-                  <option value="Tuas Mega Port Terminal">Tuas Mega Port Terminal</option>
-                  <option value="Jurong Port Logistics Hub">Jurong Port Logistics Hub</option>
-                  <option value="Woodlands Logistics Depot">Woodlands Logistics Depot</option>
-                  <option value="Pasir Panjang Container Hub">Pasir Panjang Container Hub</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Mail ID / Corporate Email *</label>
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Driver Email Address *</span>
+                  <span className="text-[10px] text-orange-600 font-bold uppercase">Valid Email</span>
+                </label>
                 <input
                   type="email"
                   value={newDriverData.email}
                   onChange={(e) => setNewDriverData({ ...newDriverData, email: e.target.value })}
                   placeholder="e.g. alex.morgan@josanlogistics.com"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold"
                   required
                 />
               </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Driving License Number *</label>
-                <input
-                  type="text"
-                  value={newDriverData.licenseNumber}
-                  onChange={(e) => setNewDriverData({ ...newDriverData, licenseNumber: e.target.value })}
-                  placeholder="e.g. SG-CLASS4-9982"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-mono font-bold uppercase"
-                  required
-                />
-              </div>
-
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                  <span>Phone Contact (Singapore 8-Digit) *</span>
+                  <span>Phone Contact *</span>
                   <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
                 </label>
                 <div className="flex items-center">
-                  <span className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-lg text-slate-900 font-extrabold text-xs shrink-0 border-r-0">
-                    🇸🇬 +65
-                  </span>
+                  <select
+                    value={newDriverData.countryCode || '+65'}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, countryCode: e.target.value })}
+                    className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-lg text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
+                  >
+                    {countryCodesList.map((item) => (
+                      <option key={item.code} value={item.code}>
+                        {item.flag} {item.code} ({item.country})
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    maxLength={8}
+                    maxLength={getPhoneLength(newDriverData.countryCode || '+65')}
                     value={newDriverData.phone}
                     onChange={(e) => {
-                      const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+                      const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(newDriverData.countryCode || '+65'));
                       setNewDriverData({ ...newDriverData, phone: numericOnly });
                     }}
-                    placeholder="e.g. 91234567"
-                    className="w-full p-2.5 border border-slate-300 rounded-r-lg focus-orange font-mono font-bold"
+                    placeholder={`e.g. ${'9'.repeat(getPhoneLength(newDriverData.countryCode || '+65'))}`}
+                    className="w-full p-2.5 border border-slate-300 rounded-r-lg focus-orange font-mono font-bold text-xs"
                     required
                   />
                 </div>
-                <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly 8 numbers only (Alphabets & extra digits blocked)</span>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-1">
+                  Accepts numbers only (max {getPhoneLength(newDriverData.countryCode || '+65')} digits for {newDriverData.countryCode || '+65'})
+                </span>
               </div>
 
+              {/* License Number & Date of Birth */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Driver License Number *</label>
+                  <input
+                    type="text"
+                    value={newDriverData.licenseNumber}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, licenseNumber: e.target.value })}
+                    placeholder="e.g. SG-CLASS4-881"
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Date of Birth *</label>
+                  <input
+                    type="date"
+                    value={newDriverData.dob}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, dob: e.target.value })}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Vehicle Type & Vehicle Plate ID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Vehicle Type</label>
+                  <select
+                    value={newDriverData.vehicleType}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, vehicleType: e.target.value })}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold cursor-pointer text-xs"
+                  >
+                    <option value="Refrigerated Van">Refrigerated Van</option>
+                    <option value="Heavy 18-Wheeler Truck">Heavy 18-Wheeler Truck</option>
+                    <option value="Sprinter Express Cargo">Sprinter Express Cargo</option>
+                    <option value="EV Express Cargo Van">EV Express Cargo Van</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Vehicle Plate / ID *</label>
+                  <input
+                    type="text"
+                    value={newDriverData.vehicleId}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, vehicleId: e.target.value })}
+                    placeholder="e.g. SG-8819-EV"
+                    className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Assigned Warehouse Hub */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Vehicle Type</label>
-                <select
-                  value={newDriverData.vehicleType}
-                  onChange={(e) => setNewDriverData({ ...newDriverData, vehicleType: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold cursor-pointer"
-                >
-                  <option value="Heavy 18-Wheeler Truck">Heavy 18-Wheeler Truck</option>
-                  <option value="Refrigerated Van">Refrigerated Van</option>
-                  <option value="Sprinter Express Cargo">Sprinter Express Cargo</option>
-                  <option value="EV Express Cargo Van">EV Express Cargo Van</option>
-                </select>
+                <label className="block font-bold text-slate-700 mb-1">Assigned Warehouse Hub *</label>
+                <input
+                  type="text"
+                  value={newDriverData.assignedHub}
+                  onChange={(e) => setNewDriverData({ ...newDriverData, assignedHub: e.target.value })}
+                  placeholder="e.g. Changi Air Cargo Logistics Hub"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                  required
+                />
+              </div>
               </div>
 
               <div className="flex space-x-2 pt-3">

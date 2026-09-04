@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
-import { X, Lock, Mail, ArrowRight, User, Phone, Calendar, FileText, AlertCircle, Camera, MapPin } from 'lucide-react';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
+import { X, Lock, Mail, ArrowRight, User, AlertCircle } from 'lucide-react';
 
 export const AuthModal = ({ setActiveTab }) => {
   const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, loginUser } = useLogistics();
@@ -10,9 +11,8 @@ export const AuthModal = ({ setActiveTab }) => {
   // Registration fields
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [licenseNumber, setLicenseNumber] = useState('');
-  const [dob, setDob] = useState('');
+  const [countryCode, setCountryCode] = useState('+65');
+  const [phoneDigits, setPhoneDigits] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -60,11 +60,7 @@ export const AuthModal = ({ setActiveTab }) => {
       setActiveTab,
       {
         fullName,
-        phone,
-        licenseNumber,
-        dob,
-        photo: driverPhoto,
-        assignedHub
+        phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`
       }
     );
   };
@@ -124,155 +120,137 @@ export const AuthModal = ({ setActiveTab }) => {
               className="w-full p-2.5 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus-orange cursor-pointer"
             >
               <option value="customer">Customer</option>
-              <option value="driver">Driver</option>
-              <option value="admin">Admin</option>
+              <option value="driver">Driver (Admin Provisioned)</option>
+              <option value="admin">Admin Portal</option>
             </select>
           </div>
 
-          {/* REGISTRATION MODE */}
-          {!isLogin ? (
+          {/* DRIVER REGISTER RESTRICTION NOTICE */}
+          {!isLogin && role === 'driver' ? (
+            <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 text-slate-800 text-xs space-y-3">
+              <div className="flex items-start space-x-2.5">
+                <AlertCircle className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-extrabold text-orange-900 text-sm mb-1">Driver Provisioning Required</h4>
+                  <p className="text-slate-600 font-medium leading-relaxed">
+                    Driver accounts cannot be self-registered online. All driver profiles, vehicle assignments, and credentials must be created directly by an Administrator in the <strong>Admin Control Portal</strong>.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-1 flex items-center justify-between border-t border-orange-200">
+                <span className="text-[11px] font-bold text-slate-500">Already registered by Admin?</span>
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(true)}
+                  className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold cursor-pointer transition-colors shadow-sm"
+                >
+                  Switch to Driver Sign In
+                </button>
+              </div>
+            </div>
+          ) : (
             <>
-              {/* Full Name */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => {
-                      const lettersOnly = e.target.value.replace(/[0-9]/g, '');
-                      setFullName(lettersOnly);
-                    }}
-                    placeholder="e.g. John Doe"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
-                    required
-                  />
-                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Letters only (no numbers)</span>
-              </div>
-
-              {/* Email Address */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                    title="Please enter a valid email address (e.g. user@company.com)"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="user@company.com"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
-                    required
-                  />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Must be valid email format (e.g. name@company.com)</span>
-              </div>
-
-              {/* Phone Number */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+65 9123 4567"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
-                    required
-                  />
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-              </div>
-
-              {/* DRIVER-ONLY FIELDS */}
-              {role === 'driver' && (
+              {/* REGISTRATION FORM (CUSTOMERS ONLY) */}
+              {!isLogin && (
                 <>
-                  {/* Profile Picture Upload Field */}
-                  <div className="bg-orange-50/80 p-3.5 rounded-2xl border border-orange-200 space-y-2.5">
-                    <label className="block text-xs font-extrabold text-orange-950">
-                      Driver Registration Profile Picture *
-                    </label>
-                    <div className="flex items-center space-x-3">
-                      <div className="relative shrink-0">
-                        <img
-                          src={driverPhoto}
-                          alt="Driver Registration Profile"
-                          className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
-                        />
-                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <label className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[11px] font-extrabold shadow-orange-sm cursor-pointer transition-all inline-flex items-center space-x-1.5">
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Browse & Upload Photo</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        <p className="text-[10px] text-slate-500 font-semibold leading-tight">
-                          This uploaded image will be automatically saved to your profile and displayed in the Admin Portal.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Preferred Work Location / Hub */}
+                  {/* Full Name */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Preferred Work Location / Hub</label>
-                    <div className="relative">
-                      <select
-                        value={assignedHub}
-                        onChange={(e) => setAssignedHub(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium cursor-pointer"
-                        required
-                      >
-                        <option value="Changi Air Cargo Logistics Hub">Changi Air Cargo Logistics Hub</option>
-                        <option value="Tuas Mega Port Terminal">Tuas Mega Port Terminal</option>
-                        <option value="Jurong Port Logistics Hub">Jurong Port Logistics Hub</option>
-                        <option value="Woodlands Logistics Depot">Woodlands Logistics Depot</option>
-                        <option value="Pasir Panjang Container Hub">Pasir Panjang Container Hub</option>
-                      </select>
-                      <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* License Number */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">License Number</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
                     <div className="relative">
                       <input
                         type="text"
-                        value={licenseNumber}
-                        onChange={(e) => setLicenseNumber(e.target.value)}
-                        placeholder="e.g. S1234567A / Class 4 Driver License"
+                        value={fullName}
+                        onChange={(e) => {
+                          const lettersOnly = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                          setFullName(lettersOnly);
+                        }}
+                        placeholder="e.g. John Doe"
                         className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
                         required
                       />
-                      <FileText className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Letters only (no numbers)</span>
+                  </div>
+
+                  {/* Email Address */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                        title="Please enter a valid email address (e.g. user@company.com)"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="user@company.com"
+                        className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
+                        required
+                      />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     </div>
                   </div>
 
-                  {/* Date of Birth */}
+                  {/* Phone Number with Country Code Selector */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Date of Birth</label>
-                    <div className="relative">
+                    <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                      <span>Phone Contact *</span>
+                      <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
+                    </label>
+                    <div className="flex items-center">
+                      <select
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
+                      >
+                        {countryCodesList.map((item) => (
+                          <option key={item.code} value={item.code}>
+                            {item.flag} {item.code} ({item.country})
+                          </option>
+                        ))}
+                      </select>
                       <input
-                        type="date"
-                        value={dob}
-                        onChange={(e) => setDob(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={getPhoneLength(countryCode)}
+                        value={phoneDigits}
+                        onChange={(e) => {
+                          const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(countryCode));
+                          setPhoneDigits(numericOnly);
+                        }}
+                        placeholder={`e.g. ${'9'.repeat(getPhoneLength(countryCode))}`}
+                        className="w-full p-2.5 bg-white border border-slate-300 rounded-r-xl text-slate-900 font-mono font-bold focus-orange text-xs"
                         required
                       />
-                      <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     </div>
                   </div>
                 </>
+              )}
+
+              {/* SIGN IN FORM */}
+              {isLogin && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {role === 'driver' ? 'Driver Email or Phone Contact' : 'Email Address'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={role === 'driver' ? 'e.g. gurpreet@josanlogistics.com or +65 9123 4567' : 'user@company.com'}
+                      className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
+                      required
+                    />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  </div>
+                  {role === 'driver' && (
+                    <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                      Use the email or phone number created by Admin in the Fleet Control Portal
+                    </span>
+                  )}
+                </div>
               )}
 
               {/* Password */}
@@ -291,64 +269,33 @@ export const AuthModal = ({ setActiveTab }) => {
                 </div>
               </div>
 
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Confirm Password</label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
-                    required
-                  />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              {/* Confirm Password (only for Customer Sign Up) */}
+              {!isLogin && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Confirm Password</label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
+                      required
+                    />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  </div>
                 </div>
-              </div>
-            </>
-          ) : (
-            /* SIGN IN MODE */
-            <>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="user@company.com"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
-                    required
-                  />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-              </div>
+              )}
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
-                    required
-                  />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
+              >
+                <span>{isLogin ? 'Sign In' : 'Register Account'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </>
           )}
-
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
-          >
-            <span>{isLogin ? 'Sign In' : 'Register'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
 
           <div className="pt-2 text-center text-xs text-slate-500 font-medium">
             {isLogin ? "Don't have an account? " : "Already registered? "}

@@ -112,7 +112,7 @@ const MainContent = () => {
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
   
-  const { currentRole, toggleRole } = useLogistics();
+  const { currentRole, currentUser, toggleRole } = useLogistics();
 
   // Scroll to top of page whenever activeTab changes
   useEffect(() => {
@@ -167,7 +167,7 @@ const MainContent = () => {
 
   const renderPage = () => {
     if (!currentUser && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard' || activeTab === 'customer-dashboard' || activeTab === 'track' || activeTab === 'book')) {
-      return <HomePage setActiveTab={handleTabChange} />;
+      return <HomePage setActiveTab={changeActiveTab} />;
     }
 
     switch (activeTab) {

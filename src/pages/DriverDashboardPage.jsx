@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { RealTruckGraphic } from '../components/RealTruckGraphic';
 import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
@@ -30,7 +31,8 @@ import {
   FileText,
   Edit2,
   Save,
-  X
+  X,
+  Bell
 } from 'lucide-react';
 
 export const DriverDashboardPage = ({ setActiveTab }) => {
@@ -43,7 +45,8 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     toggleDriverStatus,
     showToast,
     driverSubTab: driverTab,
-    setDriverSubTab: setDriverTab
+    setDriverSubTab: setDriverTab,
+    driverIntimations
   } = useLogistics();
 
   const defaultDriver = {
@@ -93,14 +96,23 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   const [driverStatus, setDriverStatus] = useState(driverInfo.status || 'On Delivery');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState('');
-  const [editPhone, setEditPhone] = useState('');
+  const [editCountryCode, setEditCountryCode] = useState('+65');
+  const [editPhoneDigits, setEditPhoneDigits] = useState('');
   const [editLicense, setEditLicense] = useState('');
   const [editDob, setEditDob] = useState('');
   const [editHub, setEditHub] = useState('');
 
   const startEditingDriverProfile = () => {
     setEditName(driverInfo.name || '');
-    setEditPhone(driverInfo.phone || '');
+    const phoneVal = driverInfo.phone || '';
+    const matched = countryCodesList.find(c => phoneVal.startsWith(c.code));
+    if (matched) {
+      setEditCountryCode(matched.code);
+      setEditPhoneDigits(phoneVal.replace(matched.code, '').replace(/[^0-9]/g, ''));
+    } else {
+      setEditCountryCode('+65');
+      setEditPhoneDigits(phoneVal.replace(/[^0-9]/g, ''));
+    }
     setEditLicense(driverInfo.licenseNumber || '');
     setEditDob(driverInfo.dob || '');
     setEditHub(driverInfo.assignedHub || '');
@@ -109,9 +121,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
   const handleSaveDriverProfile = (e) => {
     e.preventDefault();
+    const cleanDigits = editPhoneDigits.replace(/[^0-9]/g, '');
     updateUserProfile({
       name: editName,
-      phone: editPhone,
+      phone: `${editCountryCode} ${cleanDigits}`,
       licenseNumber: editLicense,
       dob: editDob,
       company: editHub
@@ -286,6 +299,125 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
         </div>
       </div>
 
+      {/* ORDER PROXIMITY & ADMIN DISPATCH INTIMATIONS PANEL */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <span className="w-4 h-4 bg-orange-500 rounded-full animate-ping absolute top-0 right-0"></span>
+              <div className="w-10 h-10 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 font-bold">
+                <Bell className="w-5 h-5" />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-base font-extrabold text-slate-900">Order Dispatch Intimations & Proximity Alerts</h3>
+                <span className="bg-orange-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full animate-pulse">
+                  {(driverIntimations || []).length} Active Intimations
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium">
+                Automated intimations triggered when orders are placed near your location or assigned directly by Admin.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {(!driverIntimations || driverIntimations.length === 0) ? (
+          <div className="p-6 bg-slate-50 rounded-2xl text-center space-y-2 border border-dashed border-slate-200">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+            <p className="text-xs font-extrabold text-slate-700">All Intimated Orders Responded To</p>
+            <p className="text-[11px] text-slate-400">You will be intimated immediately when a new customer order is placed nearby or assigned by Admin.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {driverIntimations.map((intimation) => (
+              <div 
+                key={intimation.id}
+                className={`p-5 rounded-2xl border transition-all shadow-sm space-y-3 relative ${
+                  intimation.type === 'admin_assigned' 
+                    ? 'bg-orange-50/70 border-orange-300 ring-2 ring-orange-400/30' 
+                    : 'bg-slate-50 border-slate-200 hover:border-orange-300'
+                }`}
+              >
+                {/* Intimation Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                      intimation.type === 'admin_assigned' 
+                        ? 'bg-red-600 text-white shadow-sm' 
+                        : 'bg-emerald-600 text-white shadow-sm'
+                    }`}>
+                      {intimation.type === 'admin_assigned' ? '🚨 Direct Admin Assignment' : '📍 Nearby Proximity Alert'}
+                    </span>
+                    {intimation.distanceKm && (
+                      <span className="text-[10px] font-bold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                        {intimation.distanceKm} km from hub
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">{intimation.timestamp}</span>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-900">{intimation.title}</h4>
+                  <p className="text-xs text-slate-600 mt-1 font-medium leading-relaxed">{intimation.message}</p>
+                </div>
+
+                {/* Pickup & Delivery Details */}
+                <div className="bg-white p-3 rounded-xl border border-slate-200/80 text-xs space-y-1.5 font-medium">
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-400 font-bold">Pickup Location:</span>
+                    <span className="font-bold text-slate-900 truncate max-w-[200px]">{intimation.pickup}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-400 font-bold">Delivery Destination:</span>
+                    <span className="font-bold text-slate-900 truncate max-w-[200px]">{intimation.delivery}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px]">
+                    <span className="text-slate-500">Cargo: <strong>{intimation.cargoType} ({intimation.weight})</strong></span>
+                    <span className="text-emerald-700 font-extrabold">{intimation.price}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const targetId = intimation.id || intimation.shipmentId;
+                      const newActive = acceptDriverIntimation(targetId, driverInfo);
+                      if (newActive) {
+                        setActiveJob(newActive);
+                        setDriverTab('dashboard');
+                      }
+                    }}
+                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Accept & Start Pickup</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const targetId = intimation.id || intimation.shipmentId;
+                      declineDriverIntimation(targetId);
+                    }}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* EDIT DRIVER PROFILE MODAL */}
       {isEditingProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
@@ -324,14 +456,37 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                  <input
-                    type="text"
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
-                    required
-                  />
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Phone Contact *</span>
+                    <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
+                  </label>
+                  <div className="flex items-center">
+                    <select
+                      value={editCountryCode}
+                      onChange={(e) => setEditCountryCode(e.target.value)}
+                      className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
+                    >
+                      {countryCodesList.map((item) => (
+                        <option key={item.code} value={item.code}>
+                          {item.flag} {item.code} ({item.country})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={getPhoneLength(editCountryCode)}
+                      value={editPhoneDigits}
+                      onChange={(e) => {
+                        const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(editCountryCode));
+                        setEditPhoneDigits(numericOnly);
+                      }}
+                      placeholder={`e.g. ${'9'.repeat(getPhoneLength(editCountryCode))}`}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-r-xl text-slate-900 font-mono font-bold focus-orange text-xs"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>

@@ -20,26 +20,7 @@ import {
   Loader2
 } from 'lucide-react';
 
-const countryCodes = [
-  { code: '+65', flag: '🇸🇬', name: 'SG', length: 8 },
-  { code: '+91', flag: '🇮🇳', name: 'IN', length: 10 },
-  { code: '+1', flag: '🇺🇸', name: 'US/CA', length: 10 },
-  { code: '+60', flag: '🇲🇾', name: 'MY', length: 10 },
-  { code: '+44', flag: '🇬🇧', name: 'UK', length: 10 },
-  { code: '+61', flag: '🇦🇺', name: 'AU', length: 9 },
-  { code: '+81', flag: '🇯🇵', name: 'JP', length: 10 },
-  { code: '+86', flag: '🇨🇳', name: 'CN', length: 11 }
-];
-
-const getPhoneLength = (code) => {
-  const found = countryCodes.find((c) => c.code === code);
-  return found ? found.length : 10;
-};
-
-const getCountryName = (code) => {
-  const found = countryCodes.find((c) => c.code === code);
-  return found ? found.name : 'Country';
-};
+import { countryCodesList, getPhoneLength, getCountryName } from '../data/countryCodes';
 
 const singaporeCities = [
   'Singapore (Changi Air Cargo Hub)',
@@ -316,9 +297,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       }}
                       className="p-3 text-xs font-bold bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 focus-orange border-r-0 shrink-0 cursor-pointer"
                     >
-                      {countryCodes.map((c) => (
+                      {countryCodesList.map((c) => (
                         <option key={c.code} value={c.code}>
-                          {c.flag} {c.code} ({c.length} digits)
+                          {c.flag} {c.code} ({c.country})
                         </option>
                       ))}
                     </select>
@@ -423,9 +404,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       }}
                       className="p-3 text-xs font-bold bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 focus-orange border-r-0 shrink-0 cursor-pointer"
                     >
-                      {countryCodes.map((c) => (
+                      {countryCodesList.map((c) => (
                         <option key={c.code} value={c.code}>
-                          {c.flag} {c.code} ({c.length} digits)
+                          {c.flag} {c.code} ({c.country})
                         </option>
                       ))}
                     </select>
