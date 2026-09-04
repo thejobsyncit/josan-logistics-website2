@@ -79,11 +79,7 @@ export const ServicesPage = ({ setActiveTab }) => {
   const [calculatorInsurance, setCalculatorInsurance] = useState(true);
 
   const handleBookServiceClick = () => {
-    if (!currentUser) {
-      openAuthModalWithoutClose();
-    } else {
-      setActiveTab('book');
-    }
+    openAuthModalWithoutClose();
   };
 
   // Rate calculator formula
