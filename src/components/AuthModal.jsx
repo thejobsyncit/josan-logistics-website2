@@ -4,7 +4,7 @@ import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { X, Lock, Mail, ArrowRight, User, AlertCircle } from 'lucide-react';
 
 export const AuthModal = ({ setActiveTab }) => {
-  const { isAuthModalOpen, setIsAuthModalOpen, loginUser } = useLogistics();
+  const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, loginUser } = useLogistics();
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState('customer');
   
@@ -16,6 +16,22 @@ export const AuthModal = ({ setActiveTab }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+
+  // Driver Registration Profile Picture & Hub
+  const defaultDriverPhoto = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  const [driverPhoto, setDriverPhoto] = useState(defaultDriverPhoto);
+  const [assignedHub, setAssignedHub] = useState('Changi Air Cargo Logistics Hub');
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDriverPhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!isAuthModalOpen) return null;
 
@@ -50,7 +66,14 @@ export const AuthModal = ({ setActiveTab }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !authModalHideClose) {
+          setIsAuthModalOpen(false);
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+    >
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
         
         {/* Header Banner */}
@@ -65,12 +88,14 @@ export const AuthModal = ({ setActiveTab }) => {
             </div>
           </div>
 
-          <button
-            onClick={() => setIsAuthModalOpen(false)}
-            className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {!authModalHideClose && (
+            <button
+              onClick={() => setIsAuthModalOpen(false)}
+              className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Form Body */}
