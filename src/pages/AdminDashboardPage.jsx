@@ -42,7 +42,13 @@ import {
   Phone,
   Mail,
   X,
-  Camera
+  Camera,
+  Eye,
+  EyeOff,
+  Key,
+  RefreshCw,
+  Lock,
+  Shield
 } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
@@ -55,6 +61,8 @@ export const AdminDashboardPage = () => {
     flagWeatherDelay,
     assignDriver, 
     addDriver, 
+    updateDriverPassword,
+    updateDriverPhoto,
     removeDriver, 
     toggleDriverStatus,
     addWarehouse,
@@ -65,17 +73,22 @@ export const AdminDashboardPage = () => {
     showToast 
   } = useLogistics();
 
-  const [adminTab, setAdminTab] = useState('overview'); // 'overview' | 'orders' | 'drivers' | 'warehouses' | 'analytics'
+  const [adminTab, setAdminTab] = useState('overview'); // 'overview' | 'overview' | 'orders' | 'drivers' | 'warehouses' | 'analytics'
   const [orderFilter, setOrderFilter] = useState('All');
   const [orderSearch, setOrderSearch] = useState('');
 
   const defaultDriverPhoto = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
 
-  // Driver modal state
+  // Driver modal & password state
   const [isAddDriverOpen, setIsAddDriverOpen] = useState(false);
+  const [showNewDriverPassword, setShowNewDriverPassword] = useState(false);
+  const [visibleDriverPasswords, setVisibleDriverPasswords] = useState({});
+  const [editingDriverPassword, setEditingDriverPassword] = useState(null);
+
   const [newDriverData, setNewDriverData] = useState({ 
     name: '', 
     email: '',
+    password: '',
     countryCode: '+65',
     phone: '', 
     vehicleType: 'Refrigerated Van', 
@@ -83,7 +96,20 @@ export const AdminDashboardPage = () => {
     licenseNumber: 'SG-CLASS4-881',
     dob: '1992-06-15',
     assignedHub: 'Changi Air Cargo Logistics Hub',
+    photo: defaultDriverPhoto
   });
+
+  const handleDriverPhotoUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewDriverData(prev => ({ ...prev, photo: reader.result }));
+        showToast('Driver profile photo attached!', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Warehouse modal state
   const [isAddWarehouseOpen, setIsAddWarehouseOpen] = useState(false);
@@ -229,6 +255,8 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
       return;
     }
 
+    const driverPassword = newDriverData.password.trim() || `driver${Math.floor(100 + Math.random() * 900)}`;
+
     if (newDriverData.name && cleanDigits) {
       const cleanName = newDriverData.name.trim();
       const defaultEmail = `${cleanName.toLowerCase().replace(/\s+/g, '.')}@josanlogistics.com`;
@@ -236,6 +264,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
         ...newDriverData,
         name: cleanName,
         email: newDriverData.email.trim() || defaultEmail,
+        password: driverPassword,
         phone: `${code} ${cleanDigits}`,
         licenseNumber: newDriverData.licenseNumber || 'SG-CLASS4-881',
         dob: newDriverData.dob || '1992-06-15',
@@ -248,6 +277,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
       setNewDriverData({ 
         name: '', 
         email: '',
+        password: '',
         countryCode: '+65',
         phone: '', 
         licenseNumber: '',
@@ -263,20 +293,25 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
   return (
     <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
       
-      {/* Admin Top Header Card */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 border-t-4 border-orange-500 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="relative z-10 space-y-1">
-          <span className="text-xs font-bold text-orange-400 uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-            Control Center & Operations Hub
-          </span>
-          <h1 className="text-3xl font-extrabold font-sans">Josan Fleet Admin Portal</h1>
-          <p className="text-slate-400 text-xs sm:text-sm">Manage global dispatch, driver allocations, warehouse inventory & revenue analytics.</p>
+      {/* Admin Top Header Card (Clean Light Theme) */}
+      <div className="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 border-l-8 border-l-orange-500 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden bg-gradient-to-r from-orange-50/40 via-white to-slate-50/50">
+        <div className="relative z-10 space-y-1.5">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-extrabold text-orange-600 uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
+              Fleet Control Center & Operations Hub
+            </span>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
+              Live Operations
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-sans text-slate-900 tracking-tight">Josan Fleet Admin Portal</h1>
+          <p className="text-slate-500 text-xs sm:text-sm max-w-2xl font-medium">
+            Manage global dispatch, driver allocations, warehouse inventory, and financial audit analytics.
+          </p>
         </div>
 
-        <div className="relative z-10 flex items-center space-x-3">
-          <span className="flex items-center text-xs font-bold text-emerald-400 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+        <div className="relative z-10 flex items-center space-x-3 shrink-0">
+          <span className="flex items-center text-xs font-extrabold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 shadow-sm">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping mr-2"></span>
             Telemetry Stream Live
           </span>
@@ -402,30 +437,150 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
               </div>
             </div>
 
-            <div className="lg:col-span-4 bg-slate-900 text-white p-6 sm:p-8 rounded-3xl space-y-6 shadow-xl border-t-4 border-orange-500">
-              <h2 className="text-lg font-extrabold text-white">Operations Actions</h2>
-              <div className="space-y-3 text-xs">
+            {/* Operations Actions Card (Light Theme) */}
+            <div className="lg:col-span-4 bg-white text-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-6 border-t-4 border-t-orange-500">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-lg font-extrabold text-slate-900 font-sans">Operations Control Actions</h2>
+                <span className="text-[10px] font-extrabold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                  Quick Tasks
+                </span>
+              </div>
+              <div className="space-y-3 text-xs font-sans">
                 <button
                   onClick={() => setAdminTab('orders')}
-                  className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold transition-all text-left flex items-center justify-between"
+                  className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold transition-all text-left flex items-center justify-between shadow-orange-sm cursor-pointer active:scale-95"
                 >
-                  <span>Dispatch New Order</span>
+                  <span className="flex items-center space-x-2">
+                    <Package className="w-4 h-4" />
+                    <span>Dispatch New Order</span>
+                  </span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { setAdminTab('drivers'); setIsAddDriverOpen(true); }}
-                  className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all text-left flex items-center justify-between"
+                  className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl font-extrabold border border-slate-200 transition-all text-left flex items-center justify-between cursor-pointer active:scale-95"
                 >
-                  <span>Register New Fleet Driver</span>
-                  <Plus className="w-4 h-4 text-orange-400" />
+                  <span className="flex items-center space-x-2">
+                    <Truck className="w-4 h-4 text-orange-600" />
+                    <span>Register New Fleet Driver</span>
+                  </span>
+                  <Plus className="w-4 h-4 text-orange-600" />
                 </button>
                 <button
                   onClick={handleDownloadPDFReport}
-                  className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all text-left flex items-center justify-between cursor-pointer"
+                  className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl font-extrabold border border-slate-200 transition-all text-left flex items-center justify-between cursor-pointer active:scale-95"
                 >
-                  <span>Generate Financial Report</span>
-                  <Download className="w-4 h-4 text-orange-400" />
+                  <span className="flex items-center space-x-2">
+                    <Download className="w-4 h-4 text-orange-600" />
+                    <span>Generate Financial Audit Report</span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
+                <button
+                  onClick={() => { setAdminTab('warehouses'); setIsAddWarehouseOpen(true); }}
+                  className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl font-extrabold border border-slate-200 transition-all text-left flex items-center justify-between cursor-pointer active:scale-95"
+                >
+                  <span className="flex items-center space-x-2">
+                    <Warehouse className="w-4 h-4 text-orange-600" />
+                    <span>Add Warehouse Depot</span>
+                  </span>
+                  <Plus className="w-4 h-4 text-orange-600" />
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Feature Widgets Row 2: Fleet Driver Roster Status & Warehouse Hub Storage Gauges */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* Live Driver Readiness & Telemetry Panel */}
+            <div className="lg:col-span-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+                    <Truck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-base font-sans">Active Driver Readiness</h3>
+                    <p className="text-xs text-slate-500 font-medium">Real-time driver roster telemetry & duty assignments</p>
+                  </div>
+                </div>
+                <button onClick={() => setAdminTab('drivers')} className="text-xs font-bold text-orange-600 hover:underline">
+                  Manage Drivers ({drivers.length}) →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider block">Available Roster</span>
+                    <span className="text-xl font-extrabold text-emerald-900 font-sans">{drivers.filter(d => d.status === 'Available').length} Drivers</span>
+                  </div>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                </div>
+                <div className="p-3 bg-orange-50 border border-orange-200/80 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="text-orange-800 text-[10px] font-extrabold uppercase tracking-wider block">On Active Delivery</span>
+                    <span className="text-xl font-extrabold text-orange-900 font-sans">{drivers.filter(d => d.status !== 'Available').length} Drivers</span>
+                  </div>
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                {drivers.slice(0, 3).map((driver) => (
+                  <div key={driver.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200/80 hover:border-orange-300 transition-colors text-xs">
+                    <div className="flex items-center space-x-3">
+                      <img src={driver.photo} alt={driver.name} className="w-10 h-10 rounded-full object-cover border border-orange-400 shrink-0" />
+                      <div>
+                        <span className="font-extrabold text-slate-900 block font-sans">{driver.name}</span>
+                        <span className="text-slate-500 text-[11px] font-medium">{driver.vehicleType}</span>
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                      driver.status === 'Available' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-orange-100 text-orange-800 border border-orange-200'
+                    }`}>
+                      ● {driver.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Warehouse Capacity & Dispatch Throughput Gauge Panel */}
+            <div className="lg:col-span-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+                    <Warehouse className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-base font-sans">Regional Warehouse Storage</h3>
+                    <p className="text-xs text-slate-500 font-medium">Storage capacity utilization & parcel throughput</p>
+                  </div>
+                </div>
+                <button onClick={() => setAdminTab('warehouses')} className="text-xs font-bold text-orange-600 hover:underline">
+                  View Hubs ({warehouses.length}) →
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {warehouses.slice(0, 3).map((wh) => (
+                  <div key={wh.id} className="space-y-2 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-extrabold text-slate-900 truncate font-sans">{wh.name}</span>
+                      <span className="font-mono text-orange-600 font-extrabold text-xs">{wh.capacityPercentage}% Capacity</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                      <div className="bg-orange-gradient h-full rounded-full transition-all duration-500" style={{ width: `${wh.capacityPercentage}%` }}></div>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+                      <span>Manager: <strong className="text-slate-700 font-bold">{wh.manager}</strong></span>
+                      <span className="text-slate-700 font-semibold">{wh.activeParcels} Active Parcels</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -586,22 +741,90 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
             {/* Drivers Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {drivers.map((driver) => (
-                <div key={driver.id} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 relative">
+                <div key={driver.id} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 relative shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <img src={driver.photo} alt={driver.name} className="w-12 h-12 rounded-full object-cover border-2 border-orange-500" />
+                      <div className="relative group shrink-0">
+                        <img src={driver.photo} alt={driver.name} className="w-12 h-12 rounded-full object-cover border-2 border-orange-500" />
+                        <label
+                          htmlFor={`driver-card-photo-${driver.id}`}
+                          className="absolute inset-0 bg-slate-900/65 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          title="Click to Upload / Change Driver Photo"
+                        >
+                          <Camera className="w-4 h-4" />
+                        </label>
+                        <input
+                          id={`driver-card-photo-${driver.id}`}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                updateDriverPhoto(driver.id, reader.result);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </div>
                       <div>
-                        <h4 className="font-extrabold text-slate-900 text-sm">{driver.name}</h4>
-                        <p className="text-xs text-orange-600 font-semibold">{driver.vehicleType}</p>
+                        <h4 className="font-extrabold text-slate-900 text-sm font-sans">{driver.name}</h4>
+                        <p className="text-xs text-orange-600 font-semibold">{driver.vehicleType} ({driver.vehicleId || 'SG-900'})</p>
                       </div>
                     </div>
 
                     <button
                       onClick={() => removeDriver(driver.id)}
-                      className="text-slate-400 hover:text-rose-500 text-xs font-bold"
+                      className="text-slate-400 hover:text-rose-600 text-xs font-bold transition-colors cursor-pointer"
+                      title="Remove Driver from Fleet"
                     >
                       Remove
                     </button>
+                  </div>
+
+                  {/* Driver Auth Credentials & Password Card */}
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-600 font-bold flex items-center space-x-1">
+                        <Lock className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                        <span>Driver Password:</span>
+                      </span>
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setVisibleDriverPasswords(prev => ({ ...prev, [driver.id]: !prev[driver.id] }))}
+                          className="text-[10px] text-slate-600 hover:text-slate-900 font-extrabold flex items-center space-x-1 cursor-pointer px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 transition-colors"
+                        >
+                          {visibleDriverPasswords[driver.id] ? <EyeOff className="w-3 h-3 text-slate-500" /> : <Eye className="w-3 h-3 text-slate-500" />}
+                          <span>{visibleDriverPasswords[driver.id] ? 'Hide' : 'Show'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingDriverPassword({ driverId: driver.id, driverName: driver.name, password: driver.password || 'driver123' })}
+                          className="text-[10px] text-orange-700 hover:text-orange-900 font-extrabold flex items-center space-x-1 cursor-pointer px-2 py-0.5 rounded-md bg-orange-50 border border-orange-200 transition-colors"
+                        >
+                          <Key className="w-3 h-3 text-orange-600" />
+                          <span>Edit</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="font-mono text-xs font-extrabold text-slate-900 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <span className="tracking-wide">
+                        {visibleDriverPasswords[driver.id] ? (driver.password || 'driver123') : '••••••••••••'}
+                      </span>
+                      <span className="text-[10px] text-emerald-600 font-sans font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
+                        Admin Provisioned
+                      </span>
+                    </div>
+
+                    <div className="text-[11px] text-slate-500 pt-1 space-y-0.5 font-medium border-t border-slate-100">
+                      <div className="truncate"><strong className="text-slate-700 font-bold">Email:</strong> {driver.email || `${driver.name.toLowerCase().replace(/\s+/g, '.')}@josanlogistics.com`}</div>
+                      <div><strong className="text-slate-700 font-bold">Phone:</strong> {driver.phone}</div>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-3 rounded-xl border border-slate-200">
@@ -610,16 +833,16 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                       <span className="font-extrabold text-slate-900">⭐ {driver.rating} ({driver.onTimeRate})</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block font-bold">Completed</span>
-                      <span className="font-extrabold text-slate-900">{driver.deliveriesCompleted} Freight</span>
+                      <span className="text-slate-400 block font-bold font-sans">Hub Depot</span>
+                      <span className="font-extrabold text-slate-900 truncate block">{driver.assignedHub || 'Changi Hub'}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between text-xs pt-1">
-                    <span className="text-slate-500 font-semibold">Status:</span>
+                    <span className="text-slate-500 font-semibold">Duty Status:</span>
                     <button
                       onClick={() => toggleDriverStatus(driver.id, driver.status === 'Available' ? 'On Delivery' : 'Available')}
-                      className={`px-3 py-1 rounded-full text-[10px] font-extrabold ${
+                      className={`px-3 py-1 rounded-full text-[10px] font-extrabold transition-colors cursor-pointer ${
                         driver.status === 'Available' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'
                       }`}
                     >
@@ -910,12 +1133,50 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
             </div>
 
             <form onSubmit={handleAddDriverSubmit} className="space-y-3.5 text-xs">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center space-x-3 text-slate-600">
-                <span className="text-base">ℹ️</span>
-                <p className="text-[11px] leading-relaxed">
-                  <strong className="text-slate-900 font-bold block">Driver Registration Profile Image Policy:</strong>
-                  Driver profile images are uploaded directly by drivers during registration in the Driver Portal and automatically displayed here. Admin cannot manually upload or override driver profile photos.
-                </p>
+              {/* Driver Profile Photo Upload */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center space-x-3">
+                  <div className="relative shrink-0">
+                    <img
+                      src={newDriverData.photo || defaultDriverPhoto}
+                      alt="Driver Avatar Preview"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
+                    />
+                    <span className="absolute bottom-0 right-0 bg-orange-500 text-white p-1 rounded-full text-[10px] shadow">
+                      <Camera className="w-3 h-3" />
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-xs">Driver Profile Photo</h4>
+                    <p className="text-[10px] text-slate-500 font-medium">Upload custom profile image file (JPG, PNG).</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                  <label
+                    htmlFor="adminDriverPhotoInput"
+                    className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold transition-all shadow-orange-sm cursor-pointer flex items-center justify-center space-x-1.5 shrink-0"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>{newDriverData.photo && newDriverData.photo !== defaultDriverPhoto ? 'Change Photo' : 'Upload Photo'}</span>
+                  </label>
+                  <input
+                    id="adminDriverPhotoInput"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleDriverPhotoUpload}
+                    className="hidden"
+                  />
+                  {newDriverData.photo && newDriverData.photo !== defaultDriverPhoto && (
+                    <button
+                      type="button"
+                      onClick={() => setNewDriverData(prev => ({ ...prev, photo: defaultDriverPhoto }))}
+                      className="px-2.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-extrabold transition-colors cursor-pointer"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -932,6 +1193,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                   required
                 />
                 <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly letters only (Numbers & symbols blocked)</span>
+              </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Driver Email Address *</span>
@@ -945,6 +1207,49 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                   className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold"
                   required
                 />
+              </div>
+
+              {/* Set Driver Password (Admin Provisioned) */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span className="flex items-center space-x-1">
+                    <Lock className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                    <span>Set Driver Password *</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const generated = `driver${Math.floor(100 + Math.random() * 900)}`;
+                      setNewDriverData(prev => ({ ...prev, password: generated }));
+                      showToast(`Auto-generated driver password: ${generated}`, 'info');
+                    }}
+                    className="text-[10px] text-orange-600 hover:text-orange-700 font-extrabold flex items-center space-x-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Auto-Generate</span>
+                  </button>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewDriverPassword ? "text" : "password"}
+                    value={newDriverData.password}
+                    onChange={(e) => setNewDriverData({ ...newDriverData, password: e.target.value })}
+                    placeholder="e.g. driver123"
+                    className="w-full pl-9 pr-10 py-2.5 border border-slate-300 rounded-lg focus-orange font-mono font-bold text-xs"
+                    required
+                  />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewDriverPassword(!showNewDriverPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showNewDriverPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <span className="text-[10px] text-orange-600 font-semibold block mt-1">
+                  🔒 Admin-Set Password: The driver will use this password to sign in to the Driver Portal.
+                </span>
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
@@ -1036,18 +1341,34 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                 </div>
               </div>
 
-              {/* Assigned Warehouse Hub */}
+              {/* Assigned Warehouse Hub Dropdown */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Assigned Warehouse Hub *</label>
-                <input
-                  type="text"
-                  value={newDriverData.assignedHub}
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Assigned Warehouse Hub *</span>
+                  <span className="text-[10px] text-orange-600 font-bold uppercase">Select Depot</span>
+                </label>
+                <select
+                  value={newDriverData.assignedHub || (warehouses && warehouses[0]?.name) || 'Changi Air Cargo Logistics Hub'}
                   onChange={(e) => setNewDriverData({ ...newDriverData, assignedHub: e.target.value })}
-                  placeholder="e.g. Changi Air Cargo Logistics Hub"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-semibold text-xs"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus-orange font-semibold text-xs cursor-pointer shadow-sm"
                   required
-                />
-              </div>
+                >
+                  {warehouses && warehouses.length > 0 ? (
+                    warehouses.map((wh) => (
+                      <option key={wh.id} value={wh.name}>
+                        🏬 {wh.name} ({wh.location ? wh.location.split(',')[0] : 'Singapore Hub'})
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Changi Air Cargo Logistics Hub">🏬 Changi Air Cargo Logistics Hub</option>
+                      <option value="Tuas Mega Port Terminal">🏬 Tuas Mega Port Terminal</option>
+                      <option value="Pasir Panjang Terminal Hub">🏬 Pasir Panjang Terminal Hub</option>
+                      <option value="Woodlands Industrial Park Hub">🏬 Woodlands Industrial Park Hub</option>
+                      <option value="Jurong Logistics Terminal Gate 4">🏬 Jurong Logistics Terminal Gate 4</option>
+                    </>
+                  )}
+                </select>
               </div>
 
               <div className="flex space-x-2 pt-3">
@@ -1374,6 +1695,94 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                 Close Modal
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT DRIVER PASSWORD MODAL DIALOG */}
+      {editingDriverPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                  Security Credential Reset
+                </span>
+                <h3 className="text-lg font-extrabold text-slate-900 mt-1">
+                  Edit Password for {editingDriverPassword.driverName}
+                </h3>
+              </div>
+              <button
+                onClick={() => setEditingDriverPassword(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingDriverPassword.password.trim()) {
+                  updateDriverPassword(editingDriverPassword.driverId, editingDriverPassword.password.trim());
+                  setEditingDriverPassword(null);
+                } else {
+                  showToast('Password cannot be empty', 'warning');
+                }
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-slate-600 space-y-1">
+                <div className="font-extrabold text-slate-900 flex items-center space-x-1.5">
+                  <Key className="w-4 h-4 text-orange-500" />
+                  <span>Admin Authentication Control</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-500 font-medium">
+                  Updating this password will immediately change the login credentials for driver <strong className="text-slate-800 font-bold">{editingDriverPassword.driverName}</strong>.
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>New Driver Password *</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const generated = `driver${Math.floor(100 + Math.random() * 900)}`;
+                      setEditingDriverPassword(prev => ({ ...prev, password: generated }));
+                    }}
+                    className="text-[10px] text-orange-600 hover:text-orange-700 font-extrabold flex items-center space-x-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Auto-Generate</span>
+                  </button>
+                </label>
+                <input
+                  type="text"
+                  value={editingDriverPassword.password}
+                  onChange={(e) => setEditingDriverPassword({ ...editingDriverPassword, password: e.target.value })}
+                  placeholder="Enter new driver password..."
+                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-mono font-bold text-xs"
+                  required
+                />
+              </div>
+
+              <div className="flex space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingDriverPassword(null)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold shadow-orange-sm transition-colors cursor-pointer"
+                >
+                  Save New Password
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

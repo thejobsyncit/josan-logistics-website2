@@ -4,7 +4,7 @@ import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { X, Lock, Mail, ArrowRight, User, AlertCircle } from 'lucide-react';
 
 export const AuthModal = ({ setActiveTab }) => {
-  const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, loginUser } = useLogistics();
+  const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, setAuthModalHideClose, loginUser } = useLogistics();
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState('customer');
   
@@ -54,8 +54,15 @@ export const AuthModal = ({ setActiveTab }) => {
       return;
     }
 
-    loginUser(
-      email || (role === 'admin' ? 'admin@josanlogistics.com' : role === 'driver' ? 'gurpreet@josanlogistics.com' : 'customer@techcorp.com'),
+    const defaultEmail = role === 'admin' 
+      ? 'admin@josanlogistics.com' 
+      : role === 'driver' 
+      ? 'tan.weiming@josanlogistics.com' 
+      : 'customer@techcorp.com';
+
+    const res = loginUser(
+      email.trim() || defaultEmail,
+      password,
       role,
       setActiveTab,
       {
@@ -63,6 +70,14 @@ export const AuthModal = ({ setActiveTab }) => {
         phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`
       }
     );
+
+    if (res && res.success === false) {
+      setError(res.error || 'Login failed. Please check your credentials.');
+    } else {
+      setIsAuthModalOpen(false);
+      setAuthModalHideClose(false);
+      setError('');
+    }
   };
 
   return (
@@ -119,11 +134,23 @@ export const AuthModal = ({ setActiveTab }) => {
               }}
               className="w-full p-2.5 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus-orange cursor-pointer"
             >
-              <option value="customer">Customer</option>
-              <option value="driver">Driver (Admin Provisioned)</option>
+              <option value="customer">Customer Portal</option>
+              <option value="driver">Driver (Admin Provisioned Account)</option>
               <option value="admin">Admin Portal</option>
             </select>
           </div>
+
+          {/* Role Access Demo Badge */}
+          {isLogin && (
+            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] font-mono text-slate-600 flex items-center justify-between">
+              <span className="font-bold text-orange-600">
+                {role === 'admin' ? '🛡️ Admin Default Login:' : role === 'driver' ? '🚛 Driver Provisioned Login:' : '👤 Customer Login:'}
+              </span>
+              <span className="font-bold text-slate-900">
+                {role === 'admin' ? 'admin@josanlogistics.com / admin123' : role === 'driver' ? 'tan.weiming@josanlogistics.com / driver123' : 'Any valid email & password'}
+              </span>
+            </div>
+          )}
 
           {/* DRIVER REGISTER RESTRICTION NOTICE */}
           {!isLogin && role === 'driver' ? (

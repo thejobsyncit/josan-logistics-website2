@@ -92,6 +92,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const handleHeaderSearch = (e) => {
     if (e) e.preventDefault();
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (headerSearch.trim()) {
       const term = headerSearch.trim();
       setActiveTrackingId(term);
@@ -109,34 +113,36 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     { id: 'contact', label: 'Contact' },
   ];
 
-  const activeRole = currentUser?.role || currentRole;
-  if (activeRole === 'customer') {
-    navItems = [
-      { id: 'home', label: 'Home' },
-      { id: 'about', label: 'About Us' },
-      { id: 'services', label: 'Services' },
-      { id: 'track', label: 'Track Shipment' },
-      { id: 'book', label: 'Book Shipment' },
-      { id: 'contact', label: 'Contact' },
-      { id: 'customer-dashboard', label: 'My Orders' },
-    ];
-  } else if (activeRole === 'driver') {
-    navItems = [
-      { id: 'home', label: 'Home' },
-      { id: 'about', label: 'About Us' },
-      { id: 'services', label: 'Services' },
-      { id: 'contact', label: 'Contact' },
-      { id: 'driver-dashboard', label: 'Driver Portal' },
-    ];
-  } else if (activeRole === 'admin') {
-    navItems = [
-      { id: 'home', label: 'Home' },
-      { id: 'about', label: 'About Us' },
-      { id: 'services', label: 'Services' },
-      { id: 'track', label: 'Track Shipment' },
-      { id: 'contact', label: 'Contact' },
-      { id: 'admin-dashboard', label: 'Admin Hub' },
-    ];
+  if (currentUser) {
+    const role = currentUser.role || currentRole;
+    if (role === 'customer') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'track', label: 'Track Shipment' },
+        { id: 'book', label: 'Book Shipment' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'customer-dashboard', label: 'My Orders' },
+      ];
+    } else if (role === 'driver') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'driver-dashboard', label: 'Driver Portal' },
+      ];
+    } else if (role === 'admin') {
+      navItems = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services' },
+        { id: 'track', label: 'Track Shipment' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'admin-dashboard', label: 'Admin Hub' },
+      ];
+    }
   }
 
   return (

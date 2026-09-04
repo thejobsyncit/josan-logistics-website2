@@ -72,7 +72,7 @@ const DynamicServiceGallery = ({ images, title }) => {
 };
 
 export const ServicesPage = ({ setActiveTab }) => {
-  const { openAuthModalWithoutClose, currentUser } = useLogistics();
+  const { openAuthModalWithoutClose, currentUser, setIsAuthModalOpen } = useLogistics();
 
   const [calculatorWeight, setCalculatorWeight] = useState(25);
   const [calculatorService, setCalculatorService] = useState('express');
@@ -80,7 +80,7 @@ export const ServicesPage = ({ setActiveTab }) => {
 
   const handleBookServiceClick = () => {
     if (!currentUser) {
-      openAuthModalWithoutClose();
+      setIsAuthModalOpen(true);
     } else {
       setActiveTab('book');
     }

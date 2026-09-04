@@ -25,6 +25,16 @@ import {
 } from 'lucide-react';
 
 export const HomePage = ({ setActiveTab }) => {
+  const { currentUser, setIsAuthModalOpen } = useLogistics();
+
+  const handleAction = (tab) => {
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+    } else {
+      setActiveTab(tab);
+    }
+  };
+
   return (
     <div className="space-y-20 pb-20">
       
@@ -52,7 +62,7 @@ export const HomePage = ({ setActiveTab }) => {
               {/* Action Buttons */}
               <div className="pt-2 flex flex-wrap items-center gap-4">
                 <button
-                  onClick={() => setActiveTab('book')}
+                  onClick={() => handleAction('book')}
                   className="px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-sm shadow-orange-sm transition-all flex items-center justify-center space-x-2 active:scale-95 cursor-pointer"
                 >
                   <span>Join Us</span>
@@ -60,7 +70,7 @@ export const HomePage = ({ setActiveTab }) => {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('track')}
+                  onClick={() => handleAction('track')}
                   className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 shadow-sm"
                 >
                   <Search className="w-4 h-4 text-orange-400" />
@@ -256,8 +266,8 @@ export const HomePage = ({ setActiveTab }) => {
 
               <div className="pt-2 flex items-center space-x-4">
                 <button
-                  onClick={() => setActiveTab('book')}
-                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-sm shadow-orange-glow transition-all inline-flex items-center space-x-2"
+                  onClick={() => handleAction('book')}
+                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-sm shadow-orange-glow transition-all inline-flex items-center space-x-2 cursor-pointer"
                 >
                   <span>Book Freight Today</span>
                   <ArrowRight className="w-4 h-4" />
@@ -391,8 +401,8 @@ export const HomePage = ({ setActiveTab }) => {
 
           <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 z-10">
             <button
-              onClick={() => setActiveTab('book')}
-              className="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-extrabold text-sm shadow-xl transition-all flex items-center justify-center space-x-2 active:scale-95"
+              onClick={() => handleAction('book')}
+              className="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-extrabold text-sm shadow-xl transition-all flex items-center justify-center space-x-2 active:scale-95 cursor-pointer"
             >
               <Truck className="w-5 h-5 text-orange-400" />
               <span>Book Shipment Now</span>

@@ -178,30 +178,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
   return (
     <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
       
-      {/* Top Header Card with Prominent Return to Dashboard Button */}
+      {/* Top Header Card */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-          <button
-            onClick={() => {
-              if (setActiveTab) {
-                setActiveTab('customer-dashboard');
-              } else {
-                window.location.hash = '#customer-dashboard';
-              }
-            }}
-            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-2 cursor-pointer shrink-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>← Return to Dashboard</span>
-          </button>
-          
-          <div>
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold border border-orange-200">
-              <Navigation className="w-3.5 h-3.5" />
-              <span>Singapore Telematics Satellite Network</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-sans mt-1">Live Demo GPS Tracker</h1>
+        <div>
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold border border-orange-200">
+            <Navigation className="w-3.5 h-3.5" />
+            <span>Singapore Telematics Satellite Network</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-sans mt-1">Live Demo GPS Tracker</h1>
         </div>
 
         <div className="flex items-center space-x-3">

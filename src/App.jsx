@@ -35,19 +35,8 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in">
-          {/* Header Card with Prominent Return to Dashboard Button */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <button
-              onClick={() => {
-                this.setState({ hasError: false });
-                if (this.props.onReset) this.props.onReset();
-              }}
-              className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center space-x-2 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>← Return to Dashboard</span>
-            </button>
-
+          {/* Telematics Header Card */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card flex items-center justify-between gap-4">
             <div className="flex items-center space-x-2">
               <span className="text-[11px] font-extrabold text-orange-600 uppercase tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
                 Singapore Telematics Live Demo Map
@@ -112,7 +101,14 @@ const MainContent = () => {
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
   
-  const { currentRole, currentUser, toggleRole } = useLogistics();
+  const { currentRole, currentUser, toggleRole, setIsAuthModalOpen } = useLogistics();
+
+  // Automatically pop up Login/Register modal on initial website open if customer is not logged in
+  useEffect(() => {
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+    }
+  }, []);
 
   // Scroll to top of page whenever activeTab changes
   useEffect(() => {
@@ -121,6 +117,10 @@ const MainContent = () => {
 
   // Navigation tab switcher synced with Browser History API (pushState)
   const changeActiveTab = (tab, pushHistory = true) => {
+    if (!currentUser && (tab === 'book' || tab === 'track' || tab === 'customer-dashboard' || tab === 'driver-dashboard' || tab === 'admin-dashboard')) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     setActiveTab(tab);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const hash = `#${tab}`;

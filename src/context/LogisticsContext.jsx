@@ -224,7 +224,7 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Auth login
-  const loginUser = (email, role, setActiveTab, details = {}) => {
+  const loginUser = (email, password, role, setActiveTab, details = {}) => {
     const userRole = role || (email.includes('admin') ? 'admin' : email.includes('driver') ? 'driver' : 'customer');
     
     let matchedDriver = null;
@@ -235,6 +235,19 @@ export const LogisticsProvider = ({ children }) => {
         (d.phone && d.phone.replace(/[^0-9]/g, '') === cleanInput.replace(/[^0-9]/g, '')) ||
         (d.name && d.name.trim().toLowerCase() === cleanInput)
       );
+
+      if (!matchedDriver) {
+        return { success: false, error: 'Driver account not found. Drivers must be provisioned by Admin in the Admin Control Portal first.' };
+      }
+
+      const expectedPassword = matchedDriver.password || 'driver123';
+      if (password && password !== expectedPassword) {
+        return { success: false, error: 'Incorrect Driver Password. Please use the password set by Admin.' };
+      }
+    } else if (userRole === 'admin') {
+      if (password && password !== 'admin123') {
+        return { success: false, error: 'Incorrect Admin password. Default demo password is: admin123' };
+      }
     }
 
     const userObj = {
@@ -259,45 +272,6 @@ export const LogisticsProvider = ({ children }) => {
     setCurrentRole(userRole);
     setIsAuthModalOpen(false);
 
-    // If registering/logging in as driver with details, save/update in driver roster for Admin Portal
-    if (userRole === 'driver') {
-      const driverName = details.fullName || userObj.name;
-      setDrivers(prev => {
-        const existingIdx = prev.findIndex(d => d.email === email || d.name === driverName);
-        if (existingIdx >= 0) {
-          const updated = [...prev];
-          updated[existingIdx] = {
-            ...updated[existingIdx],
-            photo: details.photo || updated[existingIdx].photo,
-            licenseNumber: details.licenseNumber || updated[existingIdx].licenseNumber,
-            assignedHub: details.assignedHub || updated[existingIdx].assignedHub,
-            workingLocation: details.assignedHub || updated[existingIdx].workingLocation
-          };
-          return updated;
-        } else {
-          const newDriverRecord = {
-            id: `DRV-${Math.floor(100 + Math.random() * 900)}`,
-            name: driverName,
-            email: email,
-            phone: details.phone || '+65 9123 4567',
-            licenseNumber: details.licenseNumber || 'SG-CLASS4-9910',
-            assignedHub: details.assignedHub || 'Changi Air Cargo Logistics Hub',
-            workingLocation: details.assignedHub || 'Changi Air Cargo Logistics Hub',
-            vehicleType: 'EV Express Cargo Van',
-            vehicleId: `SG-${Math.floor(100 + Math.random() * 900)}`,
-            photo: details.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-            status: 'Available',
-            deliveriesCompleted: 0,
-            onTimeRate: '100%',
-            rating: 5.0,
-            safetyScore: '100/100',
-            joinedDate: 'Just Now'
-          };
-          return [newDriverRecord, ...prev];
-        }
-      });
-    }
-
     const wasForcedBookingModal = authModalHideClose;
     setIsAuthModalOpen(false);
     setAuthModalHideClose(false);
@@ -317,6 +291,7 @@ export const LogisticsProvider = ({ children }) => {
 
     const portalName = userRole === 'admin' ? 'Admin Hub' : userRole === 'driver' ? 'Driver Portal' : 'Customer Portal';
     showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
+    return { success: true };
   };
 
   const logoutUser = () => {
@@ -590,6 +565,7 @@ export const LogisticsProvider = ({ children }) => {
       id: newDriver.id || `DRV-${Math.floor(100 + Math.random() * 900)}`,
       name: newDriver.name,
       email: newDriver.email,
+      password: newDriver.password || 'driver123',
       phone: newDriver.phone,
       licenseNumber: newDriver.licenseNumber || 'SG-CLASS4-991',
       dob: newDriver.dob || '1992-08-14',
@@ -597,6 +573,7 @@ export const LogisticsProvider = ({ children }) => {
       vehicleId: newDriver.vehicleId || 'SG-900',
       assignedVehicle: `${newDriver.vehicleType || 'Refrigerated Van'} (${newDriver.vehicleId || 'SG-900'})`,
       assignedHub: newDriver.assignedHub || 'Singapore Changi Air Cargo Hub',
+      workingLocation: newDriver.assignedHub || 'Singapore Changi Air Cargo Hub',
       deliveriesCompleted: 0,
       onTimeRate: '100%',
       rating: 5.0,
@@ -605,7 +582,17 @@ export const LogisticsProvider = ({ children }) => {
       photo: newDriver.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80'
     };
     setDrivers(prev => [driverWithId, ...prev]);
-    showToast(`Driver ${driverWithId.name} (${driverWithId.email}) added to fleet roster by Admin`);
+    showToast(`Driver ${driverWithId.name} added to fleet roster with Admin Password`);
+  };
+
+  const updateDriverPassword = (driverId, newPassword) => {
+    setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, password: newPassword } : d));
+    showToast(`Password updated for Driver ID #${driverId}`, 'success');
+  };
+
+  const updateDriverPhoto = (driverId, photoUrl) => {
+    setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, photo: photoUrl } : d));
+    showToast(`Profile photo updated for Driver ID #${driverId}`, 'success');
   };
 
   const removeDriver = (driverId) => {
@@ -721,6 +708,8 @@ export const LogisticsProvider = ({ children }) => {
       flagWeatherDelay,
       assignDriver,
       addDriver,
+      updateDriverPassword,
+      updateDriverPhoto,
       removeDriver,
       toggleDriverStatus,
       addWarehouse,
