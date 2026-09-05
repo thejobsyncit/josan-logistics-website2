@@ -11,7 +11,11 @@ import {
   Pencil,
   Trash2,
   CreditCard,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck,
+  Lock,
+  X
 } from 'lucide-react';
 
 export const CustomerDashboardPage = ({ setActiveTab }) => {
@@ -65,6 +69,130 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
   const [editingAddressId, setEditingAddressId] = useState(null);
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketMessage, setTicketMessage] = useState('');
+
+  // Saved Payment Methods State (persisted in localStorage)
+  const defaultSavedCards = [
+    {
+      id: 'card-1',
+      name: 'Razer Corporate Visa',
+      number: '•••• •••• •••• 4242',
+      rawNumber: '4242',
+      exp: '12/28',
+      type: 'VISA',
+      isPrimary: true
+    },
+    {
+      id: 'card-2',
+      name: 'Operations Mastercard',
+      number: '•••• •••• •••• 8892',
+      rawNumber: '8892',
+      exp: '09/27',
+      type: 'MASTERCARD',
+      isPrimary: false
+    },
+    {
+      id: 'card-3',
+      name: 'Executive Travel AMEX',
+      number: '•••• •••• •••• 1004',
+      rawNumber: '1004',
+      exp: '04/29',
+      type: 'AMEX',
+      isPrimary: false
+    }
+  ];
+
+  const [savedCards, setSavedCards] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_saved_cards');
+      return saved ? JSON.parse(saved) : defaultSavedCards;
+    } catch (e) {
+      return defaultSavedCards;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_saved_cards', JSON.stringify(savedCards));
+    } catch (e) {}
+  }, [savedCards]);
+
+  // Add Payment Method Modal State
+  const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
+  const [newCardName, setNewCardName] = useState('');
+  const [newCardNumber, setNewCardNumber] = useState('');
+  const [newCardExp, setNewCardExp] = useState('');
+  const [newCardCvv, setNewCardCvv] = useState('');
+  const [newCardType, setNewCardType] = useState('VISA');
+  const [newCardNickname, setNewCardNickname] = useState('');
+  const [newCardIsPrimary, setNewCardIsPrimary] = useState(false);
+  const [cardError, setCardError] = useState('');
+
+  const formatCardNumber = (val) => {
+    const digits = val.replace(/[^0-9]/g, '').slice(0, 16);
+    return digits.replace(/(.{4})/g, '$1 ').trim();
+  };
+
+  const formatExpDate = (val) => {
+    const digits = val.replace(/[^0-9]/g, '').slice(0, 4);
+    if (digits.length >= 3) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    return digits;
+  };
+
+  const handleAddCardSubmit = (e) => {
+    e.preventDefault();
+    setCardError('');
+
+    const cleanNumber = newCardNumber.replace(/[^0-9]/g, '');
+    if (cleanNumber.length < 15) {
+      setCardError('Please enter a valid 15 or 16 digit card number.');
+      return;
+    }
+
+    if (!newCardExp || newCardExp.length < 5) {
+      setCardError('Please enter a valid expiration date (MM/YY).');
+      return;
+    }
+
+    if (!newCardCvv || newCardCvv.length < 3) {
+      setCardError('Please enter a valid CVV security code (3 or 4 digits).');
+      return;
+    }
+
+    const last4 = cleanNumber.slice(-4);
+    const formattedMasked = `•••• •••• •••• ${last4}`;
+
+    const newCardObj = {
+      id: `card-${Date.now()}`,
+      name: newCardNickname.trim() || newCardName.trim() || `${displayUser.name || 'Corporate'} ${newCardType}`,
+      number: formattedMasked,
+      rawNumber: last4,
+      exp: newCardExp,
+      type: newCardType,
+      isPrimary: newCardIsPrimary
+    };
+
+    let updatedList = [...savedCards];
+    if (newCardIsPrimary) {
+      updatedList = updatedList.map(c => ({ ...c, isPrimary: false }));
+    }
+    updatedList.push(newCardObj);
+
+    setSavedCards(updatedList);
+    showToast(`New ${newCardType} card (•••• ${last4}) added successfully!`);
+
+    // Reset Form
+    setNewCardName('');
+    setNewCardNumber('');
+    setNewCardExp('');
+    setNewCardCvv('');
+    setNewCardType('VISA');
+    setNewCardNickname('');
+    setNewCardIsPrimary(false);
+    setCardError('');
+    setIsAddCardModalOpen(false);
+  };
 
   const handleStartEdit = (addr) => {
     setEditingAddressId(addr.id);
@@ -586,8 +714,8 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
               </div>
               <button
                 type="button"
-                onClick={() => showToast('Card authorization window opened. New card saved.')}
-                className="px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer"
+                onClick={() => setIsAddCardModalOpen(true)}
+                className="px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Payment Method</span>
@@ -595,59 +723,60 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Mock Saved Card 1 */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white space-y-3 shadow-md border border-slate-700">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 rounded-full">
-                    ★ Primary Default
-                  </span>
-                  <CreditCard className="w-5 h-5 text-slate-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">Razer Corporate Visa</p>
-                  <p className="text-base font-mono font-extrabold tracking-widest text-white mt-1">•••• •••• •••• 4242</p>
-                </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
-                  <span>Expires: 12/28</span>
-                  <span className="font-bold text-slate-200">VISA</span>
-                </div>
-              </div>
+              {savedCards.map((card) => (
+                <div 
+                  key={card.id} 
+                  className={`p-5 rounded-2xl space-y-3 shadow-md border relative transition-all ${
+                    card.isPrimary 
+                      ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white border-slate-700' 
+                      : 'bg-white text-slate-900 border-slate-200 hover:border-orange-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    {card.isPrimary ? (
+                      <span className="text-[10px] font-extrabold uppercase bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 rounded-full">
+                        ★ Primary Default
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2.5 py-0.5 rounded-full">
+                        {card.type} Card
+                      </span>
+                    )}
+                    <div className="flex items-center space-x-1.5">
+                      <CreditCard className={`w-5 h-5 ${card.isPrimary ? 'text-slate-400' : 'text-orange-500'}`} />
+                      {savedCards.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const filtered = savedCards.filter(c => c.id !== card.id);
+                            if (card.isPrimary && filtered.length > 0) {
+                              filtered[0].isPrimary = true;
+                            }
+                            setSavedCards(filtered);
+                            showToast(`Payment method (•••• ${card.rawNumber}) removed.`);
+                          }}
+                          className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                            card.isPrimary ? 'hover:bg-slate-700 text-slate-400 hover:text-rose-400' : 'hover:bg-rose-50 text-slate-400 hover:text-rose-600'
+                          }`}
+                          title="Remove card"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Mock Saved Card 2 */}
-              <div className="p-5 rounded-2xl bg-white text-slate-900 space-y-3 shadow-card border border-slate-200 hover:border-orange-300 transition-all">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    Purchasing
-                  </span>
-                  <CreditCard className="w-5 h-5 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">Operations Mastercard</p>
-                  <p className="text-base font-mono font-extrabold tracking-widest text-slate-900 mt-1">•••• •••• •••• 8892</p>
-                </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
-                  <span>Expires: 09/27</span>
-                  <span className="font-bold text-slate-700">MASTERCARD</span>
-                </div>
-              </div>
+                  <div>
+                    <p className={`text-xs font-medium ${card.isPrimary ? 'text-slate-400' : 'text-slate-500'}`}>{card.name}</p>
+                    <p className={`text-base font-mono font-extrabold tracking-widest mt-1 ${card.isPrimary ? 'text-white' : 'text-slate-900'}`}>{card.number}</p>
+                  </div>
 
-              {/* Mock Saved Card 3 */}
-              <div className="p-5 rounded-2xl bg-white text-slate-900 space-y-3 shadow-card border border-slate-200 hover:border-orange-300 transition-all">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    Executive
-                  </span>
-                  <CreditCard className="w-5 h-5 text-blue-600" />
+                  <div className={`flex justify-between items-center text-[10px] pt-1 ${card.isPrimary ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <span>Expires: {card.exp}</span>
+                    <span className={`font-bold ${card.isPrimary ? 'text-slate-200' : 'text-slate-700'}`}>{card.type}</span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">Executive Travel AMEX</p>
-                  <p className="text-base font-mono font-extrabold tracking-widest text-slate-900 mt-1">•••• •••• •••• 1004</p>
-                </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
-                  <span>Expires: 04/29</span>
-                  <span className="font-bold text-blue-700">AMEX</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -720,6 +849,183 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ADD PAYMENT METHOD MODAL */}
+      {isAddCardModalOpen && (
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAddCardModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden relative animate-scale-up">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white p-6 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold font-sans">Add New Payment Method</h3>
+                  <p className="text-[11px] text-slate-400 flex items-center space-x-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 inline" />
+                    <span>256-Bit SSL Encrypted Card Vault</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddCardModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleAddCardSubmit} className="p-6 space-y-4 text-xs">
+              
+              {cardError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-semibold flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                  <span>{cardError}</span>
+                </div>
+              )}
+
+              {/* Cardholder Name */}
+              <div>
+                <label className="block font-extrabold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
+                  Cardholder Name *
+                </label>
+                <input
+                  type="text"
+                  value={newCardName}
+                  onChange={(e) => setNewCardName(e.target.value)}
+                  placeholder="e.g. Razer Corporate Operations"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange text-xs"
+                  required
+                />
+              </div>
+
+              {/* Card Brand & Label Nickname */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-extrabold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
+                    Card Network *
+                  </label>
+                  <select
+                    value={newCardType}
+                    onChange={(e) => setNewCardType(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange text-xs cursor-pointer"
+                  >
+                    <option value="VISA">Visa Card</option>
+                    <option value="MASTERCARD">Mastercard</option>
+                    <option value="AMEX">American Express</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-extrabold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
+                    Card Nickname / Label
+                  </label>
+                  <input
+                    type="text"
+                    value={newCardNickname}
+                    onChange={(e) => setNewCardNickname(e.target.value)}
+                    placeholder="e.g. Singapore Dispatch"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Card Number */}
+              <div>
+                <label className="block font-extrabold text-slate-700 uppercase tracking-wider text-[10px] mb-1 flex items-center justify-between">
+                  <span>Card Number *</span>
+                  <span className="text-[10px] text-orange-600 font-mono">16 Digits</span>
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    maxLength={19}
+                    value={newCardNumber}
+                    onChange={(e) => setNewCardNumber(formatCardNumber(e.target.value))}
+                    placeholder="4532 8920 1102 4242"
+                    className="w-full p-3 pl-10 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-orange text-xs tracking-wider"
+                    required
+                  />
+                  <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5" />
+                </div>
+              </div>
+
+              {/* Expiry & CVV */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-extrabold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
+                    Expiration Date *
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={5}
+                    value={newCardExp}
+                    onChange={(e) => setNewCardExp(formatExpDate(e.target.value))}
+                    placeholder="MM/YY"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-orange text-xs text-center"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-extrabold text-slate-700 uppercase tracking-wider text-[10px] mb-1 flex items-center justify-between">
+                    <span>CVV / CVC Code *</span>
+                    <Lock className="w-3 h-3 text-slate-400" />
+                  </label>
+                  <input
+                    type="password"
+                    maxLength={4}
+                    value={newCardCvv}
+                    onChange={(e) => setNewCardCvv(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="•••"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-orange text-xs text-center"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Set Primary Default Checkbox */}
+              <div className="pt-2">
+                <label className="flex items-center space-x-2.5 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={newCardIsPrimary}
+                    onChange={(e) => setNewCardIsPrimary(e.target.checked)}
+                    className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500 border-slate-300 cursor-pointer"
+                  />
+                  <span className="font-bold text-slate-800 text-xs">Set as primary default payment card for instant order billing</span>
+                </label>
+              </div>
+
+              {/* Modal Buttons */}
+              <div className="pt-3 flex items-center space-x-3">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95 text-xs"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Authorize & Save Card</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddCardModalOpen(false)}
+                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer text-xs"
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </form>
+          </div>
         </div>
       )}
 
