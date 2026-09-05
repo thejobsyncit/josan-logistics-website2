@@ -43,6 +43,20 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const [editCompany, setEditCompany] = useState('');
   const [editLicense, setEditLicense] = useState('');
   const [editDob, setEditDob] = useState('');
+
+  const handleLogout = () => {
+    setIsProfileOpen(false);
+    logoutUser();
+    if (setActiveTab) {
+      setActiveTab('home');
+    }
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#home';
+      if (window.history && window.history.pushState) {
+        window.history.pushState({ tab: 'home' }, '', '#home');
+      }
+    }
+  };
   const [editPhoto, setEditPhoto] = useState('');
 
   const handleEditPhotoUpload = (e) => {
@@ -221,7 +235,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   </div>
                 </button>
                 <button
-                  onClick={logoutUser}
+                  onClick={handleLogout}
                   title="Logout"
                   className="p-2 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                 >
@@ -551,7 +565,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 </div>
                 <button
                   onClick={() => {
-                    logoutUser();
+                    handleLogout();
                     setMobileMenuOpen(false);
                   }}
                   className="text-xs font-bold text-rose-600 underline cursor-pointer"

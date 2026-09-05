@@ -297,6 +297,12 @@ export const LogisticsProvider = ({ children }) => {
   const logoutUser = () => {
     setCurrentUser(null);
     localStorage.removeItem('josan_user');
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#home';
+      if (window.history && window.history.pushState) {
+        window.history.pushState({ tab: 'home' }, '', '#home');
+      }
+    }
     showToast('Logged out successfully', 'info');
   };
 

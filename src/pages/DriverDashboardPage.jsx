@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { RealTruckGraphic } from '../components/RealTruckGraphic';
-import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
   Truck, 
   MapPin, 
@@ -32,7 +31,17 @@ import {
   Edit2,
   Save,
   X,
-  Bell
+  Bell,
+  Volume2,
+  VolumeX,
+  PhoneCall,
+  MessageSquare,
+  BatteryCharging,
+  Sparkles,
+  Target,
+  ShieldAlert,
+  Sun,
+  Fuel
 } from 'lucide-react';
 
 export const DriverDashboardPage = ({ setActiveTab }) => {
@@ -46,7 +55,9 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     showToast,
     driverSubTab: driverTab,
     setDriverSubTab: setDriverTab,
-    driverIntimations
+    driverIntimations,
+    acceptDriverIntimation,
+    declineDriverIntimation
   } = useLogistics();
 
   const defaultDriver = {
@@ -102,6 +113,26 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   const [editDob, setEditDob] = useState('');
   const [editHub, setEditHub] = useState('');
   const [editPhoto, setEditPhoto] = useState('');
+
+  // Driver Smart Utilities State
+  const [isVoiceGuidanceOn, setIsVoiceGuidanceOn] = useState(true);
+  const [showDispatchSupportModal, setShowDispatchSupportModal] = useState(false);
+  const [showEVHubModal, setShowEVHubModal] = useState(false);
+  const [quickSmsSent, setQuickSmsSent] = useState(false);
+
+  const toggleVoiceGuidance = () => {
+    setIsVoiceGuidanceOn(prev => {
+      const nextState = !prev;
+      showToast(nextState ? '🔊 Voice Navigation Guidance Activated' : '🔇 Voice Navigation Guidance Muted');
+      return nextState;
+    });
+  };
+
+  const handleSendArrivalSMS = () => {
+    setQuickSmsSent(true);
+    showToast('💬 Automated SMS sent to recipient: "Driver is 5 mins away at loading dock!"');
+    setTimeout(() => setQuickSmsSent(false), 8000);
+  };
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -313,123 +344,146 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
         </div>
       </div>
 
-      {/* ORDER PROXIMITY & ADMIN DISPATCH INTIMATIONS PANEL */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      {/* DRIVER FEATURE EXPLORER HEADER NAVIGATION BAR */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="relative">
-              <span className="w-4 h-4 bg-orange-500 rounded-full animate-ping absolute top-0 right-0"></span>
-              <div className="w-10 h-10 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 font-bold">
-                <Bell className="w-5 h-5" />
-              </div>
+            <div className="w-12 h-12 rounded-2xl bg-orange-100 border border-orange-200 text-orange-600 flex items-center justify-center font-bold shrink-0 shadow-sm">
+              <Compass className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="text-base font-extrabold text-slate-900">Order Dispatch Intimations & Proximity Alerts</h3>
-                <span className="bg-orange-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full animate-pulse">
-                  {(driverIntimations || []).length} Active Intimations
+                <h2 className="text-lg font-extrabold text-slate-900">Driver Feature Explorer & Control Portal</h2>
+                <span className="bg-orange-50 text-orange-600 border border-orange-200 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  4 Dedicated Modules
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium">
-                Automated intimations triggered when orders are placed near your location or assigned directly by Admin.
+                Switch between dedicated driver feature pages to explore live telemetry, route timeline steppers, and dispatch alerts.
               </p>
             </div>
           </div>
+
+          {/* Quick Action Tools Bar */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={toggleVoiceGuidance}
+              className={`px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                isVoiceGuidanceOn
+                  ? 'bg-orange-50 border-orange-300 text-orange-800 shadow-2xs'
+                  : 'bg-slate-50 border-slate-200 text-slate-600'
+              }`}
+            >
+              {isVoiceGuidanceOn ? <Volume2 className="w-4 h-4 text-orange-600 animate-pulse" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+              <span>{isVoiceGuidanceOn ? 'Voice Guidance ON' : 'Muted'}</span>
+            </button>
+
+            <button
+              onClick={() => setShowEVHubModal(true)}
+              className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-2xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+            >
+              <BatteryCharging className="w-4 h-4 text-emerald-600" />
+              <span>EV Chargers</span>
+            </button>
+
+            <button
+              onClick={() => setShowDispatchSupportModal(true)}
+              className="px-4 py-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800 rounded-2xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+            >
+              <PhoneCall className="w-4 h-4 text-red-600 animate-bounce" />
+              <span>SOS Dispatch Hotline</span>
+            </button>
+          </div>
         </div>
 
-        {(!driverIntimations || driverIntimations.length === 0) ? (
-          <div className="p-6 bg-slate-50 rounded-2xl text-center space-y-2 border border-dashed border-slate-200">
-            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-            <p className="text-xs font-extrabold text-slate-700">All Intimated Orders Responded To</p>
-            <p className="text-[11px] text-slate-400">You will be intimated immediately when a new customer order is placed nearby or assigned by Admin.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {driverIntimations.map((intimation) => (
-              <div 
-                key={intimation.id}
-                className={`p-5 rounded-2xl border transition-all shadow-sm space-y-3 relative ${
-                  intimation.type === 'admin_assigned' 
-                    ? 'bg-orange-50/70 border-orange-300 ring-2 ring-orange-400/30' 
-                    : 'bg-slate-50 border-slate-200 hover:border-orange-300'
+        {/* 4 DEDICATED MODULE PAGE BUTTONS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-bold">
+          {[
+            { 
+              id: 'intimations', 
+              label: '1. Dispatch Intimations & Alerts', 
+              sublabel: 'Proximity & admin order alerts', 
+              icon: Bell, 
+              badge: `${(driverIntimations || []).length} Active Alerts`, 
+              badgeBg: 'bg-orange-50 text-orange-700 border-orange-200' 
+            },
+            { 
+              id: 'dashboard', 
+              label: '2. Driver Dashboard & Earnings', 
+              sublabel: 'Available freight jobs & payouts', 
+              icon: Truck, 
+              badge: '3 Jobs Ready', 
+              badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+            },
+            { 
+              id: 'navigation', 
+              label: '3. Navigation & Route Optimizer', 
+              sublabel: 'Live GPS & timeline stepper', 
+              icon: Compass, 
+              badge: 'LIVE GPS', 
+              badgeBg: 'bg-orange-50 text-orange-600 border-orange-200' 
+            },
+            { 
+              id: 'update', 
+              label: '4. Delivery Update & Proof POD', 
+              sublabel: 'POD photos & E-signatures', 
+              icon: CheckSquare, 
+              badge: 'POD Portal', 
+              badgeBg: 'bg-slate-100 text-slate-700 border-slate-200' 
+            },
+          ].map((tab) => {
+            const IconComp = tab.icon;
+            const isActive = driverTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setDriverTab(tab.id)}
+                className={`p-4 rounded-2xl transition-all text-left flex items-start space-x-3 cursor-pointer ${
+                  isActive
+                    ? 'bg-orange-gradient text-white shadow-orange-md font-extrabold ring-2 ring-orange-400/50 scale-[1.01]'
+                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-800 font-bold'
                 }`}
               >
-                {/* Intimation Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                      intimation.type === 'admin_assigned' 
-                        ? 'bg-red-600 text-white shadow-sm' 
-                        : 'bg-emerald-600 text-white shadow-sm'
-                    }`}>
-                      {intimation.type === 'admin_assigned' ? '🚨 Direct Admin Assignment' : '📍 Nearby Proximity Alert'}
-                    </span>
-                    {intimation.distanceKm && (
-                      <span className="text-[10px] font-bold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
-                        {intimation.distanceKm} km from hub
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-400">{intimation.timestamp}</span>
+                <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${isActive ? 'bg-white/20 text-white' : 'bg-white text-orange-500 border border-slate-200 shadow-2xs'}`}>
+                  <IconComp className="w-5 h-5" />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <span className={`text-xs font-extrabold block truncate ${isActive ? 'text-white' : 'text-slate-900'}`}>{tab.label}</span>
+                  <p className={`text-[11px] mt-0.5 font-medium truncate ${isActive ? 'text-orange-100' : 'text-slate-500'}`}>{tab.sublabel}</p>
+                  <span className={`inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border mt-2.5 ${
+                    isActive ? 'bg-white/20 text-white border-white/30' : tab.badgeBg
+                  }`}>
+                    {tab.badge}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
-                <div>
-                  <h4 className="text-sm font-extrabold text-slate-900">{intimation.title}</h4>
-                  <p className="text-xs text-slate-600 mt-1 font-medium leading-relaxed">{intimation.message}</p>
-                </div>
-
-                {/* Pickup & Delivery Details */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200/80 text-xs space-y-1.5 font-medium">
-                  <div className="flex items-center justify-between text-slate-700">
-                    <span className="text-slate-400 font-bold">Pickup Location:</span>
-                    <span className="font-bold text-slate-900 truncate max-w-[200px]">{intimation.pickup}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-700">
-                    <span className="text-slate-400 font-bold">Delivery Destination:</span>
-                    <span className="font-bold text-slate-900 truncate max-w-[200px]">{intimation.delivery}</span>
-                  </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px]">
-                    <span className="text-slate-500">Cargo: <strong>{intimation.cargoType} ({intimation.weight})</strong></span>
-                    <span className="text-emerald-700 font-extrabold">{intimation.price}</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center space-x-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const targetId = intimation.id || intimation.shipmentId;
-                      const newActive = acceptDriverIntimation(targetId, driverInfo);
-                      if (newActive) {
-                        setActiveJob(newActive);
-                        setDriverTab('dashboard');
-                      }
-                    }}
-                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Accept & Start Pickup</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const targetId = intimation.id || intimation.shipmentId;
-                      declineDriverIntimation(targetId);
-                    }}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                  >
-                    Decline
-                  </button>
-                </div>
-              </div>
-            ))}
+        {/* Live Weather & Telematics Mini Banner */}
+        <div className="bg-slate-900 text-white rounded-2xl px-5 py-3 border border-slate-800 flex flex-wrap items-center justify-between text-xs gap-3 shadow-inner">
+          <div className="flex items-center space-x-3 text-slate-300">
+            <span className="flex items-center space-x-1.5 text-amber-400 font-bold">
+              <Sun className="w-4 h-4" />
+              <span>Singapore 28°C Clear</span>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="flex items-center space-x-1 text-slate-300">
+              <Compass className="w-3.5 h-3.5 text-orange-400" />
+              <span>Expressway Telematics: <strong>PIE / TPE Traffic Smooth (65 KM/H)</strong></span>
+            </span>
           </div>
-        )}
+
+          <div className="flex items-center space-x-3 font-mono text-[11px]">
+            <span className="text-emerald-400 font-bold flex items-center space-x-1">
+              <BatteryCharging className="w-3.5 h-3.5" />
+              <span>EV Battery: 94% (Range 340 KM)</span>
+            </span>
+            <span className="text-slate-600">|</span>
+            <span className="text-orange-400 font-bold">Driver SLA: 99.6% On-Time</span>
+          </div>
+        </div>
       </div>
 
       {/* EDIT DRIVER PROFILE MODAL */}
@@ -591,30 +645,135 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
         </div>
       )}
 
-      {/* DRIVER MODULE NAVIGATION SUB-TABS (a. Dashboard | b. Navigation | c. Delivery Update) */}
-      <div className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm flex flex-wrap gap-2 text-xs font-bold">
-        {[
-          { id: 'dashboard', label: 'a. Driver Dashboard (Available & Earnings)', icon: Truck },
-          { id: 'navigation', label: 'b. Navigation & Route Optimization', icon: Compass },
-          { id: 'update', label: 'c. Delivery Update & Proof Uploader', icon: CheckSquare },
-        ].map((tab) => {
-          const IconComp = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setDriverTab(tab.id)}
-              className={`px-5 py-3 rounded-xl transition-all flex items-center space-x-2 ${
-                driverTab === tab.id
-                  ? 'bg-orange-gradient text-white shadow-orange-sm font-extrabold'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <IconComp className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ========================================================================= */}
+      {/* MODULE PAGE 1: DEDICATED ORDER INTIMATIONS & PROXIMITY ALERTS PAGE */}
+      {/* ========================================================================= */}
+      {driverTab === 'intimations' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <span className="w-4 h-4 bg-orange-500 rounded-full animate-ping absolute top-0 right-0"></span>
+                <div className="w-12 h-12 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 font-bold shadow-sm">
+                  <Bell className="w-6 h-6" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-xl font-extrabold text-slate-900">Order Dispatch Intimations & Proximity Alerts</h2>
+                  <span className="bg-orange-500 text-white text-xs font-extrabold px-3 py-1 rounded-full animate-pulse">
+                    {(driverIntimations || []).length} Active Intimations
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Automated intimations triggered when orders are placed near your location or assigned directly by Admin.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 font-mono text-xs text-slate-600 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span>Proximity Radar Active</span>
+            </div>
+          </div>
+
+          {(!driverIntimations || driverIntimations.length === 0) ? (
+            <div className="p-12 bg-slate-50 rounded-3xl text-center space-y-3 border border-dashed border-slate-200">
+              <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+              <h3 className="text-base font-extrabold text-slate-800">All Intimated Orders Responded To</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                You are on active standby. New customer orders placed nearby or assigned by Admin will intimate you instantly right here.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {driverIntimations.map((intimation) => (
+                <div 
+                  key={intimation.id}
+                  className={`p-6 rounded-3xl border transition-all shadow-md space-y-4 relative ${
+                    intimation.type === 'admin_assigned' 
+                      ? 'bg-orange-50/80 border-orange-300 ring-2 ring-orange-400/30' 
+                      : 'bg-slate-50/90 border-slate-200 hover:border-orange-300'
+                  }`}
+                >
+                  {/* Intimation Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
+                        intimation.type === 'admin_assigned' 
+                          ? 'bg-red-600 text-white shadow-sm' 
+                          : 'bg-emerald-600 text-white shadow-sm'
+                      }`}>
+                        {intimation.type === 'admin_assigned' ? '🚨 Direct Admin Assignment' : '📍 Nearby Proximity Alert'}
+                      </span>
+                      {intimation.distanceKm && (
+                        <span className="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-0.5 rounded-full font-mono">
+                          {intimation.distanceKm} km from hub
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-400 font-mono">{intimation.timestamp}</span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900">{intimation.title}</h4>
+                    <p className="text-xs text-slate-600 mt-1 font-medium leading-relaxed">{intimation.message}</p>
+                  </div>
+
+                  {/* Pickup & Delivery Details */}
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200/90 text-xs space-y-2 font-medium">
+                    <div className="flex items-center justify-between text-slate-700">
+                      <span className="text-slate-400 font-bold">Pickup Location:</span>
+                      <span className="font-bold text-slate-900 truncate max-w-[220px]">{intimation.pickup}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-700">
+                      <span className="text-slate-400 font-bold">Delivery Destination:</span>
+                      <span className="font-bold text-slate-900 truncate max-w-[220px]">{intimation.delivery}</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                      <span className="text-slate-500">Cargo: <strong className="text-slate-900">{intimation.cargoType} ({intimation.weight})</strong></span>
+                      <span className="text-emerald-700 font-extrabold text-sm font-mono">{intimation.price}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center space-x-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const targetId = intimation.id || intimation.shipmentId;
+                        const newActive = acceptDriverIntimation(targetId, driverInfo);
+                        if (newActive) {
+                          setActiveJob(newActive);
+                          setDriverTab('dashboard');
+                        }
+                      }}
+                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-extrabold transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Accept & Start Freight Pickup</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const targetId = intimation.id || intimation.shipmentId;
+                        declineDriverIntimation(targetId);
+                      }}
+                      className="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* SUB-SCREEN (a): DRIVER DASHBOARD (AVAILABLE DELIVERIES, CURRENT JOB, EARNINGS) */}
@@ -839,15 +998,114 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               </div>
             </div>
 
-            {/* INTEGRATED INTERACTIVE GOOGLE MAPS CONTAINER */}
-            <div className="relative h-96 sm:h-[420px] rounded-3xl border border-slate-300 overflow-hidden shadow-2xl">
-              <SingaporeGoogleMapBackground 
-                origin={activeJob.origin}
-                destination={activeJob.destination}
-                vehicle={activeJob.vehicle || 'Josan EV Semi-Truck'}
-                truckProgress={truckProgress}
-                currentSpeed={currentSpeed}
-              />
+            {/* DELIVERY TIMELINE STEPPER CONTAINER */}
+            <div className="bg-slate-50/70 p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
+                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+                  <span>DELIVERY TIMELINE STEPPER</span>
+                </h3>
+                <span className="text-[11px] font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200 font-mono">
+                  Active Order: #{activeJob?.id || 'JOS-88190-SG'} ({activeJob?.status || 'In Transit'})
+                </span>
+              </div>
+
+              <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3.5 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
+                {((activeJob && activeJob.timeline && activeJob.timeline.length > 0) 
+                  ? activeJob.timeline 
+                  : [
+                      { title: 'Order Booked & TradeNet Customs Cleared', location: activeJob?.origin || 'Changi Air Cargo Complex (SIN)', timestamp: activeJob?.createdDate || 'Aug 31, 08:15 AM', completed: true },
+                      { title: 'Picked Up by Josan Fleet Courier', location: activeJob?.origin ? `${activeJob.origin} Depot` : 'Changi Logistics Depot', timestamp: 'Aug 31, 10:40 AM', completed: true },
+                      { title: `In Transit via ${activeJob?.currentLocation || 'Expressway Hub'}`, location: activeJob?.currentLocation || 'Tampines Logistics Depot', timestamp: 'Aug 31, 01:20 PM', completed: activeJob?.status === 'Delivered', current: activeJob?.status !== 'Delivered' },
+                      { title: 'Out for Final Dispatch', location: activeJob?.destination ? `${activeJob.destination} Hub` : 'Jurong Port Hub', timestamp: activeJob?.estimatedDelivery || 'Today, 03:30 PM', completed: activeJob?.status === 'Delivered' },
+                      { title: 'Delivered & Digital E-Signature Signed', location: activeJob?.destination || '10 Jurong Port Road', timestamp: activeJob?.status === 'Delivered' ? 'Delivered' : activeJob?.estimatedDelivery || 'Today, 04:30 PM', completed: activeJob?.status === 'Delivered' }
+                    ]
+                ).map((step, idx) => {
+                  const isCompleted = step.completed || activeJob?.status === 'Delivered';
+                  const isCurrent = step.current || (!isCompleted && idx === 2);
+
+                  return (
+                    <div key={idx} className="relative flex items-start space-x-4 group">
+                      {/* Timeline Node Icon */}
+                      <div className={`absolute -left-6 sm:-left-8 top-0.5 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all z-10 ${
+                        isCurrent
+                          ? 'bg-orange-500 text-white ring-4 ring-orange-100 shadow-orange-sm'
+                          : isCompleted
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        {isCompleted ? (
+                          <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                        ) : (
+                          <span>{idx + 1}</span>
+                        )}
+                      </div>
+
+                      {/* Step Card */}
+                      <div className={`flex-1 p-4 rounded-xl border transition-all ${
+                        isCurrent
+                          ? 'bg-orange-50/80 border-orange-200 shadow-sm'
+                          : isCompleted
+                          ? 'bg-white border-slate-200/90 shadow-2xs'
+                          : 'bg-slate-50/60 border-slate-200/70 opacity-60'
+                      }`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <h4 className={`text-sm font-extrabold ${isCurrent ? 'text-orange-600' : 'text-slate-900'}`}>
+                            {step.title}
+                          </h4>
+                          {step.timestamp && (
+                            <span className="text-[11px] font-semibold text-slate-400 font-mono">{step.timestamp}</span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-slate-500 mt-1 flex items-center space-x-1.5 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{step.location}</span>
+                        </p>
+
+                        {/* Interactive Driver Actions for Current Active Step */}
+                        {isCurrent && (
+                          <div className="mt-3 pt-3 border-t border-orange-200/80 flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                window.location.href = 'tel:+6591823344';
+                              }}
+                              className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shadow-2xs cursor-pointer"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Call Recipient (+65 9182 3344)</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={handleSendArrivalSMS}
+                              disabled={quickSmsSent}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs ${
+                                quickSmsSent
+                                  ? 'bg-emerald-600 text-white border border-emerald-600'
+                                  : 'bg-orange-500 hover:bg-orange-600 text-white border border-orange-500'
+                              }`}
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>{quickSmsSent ? 'SMS Sent ✓' : 'Send 5-Min Arrival SMS'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setDriverTab('update')}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer ml-auto"
+                            >
+                              <span>Update POD</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* ROUTE OPTIMIZATION & DELIVERY STEPS CHECKLIST */}
@@ -1049,7 +1307,146 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
             </form>
 
           </div>
+        </div>
+      )}
 
+      {/* SOS DISPATCH CONTROL HOTLINE MODAL */}
+      {showDispatchSupportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-red-200 max-w-lg w-full p-6 space-y-5 relative">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2 text-red-600 font-extrabold text-sm uppercase tracking-wider">
+                <PhoneCall className="w-5 h-5 animate-pulse" />
+                <span>24/7 Dispatch Control & Emergency Hotline</span>
+              </div>
+              <button
+                onClick={() => setShowDispatchSupportModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="bg-red-50 border border-red-200 p-4 rounded-2xl text-red-950 space-y-1">
+                <p className="font-extrabold text-sm flex items-center space-x-1.5">
+                  <ShieldAlert className="w-4 h-4 text-red-600" />
+                  <span>Immediate Driver Support Desk</span>
+                </p>
+                <p className="text-slate-600 leading-relaxed">
+                  Need route assistance, breakdown support, or customer dispatch clearance? Contact HQ instantly.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {[
+                  { title: 'Dispatch HQ Master Desk (Singapore)', number: '+65 6789 0100', role: 'Live Route & Dispatch Assistance' },
+                  { title: 'Highway Breakdown & Towing Desk', number: '+65 6789 0101', role: '24/7 Roadside Rescue' },
+                  { title: 'EV Fleet Telematics Tech Support', number: '+65 6789 0102', role: 'Battery & Sensor Support' }
+                ].map((item, idx) => (
+                  <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <p className="font-extrabold text-slate-900 text-xs">{item.title}</p>
+                      <p className="text-[10px] text-slate-500">{item.role}</p>
+                    </div>
+                    <a
+                      href={`tel:${item.number}`}
+                      onClick={() => showToast(`Dialing ${item.title}...`)}
+                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm flex items-center space-x-1"
+                    >
+                      <PhoneCall className="w-3.5 h-3.5" />
+                      <span>Call {item.number}</span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  showToast('🚨 SOS Signal Transmitted to HQ Dispatch! Emergency Team Alerted.', 'warning');
+                  setShowDispatchSupportModal(false);
+                }}
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <AlertTriangle className="w-4 h-4 animate-bounce" />
+                <span>Trigger Silent SOS Alert To Dispatch HQ</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EV SUPERCHARGER & REST HUBS MODAL */}
+      {showEVHubModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-emerald-200 max-w-lg w-full p-6 space-y-5 relative">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2 text-emerald-600 font-extrabold text-sm uppercase tracking-wider">
+                <BatteryCharging className="w-5 h-5" />
+                <span>Josan EV Superchargers & Driver Lounges</span>
+              </div>
+              <button
+                onClick={() => setShowEVHubModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-slate-600 font-medium">
+                Ultra-fast 150 kW EV charging stations with reserved driver rest bays & coffee lounges along your current route.
+              </p>
+
+              <div className="space-y-2.5">
+                {[
+                  { name: 'Changi Logistics Hub Supercharger', dist: '2.4 km away', chargers: '8/12 Available', speed: '150 kW DC Fast', lounge: 'AC Lounge + Coffee' },
+                  { name: 'Tampines Express Freight Depot', dist: '5.8 km away', chargers: '5/8 Available', speed: '120 kW Fast', lounge: 'Rest Bay' },
+                  { name: 'Jurong Port Fleet Superstation', dist: '18.2 km away', chargers: '11/16 Available', speed: '200 kW Ultra', lounge: 'Full Amenities' }
+                ].map((station, idx) => (
+                  <div key={idx} className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-extrabold text-slate-900 text-xs">{station.name}</h4>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-white border border-emerald-300 px-2 py-0.5 rounded-full">
+                        {station.dist}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-600">
+                      <span>⚡ Charger Status: <strong>{station.chargers}</strong> ({station.speed})</span>
+                      <span className="text-slate-500 font-semibold">☕ {station.lounge}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        showToast(`Rerouting GPS navigation to ${station.name}...`);
+                        setShowEVHubModal(false);
+                        setDriverTab('navigation');
+                      }}
+                      className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer mt-1"
+                    >
+                      <Navigation className="w-3.5 h-3.5" />
+                      <span>Reroute & Charge Battery</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => setShowEVHubModal(false)}
+                className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs cursor-pointer"
+              >
+                Close Finder
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

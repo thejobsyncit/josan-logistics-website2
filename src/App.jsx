@@ -103,6 +103,24 @@ const MainContent = () => {
     }
   }, []);
 
+  // Enforce strict URL hash and role route protection
+  useEffect(() => {
+    if (!currentUser) {
+      if (['driver-dashboard', 'admin-dashboard', 'customer-dashboard'].includes(activeTab)) {
+        changeActiveTab('home');
+      }
+    } else {
+      const userRole = currentUser.role || currentRole;
+      if (userRole === 'customer' && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard')) {
+        changeActiveTab('customer-dashboard');
+      } else if (userRole === 'driver' && (activeTab === 'customer-dashboard' || activeTab === 'admin-dashboard')) {
+        changeActiveTab('driver-dashboard');
+      } else if (userRole === 'admin' && activeTab !== 'admin-dashboard') {
+        changeActiveTab('admin-dashboard');
+      }
+    }
+  }, [currentUser, activeTab]);
+
   // Scroll to top of page whenever activeTab changes
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -117,7 +135,8 @@ const MainContent = () => {
     setActiveTab(tab);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const hash = `#${tab}`;
-    if (pushHistory && window.location.hash !== hash && !window.location.hash.startsWith('#track-map-')) {
+    window.location.hash = hash;
+    if (pushHistory && !window.location.hash.startsWith('#track-map-')) {
       window.history.pushState({ tab }, '', hash);
     }
   };
