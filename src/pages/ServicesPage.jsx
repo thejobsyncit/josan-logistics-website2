@@ -74,15 +74,29 @@ const DynamicServiceGallery = ({ images, title }) => {
 export const ServicesPage = ({ setActiveTab }) => {
   const { openAuthModalWithoutClose, currentUser, setIsAuthModalOpen } = useLogistics();
 
-  const [calculatorWeight, setCalculatorWeight] = useState(0);
+  const [calculatorWeight, setCalculatorWeight] = useState(25);
   const [calculatorService, setCalculatorService] = useState('express');
   const [calculatorInsurance, setCalculatorInsurance] = useState(false);
 
-  const handleBookServiceClick = () => {
-    openAuthModalWithoutClose();
+  const getRatePerKg = () => {
+    switch (calculatorService) {
+      case 'express': return 12;
+      case 'ground': return 4;
+      case 'sea': return 2;
+      case 'cold': return 15;
+      default: return 5;
+    }
   };
 
+  const estimatedTotal = (calculatorWeight * getRatePerKg() + (calculatorInsurance ? 25 : 0)).toFixed(2);
 
+  const handleBookServiceClick = () => {
+    if (!currentUser) {
+      openAuthModalWithoutClose();
+    } else {
+      setActiveTab('book');
+    }
+  };
 
   const servicesData = [
     {
@@ -178,12 +192,7 @@ export const ServicesPage = ({ setActiveTab }) => {
                 max="500"
                 step="5"
                 value={calculatorWeight}
-                onMouseDown={() => openAuthModalWithoutClose()}
-                onTouchStart={() => openAuthModalWithoutClose()}
-                onClick={() => openAuthModalWithoutClose()}
-                onChange={(e) => {
-                  openAuthModalWithoutClose();
-                }}
+                onChange={(e) => setCalculatorWeight(Number(e.target.value))}
                 className="w-full accent-orange-500 cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-slate-400 mt-1">
@@ -198,20 +207,20 @@ export const ServicesPage = ({ setActiveTab }) => {
               <label className="block text-xs font-bold text-slate-700 mb-2">Service Mode</label>
               <select
                 value={calculatorService}
-                onChange={() => openAuthModalWithoutClose()}
+                onChange={(e) => setCalculatorService(e.target.value)}
                 className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
               >
-                <option value="express">Express Air Freight (Fastest SLA)</option>
-                <option value="ground">Land Trucking (Standard SLA)</option>
-                <option value="sea">Ocean Shipping (Economy SLA)</option>
-                <option value="cold">Cold Chain Pharma (Vault SLA)</option>
+                <option value="express">Express Air Freight ($12/kg)</option>
+                <option value="ground">Land Trucking ($4/kg)</option>
+                <option value="sea">Ocean Shipping ($2/kg)</option>
+                <option value="cold">Cold Chain Pharma ($15/kg)</option>
               </select>
             </div>
 
             {/* Total Estimated Box */}
             <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 text-center flex flex-col justify-center">
               <span className="text-[10px] font-bold uppercase text-orange-800 tracking-wider">Estimated Total Rate</span>
-              <span className="text-3xl font-extrabold text-orange-600 font-mono">$0</span>
+              <span className="text-3xl font-extrabold text-orange-600 font-mono">${estimatedTotal}</span>
               <span className="text-[10px] text-slate-500 mt-0.5">Includes fuel surcharge & tax</span>
             </div>
 
