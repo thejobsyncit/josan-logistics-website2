@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
-import { SingaporeGoogleMapBackground } from '../components/SingaporeGoogleMapBackground';
 import { 
   Package, 
   Search, 
@@ -247,7 +246,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                       }`}
                     >
                       <Search className="w-3.5 h-3.5" />
-                      <span>{expandedMapId === s.id ? 'Close Live GPS Map' : '🌐 Toggle Live GPS Map'}</span>
+                      <span>{expandedMapId === s.id ? 'Close Timeline' : '📍 Track Delivery Timeline'}</span>
                     </button>
 
                     <button
@@ -271,17 +270,73 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                   </div>
                 </div>
 
-                {/* Inline Live GPS Telematics Map Drawer */}
+                {/* Inline Delivery Timeline Stepper Drawer */}
                 {expandedMapId === s.id && (
-                  <div className="mt-3 rounded-2xl border border-slate-300 overflow-hidden h-72 shadow-xl animate-fade-in relative">
-                    <SingaporeGoogleMapBackground
-                      origin={s.origin}
-                      destination={s.destination}
-                      vehicle={s.vehicle || 'Josan EV Express Semi-Truck #SG-8819'}
-                      truckProgress={customerTruckProgress}
-                      currentSpeed={customerSpeed}
-                      showTruck={true}
-                    />
+                  <div className="mt-4 p-6 bg-slate-50/70 rounded-2xl border border-slate-200 shadow-sm animate-fade-in space-y-6">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                      <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+                        <span>DELIVERY TIMELINE STEPPER</span>
+                      </h3>
+                      <span className="text-[11px] font-bold text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200 font-mono">
+                        Status: {s.status}
+                      </span>
+                    </div>
+
+                    <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3.5 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
+                      {((s.timeline && s.timeline.length > 0) ? s.timeline : [
+                        { title: 'Order Booked & TradeNet Customs Cleared', location: s.origin || 'Changi Air Cargo Complex (SIN)', timestamp: s.createdDate || 'Aug 31, 08:15 AM', completed: true },
+                        { title: 'Picked Up by Josan Fleet Courier', location: s.origin ? `${s.origin} Depot` : 'Changi Logistics Depot', timestamp: 'Aug 31, 10:40 AM', completed: true },
+                        { title: `In Transit via ${s.currentLocation || 'Expressway Hub'}`, location: s.currentLocation || 'Tampines Logistics Depot', timestamp: 'Aug 31, 01:20 PM', completed: s.status === 'Delivered', current: s.status !== 'Delivered' },
+                        { title: 'Out for Final Dispatch', location: s.destination ? `${s.destination} Hub` : 'Jurong Port Hub', timestamp: s.estimatedDelivery || 'Today, 03:30 PM', completed: s.status === 'Delivered' },
+                        { title: 'Delivered & Digital E-Signature Signed', location: s.destination || '10 Jurong Port Road', timestamp: s.status === 'Delivered' ? 'Delivered' : s.estimatedDelivery || 'Today, 04:30 PM', completed: s.status === 'Delivered' }
+                      ]).map((step, idx) => {
+                        const isCompleted = step.completed || s.status === 'Delivered';
+                        const isCurrent = step.current || (!isCompleted && idx === 2);
+
+                        return (
+                          <div key={idx} className="relative flex items-start space-x-4 group">
+                            {/* Timeline Node Icon */}
+                            <div className={`absolute -left-6 sm:-left-8 top-0.5 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all z-10 ${
+                              isCurrent
+                                ? 'bg-orange-500 text-white ring-4 ring-orange-100 shadow-orange-sm'
+                                : isCompleted
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-slate-200 text-slate-500'
+                            }`}>
+                              {isCompleted ? (
+                                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                              ) : (
+                                <span>{idx + 1}</span>
+                              )}
+                            </div>
+
+                            {/* Step Card */}
+                            <div className={`flex-1 p-4 rounded-xl border transition-all ${
+                              isCurrent
+                                ? 'bg-orange-50/80 border-orange-200 shadow-sm'
+                                : isCompleted
+                                ? 'bg-white border-slate-200/90 shadow-2xs'
+                                : 'bg-slate-50/60 border-slate-200/70 opacity-60'
+                            }`}>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <h4 className={`text-sm font-extrabold ${isCurrent ? 'text-orange-600' : 'text-slate-900'}`}>
+                                  {step.title}
+                                </h4>
+                                {step.timestamp && (
+                                  <span className="text-[11px] font-semibold text-slate-400 font-mono">{step.timestamp}</span>
+                                )}
+                              </div>
+
+                              <p className="text-xs text-slate-500 mt-1 flex items-center space-x-1.5 font-medium">
+                                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <span>{step.location}</span>
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 

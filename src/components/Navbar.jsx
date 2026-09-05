@@ -182,23 +182,25 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
           {/* Search Widget & User Profile / Login */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Quick Tracking Search Bar */}
-            <form onSubmit={handleHeaderSearch} className="relative flex items-center">
-              <input
-                type="text"
-                value={headerSearch}
-                onChange={(e) => setHeaderSearch(e.target.value)}
-                placeholder="Track ID (e.g. JOS-89421-US)..."
-                className="w-48 xl:w-56 pl-9 pr-7 py-1.5 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange placeholder:text-slate-400 font-semibold"
-              />
-              <button 
-                type="submit" 
-                title="Search Parcel"
-                className="absolute left-2.5 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
-              >
-                <Search className="w-4 h-4" />
-              </button>
-            </form>
+            {/* Quick Tracking Search Bar (Only shown when user is signed in) */}
+            {currentUser && (
+              <form onSubmit={handleHeaderSearch} className="relative flex items-center">
+                <input
+                  type="text"
+                  value={headerSearch}
+                  onChange={(e) => setHeaderSearch(e.target.value)}
+                  placeholder="Track ID (e.g. JOS-89421-US)..."
+                  className="w-48 xl:w-56 pl-9 pr-7 py-1.5 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange placeholder:text-slate-400 font-semibold"
+                />
+                <button 
+                  type="submit" 
+                  title="Search Parcel"
+                  className="absolute left-2.5 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </form>
+            )}
 
             {currentUser ? (
               <div className="flex items-center space-x-2 border-l border-slate-200 pl-3 relative">
@@ -503,22 +505,24 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
-          <form onSubmit={handleHeaderSearch} className="relative mb-3 flex items-center">
-            <input
-              type="text"
-              value={headerSearch}
-              onChange={(e) => setHeaderSearch(e.target.value)}
-              placeholder="Track Shipment ID..."
-              className="w-full pl-9 pr-7 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange"
-            />
-            <button 
-              type="submit" 
-              title="Search Parcel"
-              className="absolute left-3 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-          </form>
+          {currentUser && (
+            <form onSubmit={handleHeaderSearch} className="relative mb-3 flex items-center">
+              <input
+                type="text"
+                value={headerSearch}
+                onChange={(e) => setHeaderSearch(e.target.value)}
+                placeholder="Track Shipment ID..."
+                className="w-full pl-9 pr-7 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange"
+              />
+              <button 
+                type="submit" 
+                title="Search Parcel"
+                className="absolute left-3 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
+          )}
 
           <div className="grid grid-cols-1 gap-1">
             {navItems.map((item) => (

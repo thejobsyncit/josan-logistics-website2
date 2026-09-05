@@ -15,7 +15,8 @@ export const InvoiceModal = () => {
   const shipment = selectedInvoiceShipment;
   const isPaid = shipment.paymentStatus === 'Paid' || (shipment.paymentStatus !== 'Unpaid' && !shipment.isUnpaid);
 
-  const basePriceNum = parseFloat(shipment.price.replace('$', '').replace('S$', '').replace(',', '')) || 350;
+  const priceVal = shipment.price != null ? String(shipment.price) : '350';
+  const basePriceNum = parseFloat(priceVal.replace(/[^0-9.]/g, '')) || 350;
   const fuelSurcharge = (basePriceNum * 0.08).toFixed(2);
   const insuranceFee = (basePriceNum * 0.05).toFixed(2);
   const tax = (basePriceNum * 0.07).toFixed(2);
@@ -105,15 +106,15 @@ export const InvoiceModal = () => {
           <div class="grid">
             <div class="card">
               <div class="card-header">SHIP FROM (ORIGIN)</div>
-              <div class="card-name">${shipment.sender}</div>
-              <div class="card-desc">${shipment.senderAddress || 'Origin Depot'}</div>
-              <div class="card-hub">Hub: ${shipment.origin}</div>
+              <div class="card-name">${shipment.sender || 'Razer Asia-Pacific HQ'}</div>
+              <div class="card-desc">${shipment.senderAddress || '1 Raffles Place, Singapore'}</div>
+              <div class="card-hub">Hub: ${shipment.origin || 'Singapore Central Cargo Hub'}</div>
             </div>
             <div class="card">
               <div class="card-header">SHIP TO (DESTINATION)</div>
-              <div class="card-name">${shipment.receiver}</div>
-              <div class="card-desc">${shipment.receiverAddress || 'Destination Depot'}</div>
-              <div class="card-hub">Hub: ${shipment.destination}</div>
+              <div class="card-name">${shipment.receiver || 'Jurong Logistics Hub Gate 4'}</div>
+              <div class="card-desc">${shipment.receiverAddress || '10 Jurong Port Road, Singapore'}</div>
+              <div class="card-hub">Hub: ${shipment.destination || 'Jurong Port Industrial Estate'}</div>
             </div>
           </div>
 
