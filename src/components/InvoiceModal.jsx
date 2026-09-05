@@ -10,6 +10,30 @@ export const InvoiceModal = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
 
+  // Credit Card Form Input States & Strict Numeric Handlers
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+
+  const handleCardNumberChange = (e) => {
+    const rawDigits = e.target.value.replace(/[^0-9]/g, '').slice(0, 16);
+    const formatted = rawDigits.match(/.{1,4}/g)?.join(' ') || rawDigits;
+    setCardNumber(formatted);
+  };
+
+  const handleCardExpiryChange = (e) => {
+    let clean = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+    if (clean.length >= 3) {
+      clean = `${clean.slice(0, 2)}/${clean.slice(2)}`;
+    }
+    setCardExpiry(clean);
+  };
+
+  const handleCardCvvChange = (e) => {
+    const rawDigits = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+    setCardCvv(rawDigits);
+  };
+
   if (!selectedInvoiceShipment) return null;
 
   const shipment = selectedInvoiceShipment;
@@ -510,29 +534,52 @@ export const InvoiceModal = () => {
                   <div className="space-y-2.5">
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Card Details</p>
                     <div>
-                      <label className="block text-[10px] text-slate-400 mb-1">Card Number</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 flex items-center justify-between">
+                        <span>Card Number *</span>
+                        <span className="text-[9px] text-slate-500 font-mono">Numeric Only</span>
+                      </label>
                       <input
                         type="text"
-                        placeholder="4532 •••• •••• 8892"
-                        className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={19}
+                        value={cardNumber}
+                        onChange={handleCardNumberChange}
+                        placeholder="4532 8892 1042 8892"
+                        className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500 font-bold tracking-wider"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[10px] text-slate-400 mb-1">Expiry Date</label>
+                        <label className="block text-[10px] text-slate-400 mb-1 flex items-center justify-between">
+                          <span>Expiry Date *</span>
+                          <span className="text-[9px] text-slate-500 font-mono">MM/YY</span>
+                        </label>
                         <input
                           type="text"
+                          inputMode="numeric"
+                          pattern="[0-9/]*"
+                          maxLength={5}
+                          value={cardExpiry}
+                          onChange={handleCardExpiryChange}
                           placeholder="MM/YY"
-                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500"
+                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500 font-bold tracking-wider"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-400 mb-1">CVV / CVC</label>
+                        <label className="block text-[10px] text-slate-400 mb-1 flex items-center justify-between">
+                          <span>CVV / CVC *</span>
+                          <span className="text-[9px] text-slate-500 font-mono">3-4 Digits</span>
+                        </label>
                         <input
                           type="password"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           maxLength={4}
+                          value={cardCvv}
+                          onChange={handleCardCvvChange}
                           placeholder="•••"
-                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500"
+                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500 font-bold tracking-wider"
                         />
                       </div>
                     </div>

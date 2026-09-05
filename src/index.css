@@ -48,6 +48,18 @@
   background: #FF6B00;
 }
 
+/* Hide native up/down number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Orange Focus State Utility */
 .focus-orange {
   @apply focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200;

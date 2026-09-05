@@ -12,7 +12,10 @@ import {
   Pencil,
   Trash2,
   CreditCard,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquare,
+  Mail,
+  X
 } from 'lucide-react';
 
 export const CustomerDashboardPage = ({ setActiveTab }) => {
@@ -22,6 +25,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     currentRole,
     setActiveTrackingId, 
     setSelectedInvoiceShipment, 
+    deleteShipment,
     showToast,
     customerSubTab,
     setCustomerSubTab,
@@ -30,6 +34,39 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     updateSavedAddress,
     deleteSavedAddress
   } = useLogistics();
+
+  // Message modal & order deletion state
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messageTargetOrder, setMessageTargetOrder] = useState(null);
+  const [messageSubject, setMessageSubject] = useState('');
+  const [messageText, setMessageText] = useState('');
+
+  const handleOpenMessageModal = (order) => {
+    setMessageTargetOrder(order);
+    setMessageSubject(`Order Cancellation Request / Inquiry for Order #${order.id}`);
+    setMessageText('');
+    setIsMessageModalOpen(true);
+  };
+
+  const handleSendMessageSubmit = (e) => {
+    e.preventDefault();
+    if (!messageText.trim()) {
+      showToast('Please type a message before sending.', 'warning');
+      return;
+    }
+    showToast(`Cancellation / Inquiry message regarding Order #${messageTargetOrder?.id || ''} successfully dispatched to Josan Logistics support!`, 'success');
+    setIsMessageModalOpen(false);
+    setMessageTargetOrder(null);
+    setMessageSubject('');
+    setMessageText('');
+  };
+
+  const handleDeleteOrder = (orderId) => {
+    if (window.confirm(`Are you sure you want to delete order #${orderId}? This will remove it permanently.`)) {
+      deleteShipment(orderId);
+      showToast(`Order #${orderId} deleted successfully.`, 'info');
+    }
+  };
 
   const [localSubTab, setLocalSubTab] = useState('orders');
   const activeSubTab = (customerSubTab === 'profile' ? 'orders' : customerSubTab) || localSubTab || 'orders';
@@ -220,30 +257,34 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
             {(shipments || []).map((s) => (
               <div key={s.id} className="py-5 hover:bg-slate-50 p-4 rounded-2xl transition-colors space-y-4">
                 
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-3">
-                      <span className="font-mono font-extrabold text-slate-900 text-base">{s.id}</span>
-                      <span className={`px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                        s.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'
-                      }`}>
-                        {s.status}
-                      </span>
-                    </div>
+                <div className="space-y-3">
+                  {/* Order Details Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-3">
+                        <span className="font-mono font-extrabold text-slate-900 text-base">{s.id}</span>
+                        <span className={`px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                          s.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-orange-100 text-orange-800 border border-orange-200'
+                        }`}>
+                          {s.status}
+                        </span>
+                      </div>
 
-                    <p className="text-xs text-slate-600">
-                      <span className="font-bold text-slate-800">{s.origin}</span> → <span className="font-bold text-slate-800">{s.destination}</span> | <span className="text-orange-600 font-semibold">{s.serviceLevel}</span>
-                    </p>
-                    <p className="text-[11px] text-slate-400">Recipient: {s.receiver} | Weight: {s.weight}</p>
+                      <p className="text-xs text-slate-600">
+                        <span className="font-bold text-slate-800">{s.origin}</span> → <span className="font-bold text-slate-800">{s.destination}</span> | <span className="text-orange-600 font-semibold">{s.serviceLevel}</span>
+                      </p>
+                      <p className="text-[11px] text-slate-400 font-medium">Recipient: {s.receiver} | Weight: {s.weight}</p>
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2.5">
+                  {/* Clean Action Button Toolbar (Unified Horizontal Row) */}
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-start sm:justify-end gap-2 text-xs">
                     <button
                       onClick={() => setExpandedMapId(expandedMapId === s.id ? null : s.id)}
-                      className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap ${
                         expandedMapId === s.id
                           ? 'bg-slate-900 text-white shadow-md'
-                          : 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-sm'
+                          : 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-sm active:scale-95'
                       }`}
                     >
                       <Search className="w-3.5 h-3.5" />
@@ -255,7 +296,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                         setActiveTrackingId(s.id);
                         setActiveTab('track');
                       }}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1"
+                      className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1 whitespace-nowrap cursor-pointer"
                     >
                       <ExternalLink className="w-3.5 h-3.5 text-orange-600" />
                       <span>Full Telematics Page</span>
@@ -263,25 +304,133 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
 
                     <button
                       onClick={() => setSelectedInvoiceShipment(s)}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1"
+                      className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1 whitespace-nowrap cursor-pointer"
                     >
                       <FileText className="w-3.5 h-3.5 text-slate-600" />
                       <span>Invoice</span>
                     </button>
+
+                    <button
+                      onClick={() => handleOpenMessageModal(s)}
+                      className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer shadow-2xs"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Message Company</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteOrder(s.id)}
+                      className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer shadow-2xs"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Delete Order</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Inline Live GPS Telematics Map Drawer */}
+                {/* Inline Delivery Timeline Stepper Drawer (Matches Tracking Stepper View) */}
                 {expandedMapId === s.id && (
-                  <div className="mt-3 rounded-2xl border border-slate-300 overflow-hidden h-72 shadow-xl animate-fade-in relative">
-                    <SingaporeGoogleMapBackground
-                      origin={s.origin}
-                      destination={s.destination}
-                      vehicle={s.vehicle || 'Josan EV Express Semi-Truck #SG-8819'}
-                      truckProgress={customerTruckProgress}
-                      currentSpeed={customerSpeed}
-                      showTruck={true}
-                    />
+                  <div className="mt-4 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl animate-fade-in space-y-6">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                      <div>
+                        <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center space-x-2">
+                          <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping"></span>
+                          <span>DELIVERY TIMELINE STEPPER</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                          Order Tracking Reference: <strong className="font-mono text-orange-600">#{s.id}</strong>
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setExpandedMapId(null)}
+                        className="text-xs font-bold text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                      >
+                        Close Timeline ✕
+                      </button>
+                    </div>
+
+                    <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3.5 sm:before:left-4 before:top-4 before:bottom-4 before:w-0.5 before:bg-slate-200">
+                      {((s.timeline && Array.isArray(s.timeline) && s.timeline.length > 0)
+                        ? s.timeline
+                        : [
+                            {
+                              title: 'Order Booked & TradeNet Customs Cleared',
+                              location: s.origin ? `${s.origin} (SIN)` : 'Changi Air Cargo Complex (SIN)',
+                              timestamp: 'Aug 31, 08:15 AM',
+                              completed: true,
+                              current: false
+                            },
+                            {
+                              title: 'Picked Up by Josan Fleet Courier',
+                              location: s.origin ? `${s.origin} Depot` : 'Changi Logistics Depot',
+                              timestamp: 'Aug 31, 10:40 AM',
+                              completed: true,
+                              current: false
+                            },
+                            {
+                              title: 'In Transit via TPE Expressway Hub',
+                              location: s.currentLocation || 'Tampines Logistics Depot',
+                              timestamp: 'Aug 31, 01:20 PM',
+                              completed: true,
+                              current: true
+                            },
+                            {
+                              title: 'Out for Final Dispatch',
+                              location: s.destination || 'Jurong Port Hub',
+                              timestamp: 'Expected Today, 03:30 PM',
+                              completed: false,
+                              current: false
+                            },
+                            {
+                              title: 'Delivered & Digital E-Signature Signed',
+                              location: s.receiverAddress || s.destination || '10 Jurong Port Road',
+                              timestamp: 'Expected Today, 04:30 PM',
+                              completed: false,
+                              current: false
+                            }
+                          ]
+                      ).map((step, idx) => {
+                        const isCompleted = step.completed;
+                        const isCurrent = step.current;
+
+                        return (
+                          <div key={idx} className="relative flex items-start space-x-4">
+                            
+                            {/* Timeline Node Icon Circle */}
+                            <div className={`absolute -left-6 sm:-left-8 top-1.5 w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold transition-all z-10 ${
+                              isCurrent
+                                ? 'bg-orange-500 text-white ring-4 ring-orange-100 shadow-orange-sm'
+                                : isCompleted
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-slate-100 text-slate-400 border border-slate-300 font-mono text-[11px]'
+                            }`}>
+                              {isCompleted || isCurrent ? <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> : idx + 1}
+                            </div>
+
+                            {/* Step Details Box */}
+                            <div className={`flex-1 p-4 rounded-2xl border transition-all ${
+                              isCurrent
+                                ? 'bg-orange-50/80 border-orange-200 shadow-xs'
+                                : isCompleted
+                                ? 'bg-white border-slate-200'
+                                : 'bg-slate-50/60 border-slate-100'
+                            }`}>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <h4 className={`text-xs sm:text-sm font-extrabold ${isCurrent ? 'text-orange-600' : 'text-slate-900'}`}>
+                                  {step.title}
+                                </h4>
+                                <span className="text-[11px] font-semibold text-slate-400 font-mono">{step.timestamp}</span>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-1.5 flex items-center space-x-1 font-medium">
+                                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <span>{step.location}</span>
+                              </p>
+                            </div>
+
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -665,6 +814,85 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* SEND MESSAGE TO COMPANY MODAL */}
+      {isMessageModalOpen && messageTargetOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">
+                    Send Message to Josan Logistics
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium">Order Reference: <span className="font-mono font-bold text-orange-600">#{messageTargetOrder.id}</span></p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMessageModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSendMessageSubmit} className="space-y-4 text-xs">
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                <div className="flex items-center justify-between font-bold text-slate-800">
+                  <span>Shipment Order: <strong className="font-mono text-orange-600">#{messageTargetOrder.id}</strong></span>
+                  <span className="text-[10px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded font-mono font-extrabold">{messageTargetOrder.status}</span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Route: {messageTargetOrder.origin} → {messageTargetOrder.destination}
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Subject / Request Type</label>
+                <input
+                  type="text"
+                  value={messageSubject}
+                  onChange={(e) => setMessageSubject(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Message / Reason for Cancellation *</label>
+                <textarea
+                  rows={4}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Please state why you want to cancel this order or send instructions to Josan Logistics support team..."
+                  className="w-full p-3 border border-slate-300 rounded-xl focus-orange text-xs leading-relaxed text-slate-900 resize-none"
+                  required
+                />
+              </div>
+
+              <div className="flex space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMessageModalOpen(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-blue-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Submit Message</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

@@ -34,23 +34,16 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in">
-          {/* Telematics Header Card */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card flex items-center justify-between gap-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-[11px] font-extrabold text-orange-600 uppercase tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-                Singapore Telematics Live Demo Map
-              </span>
-            </div>
-          </div>
-
-          {/* Clean Demo Map (No Truck Graphic) */}
-          <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 h-[480px] sm:h-[550px] relative">
-            <SingaporeGoogleMapBackground
-              showTruck={false}
-              origin="Changi Air Cargo Complex"
-              destination="Jurong Port Industrial Estate"
-            />
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in my-12">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-4 text-center max-w-xl mx-auto">
+            <h2 className="text-xl font-bold text-slate-900">An unexpected error occurred.</h2>
+            <p className="text-xs text-slate-500">{this.state.error?.toString()}</p>
+            <button
+              onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
+              className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-sm cursor-pointer transition-colors"
+            >
+              Reload Page
+            </button>
           </div>
         </div>
       );
@@ -101,12 +94,12 @@ const MainContent = () => {
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
   
-  const { currentRole, currentUser, toggleRole, setIsAuthModalOpen } = useLogistics();
+  const { currentRole, currentUser, toggleRole, setIsAuthModalOpen, openAuthModalWithoutClose } = useLogistics();
 
   // Automatically pop up Login/Register modal on initial website open if customer is not logged in
   useEffect(() => {
     if (!currentUser) {
-      setIsAuthModalOpen(true);
+      openAuthModalWithoutClose();
     }
   }, []);
 
@@ -118,7 +111,7 @@ const MainContent = () => {
   // Navigation tab switcher synced with Browser History API (pushState)
   const changeActiveTab = (tab, pushHistory = true) => {
     if (!currentUser && (tab === 'book' || tab === 'track' || tab === 'customer-dashboard' || tab === 'driver-dashboard' || tab === 'admin-dashboard')) {
-      setIsAuthModalOpen(true);
+      openAuthModalWithoutClose();
       return;
     }
     setActiveTab(tab);

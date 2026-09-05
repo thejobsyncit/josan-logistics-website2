@@ -374,6 +374,17 @@ export const LogisticsProvider = ({ children }) => {
     return newShipment;
   };
 
+  const deleteShipment = (shipmentId) => {
+    setShipments(prev => {
+      const updated = prev.filter(s => s.id !== shipmentId);
+      try {
+        localStorage.setItem('josan_shipments', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    showToast(`Order #${shipmentId} deleted successfully from records.`, 'info');
+  };
+
   const payShipmentInvoice = (shipmentId, method = 'Credit Card') => {
     setShipments(prev => prev.map(s => {
       if (s.id === shipmentId) {
@@ -703,6 +714,7 @@ export const LogisticsProvider = ({ children }) => {
       logoutUser,
       updateUserProfile,
       addShipment,
+      deleteShipment,
       payShipmentInvoice,
       updateShipmentStatus,
       flagWeatherDelay,

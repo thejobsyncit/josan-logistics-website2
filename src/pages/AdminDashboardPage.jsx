@@ -48,7 +48,8 @@ import {
   Key,
   RefreshCw,
   Lock,
-  Shield
+  Shield,
+  MessageSquare
 } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
@@ -70,12 +71,46 @@ export const AdminDashboardPage = () => {
     removeWarehouse,
     updateWarehouseBinStatus,
     setSelectedInvoiceShipment,
+    deleteShipment,
     showToast 
   } = useLogistics();
 
   const [adminTab, setAdminTab] = useState('overview'); // 'overview' | 'overview' | 'orders' | 'drivers' | 'warehouses' | 'analytics'
   const [orderFilter, setOrderFilter] = useState('All');
   const [orderSearch, setOrderSearch] = useState('');
+
+  // Message modal & order deletion state
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messageTargetOrder, setMessageTargetOrder] = useState(null);
+  const [messageSubject, setMessageSubject] = useState('');
+  const [messageText, setMessageText] = useState('');
+
+  const handleOpenMessageModal = (order) => {
+    setMessageTargetOrder(order);
+    setMessageSubject(`Inquiry / Cancellation request regarding Order #${order.id}`);
+    setMessageText('');
+    setIsMessageModalOpen(true);
+  };
+
+  const handleSendMessageSubmit = (e) => {
+    e.preventDefault();
+    if (!messageText.trim()) {
+      showToast('Please enter a message before sending.', 'warning');
+      return;
+    }
+    showToast(`Message regarding Order #${messageTargetOrder?.id || ''} successfully sent to company support!`, 'success');
+    setIsMessageModalOpen(false);
+    setMessageTargetOrder(null);
+    setMessageSubject('');
+    setMessageText('');
+  };
+
+  const handleDeleteOrder = (orderId) => {
+    if (window.confirm(`Are you sure you want to delete order #${orderId}? This action cannot be undone.`)) {
+      deleteShipment(orderId);
+      showToast(`Order #${orderId} deleted successfully.`, 'info');
+    }
+  };
 
   const defaultDriverPhoto = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
 
@@ -709,6 +744,22 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                         className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-[11px] font-bold"
                       >
                         Invoice
+                      </button>
+                      <button
+                        onClick={() => handleOpenMessageModal(order)}
+                        title="Send message to company/client regarding this order"
+                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-[11px] font-extrabold transition-all flex items-center space-x-1 cursor-pointer"
+                      >
+                        <MessageSquare className="w-3 h-3 text-blue-600" />
+                        <span>Message</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteOrder(order.id)}
+                        title="Delete order permanently"
+                        className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[11px] font-extrabold transition-all flex items-center space-x-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3 text-rose-600" />
+                        <span>Delete</span>
                       </button>
                     </td>
                   </tr>
@@ -1780,6 +1831,85 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                   className="w-1/2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold shadow-orange-sm transition-colors cursor-pointer"
                 >
                   Save New Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SEND MESSAGE TO COMPANY / CLIENT MODAL */}
+      {isMessageModalOpen && messageTargetOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">
+                    Send Message regarding Order #{messageTargetOrder.id}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium">Direct dispatch note to company support / sender</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMessageModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSendMessageSubmit} className="space-y-4 text-xs">
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                <div className="flex items-center justify-between font-bold text-slate-800">
+                  <span>Order Reference: <strong className="font-mono text-orange-600">#{messageTargetOrder.id}</strong></span>
+                  <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-mono">{messageTargetOrder.status}</span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Route: {messageTargetOrder.origin} → {messageTargetOrder.destination}
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={messageSubject}
+                  onChange={(e) => setMessageSubject(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Your Message / Cancellation Reason *</label>
+                <textarea
+                  rows={4}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Explain why you wish to cancel this order or send an inquiry to Josan Logistics..."
+                  className="w-full p-3 border border-slate-300 rounded-xl focus-orange text-xs leading-relaxed text-slate-900 resize-none"
+                  required
+                />
+              </div>
+
+              <div className="flex space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMessageModalOpen(false)}
+                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-blue-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Send Message</span>
                 </button>
               </div>
             </form>
