@@ -69,13 +69,15 @@ export const HomePage = ({ setActiveTab }) => {
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
-                <button
-                  onClick={() => handleAction('track')}
-                  className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 shadow-sm"
-                >
-                  <Search className="w-4 h-4 text-orange-400" />
-                  <span>Track Shipment</span>
-                </button>
+                {currentUser && (
+                  <button
+                    onClick={() => handleAction('track')}
+                    className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2 shadow-sm"
+                  >
+                    <Search className="w-4 h-4 text-orange-400" />
+                    <span>Track Shipment</span>
+                  </button>
+                )}
               </div>
 
             </div>
