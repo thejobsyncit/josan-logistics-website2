@@ -202,26 +202,40 @@ export const ServicesPage = ({ setActiveTab }) => {
               </div>
             </div>
 
-            {/* Service Speed */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Service Mode</label>
-              <select
-                value={calculatorService}
-                onChange={(e) => setCalculatorService(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
-              >
-                <option value="express">Express Air Freight ($12/kg)</option>
-                <option value="ground">Land Trucking ($4/kg)</option>
-                <option value="sea">Ocean Shipping ($2/kg)</option>
-                <option value="cold">Cold Chain Pharma ($15/kg)</option>
-              </select>
+            {/* Service Speed & Addons */}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">Service Mode</label>
+                <select
+                  value={calculatorService}
+                  onChange={(e) => setCalculatorService(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
+                >
+                  <option value="express">Express Air Freight ($12/kg)</option>
+                  <option value="ground">Land Trucking ($4/kg)</option>
+                  <option value="sea">Ocean Shipping ($2/kg)</option>
+                  <option value="cold">Cold Chain Pharma ($15/kg)</option>
+                </select>
+              </div>
+
+              <label className="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={calculatorInsurance}
+                  onChange={(e) => setCalculatorInsurance(e.target.checked)}
+                  className="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 accent-orange-500 cursor-pointer"
+                />
+                <span>Add Full Cargo Insurance (+$25)</span>
+              </label>
             </div>
 
             {/* Total Estimated Box */}
             <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 text-center flex flex-col justify-center">
               <span className="text-[10px] font-bold uppercase text-orange-800 tracking-wider">Estimated Total Rate</span>
               <span className="text-3xl font-extrabold text-orange-600 font-mono">${estimatedTotal}</span>
-              <span className="text-[10px] text-slate-500 mt-0.5">Includes fuel surcharge & tax</span>
+              <span className="text-[10px] text-slate-500 mt-0.5">
+                {calculatorWeight}kg × ${getRatePerKg()}/kg {calculatorInsurance ? '+ $25 insurance' : ''}
+              </span>
             </div>
 
           </div>
