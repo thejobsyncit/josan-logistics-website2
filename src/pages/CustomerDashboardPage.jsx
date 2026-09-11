@@ -20,7 +20,7 @@ import {
   X
 } from 'lucide-react';
 
-export const CustomerDashboardPage = ({ setActiveTab }) => {
+export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }) => {
   const { 
     shipments = [], 
     currentUser, 
@@ -70,7 +70,14 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
     }
   };
 
-  const [localSubTab, setLocalSubTab] = useState('orders');
+  const [localSubTab, setLocalSubTab] = useState(initialSubTab);
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setLocalSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
+
   const activeSubTab = (customerSubTab === 'profile' ? 'orders' : customerSubTab) || localSubTab || 'orders';
   const setActiveSubTab = (tab) => {
     setLocalSubTab(tab);
@@ -311,7 +318,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
               Customer Account
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">{displayUser.name || 'Razer Asia-Pacific HQ'}</h1>
-            <p className="text-xs text-slate-500">{displayUser.email || 'shipping@razer.com'} | Company: {displayUser.company || 'Razer (Asia-Pacific) Pte Ltd'}</p>
+            <p className="text-xs text-slate-700 font-semibold">{displayUser.email || 'shipping@razer.com'} | Company: {displayUser.company || 'Razer (Asia-Pacific) Pte Ltd'}</p>
           </div>
         </div>
 
@@ -327,7 +334,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex border-b border-slate-200 space-x-6 sm:space-x-8 text-sm font-bold text-slate-500 overflow-x-auto">
+      <div className="flex border-b border-slate-200 space-x-6 sm:space-x-8 text-sm font-extrabold text-slate-700 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab('orders')}
           className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
@@ -339,13 +346,13 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         </button>
 
         <button
-          onClick={() => setActiveSubTab('addresses')}
+          onClick={() => setActiveSubTab('manage')}
           className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
-            activeSubTab === 'addresses' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
+            activeSubTab === 'manage' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
           }`}
         >
-          <MapPin className="w-4 h-4" />
-          <span>Saved Pickup & Drop Addresses</span>
+          <Pencil className="w-4 h-4" />
+          <span>Manage Orders</span>
         </button>
 
         <button
@@ -369,14 +376,21 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         </button>
       </div>
 
-
-
-      {/* SUB-TAB 1: MY SHIPMENT ORDERS */}
-      {activeSubTab === 'orders' && (
+      {/* SUB-TAB 1 & 2: MY SHIPMENT ORDERS & MANAGE ORDERS */}
+      {(activeSubTab === 'orders' || activeSubTab === 'manage') && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-slate-900">Shipment History & Live Trackers</h2>
-            <span className="text-xs text-slate-500 font-semibold">Total Orders: {(shipments || []).length}</span>
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900">
+                {activeSubTab === 'manage' ? 'Manage Freight Orders & Cancellations' : 'Shipment History & Live Trackers'}
+              </h2>
+              <p className="text-xs text-slate-500 font-semibold">
+                {activeSubTab === 'manage'
+                  ? 'Review and delete active order bookings if needed.'
+                  : 'View active freight orders and live delivery tracking status.'}
+              </p>
+            </div>
+            <span className="text-xs text-slate-800 font-extrabold">Total Orders: {(shipments || []).length}</span>
           </div>
 
           <div className="divide-y divide-slate-100">
@@ -396,10 +410,10 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                         </span>
                       </div>
 
-                      <p className="text-xs text-slate-600">
-                        <span className="font-bold text-slate-800">{s.origin}</span> → <span className="font-bold text-slate-800">{s.destination}</span> | <span className="text-orange-600 font-semibold">{s.serviceLevel}</span>
+                      <p className="text-xs text-slate-800 font-semibold">
+                        <span className="font-bold text-slate-900">{s.origin}</span> → <span className="font-bold text-slate-900">{s.destination}</span> | <span className="text-orange-600 font-extrabold">{s.serviceLevel}</span>
                       </p>
-                      <p className="text-[11px] text-slate-400 font-medium">Recipient: {s.receiver} | Weight: {s.weight}</p>
+                      <p className="text-[11px] text-slate-700 font-semibold">Recipient: {s.receiver} | Weight: {s.weight}</p>
                     </div>
                   </div>
 
@@ -436,21 +450,16 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                       <span>Invoice</span>
                     </button>
 
-                    <button
-                      onClick={() => handleOpenMessageModal(s)}
-                      className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer shadow-2xs"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Message Company</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleDeleteOrder(s.id)}
-                      className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer shadow-2xs"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                      <span>Delete Order</span>
-                    </button>
+                    {/* Show Delete Order button ONLY in Manage Orders subtab */}
+                    {activeSubTab === 'manage' && (
+                      <button
+                        onClick={() => handleDeleteOrder(s.id)}
+                        className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer shadow-2xs"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Delete Order</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -501,28 +510,19 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                               current: true
                             },
                             {
-                              title: 'Out for Final Dispatch',
-                              location: s.destination || 'Jurong Port Hub',
-                              timestamp: 'Expected Today, 03:30 PM',
-                              completed: false,
-                              current: false
-                            },
-                            {
-                              title: 'Delivered & Digital E-Signature Signed',
-                              location: s.receiverAddress || s.destination || '10 Jurong Port Road',
-                              timestamp: 'Expected Today, 04:30 PM',
+                              title: 'Final Delivery to Destination Warehouse',
+                              location: s.destination ? `${s.destination}` : 'Jurong Port Logistics Hub',
+                              timestamp: 'Estimated Tomorrow',
                               completed: false,
                               current: false
                             }
                           ]
                       ).map((step, idx) => {
-                        const isCompleted = step.completed || s.status === 'Delivered';
-                        const isCurrent = step.current || (!isCompleted && idx === 2);
-
+                        const isCompleted = step.completed;
+                        const isCurrent = step.current;
                         return (
-                          <div key={idx} className="relative flex items-start space-x-4">
-                            {/* Timeline Node Icon Circle */}
-                            <div className={`absolute -left-6 sm:-left-8 top-1.5 w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold transition-all z-10 ${
+                          <div key={idx} className="relative flex items-start space-x-4 group">
+                            <div className={`absolute -left-6 sm:-left-8 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
                               isCurrent
                                 ? 'bg-orange-500 text-white ring-4 ring-orange-100 shadow-orange-sm'
                                 : isCompleted
@@ -532,7 +532,6 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                               {isCompleted || isCurrent ? <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> : idx + 1}
                             </div>
 
-                            {/* Step Details Box */}
                             <div className={`flex-1 p-4 rounded-2xl border transition-all ${
                               isCurrent
                                 ? 'bg-orange-50/80 border-orange-200 shadow-xs'
@@ -564,198 +563,12 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
         </div>
       )}
 
-      {/* SUB-TAB 2: SAVED ADDRESSES */}
-      {activeSubTab === 'addresses' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-7 bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6">
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-900">Saved Addresses</h2>
-              <p className="text-xs text-slate-500">Manage your saved pickup and drop-off address locations.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Pickup Locations */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-orange-600 uppercase tracking-wider flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                  <span>Pickup Locations ({addressList.filter(a => a.type === 'pickup').length})</span>
-                </h3>
-                <div className="space-y-3">
-                  {addressList.filter(a => a.type === 'pickup').map((addr) => (
-                    <div key={addr.id} className="p-4 bg-orange-50/40 rounded-2xl border border-orange-100 space-y-2 group hover:border-orange-300 transition-all">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
-                          <p className="text-xs text-slate-600 leading-relaxed">{addr.address}</p>
-                          <p className="text-[10px] text-slate-400 font-semibold pt-0.5">Contact: {addr.contact}</p>
-                        </div>
-                        <div className="flex items-center space-x-1.5 shrink-0 ml-2">
-                          <button
-                            type="button"
-                            onClick={() => handleStartEdit(addr)}
-                            className="px-2.5 py-1 bg-white border border-slate-200 hover:border-orange-400 text-slate-700 hover:text-orange-600 text-[10px] font-extrabold rounded-lg flex items-center space-x-1 cursor-pointer transition-all shadow-2xs"
-                            title="Edit this saved address"
-                          >
-                            <Pencil className="w-3 h-3 text-orange-500" />
-                            <span>Edit</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              deleteSavedAddress(addr.id);
-                              showToast('Saved address removed from your list.', 'info');
-                            }}
-                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                            title="Delete address"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Drop-off Locations */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                  <span>Drop-off Locations ({addressList.filter(a => a.type === 'drop').length})</span>
-                </h3>
-                <div className="space-y-3">
-                  {addressList.filter(a => a.type === 'drop').map((addr) => (
-                    <div key={addr.id} className="p-4 bg-blue-50/40 rounded-2xl border border-blue-100 space-y-2 group hover:border-blue-300 transition-all">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <p className="font-extrabold text-slate-900 text-sm">{addr.label}</p>
-                          <p className="text-xs text-slate-600 leading-relaxed">{addr.address}</p>
-                          <p className="text-[10px] text-slate-400 font-semibold pt-0.5">Contact: {addr.contact}</p>
-                        </div>
-                        <div className="flex items-center space-x-1.5 shrink-0 ml-2">
-                          <button
-                            type="button"
-                            onClick={() => handleStartEdit(addr)}
-                            className="px-2.5 py-1 bg-white border border-slate-200 hover:border-blue-400 text-slate-700 hover:text-blue-600 text-[10px] font-extrabold rounded-lg flex items-center space-x-1 cursor-pointer transition-all shadow-2xs"
-                            title="Edit this saved address"
-                          >
-                            <Pencil className="w-3 h-3 text-blue-500" />
-                            <span>Edit</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              deleteSavedAddress(addr.id);
-                              showToast('Saved address removed from your list.', 'info');
-                            }}
-                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                            title="Delete address"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Form Panel: Add or Edit Saved Address */}
-          <div className="lg:col-span-5 bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                {editingAddressId ? <Pencil className="w-4 h-4 text-orange-500" /> : <Plus className="w-4 h-4 text-orange-500" />}
-                <span>{editingAddressId ? 'Edit Saved Address Location' : 'Add New Address Location'}</span>
-              </h3>
-              {editingAddressId && (
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="text-[11px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                >
-                  Cancel Edit
-                </button>
-              )}
-            </div>
-
-            <form onSubmit={handleAddAddress} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Address Label</label>
-                <input
-                  type="text"
-                  value={newLabel}
-                  onChange={(e) => setNewLabel(e.target.value)}
-                  placeholder="e.g. West Dock Facility"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-bold text-slate-900"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Address Type</label>
-                <select
-                  value={newAddressType}
-                  onChange={(e) => setNewAddressType(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus-orange font-bold cursor-pointer"
-                >
-                  <option value="pickup">Pickup Location</option>
-                  <option value="drop">Drop-off Location</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Full Street & Suite Address</label>
-                <textarea
-                  rows="3"
-                  value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
-                  placeholder="Enter full address details..."
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange font-medium text-slate-800"
-                  required
-                ></textarea>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Contact Person / Manager</label>
-                <input
-                  type="text"
-                  value={newContact}
-                  onChange={(e) => setNewContact(e.target.value)}
-                  placeholder="e.g. Tan Wei Ming (Warehouse Manager)"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus-orange"
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-extrabold shadow-orange-sm hover:bg-orange-600 transition-all cursor-pointer text-xs"
-                >
-                  {editingAddressId ? 'Update Address Location ✓' : 'Save Location'}
-                </button>
-                {editingAddressId && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all cursor-pointer text-xs"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* SUB-TAB 3: SUPPORT & CLAIMS */}
       {activeSubTab === 'support' && (
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6 max-w-2xl">
           <div>
-            <h2 className="text-lg font-extrabold text-slate-900">Submit Priority Ticket</h2>
-            <p className="text-xs text-slate-500">Log a query or insurance claim directly with dispatch managers.</p>
+            <h2 className="text-lg font-extrabold text-slate-900">Dispute Resolution & Cargo SLA Support</h2>
+            <p className="text-xs text-slate-800 font-semibold">Log a query or insurance claim directly with dispatch managers.</p>
           </div>
 
           <form onSubmit={handleSupportSubmit} className="space-y-4 text-xs">
@@ -799,8 +612,8 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h2 className="text-lg font-extrabold text-slate-900">Saved Payment Methods</h2>
-                <p className="text-xs text-slate-500">Manage corporate credit cards and instant payment authorization.</p>
+                <h2 className="text-lg font-extrabold text-slate-900">Corporate Payment Cards</h2>
+                <p className="text-xs text-slate-800 font-semibold">Manage corporate credit cards and instant payment authorization.</p>
               </div>
               <button
                 type="button"
@@ -828,7 +641,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                         ★ Primary Default
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2.5 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-slate-900 uppercase bg-slate-100 px-2.5 py-0.5 rounded-full">
                         {card.type} Card
                       </span>
                     )}
@@ -846,7 +659,7 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                             showToast(`Payment method (•••• ${card.rawNumber}) removed.`);
                           }}
                           className={`p-1 rounded-lg transition-colors cursor-pointer ${
-                            card.isPrimary ? 'hover:bg-slate-700 text-slate-400 hover:text-rose-400' : 'hover:bg-rose-50 text-slate-400 hover:text-rose-600'
+                            card.isPrimary ? 'hover:bg-slate-700 text-slate-400 hover:text-rose-400' : 'hover:bg-rose-50 text-slate-900 hover:text-rose-600'
                           }`}
                           title="Remove card"
                         >
@@ -857,13 +670,13 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
                   </div>
 
                   <div>
-                    <p className={`text-xs font-medium ${card.isPrimary ? 'text-slate-400' : 'text-slate-500'}`}>{card.name}</p>
+                    <p className={`text-xs font-medium ${card.isPrimary ? 'text-slate-400' : 'text-slate-900'}`}>{card.name}</p>
                     <p className={`text-base font-mono font-extrabold tracking-widest mt-1 ${card.isPrimary ? 'text-white' : 'text-slate-900'}`}>{card.number}</p>
                   </div>
 
-                  <div className={`flex justify-between items-center text-[10px] pt-1 ${card.isPrimary ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <div className={`flex justify-between items-center text-[10px] pt-1 ${card.isPrimary ? 'text-slate-400' : 'text-slate-900'}`}>
                     <span>Expires: {card.exp}</span>
-                    <span className={`font-bold ${card.isPrimary ? 'text-slate-200' : 'text-slate-700'}`}>{card.type}</span>
+                    <span className={`font-bold ${card.isPrimary ? 'text-slate-200' : 'text-slate-900'}`}>{card.type}</span>
                   </div>
                 </div>
               ))}
@@ -874,10 +687,10 @@ export const CustomerDashboardPage = ({ setActiveTab }) => {
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-extrabold text-slate-900">Billing History & Statements</h2>
-                <p className="text-xs text-slate-500">Track payment status per order and pay pending invoices.</p>
+                <h2 className="text-lg font-extrabold text-slate-900">Invoices & Payment Records</h2>
+                <p className="text-xs text-slate-800 font-semibold">Track payment status per order and pay pending invoices.</p>
               </div>
-              <span className="text-xs font-bold text-slate-500">Showing {(shipments || []).length} Records</span>
+              <span className="text-xs font-bold text-slate-900">Showing {(shipments || []).length} Records</span>
             </div>
 
             <div className="overflow-x-auto">

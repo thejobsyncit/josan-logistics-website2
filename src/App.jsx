@@ -9,6 +9,7 @@ import { SingaporeGoogleMapBackground } from './components/SingaporeGoogleMapBac
 import { HomePage } from './pages/HomePage';
 import { AboutUsPage } from './pages/AboutUsPage';
 import { ServicesPage } from './pages/ServicesPage';
+import { ClearanceDocumentationPage } from './pages/ClearanceDocumentationPage';
 import { ContactPage } from './pages/ContactPage';
 import { TrackShipmentPage } from './pages/TrackShipmentPage';
 import { BookShipmentPage } from './pages/BookShipmentPage';
@@ -86,7 +87,7 @@ const ToastNotification = () => {
 };
 
 const MainContent = () => {
-  const validTabs = ['home', 'about', 'services', 'contact', 'track', 'book', 'customer-dashboard', 'driver-dashboard', 'admin-dashboard'];
+  const validTabs = ['home', 'about', 'services', 'clearance-documentation', 'contact', 'track', 'book', 'customer-dashboard', 'my-shipments', 'manage-shipment', 'driver-dashboard', 'admin-dashboard'];
 
   const [activeTab, setActiveTab] = useState(() => {
     const rawHash = window.location.hash.replace('#', '').toLowerCase();
@@ -128,7 +129,7 @@ const MainContent = () => {
 
   // Navigation tab switcher synced with Browser History API (pushState)
   const changeActiveTab = (tab, pushHistory = true) => {
-    if (!currentUser && (tab === 'book' || tab === 'track' || tab === 'customer-dashboard' || tab === 'driver-dashboard' || tab === 'admin-dashboard')) {
+    if (!currentUser && (tab === 'book' || tab === 'track' || tab === 'customer-dashboard' || tab === 'my-shipments' || tab === 'manage-shipment' || tab === 'driver-dashboard' || tab === 'admin-dashboard')) {
       openAuthModalWithoutClose();
       return;
     }
@@ -178,7 +179,7 @@ const MainContent = () => {
   }, []);
 
   const renderPage = () => {
-    if (!currentUser && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard' || activeTab === 'customer-dashboard' || activeTab === 'track' || activeTab === 'book')) {
+    if (!currentUser && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment' || activeTab === 'track' || activeTab === 'book')) {
       return <HomePage setActiveTab={changeActiveTab} />;
     }
 
@@ -189,6 +190,8 @@ const MainContent = () => {
         return <AboutUsPage setActiveTab={changeActiveTab} />;
       case 'services':
         return <ServicesPage setActiveTab={changeActiveTab} />;
+      case 'clearance-documentation':
+        return <ClearanceDocumentationPage setActiveTab={changeActiveTab} />;
       case 'contact':
         return <ContactPage />;
       case 'track':
@@ -196,7 +199,11 @@ const MainContent = () => {
       case 'book':
         return <BookShipmentPage setActiveTab={changeActiveTab} />;
       case 'customer-dashboard':
-        return <CustomerDashboardPage setActiveTab={changeActiveTab} />;
+        return <CustomerDashboardPage setActiveTab={changeActiveTab} initialSubTab="orders" />;
+      case 'my-shipments':
+        return <CustomerDashboardPage setActiveTab={changeActiveTab} initialSubTab="orders" />;
+      case 'manage-shipment':
+        return <CustomerDashboardPage setActiveTab={changeActiveTab} initialSubTab="manage" />;
       case 'driver-dashboard':
         return <DriverDashboardPage setActiveTab={changeActiveTab} />;
       case 'admin-dashboard':

@@ -30,16 +30,16 @@ export const Footer = ({ setActiveTab }) => {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
               <img 
-                src="/assets/josan_logo.jpg" 
+                src="/assets/josan_logo.png" 
                 alt="Josan Logistics Logo" 
                 className="h-14 w-auto object-contain rounded-xl bg-white p-1" 
               />
             </div>
-            <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
+            <p className="text-slate-200 font-medium text-sm leading-relaxed max-w-sm">
               Josan Logistics is a global leader in intelligent supply chain management, offering express freight, air cargo, ocean shipping, and smart automated warehousing.
             </p>
 
-            <div className="pt-2 flex items-center space-x-4 text-xs font-semibold text-slate-400">
+            <div className="pt-2 flex items-center space-x-4 text-xs font-bold text-slate-200">
               <span className="flex items-center space-x-1">
                 <ShieldCheck className="w-4 h-4 text-orange-400" />
                 <span>ISO 9001 Certified</span>
@@ -107,7 +107,7 @@ export const Footer = ({ setActiveTab }) => {
 
               <div className="flex items-start space-x-2 pt-1">
                 <MapPin className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-                <span className="text-slate-400">Regional HQ: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</span>
+                <span className="text-slate-200 font-medium">Regional HQ: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</span>
               </div>
               
               <div className="flex items-center space-x-2">
@@ -140,7 +140,7 @@ export const Footer = ({ setActiveTab }) => {
         </div>
 
         {/* Bottom copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 font-medium">
           <p>© {new Date().getFullYear()} Josan Logistics Inc. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 sm:mt-0">
             <span className="hover:text-slate-400 cursor-pointer">Privacy Policy</span>

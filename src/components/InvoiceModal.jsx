@@ -53,7 +53,7 @@ export const InvoiceModal = () => {
       return;
     }
 
-    const logoUrl = `${window.location.origin}/assets/josan_logo.jpg`;
+    const logoUrl = `${window.location.origin}/assets/josan_logo.png`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -239,7 +239,7 @@ export const InvoiceModal = () => {
   };
 
   const handleDownloadPDF = () => {
-    const logoUrl = `${window.location.origin}/assets/josan_logo.jpg`;
+    const logoUrl = `${window.location.origin}/assets/josan_logo.png`;
     const statusHtml = isPaid
       ? `<span class="badge" style="background:#D1FAE5; color:#065F46;">PAID & VERIFIED</span>`
       : `<span class="badge" style="background:#FFE4E6; color:#9F1239;">UNPAID — DUE: $${totalPrice} USD</span>`;
@@ -447,7 +447,7 @@ export const InvoiceModal = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-orange-500 pb-6">
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <img src="/assets/josan_logo.jpg" alt="Josan Logistics Logo" className="h-12 w-auto object-contain" />
+                <img src="/assets/josan_logo.png" alt="Josan Logistics Logo" className="h-12 w-auto object-contain" />
               </div>
               <p className="text-xs text-slate-500 font-semibold">Regional & Global Supply Chain Management</p>
               <p className="text-xs text-slate-500">450 Logistics Parkway, Chicago, IL 60607</p>

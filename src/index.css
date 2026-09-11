@@ -10,7 +10,7 @@
     --bg-white: #FFFFFF;
     --bg-slate: #F8FAFC;
     --text-dark: #0F172A;
-    --text-muted: #64748B;
+    --text-muted: #334155;
   }
 
   body {
@@ -29,6 +29,58 @@
     font-family: 'Outfit', 'Inter', sans-serif;
     letter-spacing: -0.01em;
     line-height: 1.3;
+  }
+}
+
+/* Global High Contrast Text Utility Overrides for Maximum Readability */
+@layer utilities {
+  .text-slate-600,
+  .text-gray-600,
+  .text-zinc-600,
+  .text-neutral-600 {
+    color: #1E293B !important; /* Deep Slate 800 for high contrast body text */
+  }
+
+  .text-slate-500,
+  .text-gray-500,
+  .text-zinc-500,
+  .text-neutral-500 {
+    color: #334155 !important; /* Dark Slate 700 for clear secondary text */
+  }
+
+  p.text-slate-400,
+  span.text-slate-400,
+  div.text-slate-400,
+  label.text-slate-400 {
+    color: #475569 !important; /* Crisp Slate 600 for light background subtext */
+  }
+
+  /* Preserve light text inside dark theme containers */
+  .bg-slate-900 .text-slate-400,
+  .bg-slate-800 .text-slate-400,
+  .bg-slate-950 .text-slate-400,
+  .bg-slate-700 .text-slate-400,
+  .bg-black .text-slate-400,
+  .bg-orange-500 .text-slate-400,
+  .bg-orange-600 .text-slate-400,
+  .bg-orange-gradient .text-slate-400 {
+    color: #CBD5E1 !important; /* Light Slate 300 on dark containers */
+  }
+
+  .bg-slate-900 .text-slate-500,
+  .bg-slate-800 .text-slate-500,
+  .bg-slate-950 .text-slate-500,
+  .bg-slate-700 .text-slate-500,
+  .bg-black .text-slate-500 {
+    color: #94A3B8 !important; /* Slate 400 on dark containers */
+  }
+
+  .bg-slate-900 .text-slate-600,
+  .bg-slate-800 .text-slate-600,
+  .bg-slate-950 .text-slate-600,
+  .bg-slate-700 .text-slate-600,
+  .bg-black .text-slate-600 {
+    color: #CBD5E1 !important; /* Slate 300 on dark containers */
   }
 }
 

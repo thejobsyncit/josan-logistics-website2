@@ -15,7 +15,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
           <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
             Architecting Regional & Global Supply Chains
           </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-200 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
             Mainly focusing on Singapore, Josan Logistics provides seamless freight delivery within Singapore and to surrounding countries with real-time telematics and efficient dispatching.
           </p>
         </div>
@@ -29,10 +29,10 @@ export const AboutUsPage = ({ setActiveTab }) => {
             <h2 className="text-3xl font-extrabold text-slate-900">
               Our Focus: Singapore Hub & Regional Delivery Excellence
             </h2>
-            <p className="text-slate-600 text-sm leading-relaxed">
+            <p className="text-slate-800 font-medium text-sm leading-relaxed">
               Headquartered and mainly operating out of Singapore, Josan Logistics specializes in fast, reliable delivery throughout Singapore and to all surrounding countries across the region.
             </p>
-            <p className="text-slate-600 text-sm leading-relaxed">
+            <p className="text-slate-800 font-medium text-sm leading-relaxed">
               Today, our state-of-the-art telemetry system tracks over 50,000 active parcels every month, ensuring complete visibility from sender pickup to final delivery signature.
             </p>
 
@@ -66,7 +66,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
             <h2 className="text-3xl font-extrabold text-slate-900">Our Core Operating Values</h2>
-            <p className="text-slate-600 text-sm">Every shipment is handled with precision and accountability.</p>
+            <p className="text-slate-800 font-semibold text-sm">Every shipment is handled with precision and accountability.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -81,7 +81,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <h4 className="font-bold text-slate-900 text-base mb-1">{v.title}</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">{v.desc}</p>
+                <p className="text-xs text-slate-800 font-medium leading-relaxed">{v.desc}</p>
               </div>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
@@ -12,10 +12,12 @@ import {
   LayoutDashboard, 
   LogOut, 
   ChevronRight,
+  ChevronDown,
   Sparkles,
   Edit2,
   Save,
-  Camera
+  Camera,
+  FileText
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab }) => {
@@ -26,8 +28,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     setIsAuthModalOpen, 
     setActiveTrackingId,
     logoutUser,
-    setCustomerSubTab,
-    setDriverSubTab,
     updateUserProfile,
     showToast
   } = useLogistics();
@@ -35,6 +35,31 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const [headerSearch, setHeaderSearch] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const dropdownIgnoreHoverRef = useRef(false);
+
+  const [shipmentDropdownOpen, setShipmentDropdownOpen] = useState(false);
+  const shipmentDropdownIgnoreHoverRef = useRef(false);
+
+  const handleMouseEnterServices = () => {
+    if (dropdownIgnoreHoverRef.current) return;
+    setServicesDropdownOpen(true);
+  };
+
+  const handleMouseLeaveServices = () => {
+    dropdownIgnoreHoverRef.current = false;
+    setServicesDropdownOpen(false);
+  };
+
+  const handleMouseEnterShipment = () => {
+    if (shipmentDropdownIgnoreHoverRef.current) return;
+    setShipmentDropdownOpen(true);
+  };
+
+  const handleMouseLeaveShipment = () => {
+    shipmentDropdownIgnoreHoverRef.current = false;
+    setShipmentDropdownOpen(false);
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
@@ -120,10 +145,43 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     }
   };
 
+  const handleGoToServices = () => {
+    dropdownIgnoreHoverRef.current = true;
+    setActiveTab('services');
+    setServicesDropdownOpen(false);
+    setMobileMenuOpen(false);
+    
+    setTimeout(() => {
+      const targetElem = document.getElementById('freight-services-grid');
+      if (targetElem) {
+        targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
+    }, 50);
+  };
+
+  const handleGoToClearance = () => {
+    dropdownIgnoreHoverRef.current = true;
+    setActiveTab('clearance-documentation');
+    setServicesDropdownOpen(false);
+    setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+
+  const handleGoToShipmentTab = (tabId) => {
+    shipmentDropdownIgnoreHoverRef.current = true;
+    setActiveTab(tabId);
+    setShipmentDropdownOpen(false);
+    setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+
   let navItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
-    { id: 'services', label: 'Services' },
+    { id: 'services', label: 'Services', hasDropdown: true },
+    { id: 'shipment', label: 'Shipment', hasDropdown: true },
     { id: 'contact', label: 'Contact' },
   ];
 
@@ -133,17 +191,16 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       navItems = [
         { id: 'home', label: 'Home' },
         { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services' },
-        { id: 'track', label: 'Track Shipment' },
-        { id: 'book', label: 'Book Shipment' },
+        { id: 'services', label: 'Services', hasDropdown: true },
+        { id: 'shipment', label: 'Shipment', hasDropdown: true },
         { id: 'contact', label: 'Contact' },
-        { id: 'customer-dashboard', label: 'My Orders' },
       ];
     } else if (role === 'driver') {
       navItems = [
         { id: 'home', label: 'Home' },
         { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services' },
+        { id: 'services', label: 'Services', hasDropdown: true },
+        { id: 'shipment', label: 'Shipment', hasDropdown: true },
         { id: 'contact', label: 'Contact' },
         { id: 'driver-dashboard', label: 'Driver Portal' },
       ];
@@ -151,8 +208,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       navItems = [
         { id: 'home', label: 'Home' },
         { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services' },
-        { id: 'track', label: 'Track Shipment' },
+        { id: 'services', label: 'Services', hasDropdown: true },
+        { id: 'shipment', label: 'Shipment', hasDropdown: true },
         { id: 'contact', label: 'Contact' },
         { id: 'admin-dashboard', label: 'Admin Hub' },
       ];
@@ -171,7 +228,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             className="flex items-center space-x-3 cursor-pointer group"
           >
             <img 
-              src="/assets/josan_logo.jpg" 
+              src="/assets/josan_logo.png" 
               alt="Josan Logistics Logo" 
               className="h-12 sm:h-14 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-200" 
             />
@@ -179,19 +236,147 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                  activeTab === item.id
-                    ? 'bg-orange-50 text-orange-600 font-bold'
-                    : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            {navItems.map((item) => {
+              if (item.id === 'services') {
+                return (
+                  <div 
+                    key={item.id} 
+                    className="relative"
+                    onMouseEnter={handleMouseEnterServices}
+                    onMouseLeave={handleMouseLeaveServices}
+                  >
+                    <button
+                      onClick={handleGoToServices}
+                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 inline-flex items-center space-x-1 cursor-pointer ${
+                        activeTab === 'services' || activeTab === 'clearance-documentation'
+                          ? 'bg-orange-50 text-orange-600 font-bold'
+                          : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>Services</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${servicesDropdownOpen ? 'rotate-180 text-orange-600' : ''}`} />
+                    </button>
+
+                    {/* Services Dropdown Menu */}
+                    {servicesDropdownOpen && (
+                      <div className="absolute left-0 top-full pt-1 w-72 sm:w-80 z-50 animate-fade-in">
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-2.5 space-y-1">
+                          <button
+                            type="button"
+                            onClick={handleGoToServices}
+                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer"
+                          >
+                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
+                              Multimodal Freight Services
+                            </span>
+                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
+                              Air, Ocean, Land & Cold Chain
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleGoToClearance}
+                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
+                          >
+                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
+                              Clearance & Documentation
+                            </span>
+                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
+                              Timelines, checklists & sample certificates
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (item.id === 'shipment') {
+                const isShipmentActive = activeTab === 'book' || activeTab === 'track' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
+                return (
+                  <div 
+                    key={item.id} 
+                    className="relative"
+                    onMouseEnter={handleMouseEnterShipment}
+                    onMouseLeave={handleMouseLeaveShipment}
+                  >
+                    <button
+                      onClick={() => handleGoToShipmentTab('book')}
+                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 inline-flex items-center space-x-1 cursor-pointer ${
+                        isShipmentActive
+                          ? 'bg-orange-50 text-orange-600 font-bold'
+                          : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>Shipment</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${shipmentDropdownOpen ? 'rotate-180 text-orange-600' : ''}`} />
+                    </button>
+
+                    {/* Shipment Dropdown Menu */}
+                    {shipmentDropdownOpen && (
+                      <div className="absolute left-0 top-full pt-1 w-72 sm:w-80 z-50 animate-fade-in">
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-2.5 space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => handleGoToShipmentTab('book')}
+                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer"
+                          >
+                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
+                              Book Shipment
+                            </span>
+                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
+                              Instant freight quote & carrier booking
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleGoToShipmentTab('my-shipments')}
+                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
+                          >
+                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
+                              My Shipments
+                            </span>
+                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
+                              View active orders & delivery history
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleGoToShipmentTab('track')}
+                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
+                          >
+                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
+                              Track Shipment
+                            </span>
+                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
+                              Real-time GPS telematics & status updates
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    activeTab === item.id
+                      ? 'bg-orange-50 text-orange-600 font-bold'
+                      : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Search Widget & User Profile / Login */}
@@ -539,22 +724,97 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           )}
 
           <div className="grid grid-cols-1 gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`text-left px-4 py-2.5 rounded-lg text-sm font-semibold ${
-                  activeTab === item.id
-                    ? 'bg-orange-50 text-orange-600 font-bold'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            {navItems.map((item) => {
+              if (item.id === 'services') {
+                return (
+                  <div key={item.id} className="space-y-1">
+                    <button
+                      onClick={() => {
+                        handleGoToServices();
+                      }}
+                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-between ${
+                        activeTab === 'services' || activeTab === 'clearance-documentation'
+                          ? 'bg-orange-50 text-orange-600 font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>Services</span>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    </button>
+                    <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4">
+                      <button
+                        onClick={handleGoToServices}
+                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
+                      >
+                        Multimodal Freight Services
+                      </button>
+                      <button
+                        onClick={handleGoToClearance}
+                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
+                      >
+                        Clearance & Documentation
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.id === 'shipment') {
+                const isShipmentActive = activeTab === 'book' || activeTab === 'track' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
+                return (
+                  <div key={item.id} className="space-y-1">
+                    <button
+                      onClick={() => handleGoToShipmentTab('book')}
+                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-between ${
+                        isShipmentActive
+                          ? 'bg-orange-50 text-orange-600 font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>Shipment</span>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    </button>
+                    <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4">
+                      <button
+                        onClick={() => handleGoToShipmentTab('book')}
+                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
+                      >
+                        Book Shipment
+                      </button>
+                      <button
+                        onClick={() => handleGoToShipmentTab('my-shipments')}
+                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
+                      >
+                        My Shipments
+                      </button>
+                      <button
+                        onClick={() => handleGoToShipmentTab('track')}
+                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
+                      >
+                        Track Shipment
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`text-left px-4 py-2.5 rounded-lg text-sm font-semibold ${
+                    activeTab === item.id
+                      ? 'bg-orange-50 text-orange-600 font-bold'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">

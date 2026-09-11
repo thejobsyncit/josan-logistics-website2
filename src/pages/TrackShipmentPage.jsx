@@ -438,7 +438,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               
               <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-100">
                 <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tracking Identifier</p>
+                  <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Tracking Identifier</p>
                   <h2 className="text-2xl font-extrabold text-slate-900 font-mono">{currentShipment.id}</h2>
                 </div>
 
@@ -461,21 +461,21 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               {/* Current Location & Estimated Delivery Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs">
                 <div>
-                  <p className="text-slate-400 font-bold uppercase text-[10px]">Current Location</p>
+                  <p className="text-slate-700 font-extrabold uppercase text-[10px]">Current Location</p>
                   <p className="font-extrabold text-slate-900 text-sm mt-0.5 flex items-center space-x-1 text-orange-600">
                     <MapPin className="w-4 h-4 shrink-0" />
                     <span>{currentShipment.currentLocation}</span>
                   </p>
                 </div>
                 <div>
-                  <p className="text-slate-400 font-bold uppercase text-[10px]">Estimated SLA Delivery</p>
+                  <p className="text-slate-700 font-extrabold uppercase text-[10px]">Estimated SLA Delivery</p>
                   <p className="font-extrabold text-slate-900 text-sm mt-0.5 flex items-center space-x-1">
-                    <Clock className="w-4 h-4 shrink-0 text-slate-500" />
+                    <Clock className="w-4 h-4 shrink-0 text-slate-700" />
                     <span>{currentShipment.estimatedDelivery}</span>
                   </p>
                 </div>
                 <div>
-                  <p className="text-slate-400 font-bold uppercase text-[10px]">Service Class</p>
+                  <p className="text-slate-700 font-extrabold uppercase text-[10px]">Service Class</p>
                   <p className="font-extrabold text-slate-900 text-sm mt-0.5">{currentShipment.serviceLevel}</p>
                 </div>
               </div>
@@ -595,32 +595,32 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
             {/* Parcel Freight Details */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card space-y-4 text-xs">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Package Specifications</h3>
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">Package Specifications</h3>
               
-              <div className="space-y-3 divide-y divide-slate-100">
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-500">Sender / Originator:</span>
-                  <span className="font-bold text-slate-900">{currentShipment.sender}</span>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-700 font-extrabold">Sender / Originator:</span>
+                  <span className="font-extrabold text-slate-900">{currentShipment.sender || 'Razer (Asia-Pacific)'}</span>
                 </div>
-                <div className="flex justify-between py-1 pt-2">
-                  <span className="text-slate-500">Receiver / Destination:</span>
-                  <span className="font-bold text-slate-900">{currentShipment.receiver}</span>
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-700 font-extrabold">Receiver / Destination:</span>
+                  <span className="font-extrabold text-slate-900">{currentShipment.receiver}</span>
                 </div>
-                <div className="flex justify-between py-1 pt-2">
-                  <span className="text-slate-500">Cargo Type:</span>
-                  <span className="font-bold text-slate-900">{currentShipment.cargoType}</span>
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-700 font-extrabold">Cargo Type:</span>
+                  <span className="font-extrabold text-slate-900">{currentShipment.cargoType || 'Gaming Hardware & Microchips'}</span>
                 </div>
-                <div className="flex justify-between py-1 pt-2">
-                  <span className="text-slate-500">Weight & Quantity:</span>
-                  <span className="font-mono font-bold text-slate-900">{currentShipment.weight} ({currentShipment.pieces || 1} Pcs)</span>
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-700 font-extrabold">Weight & Quantity:</span>
+                  <span className="font-extrabold text-slate-900">{currentShipment.weight}</span>
                 </div>
-                <div className="flex justify-between py-1 pt-2">
-                  <span className="text-slate-500">Declared Value:</span>
-                  <span className="font-mono font-bold text-slate-900">{currentShipment.declaredValue || '$15,000'}</span>
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-700 font-extrabold">Declared Value:</span>
+                  <span className="font-extrabold text-emerald-700">{currentShipment.declaredValue || '$45,000 USD'}</span>
                 </div>
-                <div className="flex justify-between py-1 pt-2">
-                  <span className="text-slate-500">Freight Fee Paid:</span>
-                  <span className="font-mono font-bold text-orange-600">{currentShipment.price}</span>
+                <div className="flex justify-between py-1.5">
+                  <span className="text-slate-700 font-extrabold">Freight Fee Paid:</span>
+                  <span className="font-mono font-extrabold text-orange-600">{currentShipment.price}</span>
                 </div>
               </div>
 

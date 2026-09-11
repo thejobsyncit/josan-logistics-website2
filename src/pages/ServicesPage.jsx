@@ -32,8 +32,8 @@ const DynamicServiceGallery = ({ images, title }) => {
           className="w-full h-full object-cover transition-all duration-700 ease-in-out transform group-hover:scale-105 animate-fade-in"
         />
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60"></div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60"></div>
 
         {/* Navigation Arrows */}
         <button
@@ -72,11 +72,10 @@ const DynamicServiceGallery = ({ images, title }) => {
 };
 
 export const ServicesPage = ({ setActiveTab }) => {
-  const { openAuthModalWithoutClose, currentUser, setIsAuthModalOpen } = useLogistics();
+  const { openAuthModalWithoutClose } = useLogistics();
 
   const [calculatorWeight, setCalculatorWeight] = useState(25);
   const [calculatorService, setCalculatorService] = useState('express');
-  const [calculatorInsurance, setCalculatorInsurance] = useState(false);
 
   const getRatePerKg = () => {
     switch (calculatorService) {
@@ -101,6 +100,7 @@ export const ServicesPage = ({ setActiveTab }) => {
   const servicesData = [
     {
       id: 'express-air',
+      tabName: 'Air Freight',
       title: 'Express Air Cargo & Priority Charter',
       icon: Plane,
       images: [
@@ -112,19 +112,8 @@ export const ServicesPage = ({ setActiveTab }) => {
       features: ['Next-Day & Same-Day Priority Flights', 'Airport-to-Door Telematics Tracking', 'Hazmat & High-Value Secured Vaults', 'Customs Clearance Fast-Track']
     },
     {
-      id: 'land-haulage',
-      title: 'Freight Trucking & Land Haulage (FTL / LTL)',
-      icon: Truck,
-      images: [
-        'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
-      ],
-      desc: 'Modern fleet of 18-wheeler semi-trucks and sprinter vans equipped with satellite GPS telematics for seamless highway freight.',
-      features: ['Full Truckload (FTL) & Partial (LTL)', 'Automated Route Optimization', 'Hydraulic Lift-gate Vans Available', '24/7 Driver Telemetry Feed']
-    },
-    {
       id: 'ocean-freight',
+      tabName: 'Ocean Freight',
       title: 'Ocean Cargo Shipping & Container Lines',
       icon: Ship,
       images: [
@@ -136,7 +125,21 @@ export const ServicesPage = ({ setActiveTab }) => {
       features: ['FCL (Full Container) & LCL Shipping', 'Port Terminal Intermodal Transfer', 'Automated Ocean Bill of Lading', 'Global Customs Brokerage']
     },
     {
+      id: 'land-haulage',
+      tabName: 'Land Transport',
+      title: 'Freight Trucking & Land Haulage (FTL / LTL)',
+      icon: Truck,
+      images: [
+        'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Modern fleet of 18-wheeler semi-trucks and sprinter vans equipped with satellite GPS telematics for seamless highway freight.',
+      features: ['Full Truckload (FTL) & Partial (LTL)', 'Automated Route Optimization', 'Hydraulic Lift-gate Vans Available', '24/7 Driver Telemetry Feed']
+    },
+    {
       id: 'cold-chain',
+      tabName: 'Cold Pharma Logistics',
       title: 'Pharma Cold Chain & Refrigerated Transit',
       icon: Thermometer,
       images: [
@@ -162,7 +165,7 @@ export const ServicesPage = ({ setActiveTab }) => {
           <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
             End-To-End Multimodal Shipping
           </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-200 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
             Mainly focusing on Singapore and surrounding countries, Josan Logistics provides full supply chain execution with dynamic live tracking.
           </p>
         </div>
@@ -176,7 +179,7 @@ export const ServicesPage = ({ setActiveTab }) => {
               Interactive Estimator
             </span>
             <h3 className="text-2xl font-extrabold text-slate-900">Calculate Instant Freight Rate</h3>
-            <p className="text-slate-600 text-xs sm:text-sm">Adjust weight and service speed to get an instant estimate.</p>
+            <p className="text-slate-800 font-semibold text-xs sm:text-sm">Adjust weight and service speed to get an instant estimate.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -254,7 +257,7 @@ export const ServicesPage = ({ setActiveTab }) => {
       </section>
 
       {/* Services Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="freight-services-grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-28">
         <div className="space-y-12">
           {servicesData.map((service, index) => {
             const IconComp = service.icon;
@@ -268,7 +271,7 @@ export const ServicesPage = ({ setActiveTab }) => {
                     <IconComp className="w-6 h-6 stroke-[2]" />
                   </div>
                   <h3 className="text-2xl font-extrabold text-slate-900">{service.title}</h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">{service.desc}</p>
+                  <p className="text-slate-800 font-medium text-sm leading-relaxed">{service.desc}</p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
                     {service.features.map((feat, i) => (

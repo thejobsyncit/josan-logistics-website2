@@ -414,10 +414,24 @@ export const LogisticsProvider = ({ children }) => {
         if (newStatus === 'Delayed') updatedStatusType = 'warning';
 
         const updatedTimeline = s.timeline.map((step, idx) => {
-          if (newStatus === 'In Transit' && idx <= 2) return { ...step, completed: true, current: idx === 2 };
-          if (newStatus === 'Out for Delivery' && idx <= 3) return { ...step, completed: true, current: idx === 3 };
-          if (newStatus === 'Delivered') return { ...step, completed: true, current: idx === 4 };
-          if (newStatus === 'Delayed' && idx === 2) return { ...step, completed: true, current: true, title: 'Delay Flagged (Traffic/Customs)' };
+          if (newStatus === 'Picked Up') {
+            if (idx <= 1) return { ...step, completed: true, current: idx === 1, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
+            return { ...step, completed: false, current: false };
+          }
+          if (newStatus === 'In Transit') {
+            if (idx <= 2) return { ...step, completed: true, current: idx === 2, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
+            return { ...step, completed: false, current: false };
+          }
+          if (newStatus === 'Out for Delivery') {
+            if (idx <= 3) return { ...step, completed: true, current: idx === 3, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
+            return { ...step, completed: false, current: false };
+          }
+          if (newStatus === 'Delivered') {
+            return { ...step, completed: true, current: idx === 4, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
+          }
+          if (newStatus === 'Delayed' && idx === 2) {
+            return { ...step, completed: true, current: true, title: 'Delay Flagged (Traffic/Customs)' };
+          }
           return step;
         });
 

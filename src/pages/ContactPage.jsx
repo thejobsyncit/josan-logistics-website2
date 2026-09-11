@@ -49,7 +49,7 @@ export const ContactPage = () => {
           <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
             Get In Touch With Our Dispatch Team
           </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-200 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
             Have questions regarding cargo bookings, tracking updates, or custom enterprise supply chain quotes? Our team is active 24/7.
           </p>
         </div>
@@ -63,7 +63,7 @@ export const ContactPage = () => {
           <div className="lg:col-span-7 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-card space-y-6">
             <div>
               <h2 className="text-2xl font-extrabold text-slate-900">Send Us A Message</h2>
-              <p className="text-slate-600 text-xs sm:text-sm mt-1">Fill out the details below and an operations agent will respond within 15 minutes.</p>
+              <p className="text-slate-800 font-semibold text-xs sm:text-sm mt-1">Fill out the details below and an operations agent will respond within 15 minutes.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,7 +81,7 @@ export const ContactPage = () => {
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
-                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Strictly letters only (no numbers)</span>
+                  <span className="text-[10px] text-slate-600 font-bold block mt-0.5">Strictly letters only (no numbers)</span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Corporate Email Address *</label>
@@ -95,7 +95,7 @@ export const ContactPage = () => {
                     className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
                     required
                   />
-                  <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Must be valid email format (e.g. name@company.com)</span>
+                  <span className="text-[10px] text-slate-600 font-bold block mt-0.5">Must be valid email format (e.g. name@company.com)</span>
                 </div>
               </div>
 

@@ -55,7 +55,7 @@ export const HomePage = ({ setActiveTab }) => {
                 <span className="text-slate-900">Global Freight Forwarders</span>
               </h1>
 
-              <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl">
+              <p className="text-slate-800 font-semibold text-sm sm:text-base leading-relaxed max-w-xl">
                 Josan Logistics is a premier B2B logistics platform dedicated to serving global freight forwarders, spanning 867 cities across 181 countries. With over 20 years of brand establishment, the platform supports over 11,000 paid member companies and more than 660,000 registered users worldwide. Annually, it facilitates over 3.5 million business opportunities, positioning Josan Logistics as one of the world's leading, fastest-growing logistics platforms.
               </p>
 
@@ -127,22 +127,22 @@ export const HomePage = ({ setActiveTab }) => {
             
             <div className="space-y-1">
               <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">3,500,000+</p>
-              <p className="text-xs sm:text-sm font-medium text-slate-500">Business Opportunities / Year</p>
+              <p className="text-xs sm:text-sm font-bold text-slate-700">Business Opportunities / Year</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">$4,000,000,000+</p>
-              <p className="text-xs sm:text-sm font-medium text-slate-500">Payment Volume / Year</p>
+              <p className="text-xs sm:text-sm font-bold text-slate-700">Payment Volume / Year</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">$150,000</p>
-              <p className="text-xs sm:text-sm font-medium text-slate-500">Cooperation Risk Protection / Year</p>
+              <p className="text-xs sm:text-sm font-bold text-slate-700">Cooperation Risk Protection / Year</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-3xl sm:text-4xl font-extrabold text-orange-500 font-sans tracking-tight">60,000+</p>
-              <p className="text-xs sm:text-sm font-medium text-slate-500">Total Attendances / Year</p>
+              <p className="text-xs sm:text-sm font-bold text-slate-700">Total Attendances / Year</p>
             </div>
 
           </div>
@@ -159,7 +159,7 @@ export const HomePage = ({ setActiveTab }) => {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
             Comprehensive Services Tailored For Modern Business
           </h2>
-          <p className="text-slate-600 text-sm sm:text-base">
+          <p className="text-slate-800 font-semibold text-sm sm:text-base">
             From single express parcels to full container loads, our multimodal fleet guarantees speed, safety, and transparency.
           </p>
         </div>
@@ -228,13 +228,13 @@ export const HomePage = ({ setActiveTab }) => {
                   <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">
                     {service.title}
                   </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                  <p className="text-slate-800 font-medium text-sm leading-relaxed mb-4">
                     {service.desc}
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] font-mono font-semibold text-slate-400">{service.spec}</span>
+                  <span className="text-[11px] font-mono font-bold text-slate-600">{service.spec}</span>
                   <button
                     onClick={() => setActiveTab('services')}
                     className="inline-flex items-center text-xs font-bold text-orange-600 hover:text-orange-700 space-x-1 group/btn shrink-0"
@@ -262,7 +262,7 @@ export const HomePage = ({ setActiveTab }) => {
               <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
                 Why Industry Leaders Partner With Josan Logistics
               </h2>
-              <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-200 font-medium text-sm sm:text-base leading-relaxed">
                 We combine modern telemetry hardware, automated dispatch algorithms, and a customer-first service culture to eliminate supply chain bottlenecks.
               </p>
 
@@ -369,7 +369,7 @@ export const HomePage = ({ setActiveTab }) => {
                     {item.shipmentId}
                   </span>
                 </div>
-                <p className="text-slate-700 text-sm italic leading-relaxed">
+                <p className="text-slate-900 font-medium text-sm italic leading-relaxed">
                   "{item.quote}"
                 </p>
               </div>
@@ -378,7 +378,7 @@ export const HomePage = ({ setActiveTab }) => {
                 <img src={item.photo} alt={item.author} className="w-11 h-11 rounded-full object-cover border-2 border-orange-500" />
                 <div>
                   <p className="text-sm font-extrabold text-slate-900">{item.author}</p>
-                  <p className="text-xs text-slate-500 font-semibold">{item.role}, <span className="text-orange-600">{item.company}</span></p>
+                  <p className="text-xs text-slate-700 font-bold">{item.role}, <span className="text-orange-600">{item.company}</span></p>
                 </div>
               </div>
             </div>
@@ -396,7 +396,7 @@ export const HomePage = ({ setActiveTab }) => {
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
               Ready To Ship Your Cargo With Zero Delays?
             </h2>
-            <p className="text-orange-100 text-sm sm:text-base">
+            <p className="text-white font-medium text-sm sm:text-base">
               Get an instant rate estimate, choose your preferred speed level, and dispatch your shipment in under 2 minutes.
             </p>
           </div>
