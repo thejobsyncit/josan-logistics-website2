@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-orange: #FF6B00;
+    --primary-orange-hover: #E55C00;
+    --primary-orange-light: #FFF2EB;
+    --bg-white: #FFFFFF;
+    --bg-slate: #F8FAFC;
+    --text-dark: #0F172A;
+    --text-muted: #334155;
+  }
+
+  body {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    letter-spacing: 0.015em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Inter', sans-serif;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+}
+
+/* Global High Contrast Text Utility Overrides for Maximum Readability */
+@layer utilities {
+  .text-slate-600,
+  .text-gray-600,
+  .text-zinc-600,
+  .text-neutral-600 {
+    color: #1E293B !important; /* Deep Slate 800 for high contrast body text */
+  }
+
+  .text-slate-500,
+  .text-gray-500,
+  .text-zinc-500,
+  .text-neutral-500 {
+    color: #334155 !important; /* Dark Slate 700 for clear secondary text */
+  }
+
+  p.text-slate-400,
+  span.text-slate-400,
+  div.text-slate-400,
+  label.text-slate-400 {
+    color: #475569 !important; /* Crisp Slate 600 for light background subtext */
+  }
+
+  /* Preserve light text inside dark theme containers */
+  .bg-slate-900 .text-slate-400,
+  .bg-slate-800 .text-slate-400,
+  .bg-slate-950 .text-slate-400,
+  .bg-slate-700 .text-slate-400,
+  .bg-black .text-slate-400,
+  .bg-orange-500 .text-slate-400,
+  .bg-orange-600 .text-slate-400,
+  .bg-orange-gradient .text-slate-400 {
+    color: #CBD5E1 !important; /* Light Slate 300 on dark containers */
+  }
+
+  .bg-slate-900 .text-slate-500,
+  .bg-slate-800 .text-slate-500,
+  .bg-slate-950 .text-slate-500,
+  .bg-slate-700 .text-slate-500,
+  .bg-black .text-slate-500 {
+    color: #94A3B8 !important; /* Slate 400 on dark containers */
+  }
+
+  .bg-slate-900 .text-slate-600,
+  .bg-slate-800 .text-slate-600,
+  .bg-slate-950 .text-slate-600,
+  .bg-slate-700 .text-slate-600,
+  .bg-black .text-slate-600 {
+    color: #CBD5E1 !important; /* Slate 300 on dark containers */
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6B00;
+}
+
+/* Hide native up/down number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Orange Focus State Utility */
+.focus-orange {
+  @apply focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 107, 0, 0.18);
+}
+
+.glass-card-dark {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Orange Gradient Accents */
+.bg-orange-gradient {
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8533 50%, #E55C00 100%);
+}
+
+.bg-orange-subtle-gradient {
+  background: linear-gradient(135deg, #FFF2EB 0%, #FFFFFF 100%);
+}
+
+.text-gradient-orange {
+  background: linear-gradient(135deg, #FF6B00 0%, #E55C00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Pulse animation for live markers */
+@keyframes pulse-orange {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(255, 107, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0);
+  }
+}
+
+.pulse-badge {
+  animation: pulse-orange 2s infinite;
+}
+
+/* Straight Water Sink & Spring Bounce Animation (Zero Slant / Perfectly Vertical) */
+@keyframes water-sink-jump {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.15);
+  }
+  25% {
+    /* Upward straight jump before dipping into water */
+    transform: translateY(-18px) scale(1.02);
+    box-shadow: 0 22px 30px rgba(255, 107, 0, 0.25);
+  }
+  50% {
+    /* Sinking straight down into water */
+    transform: translateY(20px) scale(0.96);
+    box-shadow: 0 2px 6px rgba(255, 107, 0, 0.4), inset 0 6px 12px rgba(0, 0, 0, 0.12);
+    filter: brightness(0.95);
+  }
+  75% {
+    /* Buoyant straight rebound springing back up out of water */
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 12px 22px rgba(255, 107, 0, 0.2);
+  }
+  88% {
+    /* Gentle secondary straight dip */
+    transform: translateY(3px) scale(0.99);
+    box-shadow: 0 4px 10px rgba(255, 107, 0, 0.15);
+  }
+}
+
+.animate-water-sink {
+  animation: water-sink-jump 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, box-shadow;
+}
+
+@keyframes route-flow {
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-route-flow {
+  stroke-dasharray: 14 10;
+  animation: route-flow 2.5s linear infinite;
+}
+
+/* Print styling for Invoice - Full Page Rendering */
+@media print {
+  @page {
+    size: portrait;
+    margin: 8mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Reset modal fixed positioning and max-height clipping */
+  .fixed, .max-h-\[90vh\] {
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #printable-invoice, #printable-invoice * {
+    visibility: visible !important;
+  }
+
+  #printable-invoice {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
