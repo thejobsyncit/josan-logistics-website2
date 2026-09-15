@@ -75,7 +75,7 @@ export const ServicesPage = ({ setActiveTab }) => {
   const { setIsAuthModalOpen, setAuthModalHideClose, isAuthModalOpen, currentUser } = useLogistics();
 
   const [calculatorWeight, setCalculatorWeight] = useState(25);
-  const [calculatorService, setCalculatorService] = useState('express');
+  const [calculatorService, setCalculatorService] = useState('ground');
   const [calculatorInsurance, setCalculatorInsurance] = useState(false);
 
   // When page loads, clicking or scrolling the kg button prompts log-in
@@ -111,11 +111,10 @@ export const ServicesPage = ({ setActiveTab }) => {
 
   const getRatePerKg = () => {
     switch (calculatorService) {
-      case 'express': return 12;
       case 'ground': return 4;
-      case 'sea': return 2;
-      case 'cold': return 15;
-      default: return 5;
+      case 'ftl': return 6;
+      case 'express-road': return 8;
+      default: return 4;
     }
   };
 
@@ -131,56 +130,17 @@ export const ServicesPage = ({ setActiveTab }) => {
 
   const servicesData = [
     {
-      id: 'express-air',
-      tabName: 'Air Freight',
-      title: 'Express Air Cargo & Priority Charter',
-      icon: Plane,
-      images: [
-        'https://images.unsplash.com/photo-1570710891163-6d3b5c47248b?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=800&auto=format&fit=crop&q=80'
-      ],
-      desc: 'Dedicated priority air freight servicing major global hubs with guaranteed next-day delivery SLAs and real-time flight tracking.',
-      features: ['Next-Day & Same-Day Priority Flights', 'Airport-to-Door Telematics Tracking', 'Hazmat & High-Value Secured Vaults', 'Customs Clearance Fast-Track']
-    },
-    {
-      id: 'ocean-freight',
-      tabName: 'Ocean Freight',
-      title: 'Ocean Cargo Shipping & Container Lines',
-      icon: Ship,
-      images: [
-        'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop&q=80'
-      ],
-      desc: 'Cost-effective global sea freight handling 20ft/40ft containers, oversized machinery, and consolidated ocean cargo.',
-      features: ['FCL (Full Container) & LCL Shipping', 'Port Terminal Intermodal Transfer', 'Automated Ocean Bill of Lading', 'Global Customs Brokerage']
-    },
-    {
       id: 'land-haulage',
-      tabName: 'Land Transport',
-      title: 'Freight Trucking & Land Haulage (FTL / LTL)',
+      tabName: 'Roadways',
+      title: 'Roadways Freight & Land Haulage (FTL / LTL)',
       icon: Truck,
       images: [
         'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
       ],
-      desc: 'Modern fleet of 18-wheeler semi-trucks and sprinter vans equipped with satellite GPS telematics for seamless highway freight.',
+      desc: 'Modern fleet of 18-wheeler semi-trucks, lorries, and sprinter vans equipped with satellite GPS telematics for seamless highway freight and door-to-door road transport.',
       features: ['Full Truckload (FTL) & Partial (LTL)', 'Automated Route Optimization', 'Hydraulic Lift-gate Vans Available', '24/7 Driver Telemetry Feed']
-    },
-    {
-      id: 'cold-chain',
-      tabName: 'Cold Pharma Logistics',
-      title: 'Pharma Cold Chain & Refrigerated Transit',
-      icon: Thermometer,
-      images: [
-        'https://images.unsplash.com/photo-1586528116493-a029325540fa?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=800&auto=format&fit=crop&q=80'
-      ],
-      desc: 'Precision temperature-controlled transport ranging from -20°C to +8°C for pharmaceuticals, medical vaccines, and perishables.',
-      features: ['Continuous Temperature Data-Logger', 'ISO 9001 & GDP Compliant', 'Emergency Backup Refrigeration', 'Sterile Sealed Packaging']
     }
   ];
 
@@ -192,13 +152,13 @@ export const ServicesPage = ({ setActiveTab }) => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
           <span className="text-orange-400 font-bold uppercase text-xs tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-            Logistics & Freight Services
+            Roadways & Freight Services
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
-            End-To-End Multimodal Shipping
+            Dedicated Roadways Logistics
           </h1>
           <p className="text-slate-200 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Mainly focusing on Singapore and surrounding countries, Josan Logistics provides full supply chain execution with dynamic live tracking.
+            Mainly focusing on Singapore, Malaysia, and surrounding regional corridors, Josan Logistics provides premier road freight execution with dynamic live telematics.
           </p>
         </div>
       </section>
@@ -267,10 +227,9 @@ export const ServicesPage = ({ setActiveTab }) => {
                   onChange={(e) => setCalculatorService(e.target.value)}
                   className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
                 >
-                  <option value="express">Express Air Freight ($12/kg)</option>
-                  <option value="ground">Land Trucking ($4/kg)</option>
-                  <option value="sea">Ocean Shipping ($2/kg)</option>
-                  <option value="cold">Cold Chain Pharma ($15/kg)</option>
+                  <option value="ground">Roadways Freight & Land Haulage ($4/kg)</option>
+                  <option value="ftl">Full Truckload (FTL) Dedicated ($6/kg)</option>
+                  <option value="express-road">Express Highway Road Courier ($8/kg)</option>
                 </select>
               </div>
 
@@ -367,13 +326,13 @@ export const ServicesPage = ({ setActiveTab }) => {
                 Regulatory Compliance & Brokerage
               </span>
               <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-                Customs Clearance Services
+                Roadways Customs Clearance
               </h3>
               <p className="text-orange-400 font-bold text-sm sm:text-base">
-                Smooth Customs Clearance, From Documentation to Delivery
+                Smooth Overland Customs Clearance, From Documentation to Highway Delivery
               </p>
               <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
-                Simplify customs clearance with documentation support, customs declarations, duty assessment, inspection coordination, compliance support, and cargo release for import and export shipments across Air, Sea, Road, Rail, and Courier.
+                Simplify road freight customs clearance with documentation support, border checkpoint declarations, duty assessment, highway inspection coordination, compliance support, and cargo release for overland roadways freight.
               </p>
 
               <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-4">
@@ -406,11 +365,11 @@ export const ServicesPage = ({ setActiveTab }) => {
               </div>
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                 <span className="block text-xl font-black text-white">&lt; 24h</span>
-                <span className="text-xs text-slate-300 font-semibold block">Port Clearance</span>
+                <span className="text-xs text-slate-300 font-semibold block">Border Clearance</span>
               </div>
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <span className="block text-xl font-black text-white">5 Modes</span>
-                <span className="text-xs text-slate-300 font-semibold block">Air, Sea, Road, Rail, Courier</span>
+                <span className="block text-xl font-black text-white">Roadways</span>
+                <span className="text-xs text-slate-300 font-semibold block">Dedicated Overland Service</span>
               </div>
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                 <span className="block text-xl font-black text-emerald-400">100%</span>

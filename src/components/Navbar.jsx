@@ -306,10 +306,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                             className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer"
                           >
                             <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              Multimodal Freight Services
+                              Roadways Freight Services
                             </span>
                             <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Air, Ocean, Land & Cold Chain
+                              Dedicated Highway Trucking, FTL & LTL
                             </span>
                           </button>
 
@@ -359,40 +359,14 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-2.5 space-y-1">
                           <button
                             type="button"
-                            onClick={() => handleGoToShipmentTab('book')}
+                            onClick={() => handleGoToShipmentTab('domestic')}
                             className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer"
                           >
                             <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              Book Shipment (All Services)
+                              Book Road Shipment
                             </span>
                             <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Instant freight quote & carrier booking
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleGoToShipmentTab('domestic')}
-                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
-                          >
-                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              Domestic Delivery (Singapore)
-                            </span>
-                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Express motorbike, van & lorry courier
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleGoToShipmentTab('international')}
-                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
-                          >
-                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              International Freight
-                            </span>
-                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Cross-border air, ocean & customs clearance
+                              Express motorbike, van, lorry & road haulage
                             </span>
                           </button>
 
@@ -811,7 +785,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                         onClick={handleGoToServices}
                         className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
                       >
-                        Multimodal Freight Services
+                        Roadways Freight Services
                       </button>
                       <button
                         onClick={handleGoToCustomsClearance}
@@ -841,22 +815,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                     </button>
                     <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4">
                       <button
-                        onClick={() => handleGoToShipmentTab('book')}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
-                      >
-                        Book Shipment (All Services)
-                      </button>
-                      <button
                         onClick={() => handleGoToShipmentTab('domestic')}
                         className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
                       >
-                        Domestic Delivery (Singapore)
-                      </button>
-                      <button
-                        onClick={() => handleGoToShipmentTab('international')}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
-                      >
-                        International Freight
+                        Book Road Shipment
                       </button>
                       <button
                         onClick={() => handleGoToShipmentTab('my-shipments')}

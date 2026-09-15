@@ -1266,11 +1266,11 @@ export const BookShipmentPage = ({ setActiveTab }) => {
             <div>
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold mb-2 border border-orange-200">
                 <Truck className="w-3.5 h-3.5" />
-                <span>Domestic Logistics</span>
+                <span>Roadways & Domestic Logistics</span>
               </div>
-              <h1 className="text-3xl font-extrabold text-slate-900">Domestic Services</h1>
+              <h1 className="text-3xl font-extrabold text-slate-900">Roadways Freight & Delivery</h1>
               <p className="text-slate-600 font-medium text-xs sm:text-sm mt-1">
-                Point-to-point intra-country freight, express couriers & local fleet dispatch.
+                Point-to-point road freight, express couriers & dedicated vehicle fleet dispatch.
               </p>
             </div>
 
@@ -1286,17 +1286,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 <ArrowLeft className="w-4 h-4" />
                 <span>Change Service</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShipmentScope('international');
-                  showToast('✈️ Switched to International Services');
-                }}
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center space-x-2"
-              >
-                <Globe className="w-4 h-4 text-orange-400" />
-                <span>Switch to International Services</span>
-              </button>
+              <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                ✓ Roadways Service Active
+              </span>
             </div>
           </div>
 

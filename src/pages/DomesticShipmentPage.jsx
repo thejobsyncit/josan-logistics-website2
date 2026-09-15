@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Check
 } from 'lucide-react';
+import { CargoTypeSelector } from '../components/CargoTypeSelector';
 
 export const vehicleOptions = [
   {
@@ -23,49 +24,49 @@ export const vehicleOptions = [
     id: 'mpv',
     label: 'MPV / SUV',
     maxWeight: 120,
-    rate: 24,
+    rate: 18,
     image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=500&auto=format&fit=crop&q=80'
   },
   {
     id: 'van',
     label: '1.7m Van',
     maxWeight: 500,
-    rate: 30,
+    rate: 28,
     image: '/assets/van_1_7m.jpg'
   },
   {
     id: 'large_van',
     label: '2.4m Van',
     maxWeight: 900,
-    rate: 48,
+    rate: 42,
     image: '/assets/van_2_4m_highroof.jpg'
   },
   {
     id: 'lorry_10ft',
     label: '10ft Lorry',
     maxWeight: 1500,
-    rate: 68,
+    rate: 60,
     image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500&auto=format&fit=crop&q=80'
   },
   {
     id: 'lorry',
     label: '14ft Lorry',
     maxWeight: 3500,
-    rate: 115,
+    rate: 90,
     image: '/assets/lorry_14ft_tailgate.jpg'
   },
   {
     id: 'truck_24ft',
     label: '24ft Lorry',
     maxWeight: 10000,
-    rate: 195,
+    rate: 150,
     image: '/assets/lorry_24ft_heavy.jpg'
   },
   {
     id: 'cold_chain',
     label: 'Cold-Chain Van',
     maxWeight: 800,
-    rate: 85,
+    rate: 65,
     image: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=500&auto=format&fit=crop&q=80'
   }
 ];
@@ -86,7 +87,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
     deliveryPostal: '',
     weight: '',
     pieces: 1,
-    cargoType: 'General Parcel',
+    cargoType: '',
     vehicle: 'van',
     timeSlot: timeSlots[0],
     declaredValue: ''
@@ -101,7 +102,11 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
   const estimatedPrice = useMemo(() => {
     const w = parseFloat(form.weight) || 1;
     const base = selectedVehicle.rate;
-    const total = base + Math.max(0, w - 5) * 0.8;
+    // Generous tiered weight allowance included with each vehicle type
+    const freeAllowance = Math.min(selectedVehicle.maxWeight * 0.4, 250);
+    const excessWeight = Math.max(0, w - freeAllowance);
+    const excessRate = selectedVehicle.maxWeight >= 1500 ? 0.04 : selectedVehicle.maxWeight >= 500 ? 0.08 : 0.25;
+    const total = base + excessWeight * excessRate;
     return total.toFixed(2);
   }, [form.weight, selectedVehicle]);
 
@@ -116,6 +121,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
     if (!form.deliveryAddress.trim()) next.deliveryAddress = 'Enter delivery address';
     if (!/^\d{6}$/.test(form.deliveryPostal.trim())) next.deliveryPostal = '6-digit Singapore postal code';
     if (!form.weight || parseFloat(form.weight) <= 0) next.weight = 'Enter parcel weight';
+    if (!form.cargoType || !form.cargoType.trim()) next.cargoType = 'Please select a cargo type';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -306,14 +312,15 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
               <Field label="Pieces">
                 <input type="number" min="1" value={form.pieces} onChange={update('pieces')} className={inputClass()} />
               </Field>
-              <Field label="Cargo type">
-                <select value={form.cargoType} onChange={update('cargoType')} className={inputClass()}>
-                  <option>General Parcel</option>
-                  <option>Documents</option>
-                  <option>Fragile Goods</option>
-                  <option>Furniture</option>
-                  <option>Food & Perishables</option>
-                </select>
+              <Field label="Cargo type" error={errors.cargoType}>
+                <CargoTypeSelector
+                  value={form.cargoType}
+                  onChange={(val) => {
+                    setForm((f) => ({ ...f, cargoType: val }));
+                    if (errors.cargoType) setErrors((prev) => ({ ...prev, cargoType: undefined }));
+                  }}
+                  error={errors.cargoType}
+                />
               </Field>
             </div>
 
@@ -366,17 +373,6 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
             >
               Confirm domestic booking
               <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (setShipmentScope) setShipmentScope('international');
-                if (setActiveTab) setActiveTab('book');
-              }}
-              className="w-full text-center text-xs text-slate-500 hover:text-orange-600 font-semibold transition-colors cursor-pointer"
-            >
-              Shipping abroad instead? Go to International Shipment →
             </button>
           </div>
         </div>

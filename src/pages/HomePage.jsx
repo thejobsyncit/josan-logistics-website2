@@ -149,92 +149,57 @@ export const HomePage = ({ setActiveTab }) => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
           <span className="text-orange-600 font-bold uppercase text-xs tracking-widest bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-            End-To-End Freight Solutions
+            Roadways Freight Solutions
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-            Comprehensive Services Tailored For Modern Business
+            Roadways & Land Haulage Logistics
           </h2>
           <p className="text-slate-800 font-semibold text-sm sm:text-base">
-            From single express parcels to full container loads, our multimodal fleet guarantees speed, safety, and transparency.
+            From single express parcels to full truckload (FTL) and partial loads (LTL), our dedicated road fleet guarantees speed, safety, and GPS telematics.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="max-w-2xl mx-auto">
           {[
             {
-              icon: Plane,
-              title: 'Express Air Freight',
-              desc: 'Priority air cargo for time-critical shipments with guaranteed next-day delivery across major global airports.',
-              badge: 'Fastest Transit',
-              spec: 'Transit: 12-24 Hrs | Max Weight: Unlimited'
-            },
-            {
               icon: Truck,
-              title: 'Land Haulage & Trucking',
-              desc: 'Dedicated FTL & LTL truck fleet with GPS telematics, temperature control, and route optimization.',
-              badge: 'Popular Choice',
+              title: 'Roadways & Freight Trucking',
+              desc: 'Dedicated FTL & LTL truck fleet with satellite GPS telematics, automated route optimization, and secure cross-border highway transport.',
+              badge: 'Roadways',
               spec: 'Transit: 1-3 Days | Real-Time Telematics'
-            },
-            {
-              icon: Ship,
-              title: 'Ocean Cargo & Containers',
-              desc: 'Full Container Load (FCL) & Less Container Load (LCL) shipping across primary ocean trade lanes.',
-              badge: 'Best Value',
-              spec: 'Transit: 10-18 Days | FCL & LCL Options'
-            },
-            {
-              icon: Warehouse,
-              title: 'Smart Warehousing',
-              desc: 'Automated inventory management, parcel storage bin tracking, and rapid cross-dock fulfillment hubs.',
-              badge: '24/7 Monitored',
-              spec: 'Climate Controlled | Real-Time Storage Log'
-            },
-            {
-              icon: Thermometer,
-              title: 'Cold Chain Logistics',
-              desc: 'Specialized temperature-controlled transit for pharmaceuticals, vaccines, and perishable goods.',
-              badge: 'Pharma SLA',
-              spec: 'Temp Range: -20°C to +8°C | Sensor Telemetry'
-            },
-            {
-              icon: ShieldCheck,
-              title: 'Customs & Insurance',
-              desc: 'Comprehensive customs clearance, import/export compliance documentation, and 100% cargo insurance.',
-              badge: 'Fully Covered',
-              spec: '100% Value Guarantee | Instant QR Waybill'
             }
           ].map((service, idx) => {
             const IconComponent = service.icon;
             return (
               <div
                 key={idx}
-                className="bg-white rounded-2xl p-8 border border-slate-200 shadow-card hover:shadow-orange-glow hover:border-orange-300 transition-all duration-300 group flex flex-col justify-between"
+                className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-card hover:shadow-orange-glow hover:border-orange-300 transition-all duration-300 group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:text-slate-900 transition-all duration-300 shadow-sm">
-                      <IconComponent className="w-7 h-7 stroke-[2]" />
+                    <div className="w-16 h-16 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:text-slate-900 transition-all duration-300 shadow-sm">
+                      <IconComponent className="w-8 h-8 stroke-[2]" />
                     </div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200">
+                    <span className="text-xs font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
                       {service.badge}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-orange-600 transition-colors">
                     {service.title}
                   </h3>
-                  <p className="text-slate-800 font-medium text-sm leading-relaxed mb-4">
+                  <p className="text-slate-800 font-medium text-base leading-relaxed mb-6">
                     {service.desc}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] font-mono font-bold text-slate-600">{service.spec}</span>
+                <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-slate-600">{service.spec}</span>
                   <button
                     onClick={() => setActiveTab('services')}
-                    className="inline-flex items-center text-xs font-bold text-orange-600 hover:text-orange-700 space-x-1 group/btn shrink-0"
+                    className="inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-700 space-x-1.5 group/btn shrink-0 cursor-pointer"
                   >
-                    <span>Rates</span>
+                    <span>View Road Rates</span>
                     <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </button>
                 </div>

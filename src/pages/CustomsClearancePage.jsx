@@ -5,399 +5,303 @@ import {
   CheckCircle2, 
   Clock, 
   ArrowRight, 
-  Plane, 
-  Ship, 
   Truck, 
-  Train, 
   PackageCheck, 
-  ChevronDown, 
-  ChevronUp, 
   ExternalLink, 
   FileCheck, 
   HelpCircle, 
   AlertCircle, 
-  Sparkles,
-  Building,
-  DollarSign,
-  Search,
-  Scale,
-  BadgeCheck,
-  Send,
-  Layers,
-  ArrowUpRight
+  Sparkles, 
+  Building, 
+  DollarSign, 
+  Search, 
+  Scale, 
+  BadgeCheck, 
+  Send, 
+  Layers, 
+  ArrowUpRight,
+  CreditCard,
+  QrCode
 } from 'lucide-react';
 import customsHeroImg from '../assets/customs_clearance_inspection.jpg';
 
 export const CustomsClearancePage = ({ setActiveTab }) => {
-  // Cargo Mode Tabs State
-  const [activeMode, setActiveMode] = useState('air');
+  // Roadways Cargo Mode Tabs State
+  const [activeMode, setActiveMode] = useState('road');
 
-  // Expandable Document Details State (tracks which document card is expanded)
-  const [expandedDocs, setExpandedDocs] = useState({
-    invoice: true,
-    packing: false,
-    awb: false,
-    bol: false,
-    boe: false,
-    shippingBill: false,
-    coo: false,
-    permits: false
-  });
-
-  const toggleDoc = (id) => {
-    setExpandedDocs(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
-  const expandAllDocs = () => {
-    setExpandedDocs({
-      invoice: true,
-      packing: true,
-      awb: true,
-      bol: true,
-      boe: true,
-      shippingBill: true,
-      coo: true,
-      permits: true
-    });
-  };
-
-  const collapseAllDocs = () => {
-    setExpandedDocs({
-      invoice: false,
-      packing: false,
-      awb: false,
-      bol: false,
-      boe: false,
-      shippingBill: false,
-      coo: false,
-      permits: false
-    });
-  };
-
-  // 10 Key Customs Clearance Services
+  // 10 Key Customs Clearance Services (Roadways & Land Border Logistics)
   const servicesList = [
     {
       id: 1,
       title: 'Import Customs Clearance',
-      desc: 'Complete electronic import declarations, classification, customs bond filing, and port gate clearance.',
-      icon: ArrowRight,
-      badge: 'Inbound'
+      desc: 'Electronic declarations, bonds & border checkpoint gate pass',
+      icon: ArrowRight
     },
     {
       id: 2,
       title: 'Export Customs Clearance',
-      desc: 'Outbound export document lodgement, EXS filing, origin certification, and customs border exit processing.',
-      icon: Send,
-      badge: 'Outbound'
+      desc: 'Export lodgement, EXS filing & highway border exit processing',
+      icon: Send
     },
     {
       id: 3,
-      title: 'Documentation & Declaration Support',
-      desc: 'Expert preparation of commercial invoices, packing lists, transport bills, and electronic regulatory filings.',
-      icon: FileText,
-      badge: 'Compliance'
+      title: 'Documentation Support',
+      desc: 'Invoices, packing lists & CMR/LR consignment note preparation',
+      icon: FileText
     },
     {
       id: 4,
-      title: 'Bill of Entry / Shipping Bill Support',
-      desc: 'Filing, tracking, amendment handling, and automated validation for formal customs legal entries.',
-      icon: FileCheck,
-      badge: 'Statutory'
+      title: 'Bill of Entry & Shipping Bills',
+      desc: 'Formal land customs filings, amendments & validation tracking',
+      icon: FileCheck
     },
     {
       id: 5,
-      title: 'Customs Duty & Tax Coordination',
-      desc: 'Accurate HS code assessment, tariff calculations, duty deferment accounts, and VAT/GST reconciliation.',
-      icon: DollarSign,
-      badge: 'Fiscal'
+      title: 'Duty & Tax Assessment',
+      desc: 'HS code tariff valuation, highway levies & tax reconciliation',
+      icon: DollarSign
     },
     {
       id: 6,
-      title: 'Cargo Examination Coordination',
-      desc: 'On-site liaison with customs inspectors, physical container destuffing, X-ray scanning, and non-intrusive checks.',
-      icon: Search,
-      badge: 'On-Site'
+      title: 'Cargo Examination',
+      desc: 'Truck drive-through scanning & checkpoint inspection bay liaison',
+      icon: Search
     },
     {
       id: 7,
-      title: 'Regulatory & Compliance Support',
-      desc: 'Guidance on trade sanctions, dual-use export controls, preferential trade agreements, and valuation audits.',
-      icon: Scale,
-      badge: 'Advisory'
+      title: 'Regulatory Compliance',
+      desc: 'Overland transit treaties, trade sanctions & compliance audits',
+      icon: Scale
     },
     {
       id: 8,
-      title: 'Certificate & Permit Coordination',
-      desc: 'Acquiring phytosanitary, veterinary, fumigation, BIS, FDA, and designated ministry non-objection certificates.',
-      icon: BadgeCheck,
-      badge: 'Permits'
+      title: 'Permits & NOC Approvals',
+      desc: 'Phytosanitary, FDA, BIS & hazardous road transport clearances',
+      icon: BadgeCheck
     },
     {
       id: 9,
       title: 'Customs Query Resolution',
-      desc: 'Prompt technical response and legal documentation representation to address customs holds or audit queries.',
-      icon: HelpCircle,
-      badge: 'Fast-Track'
+      desc: 'Technical representation to quickly resolve checkpoint holds',
+      icon: HelpCircle
     },
     {
       id: 10,
-      title: 'Final Clearance & Cargo Release',
-      desc: 'Official out-of-charge order receipt, delivery order generation, and direct handover for final-mile dispatch.',
-      icon: CheckCircle2,
-      badge: 'Delivery'
+      title: 'Final Clearance & Release',
+      desc: 'Out-of-charge order receipt & direct highway final-mile dispatch',
+      icon: Truck
     }
   ];
 
-  // Cargo Modes & Documents Required
+  // Cargo Modes & Documents Required (Roadways Freight Modes)
   const cargoModes = {
-    air: {
-      id: 'air',
-      name: 'Air Cargo',
-      subtitle: 'Express International Air Waybill (AWB) Clearances',
-      icon: Plane,
-      badge: 'Fastest Transit: 12-24h',
-      color: 'from-sky-500 to-blue-600',
-      documents: [
-        'Commercial Invoice',
-        'Packing List',
-        'Airway Bill (AWB)',
-        'Bill of Entry / Shipping Bill',
-        'Certificate of Origin',
-        'Insurance Documents',
-        'Required Permits / NOCs',
-        'Product Certificates, where applicable'
-      ]
-    },
-    sea: {
-      id: 'sea',
-      name: 'Sea Cargo',
-      subtitle: 'Full Container (FCL) & Consolidated (LCL) Port Clearance',
-      icon: Ship,
-      badge: 'High Volume Freight',
-      color: 'from-blue-600 to-indigo-700',
-      documents: [
-        'Commercial Invoice',
-        'Packing List',
-        'Bill of Lading (B/L)',
-        'Bill of Entry / Shipping Bill',
-        'Certificate of Origin',
-        'Insurance Documents',
-        'Required Permits / NOCs',
-        'Container / Cargo Documents'
-      ]
-    },
     road: {
       id: 'road',
-      name: 'Road Cargo',
-      subtitle: 'Cross-Border Trucking & Overland Haulage Entry',
+      name: 'Roadways Cargo',
+      subtitle: 'Standard Overland Highway Freight & Intercity Transit Clearances',
       icon: Truck,
-      badge: 'Regional Intermodal',
+      badge: 'Standard Roadways',
       color: 'from-amber-500 to-orange-600',
       documents: [
         'Commercial Invoice',
         'Packing List',
-        'Road Consignment / Transport Document',
-        'Customs Declaration',
-        'Certificate of Origin',
-        'Insurance Documents',
-        'Required Permits',
-        'Transit Documents, where applicable'
+        'Road Consignment Note (CMR / Lorry Receipt - LR)',
+        'Electronic Way Bill (E-Way Bill) / Border Transit Pass',
+        'Vehicle Registration & Driver Highway Manifest',
+        'Transit Cargo Insurance Certificate',
+        'Customs Declaration (where applicable)',
+        'Interstate Tax & Checkpoint Clearance Slip'
       ]
     },
-    rail: {
-      id: 'rail',
-      name: 'Rail Cargo',
-      subtitle: 'Inland Container Depot (ICD) & Rail Corridors',
-      icon: Train,
-      badge: 'Heavy Intermodal',
+    ftl: {
+      id: 'ftl',
+      name: 'Full Truckload (FTL)',
+      subtitle: 'Dedicated Highway Heavy Trailer & Full Manifest Clearance',
+      icon: Truck,
+      badge: 'Dedicated Heavy Haulage',
+      color: 'from-orange-500 to-amber-600',
+      documents: [
+        'Commercial Tax Invoice',
+        'Detailed Freight Packing List',
+        'Dedicated FTL Lorry Receipt (LR / CMR)',
+        'Consolidated E-Way Bill for Full Vehicle Load',
+        'Vehicle Fitness, Pollution & National Highway Permit',
+        'Driver Commercial License & Highway Trip Manifest',
+        'Transit Goods Insurance Policy',
+        'Toll & Weighbridge Weight Slip'
+      ]
+    },
+    ltl: {
+      id: 'ltl',
+      name: 'Part Truckload (LTL)',
+      subtitle: 'Consolidated Road Groupage & Multi-Drop Checkpoint Clearance',
+      icon: Layers,
+      badge: 'Shared Consolidated Freight',
+      color: 'from-blue-600 to-indigo-700',
+      documents: [
+        'Individual Consignment Commercial Invoices',
+        'Consolidated Cargo Manifest & Pallet Count',
+        'Individual LTL Consignment Notes (LRs)',
+        'Multi-Consignee E-Way Bills & Transit Approvals',
+        'Hub Transshipment & Cross-Dock Log',
+        'Goods In-Transit Insurance Certificate',
+        'Hub Handover & Security Inspection Sign-Off',
+        'Final-Mile Gate Pass & Delivery Run-Sheet'
+      ]
+    },
+    crossborder: {
+      id: 'crossborder',
+      name: 'Cross-Border Trucking',
+      subtitle: 'International Land Border Checkpoints & Highway Port Entry',
+      icon: ShieldCheck,
+      badge: 'Overland Border Customs',
       color: 'from-emerald-600 to-teal-700',
       documents: [
-        'Commercial Invoice',
-        'Packing List',
-        'Rail Consignment Document',
-        'Customs Declaration',
-        'Certificate of Origin',
-        'Insurance Documents',
-        'Required Permits / NOCs',
-        'Transit Documents, where applicable'
+        'Export / Import Commercial Invoice',
+        'Certified Export Packing List',
+        'International CMR Consignment Note',
+        'Bill of Entry / Export Shipping Bill (Land Customs)',
+        'Certificate of Origin (Chamber Certified)',
+        'Land Border Customs Bond & Transit Guarantee',
+        'Cross-Border Vehicle Green Card & Carnet TIR',
+        'Port of Entry / Land Customs Station Gate Pass'
       ]
     },
-    courier: {
-      id: 'courier',
-      name: 'Courier',
-      subtitle: 'Small Parcel, Commercial Samples & Express Consignments',
+    express: {
+      id: 'express',
+      name: 'Express Road Courier & Vans',
+      subtitle: 'Sprinter Vans, Time-Critical Deliveries & Direct Roadway Express',
       icon: PackageCheck,
-      badge: 'Express Clearance',
+      badge: 'Priority 24-48h Road Transit',
       color: 'from-rose-500 to-pink-600',
       documents: [
-        'Commercial Invoice',
-        'Courier / Airway Bill',
-        'Customs Declaration',
-        'Importer/Exporter Information',
-        'Required KYC Information',
-        'Required Permits / NOCs, where applicable'
+        'Commercial / Retail Invoice',
+        'Express Road Waybill (Docket / Road Consignment)',
+        'Simplified Transit Declaration / E-Way Bill',
+        'Driver Delivery Log & Proof of Dispatch',
+        'Consignor / Consignee KYC Documentation',
+        'Express Highway Toll Tag & Fast-Track Route Pass',
+        'Transit Cargo Insurance Coverage Note',
+        'Ministry / Essential Goods NOC (where applicable)'
       ]
     }
   };
 
-  // 9-Step Customs Clearance Workflow
+  // 9-Step Customs Clearance Workflow (Roadways Freight Pipeline)
   const workflowSteps = [
     {
       number: '01',
       title: 'Document Collection',
-      desc: 'Collection of commercial invoices, transport bills, packing lists, and consignment paperwork from the shipper.',
-      tag: 'Initial Stage'
+      desc: 'Invoices, packing lists & CMR consignment notes',
+      icon: FileText
     },
     {
       number: '02',
       title: 'Document Verification',
-      desc: 'Cross-verification of HS codes, declared values, weights, invoice parity, and regulatory compliance requirements.',
-      tag: 'Quality Audit'
+      desc: 'HS code classification & road transport tariff audit',
+      icon: CheckCircle2
     },
     {
       number: '03',
       title: 'Customs Declaration',
-      desc: 'Electronic lodgement of Bill of Entry (import) or Shipping Bill (export) into the customs trade portal.',
-      tag: 'Portal Filing'
+      desc: 'Electronic Bill of Entry & land portal filing',
+      icon: Send
     },
     {
       number: '04',
       title: 'Duty & Tax Assessment',
-      desc: 'Calculation and official appraisal of customs tariffs, antidumping duties, and local goods and services taxes.',
-      tag: 'Duty Appraisal'
+      desc: 'Customs appraisal & transit tax assessment',
+      icon: DollarSign
     },
     {
       number: '05',
       title: 'Customs Examination',
-      desc: 'Coordination of container scanning, physical cargo sampling, or dock inspection where required by risk criteria.',
-      tag: 'Inspection (if applicable)'
+      desc: 'Drive-through scanner & truck bay inspection',
+      icon: Search
     },
     {
       number: '06',
-      title: 'Customs Approval / Query Resolution',
-      desc: 'Direct liaison with customs appraisers to resolve any technical queries, valuation checks, or permit verifications.',
-      tag: 'Appraiser Sign-Off'
+      title: 'Appraiser Sign-Off',
+      desc: 'Officer sign-off & technical query resolution',
+      icon: ShieldCheck
     },
     {
       number: '07',
       title: 'Duty Payment',
-      desc: 'Remittance of assessed duties and taxes via corporate deferred credit account or instant electronic treasury transfer.',
-      tag: 'Treasury Settlement'
+      desc: 'Corporate deferred credit or treasury transfer',
+      icon: CreditCard
     },
     {
       number: '08',
-      title: 'Cargo Release',
-      desc: 'Granting of official Out-of-Charge (OOC) order and electronic delivery order issuance from carrier or terminal.',
-      tag: 'Gate Pass Order'
+      title: 'Border Cargo Release',
+      desc: 'Out-of-Charge order & land depot gate pass',
+      icon: FileCheck
     },
     {
       number: '09',
-      title: 'Final Delivery',
-      desc: 'Prompt terminal pick-up and secure bonded/unbonded transport for final-mile delivery to consignee doorstep.',
-      tag: 'Doorstep Handover'
+      title: 'Final Highway Delivery',
+      desc: 'Direct overland haulage to consignee doorstep',
+      icon: Truck
     }
   ];
 
-  // Document Details Accordion Data
+  // Key Roadways Customs & Transit Documents
   const docDetails = [
     {
       id: 'invoice',
       name: 'Commercial Invoice',
-      tag: 'Primary Financial Document',
-      desc: 'Exporter/importer details, product description, quantity, value, currency, country of origin and applicable trade terms.',
-      keyFields: [
-        'Full legal names and addresses of exporter and buyer',
-        'Itemized product descriptions, HS codes & quantities',
-        'Unit price, currency & total declared invoice value',
-        'Incoterms (e.g. FOB, CIF, DDP) and country of manufacture'
-      ]
+      tag: 'Financial Document',
+      desc: 'Itemized product pricing, HS codes, declared values & trade Incoterms',
+      icon: FileText
     },
     {
       id: 'packing',
       name: 'Packing List',
-      tag: 'Physical Cargo Details',
-      desc: 'Number of packages, package type, gross/net weight, dimensions and package contents.',
-      keyFields: [
-        'Total package count and packaging type (crates, cartons, drums)',
-        'Net weight and gross weight breakdown per package',
-        'Dimensional metrics (length, width, height) and total volume',
-        'Markings, container seal numbers and hazardous markings'
-      ]
+      tag: 'Cargo Specification',
+      desc: 'Package breakdown, net/gross weights, crate dimensions & truck seals',
+      icon: Layers
     },
     {
-      id: 'awb',
-      name: 'Airway Bill (AWB)',
-      tag: 'Air Cargo Transport Contract',
-      desc: 'Transport document for air cargo containing shipper, consignee, routing and cargo information.',
-      keyFields: [
-        'Master AWB (MAWB) and House AWB (HAWB) references',
-        'Departure airport, transit hubs and final destination airport',
-        'Flight numbers, scheduled arrival times and airline code',
-        'Chargeable weight, handling instructions and declared value'
-      ]
+      id: 'cmr',
+      name: 'Road Consignment Note (CMR / LR)',
+      tag: 'Carriage Contract',
+      desc: 'Official transporter credentials, truck registration & highway delivery route',
+      icon: Truck
     },
     {
-      id: 'bol',
-      name: 'Bill of Lading (B/L)',
-      tag: 'Ocean Freight Title of Goods',
-      desc: 'Transport document for sea cargo containing shipper, consignee, vessel and cargo information.',
-      keyFields: [
-        'Ocean carrier name, vessel name, and voyage number',
-        'Port of loading, port of discharge, and container numbers',
-        'Negotiable (Original) or non-negotiable (Sea Waybill) status',
-        'Freight prepaid or freight collect terms notation'
-      ]
+      id: 'eway',
+      name: 'E-Way Bill & Border Pass',
+      tag: 'Transit Authority',
+      desc: 'Digital QR-verified electronic transit document for checkpoint clearance',
+      icon: QrCode
     },
     {
       id: 'boe',
       name: 'Bill of Entry (BOE)',
-      tag: 'Import Customs Declaration',
-      desc: 'Import customs declaration and supporting documentation.',
-      keyFields: [
-        'Official electronic entry number assigned by customs authority',
-        'Detailed HS Code classifications and applicable tariff schedules',
-        'Calculated Basic Customs Duty (BCD), IGST, and cess breakdown',
-        'Authorized Economic Operator (AEO) or bonded status notation'
-      ]
+      tag: 'Import Declaration',
+      desc: 'Official electronic import lodgement for land customs stations (LCS)',
+      icon: FileCheck
     },
     {
       id: 'shippingBill',
-      name: 'Shipping Bill',
-      tag: 'Export Customs Declaration',
-      desc: 'Export customs declaration and supporting documentation.',
-      keyFields: [
-        'Electronic export entry lodgement reference number',
-        'Declaration of export scheme (e.g. Drawback, EPCG, Free)',
-        'FOB value, currency, and Port of Exit verification',
-        'Proof of export registration for tax credit/refund purposes'
-      ]
+      name: 'Shipping Bill (Overland Export)',
+      tag: 'Export Declaration',
+      desc: 'Overland export entry verification and tax drawback registration',
+      icon: Send
     },
     {
       id: 'coo',
       name: 'Certificate of Origin (COO)',
-      tag: 'Origin Verification Document',
-      desc: 'Document confirming the country of origin of the goods.',
-      keyFields: [
-        'Verification of manufacturer and territorial processing criteria',
-        'Chamber of Commerce or designated authority official stamp/seal',
-        'Preferential Trade Agreement (PTA/FTA) eligibility claim',
-        'Non-preferential origin declaration for trade remedy compliance'
-      ]
+      tag: 'Origin Verification',
+      desc: 'Chamber certified origin proof for preferential road tariff exemptions',
+      icon: ShieldCheck
     },
     {
       id: 'permits',
-      name: 'Permits & NOCs',
-      tag: 'Regulatory Approvals & Licences',
-      desc: 'Additional approvals, licences, certificates or NOCs required for specific commodities.',
-      keyFields: [
-        'Phytosanitary & Plant Quarantine certificates for agricultural goods',
-        'Drug Controller, FDA, or BIS conformity certificates',
-        'Wireless Planning (WPC) / TEC approvals for telecom electronics',
-        'Ministry of Environment NOC for hazardous or battery consignments'
-      ]
+      name: 'Road Permits & Regulatory NOCs',
+      tag: 'Statutory Clearance',
+      desc: 'Heavy vehicle route permits, hazardous ADR & phytosanitary certificates',
+      icon: BadgeCheck
     }
   ];
 
@@ -424,15 +328,15 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
 
               <div className="space-y-3">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-sans tracking-tight text-white leading-tight">
-                  Customs Clearance
+                  Roadways Customs Clearance
                 </h1>
                 <p className="text-lg sm:text-xl font-bold text-orange-400">
-                  Smooth Customs Clearance, From Documentation to Delivery
+                  Smooth Overland Customs & Border Clearance, From Documentation to Highway Delivery
                 </p>
               </div>
 
               <p className="text-slate-300 font-medium text-sm sm:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                Simplify customs clearance with documentation support, customs declarations, duty assessment, inspection coordination, compliance support, and cargo release for import and export shipments.
+                Simplify road freight customs clearance with documentation support, highway checkpoint declarations, tariff assessment, border inspection coordination, and seamless overland transit across state and international corridors.
               </p>
 
               {/* Action Buttons */}
@@ -467,7 +371,7 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
                 </div>
                 <div>
                   <span className="block text-xl sm:text-2xl font-black text-orange-400">&lt; 24h</span>
-                  <span className="text-xs text-slate-400 font-medium">Average Port Release</span>
+                  <span className="text-xs text-slate-400 font-medium">Average Border Release</span>
                 </div>
                 <div>
                   <span className="block text-xl sm:text-2xl font-black text-white">100%</span>
@@ -498,43 +402,33 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
             Comprehensive Scope
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Our Customs Clearance Services
+            Our Roadways Customs Clearance Services
           </h2>
           <p className="text-slate-700 font-semibold text-sm sm:text-base leading-relaxed">
-            Full-spectrum customs brokerage to ensure seamless cross-border freight compliance without unexpected delays or penalty charges.
+            Full-spectrum road freight customs brokerage to ensure seamless highway transit compliance without unexpected delays or border penalties.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {servicesList.map((svc) => {
             const Icon = svc.icon;
             return (
               <div 
                 key={svc.id}
-                className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between group space-y-3"
+                className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:shadow-lg transition-all duration-300 group flex flex-col justify-between cursor-pointer"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold group-hover:bg-orange-600 group-hover:text-white transition-colors shadow-2xs">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 group-hover:bg-orange-50 group-hover:text-orange-700 transition-colors">
-                      {svc.badge}
-                    </span>
+                  <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all flex items-center justify-center shrink-0 shadow-2xs">
+                    <Icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
                   </div>
 
                   <h3 className="text-sm font-extrabold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors">
                     {svc.title}
                   </h3>
 
-                  <p className="text-xs sm:text-[13px] font-semibold text-slate-800 leading-relaxed group-hover:text-slate-950 transition-colors">
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
                     {svc.desc}
                   </p>
-                </div>
-
-                <div className="pt-2 border-t border-slate-100 flex items-center text-[11px] font-bold text-orange-600 space-x-1">
-                  <span>Included</span>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
               </div>
             );
@@ -553,19 +447,19 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
                 Document Checklist By Mode
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-                Documents Required by Cargo Mode
+                Documents Required by Roadways Mode
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 font-medium">
-                Select your freight transportation mode to review standard mandatory customs documentation.
+                Select your road freight transportation mode to review standard mandatory customs, transit permits, and highway documentation.
               </p>
             </div>
 
             <span className="px-3.5 py-1.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700 shrink-0">
-              5 Freight Modes
+              5 Roadways Modes
             </span>
           </div>
 
-          {/* Mode Selector Tabs (5 Modes) */}
+          {/* Mode Selector Tabs (5 Roadways Modes) */}
           <div className="bg-slate-100/80 p-2 sm:p-3 border-b border-slate-200 flex flex-wrap gap-2">
             {Object.values(cargoModes).map((mode) => {
               const Icon = mode.icon;
@@ -590,7 +484,7 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
 
           {/* Mode Content Panel */}
           {(() => {
-            const currentMode = cargoModes[activeMode] || cargoModes.air;
+            const currentMode = cargoModes[activeMode] || cargoModes.road;
             const ModeIcon = currentMode.icon;
             return (
               <div className="p-6 sm:p-10 space-y-8 animate-fade-in">
@@ -681,130 +575,86 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
           </p>
         </div>
 
-        {/* 9-Step Grid Timeline */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {workflowSteps.map((step, idx) => (
-            <div 
-              key={idx}
-              className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 relative group flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-2xl sm:text-3xl font-black text-orange-600">
-                    {step.number}
-                  </span>
-                  <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-200/90 text-slate-800 group-hover:bg-orange-100 group-hover:text-orange-800 transition-colors">
-                    {step.tag}
-                  </span>
+        {/* 9-Step Simple Modern Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {workflowSteps.map((step, idx) => {
+            const Icon = step.icon;
+            return (
+              <div 
+                key={idx}
+                className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 hover:border-orange-500 hover:shadow-lg transition-all duration-300 group flex items-start space-x-4 cursor-pointer"
+              >
+                {/* Visual Step & Icon Badge */}
+                <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all flex items-center justify-center shrink-0 shadow-2xs">
+                  <Icon className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                 </div>
 
-                <h3 className="text-base font-extrabold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors">
-                  {step.title}
-                </h3>
+                {/* Card Content */}
+                <div className="space-y-1 flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black font-mono text-orange-600 uppercase tracking-wider">
+                      Step {step.number}
+                    </span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-orange-500 transition-colors"></span>
+                  </div>
 
-                <p className="text-xs sm:text-[13px] font-bold text-slate-900 leading-relaxed">
-                  {step.desc}
-                </p>
-              </div>
+                  <h3 className="text-base font-extrabold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors truncate">
+                    {step.title}
+                  </h3>
 
-              <div className="pt-4 mt-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-bold text-slate-700">
-                <span>Phase {idx + 1} of 9</span>
-                <span className="text-emerald-700 font-black">Standard SLA Guaranteed</span>
+                  <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed">
+                    {step.desc}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* Document Details Section (Expandable Cards) */}
+      {/* Key Customs & Transit Documents Section (Simple Cards Design) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-            <div>
-              <span className="text-orange-600 font-bold uppercase text-xs tracking-wider">
-                In-Depth Explanation
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
-                Document Details
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-700 font-semibold">
-                Click any document card below to expand regulatory contents, critical fields, and compliance specifics.
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-2 shrink-0">
-              <button
-                type="button"
-                onClick={expandAllDocs}
-                className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-lg transition-colors cursor-pointer"
-              >
-                Expand All
-              </button>
-              <button
-                type="button"
-                onClick={collapseAllDocs}
-                className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-lg transition-colors cursor-pointer"
-              >
-                Collapse All
-              </button>
-            </div>
+          <div className="space-y-1 pb-6 border-b border-slate-100 text-center sm:text-left">
+            <span className="text-orange-600 font-bold uppercase text-xs tracking-wider">
+              Document Checklist
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              Key Customs & Transit Documents
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">
+              Essential statutory paperwork required for compliant roadways freight and overland checkpoint crossings.
+            </p>
           </div>
 
-          {/* Expandable Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Simple Cards Grid (4x2 on desktop, 2x4 on tablet, 1x8 on mobile) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {docDetails.map((doc) => {
-              const isExpanded = !!expandedDocs[doc.id];
+              const Icon = doc.icon;
               return (
                 <div 
                   key={doc.id}
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                    isExpanded 
-                      ? 'border-orange-300 bg-orange-50/25 shadow-xs' 
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
+                  className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:shadow-lg transition-all duration-300 group flex flex-col justify-between cursor-pointer"
                 >
-                  {/* Card Trigger Button */}
-                  <button
-                    type="button"
-                    onClick={() => toggleDoc(doc.id)}
-                    className="w-full p-4 sm:p-5 flex items-start justify-between text-left cursor-pointer group"
-                  >
-                    <div className="space-y-1 pr-3">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                          {doc.name}
-                        </h3>
-                        <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-200/90 text-slate-800">
-                          {doc.tag}
-                        </span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all flex items-center justify-center shrink-0 shadow-2xs">
+                        <Icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
                       </div>
-                      <p className="text-xs sm:text-[13px] text-slate-900 font-bold leading-relaxed">
-                        {doc.desc}
-                      </p>
-                    </div>
-
-                    <div className="p-1.5 rounded-lg bg-slate-100 group-hover:bg-orange-100 text-slate-600 group-hover:text-orange-600 transition-colors shrink-0">
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </div>
-                  </button>
-
-                  {/* Expanded Content Drawer */}
-                  {isExpanded && (
-                    <div className="px-5 pb-5 pt-2 border-t border-orange-100/80 space-y-3 animate-fade-in">
-                      <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block">
-                        Critical Regulatory Fields & Details:
+                      <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 group-hover:bg-orange-50 group-hover:text-orange-700 transition-colors">
+                        {doc.tag}
                       </span>
-                      <ul className="space-y-1.5">
-                        {doc.keyFields.map((field, fIdx) => (
-                          <li key={fIdx} className="flex items-start space-x-2 text-xs font-bold text-slate-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-1.5 shrink-0"></span>
-                            <span>{field}</span>
-                          </li>
-                        ))}
-                      </ul>
                     </div>
-                  )}
+
+                    <h3 className="text-base font-extrabold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors">
+                      {doc.name}
+                    </h3>
+
+                    <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed">
+                      {doc.desc}
+                    </p>
+                  </div>
                 </div>
               );
             })}
