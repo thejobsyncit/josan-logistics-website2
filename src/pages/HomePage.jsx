@@ -89,17 +89,9 @@ export const HomePage = ({ setActiveTab }) => {
             <div className="lg:col-span-6">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-100 bg-white group">
                 <img
-                  src={heroLogisticsImg}
+                  src="/assets/hero_logistics_3d.jpg"
                   onError={(e) => {
-                    if (!e.target.dataset.tried1) {
-                      e.target.dataset.tried1 = 'true';
-                      e.target.src = '/hero_logistics_3d.jpg';
-                    } else if (!e.target.dataset.tried2) {
-                      e.target.dataset.tried2 = 'true';
-                      e.target.src = '/assets/hero_logistics_3d.jpg';
-                    } else {
-                      e.target.src = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&auto=format&fit=crop&q=80';
-                    }
+                    e.target.src = heroLogisticsImg;
                   }}
                   alt="3D Global Freight Supply Chain Render"
                   className="w-full h-auto max-h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
