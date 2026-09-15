@@ -117,18 +117,13 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Shipment Scope (null | 'domestic' | 'international')
-  // Shipment Scope (null | 'domestic' | 'international')
-  // Starts as null so user sees the Service Selection Landing screen with pictures & shipment flow
-  const [shipmentScope, setShipmentScope] = useState(null);
+  // Shipment Scope ('domestic' road service)
+  const [shipmentScope, setShipmentScope] = useState('domestic');
 
   const [isShipmentTypeModalOpen, setIsShipmentTypeModalOpen] = useState(false);
 
   const resetShipmentScope = () => {
-    setShipmentScope(null);
-    try {
-      sessionStorage.removeItem('josan_shipment_scope');
-      localStorage.removeItem('josan_shipment_scope');
-    } catch (e) {}
+    setShipmentScope('domestic');
   };
 
   // Sub-tab navigation state
