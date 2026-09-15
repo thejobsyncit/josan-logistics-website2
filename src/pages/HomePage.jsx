@@ -91,7 +91,7 @@ export const HomePage = ({ setActiveTab }) => {
                 <img
                   src="/assets/hero_logistics_3d.jpg"
                   onError={(e) => {
-                    e.target.src = heroLogisticsImg;
+                    e.target.src = '/hero_logistics_3d.jpg';
                   }}
                   alt="3D Global Freight Supply Chain Render"
                   className="w-full h-auto max-h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
