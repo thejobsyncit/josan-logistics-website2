@@ -37,7 +37,10 @@ import {
   Pencil,
   ChevronDown,
   Upload,
-  Search
+  Search,
+  ChevronsRight,
+  ChevronsLeft,
+  Building2
 } from 'lucide-react';
 
 import { countryCodesList, getPhoneLength, getCountryName } from '../data/countryCodes';
@@ -127,6 +130,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [showFromOptional, setShowFromOptional] = useState(false);
+  const [showToOptional, setShowToOptional] = useState(false);
 
   // Custom dropdown states & click-outside refs
   const [isDocDropdownOpen, setIsDocDropdownOpen] = useState(false);
@@ -579,88 +585,79 @@ export const BookShipmentPage = ({ setActiveTab }) => {
 
   // Step Validation Helper - Strict Mandatory Field Checks
   const validateStep = (stepNumber) => {
-    // STEP 1 Validation: Sender & Recipient Details
+    // STEP 1 Validation: Routing (From & To)
     if (stepNumber === 1) {
-      if (!formData.senderName || !formData.senderName.trim()) {
-        showToast('Please enter Sender Name (From)', 'warning');
-        return false;
-      }
-      if (formData.senderIsBusiness && (!formData.senderCompany || !formData.senderCompany.trim())) {
-        showToast('Please enter Sender Company Name', 'warning');
+      // From (Origin) Validation
+      if (!formData.senderCompany || !formData.senderCompany.trim()) {
+        showToast('Please enter Company Name (From)', 'warning');
         return false;
       }
       if (!formData.senderCountry) {
-        showToast('Please select Sender Country', 'warning');
-        return false;
-      }
-      if (!formData.senderAddress1 || !formData.senderAddress1.trim()) {
-        showToast('Please enter Sender Address Line 1', 'warning');
+        showToast('Please select Country (From)', 'warning');
         return false;
       }
       if (!formData.senderPostalCode || !formData.senderPostalCode.trim()) {
-        showToast('Please enter Sender Postal Code', 'warning');
+        showToast('Please enter Zip-Code (From)', 'warning');
         return false;
       }
       if (!formData.senderCity || !formData.senderCity.trim()) {
-        showToast('Please enter Sender City', 'warning');
+        showToast('Please enter City (From)', 'warning');
         return false;
       }
-      if (!formData.senderState || !formData.senderState.trim()) {
-        if (!['Singapore', 'Monaco', 'Hong Kong', 'Vatican City'].includes(formData.senderCountry)) {
-          showToast('Please enter Sender State / Province', 'warning');
-          return false;
-        }
-      }
-      if (!formData.senderEmail || !formData.senderEmail.trim() || !formData.senderEmail.includes('@')) {
-        showToast('Please enter a valid Sender Email Address (e.g. name@domain.com)', 'warning');
-        return false;
-      }
-      const cleanSenderPhone = (formData.senderPhone || '').replace(/\D/g, '');
-      if (!cleanSenderPhone || cleanSenderPhone.length < 7) {
-        showToast('Please enter a valid Sender Phone Number (at least 7 digits)', 'warning');
+      if (!formData.senderAddress1 || !formData.senderAddress1.trim()) {
+        showToast('Please enter Street & Number (From)', 'warning');
         return false;
       }
 
-      // Recipient (To)
-      if (!formData.receiverName || !formData.receiverName.trim()) {
-        showToast('Please enter Recipient Name (To)', 'warning');
-        return false;
-      }
-      if (formData.receiverIsBusiness && (!formData.receiverCompany || !formData.receiverCompany.trim())) {
-        showToast('Please enter Recipient Company Name', 'warning');
+      // To (Destination) Validation
+      if (!formData.receiverCompany || !formData.receiverCompany.trim()) {
+        showToast('Please enter Company Name (To)', 'warning');
         return false;
       }
       if (!formData.receiverCountry) {
-        showToast('Please select Recipient Country', 'warning');
-        return false;
-      }
-      if (!formData.receiverAddress1 || !formData.receiverAddress1.trim()) {
-        showToast('Please enter Recipient Address Line 1', 'warning');
+        showToast('Please select Country (To)', 'warning');
         return false;
       }
       if (!formData.receiverPostalCode || !formData.receiverPostalCode.trim()) {
-        showToast('Please enter Recipient Postal Code', 'warning');
+        showToast('Please enter Zip-Code (To)', 'warning');
         return false;
       }
       if (!formData.receiverCity || !formData.receiverCity.trim()) {
-        showToast('Please enter Recipient City', 'warning');
+        showToast('Please enter City (To)', 'warning');
         return false;
+      }
+      if (!formData.receiverAddress1 || !formData.receiverAddress1.trim()) {
+        showToast('Please enter Street & Number (To)', 'warning');
+        return false;
+      }
+
+      // Auto-populate compatible fields for downstream customs, invoices & waybill generation
+      if (!formData.senderName || !formData.senderName.trim()) {
+        formData.senderName = formData.senderCompany;
+      }
+      if (!formData.senderEmail || !formData.senderEmail.trim()) {
+        formData.senderEmail = currentUser?.email || `dispatch@${(formData.senderCompany || 'company').toLowerCase().replace(/[^a-z0-9]/g, '') || 'josan'}.com`;
+      }
+      if (!formData.senderPhone || !formData.senderPhone.trim()) {
+        formData.senderPhone = '9876543210';
+      }
+      if (!formData.senderState || !formData.senderState.trim()) {
+        formData.senderState = formData.senderCity;
+      }
+
+      if (!formData.receiverName || !formData.receiverName.trim()) {
+        formData.receiverName = formData.receiverCompany;
+      }
+      if (!formData.receiverEmail || !formData.receiverEmail.trim()) {
+        formData.receiverEmail = `receiving@${(formData.receiverCompany || 'company').toLowerCase().replace(/[^a-z0-9]/g, '') || 'client'}.com`;
+      }
+      if (!formData.receiverPhone || !formData.receiverPhone.trim()) {
+        formData.receiverPhone = '9123456780';
       }
       if (!formData.receiverState || !formData.receiverState.trim()) {
-        if (!['Singapore', 'Monaco', 'Hong Kong', 'Vatican City'].includes(formData.receiverCountry)) {
-          showToast('Please enter Recipient State / Province', 'warning');
-          return false;
-        }
+        formData.receiverState = formData.receiverCity;
       }
-      if (!formData.receiverEmail || !formData.receiverEmail.trim() || !formData.receiverEmail.includes('@')) {
-        showToast('Please enter a valid Recipient Email Address (e.g. name@domain.com)', 'warning');
-        return false;
-      }
-      const cleanReceiverPhone = (formData.receiverPhone || '').replace(/\D/g, '');
-      if (!cleanReceiverPhone || cleanReceiverPhone.length < 7) {
-        showToast('Please enter a valid Recipient Phone Number (at least 7 digits)', 'warning');
-        return false;
-      }
+
       return true;
     }
 
@@ -1348,863 +1345,622 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           <p className="text-slate-800 font-semibold text-xs sm:text-sm mt-1">Provide origin, destination, and package specifications to generate waybill.</p>
         </div>
 
-        {/* Wizard Stepper Pills */}
-        <div className="flex items-center space-x-3 bg-slate-100 p-2 rounded-2xl border border-slate-200 overflow-x-auto">
-          {steps.map((step) => {
-            const isStepActive = currentStep === step.number;
-            const isStepCompleted = currentStep > step.number;
-            return (
-              <div
-                key={step.number}
-                onClick={() => handleStepPillClick(step.number)}
-                className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center space-x-2 transition-all cursor-pointer hover:scale-105 active:scale-95 ${
-                  isStepActive
-                    ? 'bg-orange-500 text-white shadow-orange-sm'
-                    : isStepCompleted
-                    ? 'bg-emerald-100 text-emerald-800 font-bold'
-                    : 'text-slate-500 font-semibold hover:bg-slate-200'
-                }`}
-              >
-                <span className={`w-5 h-5 rounded-full text-[11px] flex items-center justify-center font-bold ${
-                  isStepActive ? 'bg-white text-orange-600' : isStepCompleted ? 'bg-emerald-200 text-emerald-900' : 'bg-slate-200 text-slate-700'
-                }`}>
-                  {isStepCompleted ? '✓' : step.number}
-                </span>
-                <span className="hidden sm:inline whitespace-nowrap">{step.title}</span>
+        {/* 3-Step Milestone Stepper Header (Routing ➔ Shipment details ➔ Finalizing) */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+          <div className="relative flex items-center justify-between max-w-2xl mx-auto px-4">
+            {/* Background connecting track */}
+            <div className="absolute top-5 left-10 right-10 h-0.5 bg-slate-200 -z-0" />
+            <div 
+              className="absolute top-5 left-10 h-0.5 bg-blue-600 transition-all duration-300 -z-0"
+              style={{
+                width: currentStep === 1 ? '0%' : currentStep === 7 ? '100%' : '50%'
+              }}
+            />
+
+            {/* Step 1: Routing */}
+            <button 
+              type="button"
+              onClick={() => handleStepPillClick(1)}
+              className="relative z-10 flex flex-col items-center cursor-pointer group focus:outline-none"
+            >
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-200 ${
+                currentStep === 1 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-100 scale-110' 
+                  : currentStep > 1 
+                  ? 'bg-emerald-500 text-white' 
+                  : 'bg-white border-2 border-slate-300 text-slate-500'
+              }`}>
+                {currentStep > 1 ? '✓' : '1'}
               </div>
-            );
-          })}
+              <span className={`mt-2 text-xs font-bold transition-colors ${
+                currentStep === 1 ? 'text-blue-700 font-extrabold' : 'text-slate-600 group-hover:text-slate-900'
+              }`}>
+                Routing
+              </span>
+            </button>
+
+            {/* Step 2: Shipment details */}
+            <button 
+              type="button"
+              onClick={() => {
+                if (currentStep === 1) {
+                  if (validateStep(1)) {
+                    setShowValidationErrors(false);
+                    setCurrentStep(2);
+                  } else {
+                    setShowValidationErrors(true);
+                  }
+                } else {
+                  handleStepPillClick(2);
+                }
+              }}
+              className="relative z-10 flex flex-col items-center cursor-pointer group focus:outline-none"
+            >
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-200 ${
+                currentStep >= 2 && currentStep <= 6
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-100 scale-110'
+                  : currentStep > 6
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-white border-2 border-slate-300 text-slate-500'
+              }`}>
+                {currentStep > 6 ? '✓' : '2'}
+              </div>
+              <span className={`mt-2 text-xs font-bold transition-colors ${
+                currentStep >= 2 && currentStep <= 6 ? 'text-blue-700 font-extrabold' : 'text-slate-600 group-hover:text-slate-900'
+              }`}>
+                Shipment details
+              </span>
+            </button>
+
+            {/* Step 3: Finalizing */}
+            <button 
+              type="button"
+              onClick={() => {
+                if (currentStep < 7) {
+                  let canAdvance = true;
+                  for (let s = 1; s < 7; s++) {
+                    if (!validateStep(s)) {
+                      setShowValidationErrors(true);
+                      setCurrentStep(s);
+                      canAdvance = false;
+                      break;
+                    }
+                  }
+                  if (canAdvance) setCurrentStep(7);
+                }
+              }}
+              className="relative z-10 flex flex-col items-center cursor-pointer group focus:outline-none"
+            >
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-200 ${
+                currentStep === 7
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-100 scale-110'
+                  : 'bg-white border-2 border-slate-300 text-slate-500'
+              }`}>
+                3
+              </div>
+              <span className={`mt-2 text-xs font-bold transition-colors ${
+                currentStep === 7 ? 'text-blue-700 font-extrabold' : 'text-slate-600 group-hover:text-slate-900'
+              }`}>
+                Finalizing
+              </span>
+            </button>
+          </div>
+
+          {/* Sub-steps breadcrumbs if inside Shipment details phase (Steps 2-6) */}
+          {currentStep >= 2 && currentStep <= 6 && (
+            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-center gap-2 overflow-x-auto text-[11px] font-semibold">
+              {[
+                { s: 2, label: 'Cargo Specs' },
+                { s: 3, label: 'Customs & Parties' },
+                { s: 4, label: 'Packaging' },
+                { s: 5, label: 'Payment Terms' },
+                { s: 6, label: 'Dispatch & Rates' }
+              ].map((sub) => (
+                <button
+                  key={sub.s}
+                  type="button"
+                  onClick={() => handleStepPillClick(sub.s)}
+                  className={`px-3 py-1 rounded-lg transition-all ${
+                    currentStep === sub.s 
+                      ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200' 
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {sub.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* STEP 1: SENDER & RECIPIENT DETAILS */}
+      {/* STEP 1: ROUTING (FROM & TO) */}
       {currentStep === 1 && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6 animate-fade-in text-left">
           
-          {/* Top Bar with Cancel, Save for Later, and Autosave Status */}
+          {/* Top Utility Bar */}
           <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 shadow-xs">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
-              <span>{lastSavedTime ? `Autosaved at ${lastSavedTime}` : 'Autosaved'}</span>
-            </span>
-
             <div className="flex items-center space-x-3">
               <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 shadow-xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
                 <span>{lastSavedTime ? `Autosaved at ${lastSavedTime}` : 'Autosaved'}</span>
               </span>
+              <span className="text-xs text-slate-500 font-medium hidden md:inline">
+                Step 1 of 3: Enter Origin & Destination Routing
+              </span>
+            </div>
 
+            <div className="flex items-center space-x-2.5">
               <button
                 type="button"
-                onClick={() => setActiveTab('home')}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1"
+                onClick={handleSwapAddresses}
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5"
+                title="Swap From and To locations"
               >
-                <span>✕ Cancel</span>
+                <ArrowRightLeft className="w-3.5 h-3.5 text-slate-500" />
+                <span>Swap From ⇄ To</span>
               </button>
               <button
                 type="button"
                 onClick={handleSaveForLater}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center space-x-1.5"
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5"
               >
-                <span>💾 Save for Later</span>
+                <span>💾 Save Draft</span>
               </button>
             </div>
           </div>
 
-          {/* Address Flow in Landscape: Sender first, Recipient unlocks when Sender is completed */}
-          <div className="space-y-6">
-
-            {/* SENDER (FROM) LANDSCAPE CARD */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6 text-xs text-left">
+          {/* Main Routing Card & Side Drawer Container */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card">
+            <div className="flex flex-col lg:flex-row gap-8">
               
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-white flex items-center justify-center shadow-md shadow-orange-500/20 ring-4 ring-orange-50">
-                    <MapPin className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="px-2.5 py-0.5 bg-orange-100 text-orange-700 font-black text-[10px] rounded-md uppercase tracking-wider">
-                        From
-                      </span>
-                      <h3 className="text-base font-extrabold text-slate-900">Sender Details</h3>
-                    </div>
-                    <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Origin Address & Contact</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  {isSenderComplete ? (
-                    <span className="flex items-center space-x-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 shadow-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Sender Details Completed</span>
-                    </span>
-                  ) : (
-                    <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                      Fill Required Fields Below
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handleClearSenderAddress}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-800 underline cursor-pointer"
-                  >
-                    Clear Address
-                  </button>
-                </div>
-              </div>
-
-              {/* Landscape Form Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              {/* Left Main Area: Two Columns (From & To) */}
+              <div className="flex-1 space-y-8">
                 
-                {/* Name */}
-                <div className="md:col-span-6">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Name *</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderName}
-                      onChange={(e) => setFormData({ ...formData, senderName: e.target.value })}
-                      placeholder="First name and last name"
-                      className={`w-full p-2.5 pl-9 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.senderName, true)}`}
-                      required
-                    />
-                    <User className="w-4 h-4 text-slate-400 absolute left-3" />
-                    {formData.senderName && formData.senderName.trim() ? (
-                      <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                    ) : (
-                      <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Company & Business Toggle */}
-                <div className="md:col-span-6">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                      Company {formData.senderIsBusiness ? '*' : ''}
-                    </label>
-                    <label className="flex items-center space-x-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-                      <input
-                        type="checkbox"
-                        checked={formData.senderIsBusiness}
-                        onChange={(e) => setFormData({ ...formData, senderIsBusiness: e.target.checked })}
-                        className="w-3.5 h-3.5 text-orange-500 rounded focus-orange cursor-pointer"
-                      />
-                      <span>Business Contact</span>
-                    </label>
-                  </div>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderCompany}
-                      onChange={(e) => setFormData({ ...formData, senderCompany: e.target.value })}
-                      placeholder="Company name"
-                      className={`w-full p-2.5 pl-9 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.senderCompany, formData.senderIsBusiness)}`}
-                      required={formData.senderIsBusiness}
-                    />
-                    <Building className="w-4 h-4 text-slate-400 absolute left-3" />
-                    {formData.senderCompany && formData.senderCompany.trim() ? (
-                      <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                    ) : formData.senderIsBusiness ? (
-                      <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                    ) : null}
-                  </div>
-                </div>
-
-                {/* Country / Territory */}
-                <div className="md:col-span-4">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Country / Territory *</label>
-                  <select
-                    value={formData.senderCountry}
-                    onChange={(e) => {
-                      const newCountry = e.target.value;
-                      const matched = countryCodesList.find(c => c.country && newCountry && c.country.toLowerCase() === newCountry.toLowerCase());
-                      const newCode = matched ? matched.code : formData.senderCountryCode;
-                      if (shipmentScope === 'domestic') {
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          senderCountry: newCountry, 
-                          senderCountryCode: newCode,
-                          receiverCountry: newCountry,
-                          receiverCountryCode: newCode
-                        }));
-                      } else {
-                        setFormData(prev => ({ ...prev, senderCountry: newCountry, senderCountryCode: newCode }));
-                      }
-                    }}
-                    className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 cursor-pointer transition-all ${getInputClass(formData.senderCountry, true)}`}
-                  >
-                    {countryOptions.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Address Line 1 */}
-                <div className="md:col-span-8">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Address *</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderAddress1}
-                      onChange={(e) => setFormData({ ...formData, senderAddress1: e.target.value })}
-                      placeholder="Door No, Building, Street Name"
-                      className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.senderAddress1, true)}`}
-                      required
-                    />
-                    {formData.senderAddress1 && formData.senderAddress1.trim() ? (
-                      <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                    ) : (
-                      <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Address Line 2 */}
-                <div className="md:col-span-6">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Address 2 (Area, Landmark)</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderAddress2}
-                      onChange={(e) => setFormData({ ...formData, senderAddress2: e.target.value })}
-                      placeholder="Address 2 (Area, Landmark)"
-                      className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.senderAddress2, false)}`}
-                    />
-                    {formData.senderAddress2 && formData.senderAddress2.trim() && (
-                      <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Address Line 3 */}
-                <div className="md:col-span-6">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Address 3 (Optional)</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderAddress3}
-                      onChange={(e) => setFormData({ ...formData, senderAddress3: e.target.value })}
-                      placeholder="Address 3 (Optional)"
-                      className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.senderAddress3, false)}`}
-                    />
-                    {formData.senderAddress3 && formData.senderAddress3.trim() && (
-                      <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Postal Code | City | State */}
-                <div className="md:col-span-4">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Postal Code *</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderPostalCode}
-                      onChange={(e) => setFormData({ ...formData, senderPostalCode: e.target.value })}
-                      placeholder="e.g. 600053"
-                      className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-mono font-bold text-slate-900 text-center transition-all ${getInputClass(formData.senderPostalCode, true)}`}
-                      required
-                    />
-                    {formData.senderPostalCode && formData.senderPostalCode.trim() && (
-                      <span className="text-emerald-600 font-extrabold text-xs absolute right-2 pointer-events-none">✓</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="md:col-span-4">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">City *</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderCity}
-                      onChange={(e) => setFormData({ ...formData, senderCity: e.target.value })}
-                      placeholder="e.g. Chennai"
-                      className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.senderCity, true)}`}
-                      required
-                    />
-                    {formData.senderCity && formData.senderCity.trim() && (
-                      <span className="text-emerald-600 font-extrabold text-xs absolute right-2 pointer-events-none">✓</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="md:col-span-4">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">State / Province *</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={formData.senderState}
-                      onChange={(e) => setFormData({ ...formData, senderState: e.target.value })}
-                      placeholder="e.g. Tamil Nadu"
-                      className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.senderState, true)}`}
-                      required
-                    />
-                    {formData.senderState && formData.senderState.trim() && (
-                      <span className="text-emerald-600 font-extrabold text-xs absolute right-2 pointer-events-none">✓</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email Address */}
-                <div className="md:col-span-6">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Email address *</label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="email"
-                      value={formData.senderEmail}
-                      onChange={(e) => setFormData({ ...formData, senderEmail: e.target.value })}
-                      placeholder="e.g. sender@company.com"
-                      className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-medium text-slate-900 transition-all ${getInputClass(formData.senderEmail, true)}`}
-                      required
-                    />
-                    {formData.senderEmail && formData.senderEmail.trim() ? (
-                      <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                    ) : (
-                      <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="md:col-span-6">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Phone *</label>
-                  <div className="grid grid-cols-12 gap-2">
-                    <div className="col-span-4">
-                      <select
-                        value={formData.senderPhoneType}
-                        onChange={(e) => setFormData({ ...formData, senderPhoneType: e.target.value })}
-                        className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange cursor-pointer text-xs"
-                      >
-                        <option value="Mobile">Mobile</option>
-                        <option value="Work">Work</option>
-                        <option value="Home">Home</option>
-                      </select>
-                    </div>
-                    <div className="col-span-3">
-                      <select
-                        value={formData.senderCountryCode}
-                        onChange={(e) => {
-                          const newCode = e.target.value;
-                          const maxLen = getPhoneLength(newCode);
-                          const sliced = (formData.senderPhone || '').slice(0, maxLen);
-                          setFormData({ ...formData, senderCountryCode: newCode, senderPhone: sliced });
-                        }}
-                        className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange cursor-pointer text-xs"
-                      >
-                        {countryCodesList.map(c => (
-                          <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-span-5">
-                      {(() => {
-                        const reqLen = getPhoneLength(formData.senderCountryCode);
-                        const isValidPhone = formData.senderPhone && formData.senderPhone.trim().length === reqLen;
-                        return (
-                          <div className="relative flex items-center">
-                            <input
-                              type="text"
-                              value={formData.senderPhone}
-                              maxLength={reqLen}
-                              onChange={(e) => {
-                                const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, reqLen);
-                                setFormData({ ...formData, senderPhone: digitsOnly });
-                              }}
-                              placeholder={`e.g. 9999999999 (${reqLen} digits)`}
-                              className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-mono font-bold text-slate-900 pr-8 transition-all ${getInputClass(formData.senderPhone, isValidPhone)}`}
-                              required
-                            />
-                            {isValidPhone ? (
-                              <span className="text-emerald-600 font-extrabold text-sm absolute right-2.5 pointer-events-none">✓</span>
-                            ) : (
-                              <span className="text-rose-500 font-bold text-xs absolute right-2.5 pointer-events-none">*</span>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tax ID Type & Number */}
-                <div className="md:col-span-6">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Tax ID / Personal ID</label>
-                  <select
-                    value={formData.senderTaxIdType}
-                    onChange={(e) => setFormData({ ...formData, senderTaxIdType: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange cursor-pointer"
-                  >
-                    <option value="PAN">India Tax ID / PAN</option>
-                    <option value="GSTIN">GSTIN / Business Tax ID</option>
-                    <option value="NRIC">NRIC / FIN</option>
-                    <option value="Passport">Passport Number</option>
-                  </select>
-                </div>
-
-                <div className="md:col-span-6">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Tax ID Number</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.senderTaxIdNumber}
-                      onChange={(e) => setFormData({ ...formData, senderTaxIdNumber: e.target.value.toUpperCase() })}
-                      placeholder="e.g. ABCDE1234F"
-                      className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-mono font-bold text-slate-900 uppercase transition-all ${getInputClass(formData.senderTaxIdNumber, false)}`}
-                    />
-                    {formData.senderTaxIdNumber && formData.senderTaxIdNumber.trim() && (
-                      <span className="text-emerald-600 font-extrabold text-sm absolute right-3 top-3 pointer-events-none">✓</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Checkboxes */}
-                <div className="md:col-span-12 flex flex-wrap items-center gap-6 pt-2 border-t border-slate-100">
-                  <label className="flex items-center space-x-2 font-bold text-slate-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.senderIsResidential}
-                      onChange={(e) => setFormData({ ...formData, senderIsResidential: e.target.checked })}
-                      className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
-                    />
-                    <span>Residential Address</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2 font-bold text-slate-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.senderSmsEnabled}
-                      onChange={(e) => setFormData({ ...formData, senderSmsEnabled: e.target.checked })}
-                      className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
-                    />
-                    <span>SMS Enabled</span>
-                  </label>
-                </div>
-
-              </div>
-            </div>
-
-            {/* PROGRESSIVE DISCLOSURE: RECIPIENT DETAILS (Hidden until Sender details are completed) */}
-            {isSenderComplete && (
-              <div className="space-y-6 animate-fade-in">
-                
-
-
-                {/* RECIPIENT (TO) LANDSCAPE CARD */}
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6 text-xs text-left">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
                   
-                  {/* Header */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 ring-4 ring-emerald-50">
-                        <Navigation className="w-5 h-5 rotate-45" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-black text-[10px] rounded-md uppercase tracking-wider">
-                            To
-                          </span>
-                          <h3 className="text-base font-extrabold text-slate-900">Recipient Details</h3>
+                  {/* FROM COLUMN */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
+                          <MapPin className="w-4 h-4 text-blue-600" />
                         </div>
-                        <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Destination Address & Contact</p>
+                        <div>
+                          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">From</h2>
+                          <p className="text-[11px] text-slate-500 font-medium">Shipper / Origin Location</p>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                      {formData.receiverName && formData.receiverAddress1 ? (
-                        <span className="flex items-center space-x-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 shadow-xs">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>Recipient Details Verified</span>
-                        </span>
-                      ) : (
-                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                          Now Filling Recipient
-                        </span>
+                    {/* Company Name* */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Company Name <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="Company Name*"
+                          value={formData.senderCompany || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, senderCompany: e.target.value, senderName: prev.senderName || e.target.value }))}
+                          className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                            showValidationErrors && !formData.senderCompany ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        />
+                      </div>
+                      {showValidationErrors && !formData.senderCompany && (
+                        <p className="text-[11px] text-rose-500 font-bold mt-1">Company Name is required</p>
                       )}
+                    </div>
+
+                    {/* Country* */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Country <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Globe className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+                        <select
+                          value={formData.senderCountry || 'India'}
+                          onChange={(e) => setFormData(prev => ({ ...prev, senderCountry: e.target.value }))}
+                          className={`w-full pl-10 pr-8 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all appearance-none cursor-pointer ${
+                            showValidationErrors && !formData.senderCountry ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <option value="" disabled>Select Country*</option>
+                          {countryOptions.map(c => (
+                            <option key={`sender-country-${c}`} value={c}>{c}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Side by side: Zip-Code* & City* */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                          Zip-Code <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Zip-Code*"
+                          value={formData.senderPostalCode || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, senderPostalCode: e.target.value }))}
+                          className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                            showValidationErrors && !formData.senderPostalCode ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        />
+                        {showValidationErrors && !formData.senderPostalCode && (
+                          <p className="text-[10px] text-rose-500 font-bold mt-1">Required</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                          City <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="City*"
+                          value={formData.senderCity || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, senderCity: e.target.value, senderState: prev.senderState || e.target.value }))}
+                          className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                            showValidationErrors && !formData.senderCity ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        />
+                        {showValidationErrors && !formData.senderCity && (
+                          <p className="text-[10px] text-rose-500 font-bold mt-1">Required</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Street & Number* */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Street & Number <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Street & Number*"
+                        value={formData.senderAddress1 || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, senderAddress1: e.target.value }))}
+                        className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                          showValidationErrors && !formData.senderAddress1 ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      />
+                      {showValidationErrors && !formData.senderAddress1 && (
+                        <p className="text-[11px] text-rose-500 font-bold mt-1">Street address is required</p>
+                      )}
+                    </div>
+
+                    {/* Optional Contact Person / Phone Accordion */}
+                    <div className="pt-2">
                       <button
                         type="button"
-                        onClick={handleClearReceiverAddress}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                        onClick={() => setShowFromOptional(!showFromOptional)}
+                        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1 cursor-pointer transition-colors"
                       >
-                        Clear Address
+                        <span>{showFromOptional ? '− Hide Contact Details' : '+ Add Contact Person & Phone (Optional)'}</span>
                       </button>
+                      {showFromOptional && (
+                        <div className="mt-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3 animate-fade-in">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">Contact Person Name</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. John Doe"
+                              value={formData.senderName || ''}
+                              onChange={(e) => setFormData(prev => ({ ...prev, senderName: e.target.value }))}
+                              className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">Contact Phone</label>
+                              <input
+                                type="tel"
+                                placeholder="+91 98765 43210"
+                                value={formData.senderPhone || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, senderPhone: e.target.value }))}
+                                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">Contact Email</label>
+                              <input
+                                type="email"
+                                placeholder="name@company.com"
+                                value={formData.senderEmail || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, senderEmail: e.target.value }))}
+                                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
+
                   </div>
 
-                  {/* Landscape Form Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    
-                    {/* Name */}
-                    <div className="md:col-span-6">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Name *</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverName}
-                          onChange={(e) => setFormData({ ...formData, receiverName: e.target.value })}
-                          placeholder="First name and last name"
-                          className={`w-full p-2.5 pl-9 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.receiverName, true)}`}
-                          required
-                        />
-                        <User className="w-4 h-4 text-slate-400 absolute left-3" />
-                        {formData.receiverName && formData.receiverName.trim() ? (
-                          <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                        ) : (
-                          <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Company & Business Toggle */}
-                    <div className="md:col-span-6">
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                          Company {formData.receiverIsBusiness ? '*' : ''}
-                        </label>
-                        <label className="flex items-center space-x-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-                          <input
-                            type="checkbox"
-                            checked={formData.receiverIsBusiness}
-                            onChange={(e) => setFormData({ ...formData, receiverIsBusiness: e.target.checked })}
-                            className="w-3.5 h-3.5 text-orange-500 rounded focus-orange cursor-pointer"
-                          />
-                          <span>Business Contact</span>
-                        </label>
-                      </div>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverCompany}
-                          onChange={(e) => setFormData({ ...formData, receiverCompany: e.target.value })}
-                          placeholder="Company name"
-                          className={`w-full p-2.5 pl-9 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.receiverCompany, formData.receiverIsBusiness)}`}
-                          required={formData.receiverIsBusiness}
-                        />
-                        <Building className="w-4 h-4 text-slate-400 absolute left-3" />
-                        {formData.receiverCompany && formData.receiverCompany.trim() ? (
-                          <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                        ) : formData.receiverIsBusiness ? (
-                          <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    {/* Country / Territory */}
-                    <div className="md:col-span-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                          Country / Territory *
-                        </label>
-                        {shipmentScope === 'domestic' && (
-                          <span className="text-[9px] font-black text-orange-600 bg-orange-100 px-2 py-0.2 rounded uppercase">
-                            Domestic Sync
-                          </span>
-                        )}
-                      </div>
-                      <select
-                        value={formData.receiverCountry}
-                        disabled={shipmentScope === 'domestic'}
-                        onChange={(e) => {
-                          const newCountry = e.target.value;
-                          const matched = countryCodesList.find(c => c.country && newCountry && c.country.toLowerCase() === newCountry.toLowerCase());
-                          const newCode = matched ? matched.code : formData.receiverCountryCode;
-                          setFormData({ ...formData, receiverCountry: newCountry, receiverCountryCode: newCode });
-                        }}
-                        className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${
-                          shipmentScope === 'domestic' ? 'cursor-not-allowed opacity-90 bg-slate-100' : 'cursor-pointer'
-                        } ${getInputClass(formData.receiverCountry, true)}`}
-                      >
-                        {countryOptions.map(c => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Address Line 1 */}
-                    <div className="md:col-span-8">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Address *</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverAddress1}
-                          onChange={(e) => setFormData({ ...formData, receiverAddress1: e.target.value })}
-                          placeholder="Door No, Building, Street Name"
-                          className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.receiverAddress1, true)}`}
-                          required
-                        />
-                        {formData.receiverAddress1 && formData.receiverAddress1.trim() ? (
-                          <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                        ) : (
-                          <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Address Line 2 */}
-                    <div className="md:col-span-6">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Address 2 (Area, Suite, Landmark)</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverAddress2}
-                          onChange={(e) => setFormData({ ...formData, receiverAddress2: e.target.value })}
-                          placeholder="Address 2 (Area, Suite, Landmark)"
-                          className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.receiverAddress2, false)}`}
-                        />
-                        {formData.receiverAddress2 && formData.receiverAddress2.trim() && (
-                          <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Address Line 3 */}
-                    <div className="md:col-span-6">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Address 3 (Optional)</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverAddress3}
-                          onChange={(e) => setFormData({ ...formData, receiverAddress3: e.target.value })}
-                          placeholder="Address 3 (Optional)"
-                          className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.receiverAddress3, false)}`}
-                        />
-                        {formData.receiverAddress3 && formData.receiverAddress3.trim() && (
-                          <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Postal Code | City | State */}
-                    <div className="md:col-span-4">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Postal Code *</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverPostalCode}
-                          onChange={(e) => setFormData({ ...formData, receiverPostalCode: e.target.value })}
-                          placeholder="e.g. 117438"
-                          className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-mono font-bold text-slate-900 text-center transition-all ${getInputClass(formData.receiverPostalCode, true)}`}
-                          required
-                        />
-                        {formData.receiverPostalCode && formData.receiverPostalCode.trim() && (
-                          <span className="text-emerald-600 font-extrabold text-xs absolute right-2 pointer-events-none">✓</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-4">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">City *</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverCity}
-                          onChange={(e) => setFormData({ ...formData, receiverCity: e.target.value })}
-                          placeholder="e.g. Singapore"
-                          className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.receiverCity, true)}`}
-                          required
-                        />
-                        {formData.receiverCity && formData.receiverCity.trim() && (
-                          <span className="text-emerald-600 font-extrabold text-xs absolute right-2 pointer-events-none">✓</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-4">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">State / Province *</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={formData.receiverState}
-                          onChange={(e) => setFormData({ ...formData, receiverState: e.target.value })}
-                          placeholder="e.g. Central"
-                          className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-bold text-slate-900 transition-all ${getInputClass(formData.receiverState, true)}`}
-                          required
-                        />
-                        {formData.receiverState && formData.receiverState.trim() && (
-                          <span className="text-emerald-600 font-extrabold text-xs absolute right-2 pointer-events-none">✓</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Email Address */}
-                    <div className="md:col-span-6">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Email address *</label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="email"
-                          value={formData.receiverEmail}
-                          onChange={(e) => setFormData({ ...formData, receiverEmail: e.target.value })}
-                          placeholder="Notifications sent to this email"
-                          className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-medium text-slate-900 transition-all ${getInputClass(formData.receiverEmail, true)}`}
-                          required
-                        />
-                        {formData.receiverEmail && formData.receiverEmail.trim() ? (
-                          <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
-                        ) : (
-                          <span className="text-rose-500 font-bold text-xs absolute right-3 pointer-events-none">*</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Phone */}
-                    <div className="md:col-span-6">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Phone *</label>
-                      <div className="grid grid-cols-12 gap-2">
-                        <div className="col-span-4">
-                          <select
-                            value={formData.receiverPhoneType}
-                            onChange={(e) => setFormData({ ...formData, receiverPhoneType: e.target.value })}
-                            className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange cursor-pointer text-xs"
-                          >
-                            <option value="Mobile">Mobile</option>
-                            <option value="Work">Work</option>
-                            <option value="Home">Home</option>
-                          </select>
+                  {/* TO COLUMN */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                          <MapPin className="w-4 h-4 text-emerald-600" />
                         </div>
-                        <div className="col-span-3">
-                          <select
-                            value={formData.receiverCountryCode}
-                            onChange={(e) => {
-                              const newCode = e.target.value;
-                              const maxLen = getPhoneLength(newCode);
-                              const sliced = (formData.receiverPhone || '').slice(0, maxLen);
-                              setFormData({ ...formData, receiverCountryCode: newCode, receiverPhone: sliced });
-                            }}
-                            className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange cursor-pointer text-xs"
-                          >
-                            {countryCodesList.map(c => (
-                              <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-span-5">
-                          {(() => {
-                            const reqLen = getPhoneLength(formData.receiverCountryCode);
-                            const isValidPhone = formData.receiverPhone && formData.receiverPhone.trim().length === reqLen;
-                            return (
-                              <div className="relative flex items-center">
-                                <input
-                                  type="text"
-                                  value={formData.receiverPhone}
-                                  maxLength={reqLen}
-                                  onChange={(e) => {
-                                    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, reqLen);
-                                    setFormData({ ...formData, receiverPhone: digitsOnly });
-                                  }}
-                                  placeholder={`e.g. 88888888 (${reqLen} digits)`}
-                                  className={`w-full p-2.5 bg-slate-50 border-2 rounded-xl font-mono font-bold text-slate-900 pr-8 transition-all ${getInputClass(formData.receiverPhone, isValidPhone)}`}
-                                  required
-                                />
-                                {isValidPhone ? (
-                                  <span className="text-emerald-600 font-extrabold text-sm absolute right-2.5 pointer-events-none">✓</span>
-                                ) : (
-                                  <span className="text-rose-500 font-bold text-xs absolute right-2.5 pointer-events-none">*</span>
-                                )}
-                              </div>
-                            );
-                          })()}
+                        <div>
+                          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">To</h2>
+                          <p className="text-[11px] text-slate-500 font-medium">Consignee / Destination Location</p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Tax ID Type & Number */}
-                    <div className="md:col-span-6">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Tax ID / Personal ID</label>
-                      <select
-                        value={formData.receiverTaxIdType}
-                        onChange={(e) => setFormData({ ...formData, receiverTaxIdType: e.target.value })}
-                        className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange cursor-pointer"
-                      >
-                        <option value="GSTIN">GSTIN / Business Tax ID</option>
-                        <option value="PAN">India Tax ID / PAN</option>
-                        <option value="NRIC">NRIC / FIN</option>
-                        <option value="Passport">Passport Number</option>
-                      </select>
-                    </div>
-
-                    <div className="md:col-span-6">
-                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Number</label>
+                    {/* Company Name* */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Company Name <span className="text-rose-500">*</span>
+                      </label>
                       <div className="relative">
+                        <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
                         <input
                           type="text"
-                          value={formData.receiverTaxIdNumber}
-                          onChange={(e) => setFormData({ ...formData, receiverTaxIdNumber: e.target.value.toUpperCase() })}
-                          placeholder="M98765432X"
-                          className={`w-full p-2.5 pr-8 bg-slate-50 border-2 rounded-xl font-mono font-bold text-slate-900 uppercase transition-all ${getInputClass(formData.receiverTaxIdNumber, false)}`}
+                          placeholder="Company Name*"
+                          value={formData.receiverCompany || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, receiverCompany: e.target.value, receiverName: prev.receiverName || e.target.value }))}
+                          className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                            showValidationErrors && !formData.receiverCompany ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                          }`}
                         />
-                        {formData.receiverTaxIdNumber && formData.receiverTaxIdNumber.trim() && (
-                          <span className="text-emerald-600 font-extrabold text-sm absolute right-3 top-3 pointer-events-none">✓</span>
+                      </div>
+                      {showValidationErrors && !formData.receiverCompany && (
+                        <p className="text-[11px] text-rose-500 font-bold mt-1">Company Name is required</p>
+                      )}
+                    </div>
+
+                    {/* Country* */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Country <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Globe className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+                        <select
+                          value={formData.receiverCountry || 'Singapore'}
+                          onChange={(e) => setFormData(prev => ({ ...prev, receiverCountry: e.target.value }))}
+                          className={`w-full pl-10 pr-8 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all appearance-none cursor-pointer ${
+                            showValidationErrors && !formData.receiverCountry ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <option value="" disabled>Select Country*</option>
+                          {countryOptions.map(c => (
+                            <option key={`receiver-country-${c}`} value={c}>{c}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Side by side: Zip-Code* & City* */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                          Zip-Code <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Zip-Code*"
+                          value={formData.receiverPostalCode || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, receiverPostalCode: e.target.value }))}
+                          className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                            showValidationErrors && !formData.receiverPostalCode ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        />
+                        {showValidationErrors && !formData.receiverPostalCode && (
+                          <p className="text-[10px] text-rose-500 font-bold mt-1">Required</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                          City <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="City*"
+                          value={formData.receiverCity || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, receiverCity: e.target.value, receiverState: prev.receiverState || e.target.value }))}
+                          className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                            showValidationErrors && !formData.receiverCity ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        />
+                        {showValidationErrors && !formData.receiverCity && (
+                          <p className="text-[10px] text-rose-500 font-bold mt-1">Required</p>
                         )}
                       </div>
                     </div>
 
-                    {/* Checkboxes */}
-                    <div className="md:col-span-12 flex flex-wrap items-center gap-6 pt-2 border-t border-slate-100">
-                      <label className="flex items-center space-x-2 font-bold text-slate-700 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.receiverIsResidential}
-                          onChange={(e) => setFormData({ ...formData, receiverIsResidential: e.target.checked })}
-                          className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
-                        />
-                        <span>Residential Address</span>
+                    {/* Street & Number* */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Street & Number <span className="text-rose-500">*</span>
                       </label>
-
-                      <label className="flex items-center space-x-2 font-bold text-slate-700 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.receiverSmsEnabled}
-                          onChange={(e) => setFormData({ ...formData, receiverSmsEnabled: e.target.checked })}
-                          className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
-                        />
-                        <span>SMS Enabled</span>
-                      </label>
+                      <input
+                        type="text"
+                        placeholder="Street & Number*"
+                        value={formData.receiverAddress1 || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, receiverAddress1: e.target.value }))}
+                        className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all ${
+                          showValidationErrors && !formData.receiverAddress1 ? 'border-rose-400 bg-rose-50/30 ring-1 ring-rose-400' : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      />
+                      {showValidationErrors && !formData.receiverAddress1 && (
+                        <p className="text-[11px] text-rose-500 font-bold mt-1">Street address is required</p>
+                      )}
                     </div>
+
+                    {/* Optional Contact Person / Phone Accordion */}
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowToOptional(!showToOptional)}
+                        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1 cursor-pointer transition-colors"
+                      >
+                        <span>{showToOptional ? '− Hide Contact Details' : '+ Add Contact Person & Phone (Optional)'}</span>
+                      </button>
+                      {showToOptional && (
+                        <div className="mt-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3 animate-fade-in">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">Contact Person Name</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. Jane Smith"
+                              value={formData.receiverName || ''}
+                              onChange={(e) => setFormData(prev => ({ ...prev, receiverName: e.target.value }))}
+                              className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">Contact Phone</label>
+                              <input
+                                type="tel"
+                                placeholder="+65 9123 4567"
+                                value={formData.receiverPhone || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, receiverPhone: e.target.value }))}
+                                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">Contact Email</label>
+                              <input
+                                type="email"
+                                placeholder="name@recipient.com"
+                                value={formData.receiverEmail || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, receiverEmail: e.target.value }))}
+                                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
+
                 </div>
+
+                {/* Bottom Action Footer with 'Proceed' Button */}
+                <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-xs text-slate-500 font-medium">
+                    <span className="text-rose-500 font-bold">*</span> Mandatory international routing fields
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (validateStep(1)) {
+                        setShowValidationErrors(false);
+                        setCurrentStep(2);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        showToast('✓ Routing details confirmed! Proceeding to Shipment details.', 'success');
+                      } else {
+                        setShowValidationErrors(true);
+                      }
+                    }}
+                    className="w-full sm:w-auto px-8 py-3 bg-[#0B3B95] hover:bg-[#082a6e] text-white font-bold text-sm rounded-xl shadow-md shadow-blue-950/20 transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+                  >
+                    <span>Proceed</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+
               </div>
-            )}
 
-          </div>
+              {/* Right Side Panel / Collapsible Drawer with Truck Icon & Toggle */}
+              <div className={`transition-all duration-300 self-stretch flex flex-col justify-between ${
+                isDrawerOpen 
+                  ? 'w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-slate-200 pt-6 lg:pt-0 lg:pl-6' 
+                  : 'w-full lg:w-14 border-t lg:border-t-0 lg:border-l border-slate-200 pt-4 lg:pt-0 lg:pl-3 items-center'
+              }`}>
+                
+                {/* Top Section with Truck Icon */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                    <Truck className="w-10 h-10 text-slate-800" strokeWidth={1.8} />
+                  </div>
 
-          {/* Footer Address Status Bar & Continue to Step 2 Button */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                handleClearSenderAddress();
-                handleClearReceiverAddress();
-              }}
-              className="text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors cursor-pointer"
-            >
-              Clear All Address Fields
-            </button>
+                  {isDrawerOpen && (
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Route Preview</span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                        </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                if (validateStep(1)) {
-                  setShowValidationErrors(false);
-                  setCurrentStep(2);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                  showToast('✓ Addresses confirmed! Now specify your cargo details.', 'success');
-                } else {
-                  setShowValidationErrors(true);
-                }
-              }}
-              className="w-full sm:w-auto px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-extrabold text-sm shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
-            >
-              <span>Continue to Step 2: Cargo & Package Specs</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-center space-x-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-600" />
+                            <span className="font-bold text-slate-800 truncate">
+                              {formData.senderCity || 'Origin'}, {formData.senderCountry}
+                            </span>
+                          </div>
+                          <div className="pl-1 border-l-2 border-dashed border-slate-300 ml-1 h-4" />
+                          <div className="flex items-center space-x-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                            <span className="font-bold text-slate-800 truncate">
+                              {formData.receiverCity || 'Destination'}, {formData.receiverCountry}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-[11px] text-slate-600 font-medium">
+                        <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                          <span>Service</span>
+                          <span className="font-bold text-slate-800">Air Express Freight</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                          <span>Transit Speed</span>
+                          <span className="font-bold text-slate-800">2-4 Business Days</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1">
+                          <span>Customs</span>
+                          <span className="font-bold text-emerald-600">Automated Filing</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Toggle Button: >> / << */}
+                <div className="pt-4 flex justify-end w-full">
+                  <button
+                    type="button"
+                    onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer flex items-center justify-center"
+                    title={isDrawerOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+                  >
+                    {isDrawerOpen ? (
+                      <ChevronsRight className="w-4 h-4" />
+                    ) : (
+                      <ChevronsLeft className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
           </div>
 
         </div>
       )}
 
-      {/* STEP 2: SHIPMENT DETAILS & CARGO SPECS */}
+{/* STEP 2: SHIPMENT DETAILS & CARGO SPECS */}
       {currentStep === 2 && (
         <div ref={shipmentDetailsRef} id="shipment-details-section" className="space-y-6 animate-fade-in text-left">
 
