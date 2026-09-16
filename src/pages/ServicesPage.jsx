@@ -72,7 +72,7 @@ const DynamicServiceGallery = ({ images, title }) => {
 };
 
 export const ServicesPage = ({ setActiveTab }) => {
-  const { setIsAuthModalOpen, setAuthModalHideClose, isAuthModalOpen, currentUser } = useLogistics();
+  const { setIsAuthModalOpen, setAuthModalHideClose, isAuthModalOpen, currentUser, setAuthRedirectTab } = useLogistics();
 
   const [calculatorWeight, setCalculatorWeight] = useState(25);
   const [calculatorService, setCalculatorService] = useState('ground');
@@ -121,11 +121,10 @@ export const ServicesPage = ({ setActiveTab }) => {
   const estimatedTotal = (calculatorWeight * getRatePerKg() + (calculatorInsurance ? 25 : 0)).toFixed(2);
 
   const handleBookServiceClick = () => {
-    if (!currentUser) {
-      openLoginModal();
-    } else {
-      setActiveTab('book');
+    if (setAuthRedirectTab) {
+      setAuthRedirectTab('book');
     }
+    openLoginModal();
   };
 
   const servicesData = [
@@ -282,11 +281,11 @@ export const ServicesPage = ({ setActiveTab }) => {
                     <IconComp className="w-6 h-6 stroke-[2]" />
                   </div>
                   <h3 className="text-2xl font-extrabold text-slate-900">{service.title}</h3>
-                  <p className="text-slate-800 font-medium text-sm leading-relaxed">{service.desc}</p>
+                  <p className="text-slate-900 font-semibold text-sm sm:text-base leading-relaxed">{service.desc}</p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                     {service.features.map((feat, i) => (
-                      <div key={i} className="flex items-center space-x-2 text-xs font-semibold text-slate-700">
+                      <div key={i} className="flex items-center space-x-2 text-xs sm:text-[13px] font-bold text-slate-900">
                         <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
                         <span>{feat}</span>
                       </div>

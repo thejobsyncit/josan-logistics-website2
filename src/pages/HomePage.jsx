@@ -30,9 +30,9 @@ export const HomePage = ({ setActiveTab }) => {
   const handleAction = (tab) => {
     if (!currentUser) {
       setIsAuthModalOpen(true);
-    } else if (tab === 'book') {
+    } else if (tab === 'book' || tab === 'domestic-shipment') {
       resetShipmentScope();
-      setActiveTab('book');
+      setActiveTab('domestic-shipment');
     } else {
       setActiveTab(tab);
     }
@@ -87,28 +87,39 @@ export const HomePage = ({ setActiveTab }) => {
 
             {/* Right Hero 3D Logistics Artwork */}
             <div className="lg:col-span-6">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-100 bg-white group">
-                <img
-                  src="/assets/hero_logistics_3d.jpg"
-                  onError={(e) => {
-                    e.target.src = '/hero_logistics_3d.jpg';
-                  }}
-                  alt="3D Global Freight Supply Chain Render"
-                  className="w-full h-auto max-h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-100 bg-white group flex flex-col">
+                {/* Full Uncut 3D Artwork */}
+                <div className="relative overflow-hidden bg-white w-full">
+                  <img
+                    src={heroLogisticsImg}
+                    onError={(e) => {
+                      if (!e.target.dataset.fallback1) {
+                        e.target.dataset.fallback1 = 'true';
+                        e.target.src = '/assets/hero_logistics_3d.jpg';
+                      } else if (!e.target.dataset.fallback2) {
+                        e.target.dataset.fallback2 = 'true';
+                        e.target.src = '/hero_logistics_3d.jpg';
+                      } else {
+                        e.target.onerror = null;
+                      }
+                    }}
+                    alt="3D Global Freight Supply Chain Render"
+                    className="w-full h-auto object-contain block group-hover:scale-[1.02] transition-transform duration-700"
+                  />
+                </div>
                 
-                {/* Floating Telematics Pill */}
-                <div className="absolute bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-700 text-white flex items-center justify-between text-xs">
+                {/* Integrated Telematics Bar - Cleanly docked below the artwork so it never covers or cuts into the roadway & trucks */}
+                <div className="bg-slate-900 px-4 py-3 sm:px-5 sm:py-3.5 border-t border-slate-800 text-white flex items-center justify-between text-xs">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center font-bold">
-                      <Truck className="w-4 h-4 animate-pulse" />
+                    <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center font-bold shrink-0">
+                      <Truck className="w-4 h-4 text-white animate-pulse" />
                     </div>
                     <div>
-                      <p className="font-extrabold text-slate-100">Multi-Modal Freight Dispatch</p>
-                      <p className="text-[10px] text-slate-400">Sea • Air • Land Telematics Active</p>
+                      <p className="font-extrabold text-slate-100 text-xs sm:text-sm">Multi-Modal Freight Dispatch</p>
+                      <p className="text-[10px] text-slate-400">Roadways Fleet • Ocean & Air Telematics Active</p>
                     </div>
                   </div>
-                  <span className="text-[11px] font-bold text-orange-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-orange-400 bg-slate-800 px-2.5 sm:px-3 py-1 rounded-full border border-slate-700 shrink-0">
                     Live Status: 100% Active
                   </span>
                 </div>
@@ -145,61 +156,92 @@ export const HomePage = ({ setActiveTab }) => {
         </div>
       </section>
 
-      {/* 2. SERVICES OVERVIEW */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
+      {/* 2. SERVICES OVERVIEW & VEHICLE FLEET SHOWCASE */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="text-orange-600 font-bold uppercase text-xs tracking-widest bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
             Roadways Freight Solutions
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
             Roadways & Land Haulage Logistics
           </h2>
-          <p className="text-slate-800 font-semibold text-sm sm:text-base">
-            From single express parcels to full truckload (FTL) and partial loads (LTL), our dedicated road fleet guarantees speed, safety, and GPS telematics.
+          <p className="text-slate-900 font-semibold text-sm sm:text-base">
+            From single express parcels to full truckload (FTL) and active cold chain reefer transport, our dedicated domestic road fleet guarantees speed, safety, and GPS telematics.
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
+        {/* 4-Card Roadways Solutions Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
               icon: Truck,
-              title: 'Roadways & Freight Trucking',
-              desc: 'Dedicated FTL & LTL truck fleet with satellite GPS telematics, automated route optimization, and secure cross-border highway transport.',
-              badge: 'Roadways',
-              spec: 'Transit: 1-3 Days | Real-Time Telematics'
+              title: 'Full Truckload (FTL)',
+              desc: 'Exclusive 24ft–40ft dedicated lorries & prime movers for bulk pallet freight with direct point-to-point highway routes.',
+              badge: 'FTL Dedicated',
+              spec: 'Transit: 1–2 Days',
+              feature: 'Point-to-Point Direct Route'
+            },
+            {
+              icon: Package,
+              title: 'Less-Than-Truckload (LTL)',
+              desc: 'Cost-effective consolidated road freight for 1–10 pallets with daily scheduled runs and computerized manifests.',
+              badge: 'LTL Consolidated',
+              spec: 'Transit: Daily Hub Runs',
+              feature: 'Consolidated Shared Capacity'
+            },
+            {
+              icon: Thermometer,
+              title: 'Cold Chain Reefer Fleet',
+              desc: 'Active temperature-regulated vans (-25°C to +25°C) with continuous IoT dataloggers for pharma & perishable foods.',
+              badge: 'Temp Controlled',
+              spec: 'Transit: Real-Time Telematics',
+              feature: 'Pharma & Food GDP Certified'
+            },
+            {
+              icon: Zap,
+              title: 'Express Road Courier',
+              desc: 'Rapid city dispatch utilizing dedicated sprinter vans and light commercial vehicles for urgent domestic deliveries.',
+              badge: 'Express Same-Day',
+              spec: 'Transit: Under 4 Hours',
+              feature: 'Direct Priority Driver Dispatch'
             }
           ].map((service, idx) => {
             const IconComponent = service.icon;
             return (
               <div
                 key={idx}
-                className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-card hover:shadow-orange-glow hover:border-orange-300 transition-all duration-300 group flex flex-col justify-between"
+                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-card hover:shadow-orange-glow hover:border-orange-400 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:text-slate-900 transition-all duration-300 shadow-sm">
-                      <IconComponent className="w-8 h-8 stroke-[2]" />
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-sm">
+                      <IconComponent className="w-6 h-6 stroke-[2]" />
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
                       {service.badge}
                     </span>
                   </div>
 
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-orange-600 transition-colors">
+                  <h3 className="text-lg font-black text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">
                     {service.title}
                   </h3>
-                  <p className="text-slate-800 font-medium text-base leading-relaxed mb-6">
+                  <p className="text-slate-900 font-semibold text-xs sm:text-[13px] leading-relaxed mb-4">
                     {service.desc}
                   </p>
                 </div>
 
-                <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-slate-600">{service.spec}</span>
+                <div className="pt-4 border-t border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-mono font-black text-slate-900">
+                    <span>{service.spec}</span>
+                    <span className="text-emerald-700 font-sans font-bold">● Active</span>
+                  </div>
                   <button
-                    onClick={() => setActiveTab('services')}
-                    className="inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-700 space-x-1.5 group/btn shrink-0 cursor-pointer"
+                    onClick={() => handleAction('domestic-shipment')}
+                    className="w-full inline-flex items-center justify-between text-xs font-black text-orange-600 hover:text-orange-700 pt-1 group/btn cursor-pointer"
                   >
-                    <span>View Road Rates</span>
+                    <span>Book Service</span>
                     <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </button>
                 </div>
@@ -290,29 +332,29 @@ export const HomePage = ({ setActiveTab }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              quote: "Josan Logistics reduced our transit delay rates by over 40%. The real-time tracking timeline and automated invoice system saved our operations team hundreds of hours.",
-              author: "Marcus Vance",
-              role: "VP of Supply Chain",
-              company: "TechCorp Solutions",
-              shipmentId: "JOS-89421-US",
+              quote: "Josan Logistics reduced our highway transit delay rates by over 40%. The real-time telematics and digital Lorry Receipt (LR) dispatch saved our operations team hundreds of hours.",
+              author: "Tan Wei Ming",
+              role: "Supply Chain Director",
+              company: "Razer Asia-Pacific HQ",
+              shipmentId: "JOS-88190-SG",
               rating: 5,
               photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
             },
             {
-              quote: "When shipping temperature-sensitive pharmaceutical vaccines, zero margin for error exists. Josan's Cold Chain Air Freight delivered 100% SLA accuracy across all batches.",
-              author: "Dr. Ananya Roy",
-              role: "Operations Director",
-              company: "Vedic Pharma Labs",
-              shipmentId: "JOS-77210-IN",
+              quote: "When transporting temperature-sensitive pharmaceutical batches across expressways, zero margin for error exists. Josan's Reefer Road Fleet delivered 100% SLA temperature accuracy.",
+              author: "Dr. Keith Tan",
+              role: "Logistics Director",
+              company: "Biopolis Biomedical Hub",
+              shipmentId: "JOS-66301-SG",
               rating: 5,
               photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
             },
             {
-              quote: "The admin dashboard driver assignment and warehouse bin log features are phenomenal. It gives us complete control over our transatlantic automotive cargo.",
-              author: "Hans Van Berg",
-              role: "Logistics Manager",
-              company: "Global Auto DE",
-              shipmentId: "JOS-33104-EU",
+              quote: "The fleet driver telematics tracking and GPS geofence alerts are phenomenal. It gives us complete visibility over our Singapore port-to-warehouse container haulage.",
+              author: "Muhammad Rizal",
+              role: "Fleet Operations Manager",
+              company: "PSA Pasir Panjang Logistics",
+              shipmentId: "JOS-44021-SG",
               rating: 5,
               photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
             }

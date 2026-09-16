@@ -192,7 +192,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
         return;
       }
       setShipmentScope('domestic');
-      setActiveTab('book');
+      setActiveTab('domestic-shipment');
+      if (typeof window !== 'undefined') window.location.hash = '#domestic-shipment';
       setShipmentDropdownOpen(false);
       setMobileMenuOpen(false);
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -204,7 +205,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
         return;
       }
       setShipmentScope('international');
-      setActiveTab('book');
+      setActiveTab('international-shipment');
+      if (typeof window !== 'undefined') window.location.hash = '#international-shipment';
       setShipmentDropdownOpen(false);
       setMobileMenuOpen(false);
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -221,6 +223,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services', hasDropdown: true },
     { id: 'shipment', label: 'Shipment', hasDropdown: true },
+    { id: 'track', label: 'Track Shipment' },
     { id: 'contact', label: 'Contact' },
   ];
 
@@ -232,6 +235,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
         { id: 'about', label: 'About Us' },
         { id: 'services', label: 'Services', hasDropdown: true },
         { id: 'shipment', label: 'Shipment', hasDropdown: true },
+        { id: 'track', label: 'Track Shipment' },
         { id: 'contact', label: 'Contact' },
       ];
     } else if (role === 'driver') {
@@ -240,6 +244,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
         { id: 'about', label: 'About Us' },
         { id: 'services', label: 'Services', hasDropdown: true },
         { id: 'shipment', label: 'Shipment', hasDropdown: true },
+        { id: 'track', label: 'Track Shipment' },
         { id: 'contact', label: 'Contact' },
         { id: 'driver-dashboard', label: 'Driver Portal' },
       ];
@@ -249,6 +254,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
         { id: 'about', label: 'About Us' },
         { id: 'services', label: 'Services', hasDropdown: true },
         { id: 'shipment', label: 'Shipment', hasDropdown: true },
+        { id: 'track', label: 'Track Shipment' },
         { id: 'contact', label: 'Contact' },
         { id: 'admin-dashboard', label: 'Admin Hub' },
       ];
@@ -333,7 +339,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               }
 
               if (item.id === 'shipment') {
-                const isShipmentActive = activeTab === 'book' || activeTab === 'track' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
+                const isShipmentActive = activeTab === 'book' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
                 return (
                   <div 
                     key={item.id} 
@@ -343,7 +349,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   >
                     <button
                       onClick={() => handleGoToShipmentTab('book')}
-                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 inline-flex items-center space-x-1 cursor-pointer ${
+                      className={`px-3.5 xl:px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 inline-flex items-center space-x-1 whitespace-nowrap cursor-pointer ${
                         isShipmentActive
                           ? 'bg-orange-50 text-orange-600 font-bold'
                           : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
@@ -405,8 +411,11 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                  }}
+                  className={`px-3.5 xl:px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer ${
                     activeTab === item.id
                       ? 'bg-orange-50 text-orange-600 font-bold'
                       : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
@@ -799,7 +808,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               }
 
               if (item.id === 'shipment') {
-                const isShipmentActive = activeTab === 'book' || activeTab === 'track' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
+                const isShipmentActive = activeTab === 'book' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
                 return (
                   <div key={item.id} className="space-y-1">
                     <button
@@ -843,6 +852,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   onClick={() => {
                     setActiveTab(item.id);
                     setMobileMenuOpen(false);
+                    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}
                   className={`text-left px-4 py-2.5 rounded-lg text-sm font-semibold ${
                     activeTab === item.id

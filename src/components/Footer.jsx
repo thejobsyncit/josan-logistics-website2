@@ -36,7 +36,7 @@ export const Footer = ({ setActiveTab }) => {
               />
             </div>
             <p className="text-slate-200 font-medium text-sm leading-relaxed max-w-sm">
-              Josan Logistics is a global leader in intelligent supply chain management, offering express freight, air cargo, ocean shipping, and smart automated warehousing.
+              Josan Logistics is a premier roadways freight and land haulage provider, offering full truckload (FTL), partial freight (LTL), express highway road couriers, and cross-border customs clearance.
             </p>
 
             <div className="pt-2 flex items-center space-x-4 text-xs font-bold text-slate-200">
@@ -87,11 +87,11 @@ export const Footer = ({ setActiveTab }) => {
           <div>
             <h4 className="text-white text-base font-bold mb-4 font-sans border-b border-slate-800 pb-2">Our Solutions</h4>
             <ul className="space-y-2.5 text-sm text-slate-400">
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Express Air Cargo</li>
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Heavy Freight Trucking</li>
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Ocean Shipping & Containers</li>
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Smart Cold-Chain Logistics</li>
-              <li className="hover:text-orange-400 transition-colors cursor-pointer text-slate-300 font-semibold" onClick={() => setActiveTab('customs-clearance')}>Customs Clearance</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Roadways Freight (FTL / LTL)</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Heavy Haulage & Flatbed Trucking</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Express Highway Road Courier</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Temperature-Controlled Reefer Trucks</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('customs-clearance')}>Roadways Customs Clearance</li>
             </ul>
           </div>
 

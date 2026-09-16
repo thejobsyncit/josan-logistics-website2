@@ -33,62 +33,62 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
   const servicesList = [
     {
       id: 1,
-      title: 'Import Customs Clearance',
-      desc: 'Electronic declarations, bonds & border checkpoint gate pass',
+      title: 'Import Clearance',
+      desc: 'Declarations, bonds & checkpoint entry',
       icon: ArrowRight
     },
     {
       id: 2,
-      title: 'Export Customs Clearance',
-      desc: 'Export lodgement, EXS filing & highway border exit processing',
+      title: 'Export Clearance',
+      desc: 'Export filings & highway border exit',
       icon: Send
     },
     {
       id: 3,
-      title: 'Documentation Support',
-      desc: 'Invoices, packing lists & CMR/LR consignment note preparation',
+      title: 'Documentation',
+      desc: 'Invoices, packing lists & CMR/LR notes',
       icon: FileText
     },
     {
       id: 4,
-      title: 'Bill of Entry & Shipping Bills',
-      desc: 'Formal land customs filings, amendments & validation tracking',
+      title: 'Bills of Entry',
+      desc: 'Customs filings & validation tracking',
       icon: FileCheck
     },
     {
       id: 5,
-      title: 'Duty & Tax Assessment',
-      desc: 'HS code tariff valuation, highway levies & tax reconciliation',
+      title: 'Duty & Taxes',
+      desc: 'Tariff valuation & highway levies',
       icon: DollarSign
     },
     {
       id: 6,
-      title: 'Cargo Examination',
-      desc: 'Truck drive-through scanning & checkpoint inspection bay liaison',
+      title: 'Cargo Inspection',
+      desc: 'Scanning & inspection bay liaison',
       icon: Search
     },
     {
       id: 7,
-      title: 'Regulatory Compliance',
-      desc: 'Overland transit treaties, trade sanctions & compliance audits',
+      title: 'Compliance',
+      desc: 'Transit treaties & compliance audits',
       icon: Scale
     },
     {
       id: 8,
-      title: 'Permits & NOC Approvals',
-      desc: 'Phytosanitary, FDA, BIS & hazardous road transport clearances',
+      title: 'Permits & NOCs',
+      desc: 'Agency approvals & special permits',
       icon: BadgeCheck
     },
     {
       id: 9,
-      title: 'Customs Query Resolution',
-      desc: 'Technical representation to quickly resolve checkpoint holds',
+      title: 'Query Resolution',
+      desc: 'Fast resolution for checkpoint holds',
       icon: HelpCircle
     },
     {
       id: 10,
-      title: 'Final Clearance & Release',
-      desc: 'Out-of-charge order receipt & direct highway final-mile dispatch',
+      title: 'Clearance & Release',
+      desc: 'Out-of-charge receipt & dispatch',
       icon: Truck
     }
   ];
@@ -98,19 +98,19 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
     road: {
       id: 'road',
       name: 'Roadways Cargo',
-      subtitle: 'Standard Overland Highway Freight & Intercity Transit Clearances',
+      subtitle: 'Overland Highway Freight & Intercity Transit Clearances',
       icon: Truck,
       badge: 'Standard Roadways',
       color: 'from-amber-500 to-orange-600',
       documents: [
-        'Commercial Invoice',
-        'Packing List',
-        'Road Consignment Note (CMR / Lorry Receipt - LR)',
-        'Electronic Way Bill (E-Way Bill) / Border Transit Pass',
-        'Vehicle Registration & Driver Highway Manifest',
-        'Transit Cargo Insurance Certificate',
-        'Customs Declaration (where applicable)',
-        'Interstate Tax & Checkpoint Clearance Slip'
+        { name: 'Commercial Invoice', desc: 'Transaction value & seller verification' },
+        { name: 'Packing List', desc: 'Weight, volume & package itemization' },
+        { name: 'Road Consignment Note (CMR / LR)', desc: 'Consignment transit receipt & proof' },
+        { name: 'E-Way Bill & Transit Pass', desc: 'Mandatory highway movement clearance' },
+        { name: 'Vehicle & Driver Manifest', desc: 'Commercial registration & trip schedule' },
+        { name: 'Transit Cargo Insurance', desc: 'In-transit loss & damage protection' },
+        { name: 'Customs Declaration', desc: 'Checkpoint border entry documentation' },
+        { name: 'Tax & Checkpoint Slip', desc: 'State tax payment & toll verification' }
       ]
     },
     ftl: {
@@ -118,17 +118,17 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
       name: 'Full Truckload (FTL)',
       subtitle: 'Dedicated Highway Heavy Trailer & Full Manifest Clearance',
       icon: Truck,
-      badge: 'Dedicated Heavy Haulage',
+      badge: 'Dedicated Haulage',
       color: 'from-orange-500 to-amber-600',
       documents: [
-        'Commercial Tax Invoice',
-        'Detailed Freight Packing List',
-        'Dedicated FTL Lorry Receipt (LR / CMR)',
-        'Consolidated E-Way Bill for Full Vehicle Load',
-        'Vehicle Fitness, Pollution & National Highway Permit',
-        'Driver Commercial License & Highway Trip Manifest',
-        'Transit Goods Insurance Policy',
-        'Toll & Weighbridge Weight Slip'
+        { name: 'Commercial Tax Invoice', desc: 'Tax reconciliation & load valuation' },
+        { name: 'Detailed Packing List', desc: 'Full-truck pallet breakdown & weights' },
+        { name: 'Dedicated FTL Lorry Receipt', desc: 'Full vehicle consignment acknowledgment' },
+        { name: 'Consolidated E-Way Bill', desc: 'Full truck highway electronic pass' },
+        { name: 'Vehicle Fitness & Highway Permit', desc: 'National highway transport approval' },
+        { name: 'Driver License & Trip Manifest', desc: 'Commercial license & route sheet' },
+        { name: 'Transit Goods Insurance', desc: 'Full trailer cargo liability coverage' },
+        { name: 'Weighbridge Weight Slip', desc: 'Official gross weight certification' }
       ]
     },
     ltl: {
@@ -136,17 +136,17 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
       name: 'Part Truckload (LTL)',
       subtitle: 'Consolidated Road Groupage & Multi-Drop Checkpoint Clearance',
       icon: Layers,
-      badge: 'Shared Consolidated Freight',
+      badge: 'Shared Groupage',
       color: 'from-blue-600 to-indigo-700',
       documents: [
-        'Individual Consignment Commercial Invoices',
-        'Consolidated Cargo Manifest & Pallet Count',
-        'Individual LTL Consignment Notes (LRs)',
-        'Multi-Consignee E-Way Bills & Transit Approvals',
-        'Hub Transshipment & Cross-Dock Log',
-        'Goods In-Transit Insurance Certificate',
-        'Hub Handover & Security Inspection Sign-Off',
-        'Final-Mile Gate Pass & Delivery Run-Sheet'
+        { name: 'Consignment Invoices', desc: 'Individual shipment value breakdown' },
+        { name: 'Consolidated Cargo Manifest', desc: 'Combined multi-drop cargo list' },
+        { name: 'Individual LTL Receipts (LR)', desc: 'Consignee docket receipts' },
+        { name: 'Multi-Consignee E-Way Bills', desc: 'Digital passes for all drop-offs' },
+        { name: 'Hub Transshipment Log', desc: 'Cross-dock handling & transfer record' },
+        { name: 'Goods In-Transit Insurance', desc: 'Consolidated freight coverage' },
+        { name: 'Security Inspection Sign-Off', desc: 'Hub security seal verification' },
+        { name: 'Final-Mile Gate Pass', desc: 'Last-mile dispatch & delivery sheet' }
       ]
     },
     crossborder: {
@@ -154,17 +154,17 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
       name: 'Cross-Border Trucking',
       subtitle: 'International Land Border Checkpoints & Highway Port Entry',
       icon: ShieldCheck,
-      badge: 'Overland Border Customs',
+      badge: 'Border Customs',
       color: 'from-emerald-600 to-teal-700',
       documents: [
-        'Export / Import Commercial Invoice',
-        'Certified Export Packing List',
-        'International CMR Consignment Note',
-        'Bill of Entry / Export Shipping Bill (Land Customs)',
-        'Certificate of Origin (Chamber Certified)',
-        'Land Border Customs Bond & Transit Guarantee',
-        'Cross-Border Vehicle Green Card & Carnet TIR',
-        'Port of Entry / Land Customs Station Gate Pass'
+        { name: 'Commercial Invoice', desc: 'International trade valuation & tariff codes' },
+        { name: 'Certified Export Packing List', desc: 'Itemized export manifest' },
+        { name: 'International CMR Note', desc: 'Cross-border transport contract' },
+        { name: 'Bill of Entry / Shipping Bill', desc: 'Official land customs filing' },
+        { name: 'Certificate of Origin', desc: 'Chamber certified duty preferences' },
+        { name: 'Customs Transit Bond', desc: 'Cross-border duty guarantee bond' },
+        { name: 'Carnet TIR & Vehicle Card', desc: 'International road transit permit' },
+        { name: 'Border Station Gate Pass', desc: 'Land customs station release pass' }
       ]
     },
     express: {
@@ -172,17 +172,17 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
       name: 'Express Road Courier & Vans',
       subtitle: 'Sprinter Vans, Time-Critical Deliveries & Direct Roadway Express',
       icon: PackageCheck,
-      badge: 'Priority 24-48h Road Transit',
+      badge: 'Priority Road Transit',
       color: 'from-rose-500 to-pink-600',
       documents: [
-        'Commercial / Retail Invoice',
-        'Express Road Waybill (Docket / Road Consignment)',
-        'Simplified Transit Declaration / E-Way Bill',
-        'Driver Delivery Log & Proof of Dispatch',
-        'Consignor / Consignee KYC Documentation',
-        'Express Highway Toll Tag & Fast-Track Route Pass',
-        'Transit Cargo Insurance Coverage Note',
-        'Ministry / Essential Goods NOC (where applicable)'
+        { name: 'Commercial Invoice', desc: 'Express consignment valuation' },
+        { name: 'Express Road Waybill', desc: 'Priority transit docket & airway bill' },
+        { name: 'Simplified E-Way Bill', desc: 'Fast-track digital clearance pass' },
+        { name: 'Driver Dispatch Log', desc: 'Time-stamped handover record' },
+        { name: 'Consignor & Consignee KYC', desc: 'Verified shipper & receiver identity' },
+        { name: 'Highway Fast-Track Tag', desc: 'Express automated toll lane access' },
+        { name: 'Express Cargo Insurance', desc: 'Time-definite loss & damage policy' },
+        { name: 'Essential Goods NOC', desc: 'Priority movement certification' }
       ]
     }
   };
@@ -415,21 +415,19 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
             return (
               <div 
                 key={svc.id}
-                className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:shadow-lg transition-all duration-300 group flex flex-col justify-between cursor-pointer"
+                className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group flex flex-col cursor-pointer"
               >
-                <div className="space-y-3">
-                  <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all flex items-center justify-center shrink-0 shadow-2xs">
-                    <Icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-                  </div>
-
-                  <h3 className="text-sm font-extrabold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors">
-                    {svc.title}
-                  </h3>
-
-                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                    {svc.desc}
-                  </p>
+                <div className="w-10 h-10 rounded-xl bg-orange-50/80 border border-orange-100/60 text-orange-600 group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500 transition-all duration-300 flex items-center justify-center shrink-0 mb-3.5 shadow-2xs">
+                  <Icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
                 </div>
+
+                <h3 className="text-sm font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors mb-1.5">
+                  {svc.title}
+                </h3>
+
+                <p className="text-xs text-slate-500 font-normal leading-relaxed">
+                  {svc.desc}
+                </p>
               </div>
             );
           })}
@@ -516,33 +514,37 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
                   <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-4">
                     Mandatory & Regulatory Documents Checklist
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    {currentMode.documents.map((doc, idx) => (
-                      <div 
-                        key={idx}
-                        className="bg-slate-50 hover:bg-orange-50/50 p-3.5 rounded-xl border border-slate-200/80 hover:border-orange-300 transition-colors flex items-start space-x-3"
-                      >
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mt-0.5 shrink-0">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {currentMode.documents.map((doc, idx) => {
+                      const docName = typeof doc === 'string' ? doc : doc.name;
+                      const docDesc = typeof doc === 'string' ? 'Standard regulatory verification' : doc.desc;
+                      return (
+                        <div 
+                          key={idx}
+                          className="bg-white hover:bg-orange-50/30 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 hover:border-orange-400 hover:shadow-xs transition-all duration-200 flex items-start space-x-3.5 group cursor-default"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-600 flex items-center justify-center mt-0.5 shrink-0">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs sm:text-sm font-bold text-slate-900 block leading-snug group-hover:text-orange-600 transition-colors">
+                              {docName}
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-normal leading-relaxed block mt-0.5">
+                              {docDesc}
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-xs sm:text-sm font-bold text-slate-900 block leading-snug">
-                            {doc}
-                          </span>
-                          <span className="text-[11px] text-slate-600 font-semibold">
-                            Required for regulatory customs clearance verification
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Mode Footer Helper */}
-                <div className="p-4 bg-orange-50/70 border border-orange-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="p-4 bg-orange-50/50 border border-orange-200/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
                   <div className="flex items-center space-x-2 text-slate-700">
                     <AlertCircle className="w-4 h-4 text-orange-600 shrink-0" />
-                    <span>Need immediate pre-assessment for your {currentMode.name} consignment?</span>
+                    <span className="font-medium">Need immediate pre-assessment for your {currentMode.name} consignment?</span>
                   </div>
                   <button
                     type="button"
