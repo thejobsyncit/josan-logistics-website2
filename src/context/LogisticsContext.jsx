@@ -8,11 +8,54 @@ export const LogisticsProvider = ({ children }) => {
   const [shipments, setShipments] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_shipments');
-      return saved ? JSON.parse(saved) : initialShipments;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Retain only domestic Singapore roadways freight shipments
+        const domesticOnly = (parsed || []).filter((s) => {
+          if (!s || !s.id) return false;
+          // Filter out legacy non-domestic dummy shipments
+          if (
+            s.id.endsWith('-EU') ||
+            s.id.endsWith('-IN') ||
+            s.id.endsWith('-UK') ||
+            s.id.endsWith('-US') ||
+            s.id.includes('-EU') ||
+            s.id.includes('-IN') ||
+            s.id.includes('-UK') ||
+            s.id.includes('-US')
+          ) {
+            return false;
+          }
+          if (
+            s.origin?.includes('Germany') ||
+            s.origin?.includes('Noida') ||
+            s.origin?.includes('Edinburgh') ||
+            s.destination?.includes('Rotterdam') ||
+            s.destination?.includes('Mumbai') ||
+            s.destination?.includes('London')
+          ) {
+            return false;
+          }
+          return true;
+        });
+
+        // If user already booked domestic orders (like JOS-17133-SG), keep them!
+        if (domesticOnly.length > 0) {
+          return domesticOnly;
+        }
+      }
+      return initialShipments;
     } catch (e) {
       return initialShipments;
     }
   });
+
+  // Sync sanitized domestic shipments back to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_shipments', JSON.stringify(shipments));
+    } catch (e) {}
+  }, [shipments]);
 
   const [drivers, setDrivers] = useState(() => {
     try {
@@ -110,6 +153,7 @@ export const LogisticsProvider = ({ children }) => {
   const [selectedInvoiceShipment, setSelectedInvoiceShipment] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalHideClose, setAuthModalHideClose] = useState(false);
+  const [authRedirectTab, setAuthRedirectTab] = useState(null);
 
   const openAuthModalWithoutClose = () => {
     setAuthModalHideClose(true);
@@ -288,7 +332,10 @@ export const LogisticsProvider = ({ children }) => {
 
     // Enforce Strict Portal Redirection
     if (setActiveTab) {
-      if (wasForcedBookingModal && userRole === 'customer') {
+      if (authRedirectTab && userRole === 'customer') {
+        setActiveTab(authRedirectTab);
+        setAuthRedirectTab(null);
+      } else if (wasForcedBookingModal && userRole === 'customer') {
         setActiveTab('book');
       } else if (userRole === 'admin') {
         setActiveTab('admin-dashboard');
@@ -345,6 +392,7 @@ export const LogisticsProvider = ({ children }) => {
       paymentStatus: 'Paid',
       serviceLevel: newShipmentData.serviceLevel || 'Express Air Freight',
       cargoType: newShipmentData.cargoType || 'General Cargo',
+      packageType: newShipmentData.packageType || 'Carton / Box',
       weight: `${newShipmentData.weight || 10} kg`,
       pieces: newShipmentData.pieces || 1,
       declaredValue: `$${newShipmentData.declaredValue || '1,000'}`,
@@ -727,6 +775,8 @@ export const LogisticsProvider = ({ children }) => {
       authModalHideClose,
       setAuthModalHideClose,
       openAuthModalWithoutClose,
+      authRedirectTab,
+      setAuthRedirectTab,
       customerSubTab,
       setCustomerSubTab,
       driverSubTab,
@@ -737,6 +787,7 @@ export const LogisticsProvider = ({ children }) => {
       updateSavedAddress,
       deleteSavedAddress,
       setActiveTrackingId,
+      selectedInvoiceShipment,
       setSelectedInvoiceShipment,
       setIsAuthModalOpen,
       toggleRole,

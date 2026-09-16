@@ -11,8 +11,10 @@ import {
   ArrowRight,
   CheckCircle2,
   Building,
-  Hash
+  Hash,
+  Package
 } from 'lucide-react';
+import { packageTypeOptions } from './DomesticShipmentPage';
 
 const countryOptions = [
   'Malaysia', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines', 'India',
@@ -45,6 +47,7 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
     destinationCountry: countryOptions[0],
     freightMode: 'air',
     incoterm: 'FOB',
+    packageType: 'Carton / Box',
     hsCode: '',
     cargoDescription: '',
     weight: '',
@@ -101,6 +104,7 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
       deliveryCity: form.destinationCountry,
       serviceLevel: `International ${selectedMode.label} Freight (${form.incoterm})`,
       cargoType: form.cargoDescription,
+      packageType: form.packageType,
       weight: form.weight,
       pieces: form.pieces,
       declaredValue: form.declaredValue,
@@ -117,7 +121,10 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
           <CheckCircle2 className="w-8 h-8 text-slate-900" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">International shipment booked</h1>
-        <p className="text-sm text-slate-500 mb-1">Tracking ID</p>
+        <p className="text-sm text-slate-500 mb-1">
+          Freight: <strong className="text-slate-800">{selectedMode.label}</strong> · Package: <strong className="text-slate-800">{form.packageType}</strong>
+        </p>
+        <p className="text-sm text-slate-500 mb-1 mt-3">Tracking ID</p>
         <p className="text-xl font-black text-orange-600 mb-8">{confirmedId}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
@@ -138,7 +145,30 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 animate-fade-in">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in">
+      {/* Scope Switcher: Domestic | International */}
+      <div className="flex justify-center mb-6">
+        <div className="inline-flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200 shadow-xs">
+          <button
+            type="button"
+            onClick={() => {
+              if (setActiveTab) {
+                setActiveTab('domestic-shipment');
+              }
+            }}
+            className="px-7 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-slate-900 hover:bg-white/70 transition-all cursor-pointer"
+          >
+            Domestic
+          </button>
+          <button
+            type="button"
+            className="px-7 py-2.5 rounded-xl font-extrabold text-sm bg-slate-900 text-white shadow-sm transition-all cursor-pointer"
+          >
+            International
+          </button>
+        </div>
+      </div>
+
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-7 sm:p-10 mb-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl -mr-20 -mt-20" />
         <div className="inline-flex items-center gap-2 bg-orange-500/15 border border-orange-500/30 px-3.5 py-1.5 rounded-full mb-4 relative z-10">
@@ -221,6 +251,19 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
               <h2 className="text-base font-black text-slate-900">Cargo & customs</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <Field label="Package type">
+                <select
+                  value={form.packageType}
+                  onChange={update('packageType')}
+                  className={`${inputClass()} bg-white cursor-pointer`}
+                >
+                  {packageTypeOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </Field>
               <Field label="HS code" error={errors.hsCode}>
                 <input value={form.hsCode} onChange={update('hsCode')} placeholder="8471.30" className={inputClass(errors.hsCode)} />
               </Field>
@@ -233,7 +276,7 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
               <Field label="Pieces">
                 <input type="number" min="1" value={form.pieces} onChange={update('pieces')} className={inputClass()} />
               </Field>
-              <Field label="Cargo description" error={errors.cargoDescription} full>
+              <Field label="Cargo description" error={errors.cargoDescription}>
                 <input value={form.cargoDescription} onChange={update('cargoDescription')} placeholder="e.g. Electronic components, retail packaged" className={inputClass(errors.cargoDescription)} />
               </Field>
             </div>
@@ -280,8 +323,9 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
             </div>
 
             <div className="border-t border-slate-100 pt-4 space-y-2 text-xs text-slate-500">
-              <div className="flex items-center gap-2"><Globe className="w-3.5 h-3.5" /> Singapore → {form.destinationCountry}</div>
-              <div className="flex items-center gap-2"><selectedMode.icon className="w-3.5 h-3.5" /> {selectedMode.label} freight · {form.incoterm}</div>
+              <div className="flex items-center gap-2"><Globe className="w-3.5 h-3.5 text-orange-500 shrink-0" /> Singapore → {form.destinationCountry}</div>
+              <div className="flex items-center gap-2"><selectedMode.icon className="w-3.5 h-3.5 text-orange-500 shrink-0" /> {selectedMode.label} freight · {form.incoterm}</div>
+              <div className="flex items-center gap-2"><Package className="w-3.5 h-3.5 text-orange-500 shrink-0" /> {form.pieces} × {form.packageType} ({form.weight || '10'} kg)</div>
             </div>
 
             <button

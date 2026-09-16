@@ -289,7 +289,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
   };
 
   return (
-    <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <div className="space-y-6 pb-20 w-full px-3 sm:px-5 lg:px-6 pt-6 animate-fade-in">
       
       {/* Driver Role Alert Banner */}
       {currentRole === 'driver' && (
@@ -333,48 +333,89 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
-      <div className="flex border-b border-slate-200 space-x-6 sm:space-x-8 text-sm font-extrabold text-slate-700 overflow-x-auto">
-        <button
-          onClick={() => setActiveSubTab('orders')}
-          className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
-            activeSubTab === 'orders' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
-          }`}
-        >
-          <Package className="w-4 h-4" />
-          <span>My Freight Orders ({(shipments || []).length})</span>
-        </button>
+      {/* 2-Column Dashboard Layout: Left Navigation + Center Content Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* Left Side: Navigation Tabs Panel (Red Marked Field) */}
+        <div className="lg:col-span-3 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-card space-y-2 sticky top-24">
+          <p className="px-3 pt-1 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400">
+            Customer Portal
+          </p>
 
-        <button
-          onClick={() => setActiveSubTab('manage')}
-          className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
-            activeSubTab === 'manage' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
-          }`}
-        >
-          <Pencil className="w-4 h-4" />
-          <span>Manage Orders</span>
-        </button>
+          <button
+            onClick={() => setActiveSubTab('orders')}
+            className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
+              activeSubTab === 'orders'
+                ? 'bg-orange-500 text-white shadow-orange-sm'
+                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center space-x-2.5">
+              <Package className="w-4 h-4 shrink-0" />
+              <span>My Freight Orders</span>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeSubTab === 'orders' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'
+            }`}>
+              {(shipments || []).length}
+            </span>
+          </button>
 
-        <button
-          onClick={() => setActiveSubTab('support')}
-          className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
-            activeSubTab === 'support' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
-          }`}
-        >
-          <LifeBuoy className="w-4 h-4" />
-          <span>Support & Claims</span>
-        </button>
+          <button
+            onClick={() => setActiveSubTab('manage')}
+            className={`w-full p-3.5 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+              activeSubTab === 'manage'
+                ? 'bg-orange-500 text-white shadow-orange-sm'
+                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Pencil className="w-4 h-4 shrink-0" />
+            <span>Manage Orders</span>
+          </button>
 
-        <button
-          onClick={() => setActiveSubTab('billing')}
-          className={`pb-3 flex items-center space-x-2 transition-all border-b-2 whitespace-nowrap ${
-            activeSubTab === 'billing' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-slate-900'
-          }`}
-        >
-          <CreditCard className="w-4 h-4" />
-          <span>Billing & Payments</span>
-        </button>
-      </div>
+          <button
+            onClick={() => setActiveSubTab('support')}
+            className={`w-full p-3.5 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+              activeSubTab === 'support'
+                ? 'bg-orange-500 text-white shadow-orange-sm'
+                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <LifeBuoy className="w-4 h-4 shrink-0" />
+            <span>Support & Claims</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('billing')}
+            className={`w-full p-3.5 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+              activeSubTab === 'billing'
+                ? 'bg-orange-500 text-white shadow-orange-sm'
+                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <CreditCard className="w-4 h-4 shrink-0" />
+            <span>Billing & Payments</span>
+          </button>
+
+          {/* Quick Stats in Left Nav */}
+          <div className="pt-4 mt-3 border-t border-slate-100 px-3 pb-1 space-y-2">
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="text-slate-500 font-semibold">In-Transit:</span>
+              <span className="font-mono font-bold text-orange-600">
+                {(shipments || []).filter(s => s.status !== 'Delivered').length}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="text-slate-500 font-semibold">Delivered:</span>
+              <span className="font-mono font-bold text-emerald-600">
+                {(shipments || []).filter(s => s.status === 'Delivered').length}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Center / Main Content Area (Green Marked Field) */}
+        <div className="lg:col-span-9 space-y-6">
 
       {/* SUB-TAB 1 & 2: MY SHIPMENT ORDERS & MANAGE ORDERS */}
       {(activeSubTab === 'orders' || activeSubTab === 'manage') && (
@@ -754,6 +795,9 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
         </div>
       )}
+
+        </div>
+      </div>
 
       {/* SEND MESSAGE TO COMPANY MODAL */}
       {isMessageModalOpen && messageTargetOrder && (

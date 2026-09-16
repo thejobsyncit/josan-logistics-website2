@@ -405,8 +405,13 @@ export const InvoiceModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setSelectedInvoiceShipment(null);
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+    >
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-scale-up">
         
         {/* Action Controls Bar */}
         <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between sticky top-0 z-10">
