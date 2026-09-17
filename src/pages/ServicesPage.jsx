@@ -1,11 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
-import { Plane, Truck, Ship, Thermometer, ArrowRight, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cargoCategories } from '../components/CargoTypeSelector';
+import { 
+  Plane, 
+  Truck, 
+  Ship, 
+  Thermometer, 
+  ArrowRight, 
+  CheckCircle2, 
+  ChevronLeft, 
+  ChevronRight,
+  Zap,
+  Package,
+  Layers,
+  ShieldCheck,
+  Box,
+  Compass
+} from 'lucide-react';
 
 const DynamicServiceGallery = ({ images, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Automatic smooth auto-scroll slideshow (every 3 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -23,7 +38,6 @@ const DynamicServiceGallery = ({ images, title }) => {
 
   return (
     <div className="w-full">
-      {/* Main Auto-Scrolling Image Container */}
       <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-80 bg-slate-900">
         <img
           key={currentIndex}
@@ -31,11 +45,7 @@ const DynamicServiceGallery = ({ images, title }) => {
           alt={`${title} view ${currentIndex + 1}`}
           className="w-full h-full object-cover transition-all duration-700 ease-in-out transform group-hover:scale-105 animate-fade-in"
         />
-
-        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60"></div>
-
-        {/* Navigation Arrows */}
         <button
           onClick={handlePrev}
           className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
@@ -52,7 +62,6 @@ const DynamicServiceGallery = ({ images, title }) => {
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Indicator Dots */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1.5 z-10">
           {images.map((_, idx) => (
             <button
@@ -77,8 +86,9 @@ export const ServicesPage = ({ setActiveTab }) => {
   const [calculatorWeight, setCalculatorWeight] = useState(25);
   const [calculatorService, setCalculatorService] = useState('ground');
   const [calculatorInsurance, setCalculatorInsurance] = useState(false);
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState(cargoCategories[0]?.id || 'beverages-food-plants');
 
-  // When page loads, clicking or scrolling the kg button prompts log-in
+  // When page loads, clicking or scrolling the kg button prompts log-in if not signed in
   const [isKgAuthenticated, setIsKgAuthenticated] = useState(false);
 
   const openLoginModal = () => {
@@ -90,7 +100,6 @@ export const ServicesPage = ({ setActiveTab }) => {
     }
   };
 
-  // Once the login modal opens and closes (e.g. customer signs in), unlock weight adjustments
   const prevModalOpen = useRef(false);
   useEffect(() => {
     if (prevModalOpen.current && !isAuthModalOpen) {
@@ -121,44 +130,166 @@ export const ServicesPage = ({ setActiveTab }) => {
   const estimatedTotal = (calculatorWeight * getRatePerKg() + (calculatorInsurance ? 25 : 0)).toFixed(2);
 
   const handleBookServiceClick = () => {
-    if (setAuthRedirectTab) {
-      setAuthRedirectTab('book');
+    if (!currentUser) {
+      if (setAuthRedirectTab) {
+        setAuthRedirectTab('book');
+      }
+      openLoginModal();
+    } else {
+      setActiveTab('book');
     }
-    openLoginModal();
   };
 
   const servicesData = [
     {
-      id: 'land-haulage',
-      tabName: 'Roadways',
-      title: 'Roadways Freight & Land Haulage (FTL / LTL)',
+      id: 'road-transportation',
+      anchorId: 'road-transportation',
+      tabName: 'Road Transportation',
+      title: 'Road Transportation & Land Haulage',
+      subtitle: 'Primary Domestic & Cross-Border Highway Corridor Network',
       icon: Truck,
       images: [
         'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
       ],
-      desc: 'Modern fleet of 18-wheeler semi-trucks, lorries, and sprinter vans equipped with satellite GPS telematics for seamless highway freight and door-to-door road transport.',
-      features: ['Full Truckload (FTL) & Partial (LTL)', 'Automated Route Optimization', 'Hydraulic Lift-gate Vans Available', '24/7 Driver Telemetry Feed']
+      desc: 'Modern roadway transport fleet equipped with satellite GPS telematics for seamless highway freight and door-to-door road transport across Singapore, ports, and regional expressway gateways.',
+      features: [
+        'Door-to-door pickup & scheduled drops',
+        'Automated AI route optimization',
+        'Hydraulic lift-gate vans & lorries available',
+        '24/7 driver telemetry feed & live ETA'
+      ]
+    },
+    {
+      id: 'ftl-transportation',
+      anchorId: 'ftl-transportation',
+      tabName: 'FTL Transportation',
+      title: 'Full Truckload (FTL) Dedicated Transportation',
+      subtitle: 'Exclusive Point-to-Point Bulk Haulage without Intermediate Stops',
+      icon: Layers,
+      images: [
+        '/assets/lorry_24ft_heavy.jpg',
+        '/assets/clean_domestic_truck.jpg',
+        'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Exclusive full-capacity truckload services for bulk shipments, palletized merchandise, and industrial machinery. Your cargo occupies the entire vehicle, ensuring direct, untranshipped routing with maximum security and the fastest highway transit times.',
+      features: [
+        'Dedicated 24ft–40ft lorries & prime movers',
+        'Direct origin-to-destination non-stop delivery',
+        'Up to 24,000 kg payload capacity',
+        'Sealed container & anti-tamper security locks'
+      ]
+    },
+    {
+      id: 'ltl-transportation',
+      anchorId: 'ltl-transportation',
+      tabName: 'LTL Transportation',
+      title: 'Less-Than-Truckload (LTL) Consolidated Freight',
+      subtitle: 'Cost-Optimized Shared Capacity with Scheduled Linehaul Runs',
+      icon: Package,
+      images: [
+        '/assets/vehicle_10ft_lorry.jpg',
+        '/assets/lorry_14ft_tailgate.jpg',
+        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Economical consolidated road freight for businesses shipping 1 to 10 pallets. Share trailer space while benefiting from computerized manifests, scheduled daily departures, and automated warehouse sorting across our regional hubs.',
+      features: [
+        'Tiered volumetric and pallet pricing',
+        'Daily scheduled linehaul departures',
+        'Automated cross-dock sorting & scanning',
+        'Individual pallet barcode tracking'
+      ]
+    },
+    {
+      id: 'express-delivery',
+      anchorId: 'express-delivery',
+      tabName: 'Express Delivery',
+      title: 'Express Highway & City Delivery',
+      subtitle: 'Priority Same-Day Dispatch for Time-Critical Consignments',
+      icon: Zap,
+      images: [
+        '/assets/van_1_7m.jpg',
+        '/assets/vehicle_motorbike.jpg',
+        '/assets/vehicle_mpv.jpg'
+      ],
+      desc: 'Rapid express courier and dedicated sprinter dispatch for mission-critical parts, urgent medical samples, legal documentation, and time-sensitive customer orders with guaranteed SLA turnaround.',
+      features: [
+        'Under 4-hour direct point-to-point delivery',
+        'Immediate priority driver dispatch',
+        'Real-time minute-by-minute satellite telemetry',
+        'Digital Proof-of-Delivery (POD) with signature'
+      ]
+    },
+    {
+      id: 'specialized-cargo',
+      anchorId: 'specialized-cargo',
+      tabName: 'Specialized Cargo',
+      title: 'Specialized & Cold Chain Temperature Cargo',
+      subtitle: 'Active Thermoregulation (-25°C to +25°C) & High-Care Logistics',
+      icon: Thermometer,
+      images: [
+        '/assets/vehicle_cold_chain.jpg',
+        'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Engineered transport solutions for pharmaceuticals, perishables, and delicate industrial materials. Active climate-controlled reefer vans equipped with dual-probe IoT dataloggers maintain continuous compliance throughout transit.',
+      features: [
+        'Precise multi-temp control (-25°C to +25°C)',
+        'Continuous IoT datalogger temperature reports',
+        'GDP pharmaceutical & cold chain certified',
+        'Thermal air curtain doors & standby power'
+      ]
     }
   ];
 
+  const activeCategory = cargoCategories.find(c => c.id === selectedCategoryTab) || cargoCategories[0];
+
   return (
-    <div className="space-y-16 pb-20">
+    <div className="space-y-20 pb-24">
       
       {/* Header Banner */}
-      <section className="bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <section className="bg-[#10182D] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
-          <span className="text-orange-400 font-bold uppercase text-xs tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-            Roadways & Freight Services
+          <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-flex items-center space-x-1.5">
+            <Truck className="w-3.5 h-3.5" />
+            <span>Integrated Logistics Services</span>
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
-            Dedicated Roadways Logistics
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading text-white tracking-tight">
+            Comprehensive Road & Freight Services
           </h1>
-          <p className="text-slate-200 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Mainly focusing on Singapore, Malaysia, and surrounding regional corridors, Josan Logistics provides premier road freight execution with dynamic live telematics.
+          <p className="text-white/90 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            From dedicated full truckload linehaul and consolidated LTL runs to express couriers, specialized cold chain, and customs clearance, Josan Logistics provides premier overland transport with dynamic live telematics.
           </p>
+
+          {/* Quick Sub-Navigation Pills */}
+          <div className="pt-6 flex flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto">
+            {servicesData.map(s => (
+              <a
+                key={s.id}
+                href={`#${s.anchorId}`}
+                className="px-3.5 py-1.5 bg-white/10 hover:bg-orange-500 text-white text-xs font-bold rounded-xl border border-white/10 hover:border-orange-500 transition-all cursor-pointer"
+              >
+                {s.tabName}
+              </a>
+            ))}
+            <button
+              onClick={() => {
+                setActiveTab('customs-clearance');
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className="px-3.5 py-1.5 bg-white/10 hover:bg-orange-500 text-white text-xs font-bold rounded-xl border border-white/10 hover:border-orange-500 transition-all cursor-pointer"
+            >
+              Customs Clearance
+            </button>
+            <a
+              href="#cargo-types"
+              className="px-3.5 py-1.5 bg-white/10 hover:bg-orange-500 text-white text-xs font-bold rounded-xl border border-white/10 hover:border-orange-500 transition-all cursor-pointer"
+            >
+              Cargo Types
+            </a>
+          </div>
         </div>
       </section>
 
@@ -198,7 +329,6 @@ export const ServicesPage = ({ setActiveTab }) => {
                   className="w-full accent-orange-500 cursor-pointer"
                 />
 
-                {/* Click / scroll interceptor until login is triggered */}
                 {!isKgAuthenticated && (
                   <div
                     onClick={handleKgInteraction}
@@ -266,51 +396,143 @@ export const ServicesPage = ({ setActiveTab }) => {
         </div>
       </section>
 
-      {/* Services Grid */}
-      <section id="freight-services-grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-28">
-        <div className="space-y-12">
-          {servicesData.map((service, index) => {
-            const IconComp = service.icon;
-            const isEven = index % 2 === 0;
-            return (
-              <div key={service.id} className={`grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-8 rounded-3xl border border-slate-200 shadow-card ${!isEven ? 'lg:flex-row-reverse' : ''}`}>
-                
-                {/* Details Column */}
-                <div className={`lg:col-span-6 space-y-4 ${!isEven ? 'lg:order-2' : ''}`}>
-                  <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+      {/* Services Detailed Sections (with IDs corresponding to Navbar Dropdown) */}
+      <section id="freight-services-grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 scroll-mt-28">
+        {servicesData.map((service, index) => {
+          const IconComp = service.icon;
+          const isEven = index % 2 === 0;
+          return (
+            <div 
+              key={service.id} 
+              id={service.anchorId}
+              className={`grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-card scroll-mt-28 hover:border-orange-200 transition-all ${
+                !isEven ? 'lg:flex-row-reverse' : ''
+              }`}
+            >
+              {/* Details Column */}
+              <div className={`lg:col-span-6 space-y-4 ${!isEven ? 'lg:order-2' : ''}`}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-sm">
                     <IconComp className="w-6 h-6 stroke-[2]" />
                   </div>
-                  <h3 className="text-2xl font-extrabold text-slate-900">{service.title}</h3>
-                  <p className="text-slate-900 font-semibold text-sm sm:text-base leading-relaxed">{service.desc}</p>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                    {service.features.map((feat, i) => (
-                      <div key={i} className="flex items-center space-x-2 text-xs sm:text-[13px] font-bold text-slate-900">
-                        <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="pt-4">
-                    <button
-                      onClick={handleBookServiceClick}
-                      className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <span>Book This Service</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <span className="text-xs font-bold text-orange-600 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                    {service.tabName}
+                  </span>
                 </div>
 
-                {/* Dynamic Image Gallery Column */}
-                <div className={`lg:col-span-6 ${!isEven ? 'lg:order-1' : ''}`}>
-                  <DynamicServiceGallery images={service.images} title={service.title} />
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{service.title}</h3>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{service.subtitle}</p>
+                <p className="text-slate-800 font-medium text-sm sm:text-base leading-relaxed">{service.desc}</p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                  {service.features.map((feat, i) => (
+                    <div key={i} className="flex items-center space-x-2 text-xs sm:text-[13px] font-bold text-slate-900">
+                      <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
                 </div>
 
+                <div className="pt-4 flex items-center space-x-3">
+                  <button
+                    onClick={handleBookServiceClick}
+                    className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer"
+                  >
+                    <span>Book This Service</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('quote')}
+                    className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Get Instant Quote
+                  </button>
+                </div>
               </div>
-            );
-          })}
+
+              {/* Dynamic Image Gallery Column */}
+              <div className={`lg:col-span-6 ${!isEven ? 'lg:order-1' : ''}`}>
+                <DynamicServiceGallery images={service.images} title={service.title} />
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      {/* CARGO TYPES SECTION (Interactive Industry Cargo Classification Showcase) */}
+      <section id="cargo-types" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-28">
+        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-card space-y-8">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-orange-600 font-bold uppercase text-xs tracking-widest bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200 inline-block">
+              Commodity Classification
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+              Supported Cargo Types & Industries
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+              Josan Logistics handles over 10 major commercial cargo categories and hundreds of subcategories, with customized securing protocols, temperature logs, and specialized handling equipment.
+            </p>
+          </div>
+
+          {/* Industry Category Navigation Tabs */}
+          <div className="flex flex-wrap items-center justify-center gap-2 border-b border-slate-100 pb-4">
+            {cargoCategories.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategoryTab(cat.id)}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-2 ${
+                    selectedCategoryTab === cat.id
+                      ? 'bg-slate-900 text-white shadow-md'
+                      : 'bg-slate-50 text-slate-700 hover:bg-orange-50 hover:text-orange-600'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 text-orange-400" />
+                  <span>{cat.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Category Display Box */}
+          <div className="bg-slate-50 rounded-2xl p-6 sm:p-8 border border-slate-200">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+              <div className="flex items-center space-x-3.5">
+                <div className="w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold shadow-sm">
+                  {React.createElement(activeCategory.icon, { className: 'w-6 h-6' })}
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-slate-900">{activeCategory.name}</h3>
+                  <p className="text-xs text-slate-500 font-medium">Approved for Road Transport, FTL, LTL & Cross-Border Delivery</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveTab('quote')}
+                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer self-start md:self-auto"
+              >
+                <span>Quote for {activeCategory.name}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="pt-6">
+              <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-3">
+                Accepted Cargo Subcategories:
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {activeCategory.subcategories.map((sub, sIdx) => (
+                  <div
+                    key={sIdx}
+                    className="p-3 bg-white rounded-xl border border-slate-200 flex items-center space-x-2.5 text-xs font-bold text-slate-800 shadow-2xs hover:border-orange-300 transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>{sub}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

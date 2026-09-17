@@ -2259,7 +2259,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                           <p className={`text-[11px] leading-snug font-semibold ${
                             (formData.packageShipmentType || 'gift_sample') === 'gift_sample' ? 'text-slate-300' : 'text-slate-500'
                           }`}>
-                            Usually shipments with a total value less than 50,000 INR
+                            Usually shipments with a total value less than 1,000 SGD
                           </p>
                         </div>
 
@@ -2287,7 +2287,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                           <p className={`text-[11px] leading-snug font-semibold ${
                             formData.packageShipmentType === 'cargo' ? 'text-slate-300' : 'text-slate-500'
                           }`}>
-                            High value shipments and usually shipments with a total value more than 50,000 INR
+                            High value shipments and usually shipments with a total value more than 1,000 SGD
                           </p>
                         </div>
                       </div>
@@ -2766,7 +2766,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                              <span className="text-rose-500 font-bold text-xs absolute right-1.5 top-2 pointer-events-none">*</span>
                                            )}
                                          </div>
-                                         <span className="font-extrabold text-xs text-slate-700 underline decoration-slate-400">INR</span>
+                                         <span className="font-extrabold text-xs text-slate-700 underline decoration-slate-400">SGD</span>
                                        </div>
                                      </div>
 
@@ -2902,7 +2902,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                  </div>
 
                                  <div className="font-bold text-slate-700">
-                                   Total Value: <span className="font-mono text-slate-900 font-extrabold">{totalValueInr > 0 ? `${totalValueInr.toFixed(2)} INR` : '--.-- INR'}</span>
+                                   Total Value: <span className="font-mono text-slate-900 font-extrabold">{totalValueInr > 0 ? `${totalValueInr.toFixed(2)} SGD` : '--.-- SGD'}</span>
                                  </div>
 
                                  <button
@@ -2975,7 +2975,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                 <span className="text-rose-500 font-bold text-xs absolute right-2 top-2 pointer-events-none">*</span>
                               )}
                             </div>
-                            <span className="font-extrabold text-xs text-slate-700 underline decoration-slate-400">INR</span>
+                            <span className="font-extrabold text-xs text-slate-700 underline decoration-slate-400">SGD</span>
                           </div>
                         </div>
                         <p className="text-[11px] text-slate-500 font-medium italic">Additional charges may apply</p>
@@ -3437,14 +3437,14 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   </p>
                   <p className="font-semibold text-slate-600 text-[11px] mt-0.5">Items : {totalUnitsCount || 1}</p>
                   <p className="font-bold text-slate-800 text-xs">
-                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '100,000.00'} INR
+                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '1,000.00'} SGD
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-4">
                 <div className="font-bold text-slate-800 text-xs">
-                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} INR
+                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} SGD
                 </div>
                 <button
                   type="button"
@@ -3868,14 +3868,14 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   </p>
                   <p className="font-semibold text-slate-600 text-[11px] mt-0.5">Items : {totalUnitsCount || 1}</p>
                   <p className="font-bold text-slate-800 text-xs">
-                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '100,000.00'} INR
+                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '1,000.00'} SGD
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-4">
                 <div className="font-bold text-slate-800 text-xs">
-                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} INR
+                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} SGD
                 </div>
                 <button
                   type="button"
@@ -4252,14 +4252,14 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   </p>
                   <p className="font-semibold text-slate-600 text-[11px] mt-0.5">Items : {totalUnitsCount || 1}</p>
                   <p className="font-bold text-slate-800 text-xs">
-                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '100,000.00'} INR
+                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '1,000.00'} SGD
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-4">
                 <div className="font-bold text-slate-800 text-xs">
-                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} INR
+                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} SGD
                 </div>
                 <button
                   type="button"
@@ -4509,14 +4509,14 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   </p>
                   <p className="font-semibold text-slate-600 text-[11px] mt-0.5">Items : {totalUnitsCount || 1}</p>
                   <p className="font-bold text-slate-800 text-xs">
-                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '100,000.00'} INR
+                    Total Goods Value {totalValueInr > 0 ? totalValueInr.toFixed(2) : '1,000.00'} SGD
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-4">
                 <div className="font-bold text-slate-800 text-xs">
-                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} INR
+                  Insured Value {formData.insuredValue ? parseFloat(formData.insuredValue).toFixed(2) : (formData.includeInsurance ? '1.00' : '0.00')} SGD
                 </div>
                 <button
                   type="button"
@@ -4694,13 +4694,13 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         <div className="flex flex-col items-center sm:items-end space-y-2">
                           <span className="text-[11px] font-bold text-slate-500">Discounted Rate</span>
                           <p className="text-2xl font-black text-slate-900 font-mono leading-none">
-                            <span className="text-sm font-extrabold text-slate-600">INR</span> {card1PriceText}
+                            <span className="text-sm font-extrabold text-slate-600">SGD</span> {card1PriceText}
                           </p>
-                          <p className="text-[10px] text-slate-500 font-mono">Transportation Charges {card1PriceText} INR</p>
+                          <p className="text-[10px] text-slate-500 font-mono">Transportation Charges {card1PriceText} SGD</p>
                           
                           <button
                             type="button"
-                            onClick={() => showToast(`Base rate: ${card1PriceText} INR. Delivery: ${deliveryOption1.monthDay}, ${deliveryOption1.dayOfWeek}. Fuel surcharge included.`)}
+                            onClick={() => showToast(`Base rate: ${card1PriceText} SGD. Delivery: ${deliveryOption1.monthDay}, ${deliveryOption1.dayOfWeek}. Fuel surcharge included.`)}
                             className="text-[11px] font-bold text-sky-600 hover:text-sky-800 flex items-center space-x-0.5 cursor-pointer"
                           >
                             <span>Details</span>
@@ -4713,7 +4713,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                               setFormData({
                                 ...formData,
                                 serviceLevel: card1BadgeText,
-                                selectedFreightRate: `${card1PriceText} INR`,
+                                selectedFreightRate: `${card1PriceText} SGD`,
                                 estimatedDeliveryDate: `${deliveryOption1.monthDay}, ${deliveryOption1.dayOfWeek}`
                               });
                               handleNextStep();
@@ -4758,7 +4758,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         <div className="flex flex-col items-center sm:items-end space-y-2">
                           <span className="text-[11px] font-bold text-slate-500">Express Priority</span>
                           <p className="text-2xl font-black text-slate-900 font-mono leading-none">
-                            <span className="text-sm font-extrabold text-slate-600">INR</span> {card2PriceText}
+                            <span className="text-sm font-extrabold text-slate-600">SGD</span> {card2PriceText}
                           </p>
 
                           <button
@@ -4767,7 +4767,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                               setFormData({
                                 ...formData,
                                 serviceLevel: card2BadgeText,
-                                selectedFreightRate: `${card2PriceText} INR`,
+                                selectedFreightRate: `${card2PriceText} SGD`,
                                 estimatedDeliveryDate: `${deliveryOption2.monthDay}, ${deliveryOption2.dayOfWeek}`
                               });
                               handleNextStep();
@@ -5253,10 +5253,10 @@ export const BookShipmentPage = ({ setActiveTab }) => {
 
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {[
-                { name: "Cotton T-Shirt Sample", code: "610910", desc: "100% Cotton Knitted T-Shirt", qty: 1, unit: "Pieces", val: "750", wt: "0.25", origin: "India" },
-                { name: "Leather Wallet Gift", code: "420231", desc: "Genuine Leather Bifold Wallet", qty: 1, unit: "Pieces", val: "1200", wt: "0.15", origin: "India" },
-                { name: "Stainless Steel Mug", code: "732393", desc: "Thermal Insulated Travel Mug", qty: 1, unit: "Pieces", val: "950", wt: "0.40", origin: "India" },
-                { name: "Electronic PCB Board", code: "854231", desc: "Microcontroller Board Assembly", qty: 1, unit: "Pieces", val: "3500", wt: "0.30", origin: "India" }
+                { name: "Cotton T-Shirt Sample", code: "610910", desc: "100% Cotton Knitted T-Shirt", qty: 1, unit: "Pieces", val: "25", wt: "0.25", origin: "Singapore" },
+                { name: "Leather Wallet Gift", code: "420231", desc: "Genuine Leather Bifold Wallet", qty: 1, unit: "Pieces", val: "45", wt: "0.15", origin: "Singapore" },
+                { name: "Stainless Steel Mug", code: "732393", desc: "Thermal Insulated Travel Mug", qty: 1, unit: "Pieces", val: "35", wt: "0.40", origin: "Singapore" },
+                { name: "Electronic PCB Board", code: "854231", desc: "Microcontroller Board Assembly", qty: 1, unit: "Pieces", val: "120", wt: "0.30", origin: "Singapore" }
               ].map((prod, idx) => (
                 <div
                   key={idx}
@@ -5289,7 +5289,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       <span className="font-mono text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">HS {prod.code}</span>
                     </div>
                     <p className="text-[11px] text-slate-500 font-medium">{prod.desc}</p>
-                    <p className="text-[10px] text-slate-400 font-mono">Value: ₹{prod.val} | Weight: {prod.wt} kg | Origin: {prod.origin}</p>
+                    <p className="text-[10px] text-slate-400 font-mono">Value: S${prod.val} | Weight: {prod.wt} kg | Origin: {prod.origin}</p>
                   </div>
                   <button
                     type="button"

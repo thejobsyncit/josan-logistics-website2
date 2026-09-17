@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { X, Printer, Download, Truck, CheckCircle2, ShieldCheck, FileText, CreditCard, QrCode, Lock, Loader2 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 export const InvoiceModal = () => {
   const { selectedInvoiceShipment, setSelectedInvoiceShipment, showToast, payShipmentInvoice } = useLogistics();
@@ -239,169 +240,267 @@ export const InvoiceModal = () => {
   };
 
   const handleDownloadPDF = () => {
-    const logoUrl = `${window.location.origin}/assets/josan_logo.png`;
-    const statusHtml = isPaid
-      ? `<span class="badge" style="background:#D1FAE5; color:#065F46;">PAID & VERIFIED</span>`
-      : `<span class="badge" style="background:#FFE4E6; color:#9F1239;">UNPAID — DUE: $${totalPrice} USD</span>`;
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-    const invoiceHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Invoice - ${shipment.id}</title>
-        <style>
-          * { box-sizing: border-box; }
-          body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #0F172A; background: #ffffff; margin: 0; padding: 30px; line-height: 1.5; font-size: 13px; }
-          .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F26722; padding-bottom: 16px; margin-bottom: 20px; }
-          .logo { height: 48px; width: auto; object-fit: contain; }
-          .subtitle { font-size: 11px; color: #64748B; font-weight: 600; margin: 4px 0 2px 0; }
-          .address { font-size: 11px; color: #64748B; margin: 0; }
-          .badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-weight: 800; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
-          .inv-title { font-size: 22px; font-weight: 800; color: #0F172A; margin: 0 0 4px 0; }
-          .inv-meta { font-size: 11px; color: #64748B; margin: 2px 0; }
-          
-          .barcode-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-          .barcode-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; }
-          .barcode-id { font-family: monospace; font-size: 18px; font-weight: 800; color: #F26722; margin-top: 2px; }
-          .barcode-lines { display: flex; align-items: center; gap: 2px; height: 32px; }
-          .line { background: #0F172A; height: 100%; }
+      // 1. Top Brand Accent Banner
+      doc.setFillColor(255, 107, 0); // #FF6B00
+      doc.rect(0, 0, 210, 5, 'F');
 
-          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-          .card { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; }
-          .card-header { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; }
-          .card-name { font-size: 14px; font-weight: 800; color: #0F172A; }
-          .card-desc { font-size: 12px; color: #475569; margin: 4px 0; }
-          .card-hub { font-size: 11px; color: #64748B; font-weight: 600; }
+      // 2. Company Brand & Metadata
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(20);
+      doc.setTextColor(16, 24, 45); // #10182D
+      doc.text('JOSAN', 15, 20);
+      doc.setTextColor(255, 107, 0); // #FF6B00
+      doc.text('LOGISTICS', 44, 20);
 
-          .section-title { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 0; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; }
-          th { background: #F1F5F9; font-weight: 700; color: #334155; padding: 10px 14px; text-align: left; border-bottom: 1px solid #E2E8F0; }
-          td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #F1F5F9; color: #334155; }
-          tr:last-child td { border-bottom: none; }
-          .total-row { background: #FFF4EE !important; font-weight: 800; }
-          .total-row td { color: #0F172A; font-size: 14px; padding: 12px 14px; }
-          .total-amount { color: #F26722; font-weight: 800; font-family: monospace; font-size: 16px; }
-          
-          .footer { margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748B; }
-          .footer-guarantee { font-weight: 600; color: #475569; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div>
-              <img src="${logoUrl}" class="logo" alt="Josan Logistics Logo" />
-              <p class="subtitle">Regional & Global Supply Chain Management</p>
-              <p class="address">450 Logistics Parkway, Chicago, IL 60607</p>
-              <p class="address">Tax Registration ID: US-JOS-98210492</p>
-            </div>
-            <div style="text-align: right;">
-              ${statusHtml}
-              <h1 class="inv-title">INVOICE #${shipment.id}</h1>
-              <p class="inv-meta">Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}</p>
-              <p class="inv-meta">Payment Term: Net 30</p>
-            </div>
-          </div>
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text('Regional & Global Supply Chain Management', 15, 26);
+      doc.text('10 Marina Boulevard, Marina Bay Financial Centre, Singapore 018983', 15, 30.5);
+      doc.text('Tax Reg / UEN: 202418920K · GST Reg No: M9-0218492-X', 15, 35);
 
-          <div class="barcode-box">
-            <div>
-              <div class="barcode-label">Tracking Bill of Lading</div>
-              <div class="barcode-id">${shipment.id}</div>
-            </div>
-            <div class="barcode-lines">
-              ${[4, 2, 6, 1, 3, 5, 2, 4, 1, 6, 3, 2, 5, 4, 2, 1, 5, 3, 4, 2].map(w => `<div class="line" style="width: ${w}px;"></div>`).join('')}
-            </div>
-          </div>
-          </div>
+      // Status Badge (Top Right)
+      if (isPaid) {
+        doc.setFillColor(209, 250, 229); // emerald-100
+        doc.roundedRect(142, 12, 53, 7.5, 3, 3, 'F');
+        doc.setTextColor(6, 95, 70); // emerald-800
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.text('PAID & VERIFIED', 168.5, 17, { align: 'center' });
+      } else {
+        doc.setFillColor(254, 226, 226); // red-100
+        doc.roundedRect(142, 12, 53, 7.5, 3, 3, 'F');
+        doc.setTextColor(153, 27, 27); // red-800
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.text('PAYMENT PENDING', 168.5, 17, { align: 'center' });
+      }
 
-          <div class="grid">
-            <div class="card">
-              <div class="card-header">SHIP FROM (ORIGIN)</div>
-              <div class="card-name">${shipment.sender}</div>
-              <div class="card-desc">${shipment.senderAddress || 'Origin Depot'}</div>
-              <div class="card-hub">Hub: ${shipment.origin}</div>
-            </div>
-            <div class="card">
-              <div class="card-header">SHIP TO (DESTINATION)</div>
-              <div class="card-name">${shipment.receiver}</div>
-              <div class="card-desc">${shipment.receiverAddress || 'Destination Depot'}</div>
-              <div class="card-hub">Hub: ${shipment.destination}</div>
-            </div>
-          </div>
+      // Invoice Header Info
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 24, 45);
+      doc.text(`INVOICE #${shipment.id}`, 195, 26, { align: 'right' });
 
-          <div class="section-title">Freight Specifications</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Service Level</th>
-                <th>Cargo Type</th>
-                <th>Weight</th>
-                <th>Declared Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="font-weight: 700; color: #F26722;">${shipment.serviceLevel}</td>
-                <td>${shipment.cargoType}</td>
-                <td style="font-family: monospace;">${shipment.weight} (${shipment.pieces || 1} Pcs)</td>
-                <td style="font-family: monospace;">${shipment.declaredValue || '$10,000'}</td>
-              </tr>
-            </tbody>
-          </table>
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}`, 195, 31, { align: 'right' });
+      doc.text('Payment Terms: Net 30 Days', 195, 35.5, { align: 'right' });
 
-          <div class="section-title">Itemized Charges</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Description</th>
-                <th style="text-align: right;">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Base Freight Transportation Fee</td>
-                <td style="text-align: right; font-family: monospace; font-weight: 600;">$${basePriceNum.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td>Fuel Surcharge (8%)</td>
-                <td style="text-align: right; font-family: monospace;">$${fuelSurcharge}</td>
-              </tr>
-              <tr>
-                <td>Cargo Security & Insurance Policy (5%)</td>
-                <td style="text-align: right; font-family: monospace;">$${insuranceFee}</td>
-              </tr>
-              <tr>
-                <td>GST / Sales Tax (7%)</td>
-                <td style="text-align: right; font-family: monospace;">$${tax}</td>
-              </tr>
-              <tr class="total-row">
-                <td>TOTAL DUE / PAID</td>
-                <td style="text-align: right;" class="total-amount">$${totalPrice} USD</td>
-              </tr>
-            </tbody>
-          </table>
+      // Divider line
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.4);
+      doc.line(15, 40, 195, 40);
 
-          <div class="footer">
-            <div class="footer-guarantee">🛡️ Full Cargo Loss Protection Guarantee by Josan Cover</div>
-            <div style="font-weight: 700; color: #334155;">Thank you for choosing Josan Logistics!</div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+      // 3. Barcode & Bill of Lading Box
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(15, 45, 180, 18, 3, 3, 'FD');
 
-    const blob = new Blob([invoiceHtml], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Invoice-${shipment.id}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast(`Downloaded Invoice File: Invoice-${shipment.id}.html`);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text('TRACKING BILL OF LADING', 22, 51.5);
+
+      doc.setFontSize(14);
+      doc.setFont('courier', 'bold');
+      doc.setTextColor(255, 107, 0);
+      doc.text(String(shipment.id), 22, 58);
+
+      // Barcode graphic lines
+      const barPattern = [3, 1, 4, 1, 2, 4, 1, 3, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2, 3, 1];
+      let barX = 145;
+      doc.setFillColor(16, 24, 45);
+      barPattern.forEach((w) => {
+        doc.rect(barX, 48.5, w * 0.45, 11, 'F');
+        barX += w * 0.45 + 0.9;
+      });
+
+      // 4. Ship From & Ship To Cards
+      // Origin Card
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(15, 68, 87, 34, 3, 3, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text('SHIP FROM (ORIGIN)', 20, 74.5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(16, 24, 45);
+      const senderName = doc.splitTextToSize(shipment.senderName || shipment.sender || 'Razer Asia-Pacific HQ', 77)[0];
+      doc.text(senderName, 20, 80);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      const senderAddrLines = doc.splitTextToSize(shipment.pickupAddress || shipment.senderAddress || '1 Raffles Place, Singapore', 77).slice(0, 2);
+      doc.text(senderAddrLines, 20, 85);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Hub: ${shipment.pickupCity || shipment.origin || 'Singapore Central'}`, 20, 97);
+
+      // Destination Card
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(108, 68, 87, 34, 3, 3, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text('SHIP TO (DESTINATION)', 113, 74.5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(16, 24, 45);
+      const receiverName = doc.splitTextToSize(shipment.receiverName || shipment.receiver || 'Jurong Logistics Hub Gate 4', 77)[0];
+      doc.text(receiverName, 113, 80);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      const receiverAddrLines = doc.splitTextToSize(shipment.deliveryAddress || shipment.receiverAddress || '10 Jurong Port Road, Singapore', 77).slice(0, 2);
+      doc.text(receiverAddrLines, 113, 85);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Hub: ${shipment.deliveryCity || shipment.destination || 'Jurong Port Terminal'}`, 113, 97);
+
+      // 5. Freight Specifications Table
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      doc.text('FREIGHT SPECIFICATIONS', 15, 110);
+
+      doc.setFillColor(241, 245, 249);
+      doc.rect(15, 113, 180, 7, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Service Level', 18, 117.5);
+      doc.text('Cargo Type', 80, 117.5);
+      doc.text('Weight / Pieces', 130, 117.5);
+      doc.text('Declared Value', 190, 117.5, { align: 'right' });
+
+      doc.setDrawColor(241, 245, 249);
+      doc.line(15, 129, 195, 129);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 107, 0);
+      doc.setFontSize(8);
+      doc.text(doc.splitTextToSize(shipment.serviceLevel || 'Express Freight', 58)[0], 18, 124.5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+      doc.text(doc.splitTextToSize(shipment.cargoType || 'General Cargo', 45)[0], 80, 124.5);
+
+      doc.setFont('courier', 'normal');
+      doc.text(`${shipment.weight} (${shipment.pieces || 1} Pcs)`, 130, 124.5);
+      doc.text(shipment.declaredValue ? `S$ ${shipment.declaredValue}` : 'S$ 10,000', 190, 124.5, { align: 'right' });
+
+      // 6. Itemized Charges Table
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      doc.text('ITEMIZED CHARGES', 15, 137);
+
+      doc.setFillColor(241, 245, 249);
+      doc.rect(15, 140, 180, 7, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Description', 18, 144.5);
+      doc.text('Amount (SGD)', 190, 144.5, { align: 'right' });
+
+      const lineItems = [
+        { desc: 'Base Freight Transportation Fee', amt: `$${basePriceNum.toFixed(2)}` },
+        { desc: 'Fuel Surcharge (8%)', amt: `$${fuelSurcharge}` },
+        { desc: 'Cargo Security & Insurance Policy (5%)', amt: `$${insuranceFee}` },
+        { desc: 'GST / Sales Tax (7%)', amt: `$${tax}` }
+      ];
+
+      let rowY = 152;
+      lineItems.forEach((item) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(51, 65, 85);
+        doc.text(item.desc, 18, rowY);
+
+        doc.setFont('courier', 'normal');
+        doc.text(item.amt, 190, rowY, { align: 'right' });
+
+        doc.setDrawColor(248, 250, 252);
+        doc.line(15, rowY + 2.5, 195, rowY + 2.5);
+        rowY += 7.5;
+      });
+
+      // Total Row
+      doc.setFillColor(255, 244, 238); // #FFF4EE
+      doc.rect(15, rowY, 180, 10, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(16, 24, 45);
+      doc.text('TOTAL DUE / PAID', 18, rowY + 6.5);
+
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(255, 107, 0);
+      doc.text(`$${totalPrice} SGD`, 190, rowY + 6.5, { align: 'right' });
+
+      // 7. Footer
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.4);
+      doc.line(15, 205, 195, 205);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Full Cargo Loss Protection Guarantee by Josan Cover', 15, 212);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text('Authorized Electronic Consignment Waybill · Josan Logistics Singapore Pte. Ltd.', 15, 217);
+      doc.text('Generated electronically · Valid without physical signature', 15, 221.5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(51, 65, 85);
+      doc.text('Thank you for choosing Josan Logistics!', 195, 212, { align: 'right' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 107, 0);
+      doc.text('support@josanlogistics.com', 195, 217, { align: 'right' });
+
+      // Save PDF directly to user download folder
+      const filename = `Invoice-${shipment.id}.pdf`;
+      doc.save(filename);
+      if (showToast) {
+        showToast(`Downloaded Invoice PDF: ${filename}`, 'success');
+      }
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      if (showToast) {
+        showToast('Error generating PDF. Opening print dialog...', 'warning');
+      }
+      handlePrint();
+    }
   };
 
   return (
@@ -422,10 +521,10 @@ export const InvoiceModal = () => {
           <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={handleDownloadPDF}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm"
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-orange-400" />
-              <span>Download Invoice File</span>
+              <span>Download Invoice (PDF)</span>
             </button>
 
             <button

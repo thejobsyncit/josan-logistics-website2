@@ -4,21 +4,26 @@
 
 @layer base {
   :root {
-    --primary-orange: #FF6B00;
-    --primary-orange-hover: #E55C00;
-    --primary-orange-light: #FFF2EB;
-    --bg-white: #FFFFFF;
-    --bg-slate: #F8FAFC;
-    --text-dark: #0F172A;
-    --text-muted: #334155;
+    --brand-orange: #FF6B00;
+    --brand-orange-hover: #E55C00;
+    --brand-navy: #10182D;
+    --brand-white: #FFFFFF;
+    --brand-light: #FFF8F2;
+    --brand-soft: #F5F6F8;
+    --brand-text: #172033;
+    --brand-muted: #64748B;
+    --brand-border: #E2E8F0;
+    --brand-success: #16A34A;
+    --brand-warning: #F59E0B;
+    --brand-error: #DC2626;
   }
 
   body {
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: #F5F6F8;
+    color: #172033;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    letter-spacing: 0.015em;
+    letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -27,60 +32,36 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', 'Inter', sans-serif;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
   }
 }
 
-/* Global High Contrast Text Utility Overrides for Maximum Readability */
-@layer utilities {
-  .text-slate-600,
-  .text-gray-600,
-  .text-zinc-600,
-  .text-neutral-600 {
-    color: #1E293B !important; /* Deep Slate 800 for high contrast body text */
+/* Reusable Standardized Component Classes */
+@layer components {
+  /* Primary Button (Orange #FF6B00, 44-48px height, 8-10px radius, Inter 15-16px, weight 600) */
+  .btn-primary {
+    @apply h-11 sm:h-12 px-6 bg-[#FF6B00] hover:bg-[#E55C00] text-white font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer;
   }
 
-  .text-slate-500,
-  .text-gray-500,
-  .text-zinc-500,
-  .text-neutral-500 {
-    color: #334155 !important; /* Dark Slate 700 for clear secondary text */
+  /* Secondary Button (Dark Navy #10182D, 44-48px height, 8-10px radius, weight 600) */
+  .btn-secondary {
+    @apply h-11 sm:h-12 px-6 bg-[#10182D] hover:bg-[#1A243F] text-white font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer;
   }
 
-  p.text-slate-400,
-  span.text-slate-400,
-  div.text-slate-400,
-  label.text-slate-400 {
-    color: #475569 !important; /* Crisp Slate 600 for light background subtext */
+  /* Outline Button (White bg, Orange border, Orange text) */
+  .btn-outline {
+    @apply h-11 sm:h-12 px-6 bg-white hover:bg-[#FFF8F2] text-[#FF6B00] border-2 border-[#FF6B00] font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer;
   }
 
-  /* Preserve light text inside dark theme containers */
-  .bg-slate-900 .text-slate-400,
-  .bg-slate-800 .text-slate-400,
-  .bg-slate-950 .text-slate-400,
-  .bg-slate-700 .text-slate-400,
-  .bg-black .text-slate-400,
-  .bg-orange-500 .text-slate-400,
-  .bg-orange-600 .text-slate-400,
-  .bg-orange-gradient .text-slate-400 {
-    color: #CBD5E1 !important; /* Light Slate 300 on dark containers */
+  /* Premium Logistics Card */
+  .card-premium {
+    @apply bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-card hover:border-slate-300 transition-all duration-200;
   }
 
-  .bg-slate-900 .text-slate-500,
-  .bg-slate-800 .text-slate-500,
-  .bg-slate-950 .text-slate-500,
-  .bg-slate-700 .text-slate-500,
-  .bg-black .text-slate-500 {
-    color: #94A3B8 !important; /* Slate 400 on dark containers */
-  }
-
-  .bg-slate-900 .text-slate-600,
-  .bg-slate-800 .text-slate-600,
-  .bg-slate-950 .text-slate-600,
-  .bg-slate-700 .text-slate-600,
-  .bg-black .text-slate-600 {
-    color: #CBD5E1 !important; /* Slate 300 on dark containers */
+  /* Standard Form Input (44-48px height, #E2E8F0 border, 8-10px radius, Inter 15-16px, white bg, orange focus) */
+  .input-standard {
+    @apply h-11 sm:h-12 w-full px-4 rounded-lg sm:rounded-xl border border-[#E2E8F0] bg-white text-[#172033] placeholder:text-[#64748B] text-[15px] sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all duration-200;
   }
 }
 
@@ -114,90 +95,23 @@ input[type="number"] {
 
 /* Orange Focus State Utility */
 .focus-orange {
-  @apply focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all duration-200;
 }
 
-/* Glassmorphism Cards */
-.glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 107, 0, 0.18);
-}
-
-.glass-card-dark {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Orange Gradient Accents */
+/* Brand Gradients & Shadows */
 .bg-orange-gradient {
-  background: linear-gradient(135deg, #FF6B00 0%, #FF8533 50%, #E55C00 100%);
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%) !important;
 }
 
-.bg-orange-subtle-gradient {
-  background: linear-gradient(135deg, #FFF2EB 0%, #FFFFFF 100%);
+.shadow-orange-sm {
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.25);
 }
 
-.text-gradient-orange {
-  background: linear-gradient(135deg, #FF6B00 0%, #E55C00 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.shadow-orange-md {
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
 }
 
-/* Pulse animation for live markers */
-@keyframes pulse-orange {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(255, 107, 0, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0);
-  }
-}
-
-.pulse-badge {
-  animation: pulse-orange 2s infinite;
-}
-
-/* Straight Water Sink & Spring Bounce Animation (Zero Slant / Perfectly Vertical) */
-@keyframes water-sink-jump {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.15);
-  }
-  25% {
-    /* Upward straight jump before dipping into water */
-    transform: translateY(-18px) scale(1.02);
-    box-shadow: 0 22px 30px rgba(255, 107, 0, 0.25);
-  }
-  50% {
-    /* Sinking straight down into water */
-    transform: translateY(20px) scale(0.96);
-    box-shadow: 0 2px 6px rgba(255, 107, 0, 0.4), inset 0 6px 12px rgba(0, 0, 0, 0.12);
-    filter: brightness(0.95);
-  }
-  75% {
-    /* Buoyant straight rebound springing back up out of water */
-    transform: translateY(-8px) scale(1.01);
-    box-shadow: 0 12px 22px rgba(255, 107, 0, 0.2);
-  }
-  88% {
-    /* Gentle secondary straight dip */
-    transform: translateY(3px) scale(0.99);
-    box-shadow: 0 4px 10px rgba(255, 107, 0, 0.15);
-  }
-}
-
-.animate-water-sink {
-  animation: water-sink-jump 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  will-change: transform, box-shadow;
-}
-
+/* Subtle route animation */
 @keyframes route-flow {
   0% {
     stroke-dashoffset: 200;

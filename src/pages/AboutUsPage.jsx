@@ -7,16 +7,16 @@ export const AboutUsPage = ({ setActiveTab }) => {
     <div className="space-y-16 pb-20">
       
       {/* Header Banner */}
-      <section className="bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <section className="bg-[#10182D] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
-          <span className="text-orange-400 font-bold uppercase text-xs tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+          <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-block">
             About Josan Logistics
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
+          <h1 className="text-4xl sm:text-5xl font-extrabold font-heading text-white tracking-tight">
             Empowering Highway & Roadway Freight Networks
           </h1>
-          <p className="text-slate-200 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-white/90 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
             Operating across Singapore and cross-border road corridors, Josan Logistics delivers high-performance full truckload (FTL), container haulage, and interstate linehaul with real-time highway telematics and precision dispatching.
           </p>
         </div>

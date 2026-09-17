@@ -92,14 +92,14 @@ export const AuthModal = ({ setActiveTab }) => {
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
         
         {/* Header Banner */}
-        <div className="bg-orange-gradient p-5 text-white sticky top-0 z-10 flex items-center justify-between shadow-md">
+        <div className="bg-[#10182D] p-5 text-white sticky top-0 z-10 flex items-center justify-between border-b border-slate-800 shadow-sm">
           <div className="flex items-center space-x-2.5">
             <img src="/assets/josan_logo.png" alt="Josan Logistics" className="h-9 w-auto object-contain rounded-lg bg-white p-1" />
             <div>
-              <h3 className="text-base font-extrabold tracking-tight font-sans">
+              <h3 className="text-base font-bold tracking-tight font-heading text-white">
                 {isLogin ? 'Sign In' : 'Create Account'}
               </h3>
-              <p className="text-[11px] text-orange-100 font-medium">Josan Logistics Portal</p>
+              <p className="text-[11px] text-[#FF6B00] font-semibold">Josan Logistics Portal</p>
             </div>
           </div>
 
@@ -316,7 +316,7 @@ export const AuthModal = ({ setActiveTab }) => {
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
+                className="w-full h-11 bg-[#FF6B00] hover:bg-[#E55C00] text-white rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
               >
                 <span>{isLogin ? 'Sign In' : 'Register Account'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -332,7 +332,7 @@ export const AuthModal = ({ setActiveTab }) => {
                 setIsLogin(!isLogin);
                 setError('');
               }}
-              className="font-extrabold text-orange-600 hover:underline cursor-pointer"
+              className="font-semibold text-[#FF6B00] hover:underline cursor-pointer"
             >
               {isLogin ? 'Register now' : 'Sign In'}
             </button>

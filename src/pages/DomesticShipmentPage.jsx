@@ -25,164 +25,35 @@ import {
   Loader2,
   Receipt,
   Download,
-  Calculator,
   ChevronRight,
   Zap,
-  Thermometer
+  Thermometer,
+  Gem,
+  Wrench,
+  BookOpen,
+  Cable,
+  Shirt,
+  Laptop,
+  Pill,
+  Utensils,
+  Home,
+  Boxes,
+  AlertCircle
 } from 'lucide-react';
 import { CargoTypeSelector } from '../components/CargoTypeSelector';
 
 export const contentCategories = [
-  {
-    id: 'documents',
-    name: 'DOCUMENTS',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <rect x="6" y="4" width="16" height="22" rx="2" fill="#EEF2FF" stroke="#4F46E5" strokeWidth="1.5"/>
-          <rect x="10" y="8" width="16" height="22" rx="2" fill="#FFFFFF" stroke="#3B82F6" strokeWidth="1.5"/>
-          <line x1="14" y1="13" x2="22" y2="13" stroke="#93C5FD" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="14" y1="17" x2="22" y2="17" stroke="#93C5FD" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="14" y1="21" x2="19" y2="21" stroke="#93C5FD" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'artificial-jewellery',
-    name: 'ARTIFICIAL JEWELLERY',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <path d="M10 9L16 5L22 9L16 13L10 9Z" fill="#FEF3C7" stroke="#D97706" strokeWidth="1.5"/>
-          <circle cx="16" cy="18" r="4" fill="#FDE68A" stroke="#B45309" strokeWidth="1.5"/>
-          <path d="M13 22L16 27L19 22" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round"/>
-          <circle cx="11" cy="12" r="1.5" fill="#EF4444"/>
-          <circle cx="21" cy="12" r="1.5" fill="#EF4444"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'auto-machine-parts',
-    name: 'AUTO / MACHINE PARTS',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <rect x="5" y="10" width="22" height="14" rx="3" fill="#1E3A8A" stroke="#1D4ED8" strokeWidth="1.5"/>
-          <rect x="8" y="13" width="16" height="5" rx="1" fill="#FFFFFF"/>
-          <circle cx="10" cy="20" r="2" fill="#EF4444"/>
-          <circle cx="22" cy="20" r="2" fill="#EF4444"/>
-          <line x1="8" y1="8" x2="24" y2="8" stroke="#3B82F6" strokeWidth="1.5"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'books',
-    name: 'BOOKS',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <rect x="7" y="19" width="18" height="5" rx="1.5" fill="#1E40AF" stroke="#1E3A8A" strokeWidth="1"/>
-          <rect x="8" y="13" width="17" height="5" rx="1.5" fill="#DC2626" stroke="#991B1B" strokeWidth="1"/>
-          <rect x="6" y="7" width="19" height="5" rx="1.5" fill="#2563EB" stroke="#1D4ED8" strokeWidth="1"/>
-          <line x1="10" y1="9" x2="10" y2="11" stroke="#FFFFFF" strokeWidth="1.5"/>
-          <line x1="11" y1="15" x2="11" y2="17" stroke="#FFFFFF" strokeWidth="1.5"/>
-          <line x1="10" y1="21" x2="10" y2="23" stroke="#FFFFFF" strokeWidth="1.5"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'cables-wires',
-    name: 'CABLES/WIRES (USB)',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <rect x="11" y="5" width="10" height="9" rx="1.5" fill="#F3F4F6" stroke="#4B5563" strokeWidth="1.5"/>
-          <rect x="13" y="7" width="2" height="3" fill="#374151"/>
-          <rect x="17" y="7" width="2" height="3" fill="#374151"/>
-          <rect x="10" y="14" width="12" height="7" rx="1.5" fill="#1F2937" stroke="#111827" strokeWidth="1.5"/>
-          <rect x="13" y="21" width="6" height="4" rx="1" fill="#DC2626"/>
-          <path d="M16 25V29" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'clothes-apparel',
-    name: 'CLOTHES / APPAREL',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <path d="M12 6L16 9L20 6L25 9L23 15L20 13V26H12V13L9 15L7 9L12 6Z" fill="#10B981" stroke="#047857" strokeWidth="1.5"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'electronic-items',
-    name: 'ELECTRONIC ITEMS',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <rect x="6" y="8" width="20" height="13" rx="2" fill="#6366F1" stroke="#4338CA" strokeWidth="1.5"/>
-          <line x1="12" y1="21" x2="20" y2="21" stroke="#4338CA" strokeWidth="2"/>
-          <line x1="9" y1="25" x2="23" y2="25" stroke="#4338CA" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'medicines-healthcare',
-    name: 'MEDICINES / HEALTHCARE',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <rect x="6" y="7" width="20" height="18" rx="3" fill="#FEE2E2" stroke="#EF4444" strokeWidth="1.5"/>
-          <path d="M16 11V21M11 16H21" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'food-dry-snacks',
-    name: 'FOOD / DRY SNACKS',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <path d="M8 10L10 25H22L24 10H8Z" fill="#FFEDD5" stroke="#EA580C" strokeWidth="1.5"/>
-          <circle cx="16" cy="18" r="3" fill="#F97316"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'household-goods',
-    name: 'HOUSEHOLD GOODS',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <path d="M6 14L16 6L26 14V26H6V14Z" fill="#CCFBF1" stroke="#0D9488" strokeWidth="1.5"/>
-          <rect x="13" y="18" width="6" height="8" fill="#0D9488"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: 'other-commodity',
-    name: 'OTHER COMMODITY',
-    icon: (
-      <div className="w-8 h-8 flex items-center justify-center shrink-0">
-        <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none">
-          <rect x="6" y="9" width="20" height="16" rx="2" fill="#F1F5F9" stroke="#64748B" strokeWidth="1.5"/>
-          <line x1="6" y1="15" x2="26" y2="15" stroke="#94A3B8" strokeWidth="1.5"/>
-          <line x1="16" y1="15" x2="16" y2="25" stroke="#94A3B8" strokeWidth="1.5"/>
-        </svg>
-      </div>
-    )
-  }
+  { id: 'documents', name: 'DOCUMENTS', icon: FileText },
+  { id: 'artificial-jewellery', name: 'ARTIFICIAL JEWELLERY', icon: Gem },
+  { id: 'auto-machine-parts', name: 'AUTO / MACHINE PARTS', icon: Wrench },
+  { id: 'books', name: 'BOOKS', icon: BookOpen },
+  { id: 'cables-wires', name: 'CABLES/WIRES (USB)', icon: Cable },
+  { id: 'clothes-apparel', name: 'CLOTHES / APPAREL', icon: Shirt },
+  { id: 'electronic-items', name: 'ELECTRONIC ITEMS', icon: Laptop },
+  { id: 'medicines-healthcare', name: 'MEDICINES / HEALTHCARE', icon: Pill },
+  { id: 'food-dry-snacks', name: 'FOOD / DRY SNACKS', icon: Utensils },
+  { id: 'household-goods', name: 'HOUSEHOLD GOODS', icon: Home },
+  { id: 'other-commodity', name: 'OTHER COMMODITY', icon: Boxes }
 ];
 
 export const vehicleOptions = [
@@ -373,39 +244,8 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [confirmedPaymentInfo, setConfirmedPaymentInfo] = useState(null);
 
-  // Instant Road Rate Estimator State in Domestic Shipment
-  const [calcWeight, setCalcWeight] = useState(150);
-  const [calcService, setCalcService] = useState('ftl');
-  const [calcRoute, setCalcRoute] = useState('changi-tuas');
-  const [calcTailgate, setCalcTailgate] = useState(false);
-
   // Road Fleet Vehicle Dimensions & Payload Guide Active Tab
   const [selectedGuideVehicleId, setSelectedGuideVehicleId] = useState('van');
-
-  const getServiceRate = () => {
-    switch (calcService) {
-      case 'ftl': return 5.50;
-      case 'ltl': return 3.80;
-      case 'reefer': return 6.50;
-      case 'express': return 8.00;
-      default: return 5.00;
-    }
-  };
-
-  const getRouteMultiplier = () => {
-    switch (calcRoute) {
-      case 'changi-tuas': return 1.15;
-      case 'woodlands-pasir': return 1.10;
-      case 'jurong-tampines': return 1.12;
-      case 'cbd-jurong': return 1.05;
-      default: return 1.0;
-    }
-  };
-
-  const calculatedGuideTotal = (
-    calcWeight * getServiceRate() * getRouteMultiplier() +
-    (calcTailgate ? 35 : 0)
-  ).toFixed(2);
 
   const vehicleFleetSpecs = [
     {
@@ -471,17 +311,6 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
   const handleApplyGuideVehicle = (vehicleOptionId, vehicleName) => {
     setForm(f => ({ ...f, vehicle: vehicleOptionId }));
     showToast(`Selected ${vehicleName} for your shipment`, 'success');
-    window.scrollTo({ top: 380, behavior: 'smooth' });
-  };
-
-  const handleApplyGuideRate = () => {
-    const targetVehicle = calcService === 'express' ? 'van' : calcService === 'reefer' ? 'cold_chain' : calcService === 'ftl' ? 'truck_24ft' : 'lorry_10ft';
-    setForm(f => ({
-      ...f,
-      weight: String(calcWeight),
-      vehicle: targetVehicle
-    }));
-    showToast(`Applied ${calcWeight} kg & selected vehicle to shipment`, 'success');
     window.scrollTo({ top: 380, behavior: 'smooth' });
   };
 
@@ -849,25 +678,25 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
   return (
     <div className="w-full animate-fade-in pb-16">
       
-      {/* Hero Header when not inside a parent wrapper - Full Width Spanning To Both Ends */}
+      {/* Hero Header when not inside a parent wrapper */}
       {!hideHero && (
-        <div className="w-full bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 border-b border-slate-800 relative overflow-hidden text-white shadow-md mb-8">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-          <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-12 py-8 sm:py-10 relative z-10">
-            <div className="inline-flex items-center gap-2 bg-orange-500/15 border border-orange-500/30 px-3.5 py-1.5 rounded-full mb-3">
-              <Truck className="w-3.5 h-3.5 text-orange-400" />
-              <span className="text-xs font-bold text-orange-400 uppercase tracking-wide">Roadways & City Logistics</span>
+        <div className="w-full bg-[#10182D] border-b border-slate-800 relative overflow-hidden text-white shadow-md mb-8">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 relative z-10 text-center flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 bg-[#FF6B00]/15 border border-[#FF6B00]/30 px-3.5 py-1.5 rounded-full mb-3">
+              <Truck className="w-3.5 h-3.5 text-[#FF6B00]" />
+              <span className="text-xs font-bold text-[#FF6B00] uppercase tracking-wide">Roadways & City Logistics</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mb-2">Book Road Shipment</h1>
-            <p className="text-sm sm:text-base text-slate-300 max-w-3xl leading-relaxed">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-2 text-center">Book Road Shipment</h1>
+            <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed text-center">
               Point-to-point road freight, express courier vans, and full truckload highway telematics dispatch.
             </p>
           </div>
         </div>
       )}
 
-      {/* Main Content Area - Spans the entire width of the page */}
-      <div className={hideHero ? "w-full" : "w-full px-4 sm:px-6 lg:px-10 xl:px-12"}>
+      {/* Main Content Area - Reduced width on both sides with max-w-5xl mx-auto */}
+      <div className={hideHero ? "w-full" : "max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"}>
 
 
 
@@ -1086,12 +915,12 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
       {/* ========================================================================= */}
       {currentStep === 2 && (
         <div className="w-full max-w-5xl mx-auto py-4 animate-fade-in space-y-6">
-          {/* Navy Header Bar */}
-          <div className="bg-[#0b213f] text-white px-5 sm:px-6 py-4 rounded-t-2xl sm:rounded-t-3xl flex items-center gap-3 shadow-sm">
+          {/* Website Dark Navy Blue Header Bar */}
+          <div className="bg-[#10182D] text-white px-5 sm:px-6 py-4 rounded-t-2xl sm:rounded-t-3xl flex items-center gap-3 shadow-sm border-b border-slate-800">
             <button
               type="button"
               onClick={() => setCurrentStep(1)}
-              className="p-1 -ml-1 text-white hover:text-orange-400 transition-colors cursor-pointer flex items-center"
+              className="p-1 -ml-1 text-white hover:text-[#FF6B00] rounded-lg transition-colors cursor-pointer flex items-center"
               title="Back to addresses"
             >
               <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
@@ -1117,6 +946,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                 </button>
               </div>
 
+              {/* Input trigger */}
               <button
                 type="button"
                 onClick={() => setIsContentOpen(!isContentOpen)}
@@ -1124,12 +954,28 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                   errors.content
                     ? 'border-red-400 ring-2 ring-red-100 bg-red-50/20'
                     : form.content
-                    ? 'border-slate-800 bg-slate-50/40 text-slate-900 font-bold'
-                    : 'border-slate-300 hover:border-slate-400 bg-white text-slate-500 font-medium'
+                    ? 'border-[#FF6B00] bg-orange-50/30 text-slate-900 font-bold'
+                    : 'border-slate-300 hover:border-[#FF6B00]/60 bg-white text-slate-500 font-medium'
                 }`}
               >
-                <span className="text-sm">{form.content || 'Select Content'}</span>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isContentOpen ? 'rotate-180' : ''}`} />
+                <div className="flex items-center gap-3">
+                  {(() => {
+                    const sel = contentCategories.find((c) => c.name === form.content);
+                    if (sel) {
+                      const SelIcon = sel.icon;
+                      return (
+                        <div className="w-7 h-7 rounded-lg bg-[#FF6B00]/15 text-[#FF6B00] flex items-center justify-center shrink-0">
+                          <SelIcon className="w-4 h-4 stroke-[2.2]" />
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  <span className={`text-sm ${form.content ? 'font-bold text-slate-900' : 'font-medium text-slate-400'}`}>
+                    {form.content || 'Select Content'}
+                  </span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isContentOpen ? 'rotate-180 text-[#FF6B00]' : ''}`} />
               </button>
 
               {errors.content && (
@@ -1141,16 +987,16 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
 
               {/* Dropdown for Content */}
               {isContentOpen && (
-                <div className="mt-2 rounded-2xl border border-slate-200 shadow-md overflow-hidden bg-white animate-fade-in">
-                  <div className="p-3 border-b border-slate-100">
+                <div className="mt-2 rounded-2xl border border-slate-200 shadow-xl overflow-hidden bg-white animate-fade-in z-20">
+                  <div className="p-3 border-b border-slate-100 bg-slate-50/70">
                     <div className="relative flex items-center">
                       <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
                       <input
                         type="text"
                         value={contentSearch}
                         onChange={(e) => setContentSearch(e.target.value)}
-                        placeholder="Search"
-                        className="w-full pl-10 pr-4 py-2 text-sm font-medium rounded-xl border border-slate-300 focus:border-slate-900 outline-none placeholder:text-slate-400"
+                        placeholder="Search shipment contents..."
+                        className="w-full pl-10 pr-4 py-2 text-sm font-medium rounded-xl border border-slate-300 focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 outline-none placeholder:text-slate-400 bg-white"
                       />
                     </div>
                   </div>
@@ -1160,6 +1006,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                       .filter((c) => c.name.toLowerCase().includes(contentSearch.toLowerCase()))
                       .map((item) => {
                         const isSelected = form.content === item.name;
+                        const CategoryIcon = item.icon;
                         return (
                           <button
                             key={item.id}
@@ -1169,18 +1016,26 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                               setIsContentOpen(false);
                               if (errors.content) setErrors((prev) => ({ ...prev, content: undefined }));
                             }}
-                            className={`w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition-colors cursor-pointer ${
-                              isSelected ? 'bg-slate-50' : ''
+                            className={`w-full px-4 py-3 flex items-center justify-between text-left hover:bg-[#FFF8F2] transition-colors cursor-pointer group ${
+                              isSelected ? 'bg-[#FFF8F2]' : ''
                             }`}
                           >
                             <div className="flex items-center gap-3">
-                              {item.icon}
-                              <span className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                isSelected
+                                  ? 'bg-[#FF6B00] text-white shadow-xs'
+                                  : 'bg-[#FFF8F2] text-[#FF6B00] border border-[#FF6B00]/20 group-hover:bg-[#FF6B00] group-hover:text-white'
+                              }`}>
+                                <CategoryIcon className="w-4 h-4 stroke-[2.2]" />
+                              </div>
+                              <span className={`text-sm font-bold tracking-wide uppercase transition-colors ${
+                                isSelected ? 'text-[#FF6B00]' : 'text-slate-900 group-hover:text-[#FF6B00]'
+                              }`}>
                                 {item.name}
                               </span>
                             </div>
-                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
-                              isSelected ? 'border-blue-600 bg-blue-600' : 'border-slate-300'
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                              isSelected ? 'border-[#FF6B00] bg-[#FF6B00]' : 'border-slate-300'
                             }`}>
                               {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                             </div>
@@ -1274,17 +1129,17 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
               </div>
             </div>
 
-            {/* Field 4: Shipment Value (INR) */}
+            {/* Field 4: Shipment Value (SGD S$) */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-bold text-slate-900">Shipment Value (INR)</label>
+                <label className="text-sm font-bold text-slate-900">Shipment Value (SGD S$)</label>
                 <button
                   type="button"
                   onClick={() => setActiveInfoModal('value')}
-                  className="text-slate-900 hover:text-orange-500 transition-colors cursor-pointer p-0.5"
+                  className="text-slate-900 hover:text-[#FF6B00] transition-colors cursor-pointer p-0.5"
                   title="Shipment Value Info"
                 >
-                  <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-serif font-black italic">
+                  <div className="w-5 h-5 rounded-full bg-[#10182D] text-white flex items-center justify-center text-xs font-serif font-black italic">
                     i
                   </div>
                 </button>
@@ -1292,18 +1147,18 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
 
               <input
                 type="number"
-                placeholder="e.g. 450"
+                placeholder="e.g. 150"
                 value={form.declaredValue}
                 onChange={update('declaredValue')}
-                className="w-full px-4 py-3.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-900 transition-colors bg-transparent"
+                className="w-full px-4 py-3.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 transition-all bg-transparent"
               />
             </div>
 
             {/* Footer Notice */}
             <p className="text-center text-[12px] sm:text-[13px] text-slate-700 font-medium leading-relaxed pt-2 px-2">
-              For sending shipments weighing more than 100 kgs or value is more than INR 49999, please write to us at{' '}
-              <a href="mailto:shipwithus@dtdc.com" className="text-slate-900 font-bold hover:underline">
-                shipwithus@dtdc.com
+              For sending heavy cargo weighing over 100 kg or shipments valued above S$ 10,000, please contact our dispatch team at{' '}
+              <a href="mailto:support@josanlogistics.com" className="text-[#FF6B00] font-bold hover:underline">
+                support@josanlogistics.com
               </a>
             </p>
 
@@ -1312,7 +1167,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
               <button
                 type="button"
                 onClick={handleProceedToStep3}
-                className="w-full py-4 rounded-full bg-[#0E2442] hover:bg-[#07172B] text-white font-black text-base shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-full bg-[#FF6B00] hover:bg-[#e05e00] text-white font-black text-base shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Next</span>
               </button>
@@ -1576,249 +1431,117 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
           </div>
           </form>
 
-          {/* Instant Road Rate Estimator & Vehicle Dimensions Guide */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-2">
+          {/* Road Fleet Vehicle Dimensions & Capacity Guide */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card flex flex-col justify-between space-y-6 pt-2">
             
-            {/* Left Column: Instant Road Rate Estimator */}
-            <div className="lg:col-span-5 bg-gradient-to-br from-white via-orange-50/30 to-orange-100/40 rounded-3xl p-6 sm:p-8 border-2 border-orange-200 shadow-card flex flex-col justify-between space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
-                    <Calculator className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-orange-600">Quick Quote Tool</span>
-                    <h3 className="text-xl font-extrabold text-slate-900">Instant Road Rate Estimator</h3>
-                  </div>
-                </div>
-
-                {/* Service Selection */}
+            <div className="space-y-5">
+              {/* Header & Badges */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Select Freight Mode</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { id: 'ftl', label: 'FTL Truckload', rate: '$5.50/kg' },
-                      { id: 'ltl', label: 'LTL Consolidation', rate: '$3.80/kg' },
-                      { id: 'reefer', label: 'Reefer Cold Chain', rate: '$6.50/kg' },
-                      { id: 'express', label: 'Express Van', rate: '$8.00/kg' }
-                    ].map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setCalcService(s.id)}
-                        className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
-                          calcService === s.id
-                            ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                            : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
-                        }`}
-                      >
-                        <div className="text-xs font-bold">{s.label}</div>
-                        <div className={`text-[10px] ${calcService === s.id ? 'text-orange-100' : 'text-slate-500'}`}>{s.rate}</div>
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-[#FF6B00] font-bold uppercase text-[10px] tracking-widest bg-[#FFF8F2] px-2.5 py-0.5 rounded-full border border-[#FF6B00]/20">
+                    Fleet Specifications
+                  </span>
+                  <h3 className="text-xl font-extrabold text-slate-900 mt-1">Vehicle Dimensions & Payload Guide</h3>
                 </div>
-
-                {/* Cargo Weight Range Slider & Quick Presets */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700">Cargo Weight</label>
-                    <span className="font-mono text-sm font-black text-orange-600 bg-white px-2.5 py-0.5 rounded-lg border border-orange-200">
-                      {calcWeight} kg
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="20"
-                    max="2500"
-                    step="10"
-                    value={calcWeight}
-                    onChange={(e) => setCalcWeight(Number(e.target.value))}
-                    className="w-full accent-orange-500 cursor-pointer"
-                  />
-                  <div className="flex items-center justify-between gap-1 pt-1">
-                    {[50, 150, 500, 1200, 2000].map((wt) => (
-                      <button
-                        key={wt}
-                        type="button"
-                        onClick={() => setCalcWeight(wt)}
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
-                          calcWeight === wt
-                            ? 'bg-slate-900 text-white border-slate-900'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-orange-300'
-                        }`}
-                      >
-                        {wt}kg
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex items-center space-x-2 text-xs font-mono text-slate-500">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="font-bold text-slate-700">All Vehicles Road-Ready</span>
                 </div>
-
-                {/* Route Corridor */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Domestic Highway Corridor</label>
-                  <select
-                    value={calcRoute}
-                    onChange={(e) => setCalcRoute(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer"
-                  >
-                    <option value="changi-tuas">Changi Airfreight Centre ⇄ Tuas Industrial Hub</option>
-                    <option value="woodlands-pasir">Woodlands North ⇄ Pasir Panjang Port Terminal</option>
-                    <option value="jurong-tampines">Jurong Logistics Hub ⇄ Tampines LogisPark</option>
-                    <option value="cbd-jurong">Central Business District ⇄ Jurong Island Gate</option>
-                  </select>
-                </div>
-
-                {/* Add-on: Tailgate lift */}
-                <label className="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer bg-white/70 p-2.5 rounded-xl border border-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={calcTailgate}
-                    onChange={(e) => setCalcTailgate(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 accent-orange-500 cursor-pointer"
-                  />
-                  <span>Include Hydraulic Tailgate Lift & Pallet Jack Handling (+$35)</span>
-                </label>
               </div>
 
-              {/* Live Calculation Output & Apply CTA */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-orange-200 shadow-sm space-y-3">
-                <div className="flex items-baseline justify-between">
+              {/* Vehicle Tab Switcher */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {vehicleFleetSpecs.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setSelectedGuideVehicleId(v.id)}
+                    className={`py-2.5 px-4 rounded-xl text-center text-xs font-bold transition-all cursor-pointer border ${
+                      selectedGuideVehicleId === v.id
+                        ? 'bg-[#10182D] text-white border-[#10182D] shadow-sm'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-[#FFF8F2] hover:border-[#FF6B00]/30 hover:text-[#FF6B00]'
+                    }`}
+                  >
+                    {v.name.split(' ')[0]} {v.name.split(' ')[1]}
+                  </button>
+                ))}
+              </div>
+
+              {/* Active Vehicle Detailed Display */}
+              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Estimated Domestic Freight</span>
-                    <span className="text-3xl font-black text-slate-900 font-mono tracking-tight">${calculatedGuideTotal}</span>
+                    <h4 className="text-lg font-extrabold text-slate-900">{activeFleetSpec.name}</h4>
+                    <p className="text-xs font-semibold text-slate-500">{activeFleetSpec.category}</p>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-md">
-                    GPS Telematics Included
+                  <span className="text-xs font-bold text-orange-700 bg-orange-100 border border-orange-200 px-3 py-1 rounded-full">
+                    {activeFleetSpec.badge}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-tight">
-                  Includes route toll clearance, fuel surcharge, driver electronic LR manifest, and 24/7 telematics tracking.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleApplyGuideRate}
-                  className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
-                >
-                  <span>Apply Weight & Vehicle to Booking</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+
+                {/* 4 Technical Metric Blocks */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-white p-3 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Max Payload</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{activeFleetSpec.payload}</span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Cargo Volume</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{activeFleetSpec.volume}</span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pallet Limit</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{activeFleetSpec.pallets}</span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Cargo Dimensions</span>
+                    <span className="text-[11px] font-bold text-slate-900 font-mono leading-tight">{activeFleetSpec.dimensions}</span>
+                  </div>
+                </div>
+
+                {/* Access & Telematics Details */}
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-start space-x-2 text-slate-700">
+                    <span className="font-bold text-slate-900 shrink-0">Loading Access:</span>
+                    <span className="text-slate-600">{activeFleetSpec.access}</span>
+                  </div>
+                  <div className="flex items-start space-x-2 text-slate-700">
+                    <span className="font-bold text-slate-900 shrink-0">Telematics & Safety:</span>
+                    <span className="text-slate-600">{activeFleetSpec.telematics}</span>
+                  </div>
+                </div>
+
+                {/* Ideal Cargo Tags */}
+                <div className="pt-2 border-t border-slate-200/80">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">Recommended Cargo Types:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeFleetSpec.idealFor.map((tag, tIdx) => (
+                      <span
+                        key={tIdx}
+                        className="text-[11px] font-medium bg-white text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded-md"
+                      >
+                        ✓ {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Right Column: Road Fleet Vehicle Dimensions & Capacity Guide */}
-            <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card flex flex-col justify-between space-y-6">
-              
-              <div className="space-y-5">
-                {/* Header & Badges */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
-                  <div>
-                    <span className="text-orange-600 font-bold uppercase text-[10px] tracking-widest bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
-                      Fleet Specifications
-                    </span>
-                    <h3 className="text-xl font-extrabold text-slate-900 mt-1">Vehicle Dimensions & Payload Guide</h3>
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs font-mono text-slate-500">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="font-bold text-slate-700">All Vehicles Road-Ready</span>
-                  </div>
-                </div>
-
-                {/* Vehicle Tab Switcher */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {vehicleFleetSpecs.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setSelectedGuideVehicleId(v.id)}
-                      className={`py-2 px-3 rounded-xl text-center text-xs font-bold transition-all cursor-pointer border ${
-                        selectedGuideVehicleId === v.id
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600'
-                      }`}
-                    >
-                      {v.name.split(' ')[0]} {v.name.split(' ')[1]}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Active Vehicle Detailed Display */}
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <h4 className="text-lg font-extrabold text-slate-900">{activeFleetSpec.name}</h4>
-                      <p className="text-xs font-semibold text-slate-500">{activeFleetSpec.category}</p>
-                    </div>
-                    <span className="text-xs font-bold text-orange-700 bg-orange-100 border border-orange-200 px-3 py-1 rounded-full">
-                      {activeFleetSpec.badge}
-                    </span>
-                  </div>
-
-                  {/* 4 Technical Metric Blocks */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-white p-3 rounded-xl border border-slate-200">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Max Payload</span>
-                      <span className="text-sm font-black text-slate-900 font-mono">{activeFleetSpec.payload}</span>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-200">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Cargo Volume</span>
-                      <span className="text-sm font-black text-slate-900 font-mono">{activeFleetSpec.volume}</span>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-200">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pallet Limit</span>
-                      <span className="text-sm font-black text-slate-900 font-mono">{activeFleetSpec.pallets}</span>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-200">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Cargo Dimensions</span>
-                      <span className="text-[11px] font-bold text-slate-900 font-mono leading-tight">{activeFleetSpec.dimensions}</span>
-                    </div>
-                  </div>
-
-                  {/* Access & Telematics Details */}
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-start space-x-2 text-slate-700">
-                      <span className="font-bold text-slate-900 shrink-0">Loading Access:</span>
-                      <span className="text-slate-600">{activeFleetSpec.access}</span>
-                    </div>
-                    <div className="flex items-start space-x-2 text-slate-700">
-                      <span className="font-bold text-slate-900 shrink-0">Telematics & Safety:</span>
-                      <span className="text-slate-600">{activeFleetSpec.telematics}</span>
-                    </div>
-                  </div>
-
-                  {/* Ideal Cargo Tags */}
-                  <div className="pt-2 border-t border-slate-200/80">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">Recommended Cargo Types:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {activeFleetSpec.idealFor.map((tag, tIdx) => (
-                        <span
-                          key={tIdx}
-                          className="text-[11px] font-medium bg-white text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded-md"
-                        >
-                          ✓ {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+            {/* Bottom Action to Select Vehicle in Form */}
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center space-x-2 text-xs text-slate-600">
+                <ShieldCheck className="w-4 h-4 text-[#FF6B00] shrink-0" />
+                <span>All vehicles inspected daily with full transit cargo insurance coverage.</span>
               </div>
-
-              {/* Bottom Action to Select Vehicle in Form */}
-              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center space-x-2 text-xs text-slate-600">
-                  <ShieldCheck className="w-4 h-4 text-orange-500 shrink-0" />
-                  <span>All vehicles inspected daily with full transit cargo insurance coverage.</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleApplyGuideVehicle(activeFleetSpec.vehicleOptionId, activeFleetSpec.name)}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-slate-900 hover:bg-orange-500 text-white font-bold text-xs rounded-xl shadow-sm transition-all duration-200 shrink-0 cursor-pointer flex items-center justify-center space-x-1.5"
-                >
-                  <span>Dispatch This Vehicle</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
+              <button
+                type="button"
+                onClick={() => handleApplyGuideVehicle(activeFleetSpec.vehicleOptionId, activeFleetSpec.name)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#10182D] hover:bg-[#FF6B00] text-white font-bold text-xs rounded-xl shadow-sm transition-all duration-200 shrink-0 cursor-pointer flex items-center justify-center space-x-1.5"
+              >
+                <span>Dispatch This Vehicle</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
 
           </div>
@@ -2142,7 +1865,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                   <p><strong>Permitted Goods:</strong> Non-hazardous parcels, business documents, apparel, artificial jewellery, books, consumer electronics, auto spare parts, and packaged dry items.</p>
                   <p><strong>Prohibited Items:</strong> Flammables, explosives, toxic chemicals, liquid contraband, currency, bullion, live organisms, and dangerous weapons.</p>
                   <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-orange-900 text-[11px] leading-relaxed">
-                    <strong>Heavy or High-Value Freight:</strong> Shipments above <strong>100 kg</strong> or valuation over <strong>INR 49,999 / S$ 1,000</strong> require advance freight declaration. Email us at <a href="mailto:shipwithus@dtdc.com" className="font-bold underline">shipwithus@dtdc.com</a>.
+                    <strong>Heavy or High-Value Freight:</strong> Shipments above <strong>100 kg</strong> or valuation over <strong>S$ 10,000</strong> require advance freight declaration. Email us at <a href="mailto:support@josanlogistics.com" className="font-bold underline text-[#FF6B00]">support@josanlogistics.com</a>.
                   </div>
                 </>
               )}
@@ -2163,8 +1886,8 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
 
               {activeInfoModal === 'value' && (
                 <>
-                  <p>Declare the invoice replacement value of the contents for road transit compliance and insurance risk coverage.</p>
-                  <p>For high-value items exceeding <strong>INR 49,999</strong>, supporting tax invoice documentation may be required.</p>
+                  <p>Declare the invoice replacement value of the contents in Singapore Dollars (SGD) for road transit compliance and insurance risk coverage.</p>
+                  <p>For high-value cargo exceeding <strong>S$ 10,000</strong>, supporting tax invoice documentation may be required.</p>
                 </>
               )}
             </div>

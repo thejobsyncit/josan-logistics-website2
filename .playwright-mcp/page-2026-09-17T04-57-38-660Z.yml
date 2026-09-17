@@ -1,0 +1,368 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - img "Josan Logistics Logo" [ref=e8] [cursor=pointer]
+      - navigation [ref=e9]:
+        - button "Home" [ref=e10] [cursor=pointer]
+        - button "About Us" [ref=e11] [cursor=pointer]
+        - button "Services" [ref=e13] [cursor=pointer]
+        - button "Shipments" [ref=e18] [cursor=pointer]
+        - button "Track Shipment" [ref=e22] [cursor=pointer]
+        - button "Fleet" [ref=e23] [cursor=pointer]
+        - button "Contact Us" [ref=e24] [cursor=pointer]
+      - generic [ref=e25]:
+        - button "Get a Quote" [ref=e26] [cursor=pointer]
+        - button "Book Shipment" [ref=e30] [cursor=pointer]
+        - button "Login" [ref=e36] [cursor=pointer]
+  - main [ref=e41]:
+    - generic [ref=e42]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]: Singapore & Regional Domestic Highway Network
+            - heading "Intelligent Logistics & Road Freight Solutions" [level=1] [ref=e50]
+            - paragraph [ref=e51]: Josan Logistics delivers enterprise-grade domestic road transportation, guaranteed full truckload (FTL), temperature-controlled cold chain, and express courier dispatch with live GPS telemetry across Singapore.
+            - generic [ref=e52]:
+              - button "Get a Quote" [ref=e53] [cursor=pointer]
+              - button "Book Shipment" [ref=e57] [cursor=pointer]
+            - generic [ref=e63]:
+              - generic [ref=e64]: GPS Telematics on Every Vehicle
+              - generic [ref=e68]: 99.8% SLA Guaranteed On-Time
+          - generic [ref=e73]:
+            - img "Josan Logistics Multi-Modal Fleet" [ref=e75]
+            - generic [ref=e76]:
+              - generic [ref=e84]:
+                - paragraph [ref=e85]: Active Highway Linehaul Dispatch
+                - paragraph [ref=e86]: Live GPS Telemetry & Temperature Monitoring
+              - generic [ref=e87]: ● 100% Fleet Online
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - paragraph [ref=e90]: 3,500,000+
+            - paragraph [ref=e91]: Dispatched Consignments / Year
+          - generic [ref=e92]:
+            - paragraph [ref=e93]: 99.8%
+            - paragraph [ref=e94]: On-Time SLA Delivery Rate
+          - generic [ref=e95]:
+            - paragraph [ref=e96]: S$ 150,000
+            - paragraph [ref=e97]: Transit Cargo Cover / Consignment
+          - generic [ref=e98]:
+            - paragraph [ref=e99]: 24/7
+            - paragraph [ref=e100]: Operations & Telematics Support
+      - generic [ref=e102]:
+        - generic [ref=e103]:
+          - text: Live Consignment Telematics
+          - heading "Track Your Shipment" [level=2] [ref=e104]
+          - paragraph [ref=e105]: Enter your consignment number, waybill, or container code for instant minute-by-minute highway tracking and driver ETA.
+        - generic [ref=e107]:
+          - textbox "Enter tracking code (e.g. JOS-88190-SG)" [ref=e112]
+          - button "Track Shipment" [ref=e113] [cursor=pointer]
+        - generic [ref=e118]:
+          - generic [ref=e119]: "Live Demo Consignments:"
+          - button "JOS-88190-SG" [ref=e120] [cursor=pointer]
+          - button "JOS-44021-SG" [ref=e121] [cursor=pointer]
+          - button "JOS-66301-SG" [ref=e122] [cursor=pointer]
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - text: Comprehensive Transport Services
+          - heading "Road Transportation & Freight Services" [level=2] [ref=e125]
+          - paragraph [ref=e126]: From single express cartons to 24-ton prime mover loads and multi-temperature pharmaceutical distribution.
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - generic [ref=e129]:
+              - generic [ref=e130]: Direct Point-to-Point
+              - generic [ref=e138]:
+                - heading "Full Truckload (FTL)" [level=3] [ref=e139]
+                - paragraph [ref=e140]: Dedicated 14ft–24ft rigid lorries and prime movers for point-to-point bulk industrial and palletized cargo.
+            - generic [ref=e141]:
+              - paragraph [ref=e142]: "Transit: Direct Highway Route"
+              - button "Book Service" [ref=e143] [cursor=pointer]
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - generic [ref=e149]: Consolidated Freight
+              - generic [ref=e156]:
+                - heading "Less-Than-Truckload (LTL)" [level=3] [ref=e157]
+                - paragraph [ref=e158]: Cost-effective consolidated freight for 1–10 pallets with daily scheduled hub runs and computerized manifests.
+            - generic [ref=e159]:
+              - paragraph [ref=e160]: "Transit: Daily Scheduled Runs"
+              - button "Book Service" [ref=e161] [cursor=pointer]
+          - generic [ref=e165]:
+            - generic [ref=e166]:
+              - generic [ref=e167]: GDP Pharma Certified
+              - generic [ref=e172]:
+                - heading "Cold Chain Reefer Fleet" [level=3] [ref=e173]
+                - paragraph [ref=e174]: Active thermoregulated vehicles (-25°C to +25°C) equipped with dual IoT dataloggers for healthcare and perishable foods.
+            - generic [ref=e175]:
+              - paragraph [ref=e176]: "Transit: Live Chilled Telemetry"
+              - button "Book Service" [ref=e177] [cursor=pointer]
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]: Under 4h Urgent Delivery
+              - generic [ref=e188]:
+                - heading "Express Road Courier" [level=3] [ref=e189]
+                - paragraph [ref=e190]: Rapid intra-city dispatch utilizing commercial sprinter vans and light couriers for urgent same-day consignments.
+            - generic [ref=e191]:
+              - paragraph [ref=e192]: "Transit: Priority Driver Dispatch"
+              - button "Book Service" [ref=e193] [cursor=pointer]
+      - generic [ref=e197]:
+        - generic [ref=e198]:
+          - text: Simple 4-Step Process
+          - heading "How Josan Logistics Works" [level=2] [ref=e199]
+          - paragraph [ref=e200]: End-to-end transparent freight handling from instant quote to verified digital proof-of-delivery.
+        - generic [ref=e201]:
+          - generic [ref=e202]:
+            - generic [ref=e203]: "01"
+            - heading "Request Quote or Book" [level=3] [ref=e204]
+            - paragraph [ref=e205]: Select your vehicle type, enter cargo weight and pickup/drop terminals to receive an upfront guaranteed rate.
+          - generic [ref=e206]:
+            - generic [ref=e207]: "02"
+            - heading "Automated Fleet Dispatch" [level=3] [ref=e208]
+            - paragraph [ref=e209]: Our dispatch engine assigns a certified driver, generates the digital Lorry Receipt (LR), and confirms loading time.
+          - generic [ref=e210]:
+            - generic [ref=e211]: "03"
+            - heading "Real-Time Telematics" [level=3] [ref=e212]
+            - paragraph [ref=e213]: Follow your cargo across expressway corridors with minute-by-minute GPS telematics and geo-fenced ETA notifications.
+          - generic [ref=e214]:
+            - generic [ref=e215]: "04"
+            - heading "Verified Handover & ePOD" [level=3] [ref=e216]
+            - paragraph [ref=e217]: Receiving party signs the digital proof-of-delivery (ePOD). Receive immediate timestamped confirmation and invoice.
+      - generic [ref=e218]:
+        - generic [ref=e219]:
+          - generic [ref=e220]:
+            - text: Commercial Fleet & Specifications
+            - heading "Our Modern Road Fleet" [level=2] [ref=e221]
+            - paragraph [ref=e222]: Strictly maintained, Euro-6 compliant vehicles tailored for urban express couriers, heavy industrial haulage, and GDP cold chain.
+          - button "View All 8 Vehicles" [ref=e223] [cursor=pointer]
+        - generic [ref=e227]:
+          - generic [ref=e228]:
+            - generic [ref=e229]:
+              - generic [ref=e230]:
+                - img "1.7T Sprinter Delivery Van" [ref=e231]
+                - generic [ref=e232]: Light Commercial (LCV)
+              - generic [ref=e233]:
+                - heading "1.7T Sprinter Delivery Van" [level=3] [ref=e234]
+                - paragraph [ref=e235]: City Express & Parcel Logistics
+              - generic [ref=e236]:
+                - generic [ref=e237]:
+                  - generic [ref=e238]: Payload
+                  - text: 1,500 kg
+                - generic [ref=e239]:
+                  - generic [ref=e240]: Volume
+                  - text: 12.5 m³
+              - generic [ref=e241]: "Suitable For: High-value retail cartons, Urgent biomedical supplies"
+            - button "Dispatch Vehicle" [ref=e243] [cursor=pointer]
+          - generic [ref=e245]:
+            - generic [ref=e246]:
+              - generic [ref=e247]:
+                - img "2.4m High-Roof Cargo Van" [ref=e248]
+                - generic [ref=e249]: High-Cube LCV
+              - generic [ref=e250]:
+                - heading "2.4m High-Roof Cargo Van" [level=3] [ref=e251]
+                - paragraph [ref=e252]: High-Volume Urban Freight
+              - generic [ref=e253]:
+                - generic [ref=e254]:
+                  - generic [ref=e255]: Payload
+                  - text: 900 kg
+                - generic [ref=e256]:
+                  - generic [ref=e257]: Volume
+                  - text: 15.2 m³
+              - generic [ref=e258]: "Suitable For: Bulky retail store distribution, Electronic appliances & IT servers"
+            - button "Dispatch Vehicle" [ref=e260] [cursor=pointer]
+          - generic [ref=e262]:
+            - generic [ref=e263]:
+              - generic [ref=e264]:
+                - img "10T Rigid Box Lorry" [ref=e265]
+                - generic [ref=e266]: Medium Commercial (MCV)
+              - generic [ref=e267]:
+                - heading "10T Rigid Box Lorry" [level=3] [ref=e268]
+                - paragraph [ref=e269]: Medium-Duty LTL Consolidation
+              - generic [ref=e270]:
+                - generic [ref=e271]:
+                  - generic [ref=e272]: Payload
+                  - text: 8,500 kg
+                - generic [ref=e273]:
+                  - generic [ref=e274]: Volume
+                  - text: 38.0 m³
+              - generic [ref=e275]: "Suitable For: Consolidated pallet distribution, FMCG supermarket stocks"
+            - button "Dispatch Vehicle" [ref=e277] [cursor=pointer]
+          - generic [ref=e279]:
+            - generic [ref=e280]:
+              - generic [ref=e281]:
+                - img "14ft Commercial Box Truck with Tailgate" [ref=e282]
+                - generic [ref=e283]: Medium Commercial (MCV)
+              - generic [ref=e284]:
+                - heading "14ft Commercial Box Truck with Tailgate" [level=3] [ref=e285]
+                - paragraph [ref=e286]: Commercial Distribution & Freight
+              - generic [ref=e287]:
+                - generic [ref=e288]:
+                  - generic [ref=e289]: Payload
+                  - text: 3,500 kg
+                - generic [ref=e290]:
+                  - generic [ref=e291]: Volume
+                  - text: 22.0 m³
+              - generic [ref=e292]: "Suitable For: Industrial parts distribution, Heavy warehouse cargo transfers"
+            - button "Dispatch Vehicle" [ref=e294] [cursor=pointer]
+      - generic [ref=e296]:
+        - generic [ref=e297]:
+          - text: Domestic & Regional Corridors
+          - heading "Singapore Strategic Logistics Network" [level=2] [ref=e298]
+          - paragraph [ref=e299]: Direct daily linehaul connectivity across major air, sea, industrial, and cross-border terminals.
+        - generic [ref=e300]:
+          - generic [ref=e301]:
+            - generic [ref=e302]:
+              - heading "Western Logistics Hub" [level=3] [ref=e303]
+              - generic [ref=e304]: Heavy Haulage & Industrial FTL
+            - list [ref=e305]:
+              - listitem [ref=e306]:
+                - generic [ref=e310]: Tuas Mega Port Terminal
+              - listitem [ref=e311]:
+                - generic [ref=e315]: Jurong Logistics Hub & Heavy Rail
+              - listitem [ref=e316]:
+                - generic [ref=e320]: Jurong Island Petrochemical Gateway
+              - listitem [ref=e321]:
+                - generic [ref=e325]: Pioneer & Benoi Industrial Basins
+          - generic [ref=e326]:
+            - generic [ref=e327]:
+              - heading "Eastern Airfreight Gateway" [level=3] [ref=e328]
+              - generic [ref=e329]: Express Airfreight & Cold Chain
+            - list [ref=e330]:
+              - listitem [ref=e331]:
+                - generic [ref=e335]: Changi Airfreight Centre (ALPS)
+              - listitem [ref=e336]:
+                - generic [ref=e340]: Tampines LogisPark Free Trade Zone
+              - listitem [ref=e341]:
+                - generic [ref=e345]: Pasir Ris Cargo Terminal
+              - listitem [ref=e346]:
+                - generic [ref=e350]: Loyang Offshore Supply Depot
+          - generic [ref=e351]:
+            - generic [ref=e352]:
+              - heading "Northern & Port Corridors" [level=3] [ref=e353]
+              - generic [ref=e354]: Cross-Border & Port Haulage
+            - list [ref=e355]:
+              - listitem [ref=e356]:
+                - generic [ref=e360]: Woodlands Cross-Border Highway Hub
+              - listitem [ref=e361]:
+                - generic [ref=e365]: Senoko Food & Pharmaceutical Axis
+              - listitem [ref=e366]:
+                - generic [ref=e370]: Pasir Panjang PSA Port Gateways
+              - listitem [ref=e371]:
+                - generic [ref=e375]: Keppel & Marina Commercial Core
+      - generic [ref=e378]:
+        - generic [ref=e379]:
+          - text: The Josan Advantage
+          - heading "Engineered for Reliability & Zero Transit Delays" [level=2] [ref=e380]
+          - paragraph [ref=e381]: We combine satellite IoT hardware, automated route dispatching, and seasoned certified commercial drivers to safeguard your supply chain.
+          - button "Book Consignment Now" [ref=e383] [cursor=pointer]
+        - generic [ref=e387]:
+          - generic [ref=e388]:
+            - heading "Real-Time GPS Telematics" [level=3] [ref=e392]
+            - paragraph [ref=e393]: Every vehicle and cargo container is equipped with minute-by-minute satellite telemetry.
+          - generic [ref=e394]:
+            - heading "Automated AI Routing" [level=3] [ref=e399]
+            - paragraph [ref=e400]: Real-time expressway routing avoids peak congestion corridors dynamically.
+          - generic [ref=e401]:
+            - heading "99.8% SLA Guaranteed" [level=3] [ref=e406]
+            - paragraph [ref=e407]: Strict schedule adherence backed by digital Lorry Receipt (LR) tracking.
+          - generic [ref=e408]:
+            - heading "Full Transit Cargo Cover" [level=3] [ref=e413]
+            - paragraph [ref=e414]: Comprehensive all-risk insurance protects your shipment from loading bay to delivery.
+      - generic [ref=e416]:
+        - generic [ref=e417]:
+          - text: Instant Freight Calculation
+          - heading "Need a Custom Freight Rate Estimate?" [level=2] [ref=e418]
+          - paragraph [ref=e419]: Use our live freight calculator to view estimated tariffs for FTL, LTL, and cold chain transport across Singapore.
+        - generic [ref=e420]:
+          - button "Get an Instant Quote" [ref=e421] [cursor=pointer]
+          - button "Book Shipment" [ref=e425] [cursor=pointer]
+      - generic [ref=e427]:
+        - generic [ref=e428]:
+          - text: Client Success Stories
+          - heading "Trusted By Enterprise Shippers" [level=2] [ref=e429]
+        - generic [ref=e430]:
+          - generic [ref=e431]:
+            - generic [ref=e432]:
+              - generic [ref=e433]: JOS-88190-SG
+              - paragraph [ref=e446]: "\"Josan Logistics reduced our highway transit delay rates by over 40%. The real-time telematics and digital Lorry Receipt (LR) dispatch saved our operations team hundreds of hours.\""
+            - generic [ref=e447]:
+              - paragraph [ref=e448]: Tan Wei Ming
+              - paragraph [ref=e449]: Supply Chain Director, Razer Asia-Pacific HQ
+          - generic [ref=e450]:
+            - generic [ref=e451]:
+              - generic [ref=e452]: JOS-66301-SG
+              - paragraph [ref=e465]: "\"When transporting temperature-sensitive pharmaceutical batches across expressways, zero margin for error exists. Josan's Reefer Road Fleet delivered 100% SLA temperature accuracy.\""
+            - generic [ref=e466]:
+              - paragraph [ref=e467]: Dr. Keith Tan
+              - paragraph [ref=e468]: Logistics Director, Biopolis Biomedical Hub
+          - generic [ref=e469]:
+            - generic [ref=e470]:
+              - generic [ref=e471]: JOS-44021-SG
+              - paragraph [ref=e484]: "\"The fleet driver telematics tracking and GPS geofence alerts are phenomenal. It gives us complete visibility over our Singapore port-to-warehouse container haulage.\""
+            - generic [ref=e485]:
+              - paragraph [ref=e486]: Muhammad Rizal
+              - paragraph [ref=e487]: Fleet Operations Manager, PSA Pasir Panjang Logistics
+      - generic [ref=e490]:
+        - generic [ref=e491]:
+          - text: Direct Dispatch & Support
+          - heading "Ready to Optimize Your Road Freight?" [level=2] [ref=e492]
+          - paragraph [ref=e493]: Connect directly with our 24/7 Singapore dispatch control center. Whether you require immediate emergency van courier or long-term FTL enterprise rates, our logistics specialists are ready.
+          - generic [ref=e494]:
+            - generic [ref=e498]:
+              - generic [ref=e499]: Central Dispatch
+              - text: +65 6789 0123
+            - generic [ref=e504]:
+              - generic [ref=e505]: Support Email
+              - text: support@josanlogistics.com
+        - generic [ref=e506]:
+          - button "Contact Sales & Operations" [ref=e507] [cursor=pointer]
+          - button "Calculate Freight Rate" [ref=e511] [cursor=pointer]
+  - contentinfo [ref=e515]:
+    - generic [ref=e516]:
+      - generic [ref=e517]:
+        - generic [ref=e518]:
+          - img "Josan Logistics Logo" [ref=e520] [cursor=pointer]
+          - paragraph [ref=e521]: Josan Logistics is a premier roadways freight and land haulage provider, offering full truckload (FTL), partial freight (LTL), express highway road couriers, and cross-border customs clearance.
+          - generic [ref=e522]:
+            - generic [ref=e523]: ISO 9001 Certified
+            - generic [ref=e528]: 120+ Hubs Worldwide
+        - generic [ref=e533]:
+          - heading "Quick Navigation" [level=4] [ref=e534]
+          - list [ref=e535]:
+            - listitem [ref=e536]:
+              - button "Home" [ref=e537] [cursor=pointer]
+            - listitem [ref=e541]:
+              - button "About Us" [ref=e542] [cursor=pointer]
+            - listitem [ref=e546]:
+              - button "Services" [ref=e547] [cursor=pointer]
+            - listitem [ref=e551]:
+              - button "Contact" [ref=e552] [cursor=pointer]
+        - generic [ref=e556]:
+          - heading "Our Solutions" [level=4] [ref=e557]
+          - list [ref=e558]:
+            - listitem [ref=e559] [cursor=pointer]: Roadways Freight (FTL / LTL)
+            - listitem [ref=e560] [cursor=pointer]: Heavy Haulage & Flatbed Trucking
+            - listitem [ref=e561] [cursor=pointer]: Express Highway Road Courier
+            - listitem [ref=e562] [cursor=pointer]: Temperature-Controlled Reefer Trucks
+            - listitem [ref=e563] [cursor=pointer]: Roadways Customs Clearance
+        - generic [ref=e564]:
+          - generic [ref=e566]:
+            - heading "Singapore HQ & Dispatch" [level=4] [ref=e567]
+            - generic [ref=e568]: 24/7 LIVE
+          - generic [ref=e572]:
+            - generic [ref=e573]:
+              - paragraph [ref=e574]: Singapore Dispatch Hotline
+              - link "+65 6789 0123" [ref=e578] [cursor=pointer]:
+                - /url: tel:+6567890123
+            - generic [ref=e579]: "Regional HQ: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438"
+            - link "contact@josanlogistics.com.sg" [ref=e588] [cursor=pointer]:
+              - /url: mailto:contact@josanlogistics.com.sg
+          - generic [ref=e589]:
+            - text: Subscribe for Freight Updates
+            - generic [ref=e590]:
+              - textbox "Enter corporate email..." [ref=e591]
+              - button "Join" [ref=e592] [cursor=pointer]
+      - generic [ref=e593]:
+        - paragraph [ref=e594]: © 2026 Josan Logistics Inc. All rights reserved.
+        - generic [ref=e595]:
+          - generic [ref=e596] [cursor=pointer]: Privacy Policy
+          - generic [ref=e597] [cursor=pointer]: Terms of Service
+          - generic [ref=e598] [cursor=pointer]: Security SLAs
+          - generic [ref=e599] [cursor=pointer]: Carrier Portal
