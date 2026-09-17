@@ -5,6 +5,7 @@ import { Footer } from './components/Footer';
 import { AuthModal } from './components/AuthModal';
 import { InvoiceModal } from './components/InvoiceModal';
 import { ShipmentTypeModal } from './components/ShipmentTypeModal';
+import { ShipmentDetailsView } from './components/ShipmentDetailsView';
 import { SingaporeGoogleMapBackground } from './components/SingaporeGoogleMapBackground';
 
 import { HomePage } from './pages/HomePage';
@@ -13,6 +14,8 @@ import { ServicesPage } from './pages/ServicesPage';
 import { CustomsClearancePage } from './pages/CustomsClearancePage';
 import { ContactPage } from './pages/ContactPage';
 import { TrackShipmentPage } from './pages/TrackShipmentPage';
+import { FleetPage } from './pages/FleetPage';
+import { QuotePage } from './pages/QuotePage';
 import { BookShipmentPage } from './pages/BookShipmentPage';
 import { DomesticShipmentPage } from './pages/DomesticShipmentPage';
 import { InternationalShipmentPage } from './pages/InternationalShipmentPage';
@@ -90,7 +93,24 @@ const ToastNotification = () => {
 };
 
 const MainContent = () => {
-  const validTabs = ['home', 'about', 'services', 'customs-clearance', 'contact', 'track', 'book', 'domestic-shipment', 'international-shipment', 'customer-dashboard', 'my-shipments', 'manage-shipment', 'driver-dashboard', 'admin-dashboard'];
+  const validTabs = [
+    'home', 
+    'about', 
+    'services', 
+    'customs-clearance', 
+    'contact', 
+    'track', 
+    'fleet', 
+    'quote', 
+    'book', 
+    'domestic-shipment', 
+    'international-shipment', 
+    'customer-dashboard', 
+    'my-shipments', 
+    'manage-shipment', 
+    'driver-dashboard', 
+    'admin-dashboard'
+  ];
 
   const [activeTab, setActiveTab] = useState(() => {
     const rawHash = window.location.hash.replace('#', '').toLowerCase();
@@ -98,19 +118,12 @@ const MainContent = () => {
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
   
-  const { currentRole, currentUser, toggleRole, setIsAuthModalOpen, openAuthModalWithoutClose } = useLogistics();
+  const { currentRole, currentUser, setIsAuthModalOpen, showToast } = useLogistics();
 
-  // Automatically pop up Login/Register modal on initial website open if customer is not logged in
+  // Enforce strict protected role routes
   useEffect(() => {
     if (!currentUser) {
-      openAuthModalWithoutClose();
-    }
-  }, []);
-
-  // Enforce strict URL hash and role route protection
-  useEffect(() => {
-    if (!currentUser) {
-      if (['driver-dashboard', 'admin-dashboard', 'customer-dashboard'].includes(activeTab)) {
+      if (['driver-dashboard', 'admin-dashboard', 'customer-dashboard', 'my-shipments', 'manage-shipment'].includes(activeTab)) {
         changeActiveTab('home');
       }
     } else {
@@ -119,8 +132,6 @@ const MainContent = () => {
         changeActiveTab('customer-dashboard');
       } else if (userRole === 'driver' && (activeTab === 'customer-dashboard' || activeTab === 'admin-dashboard')) {
         changeActiveTab('driver-dashboard');
-      } else if (userRole === 'admin' && activeTab !== 'admin-dashboard') {
-        changeActiveTab('admin-dashboard');
       }
     }
   }, [currentUser, activeTab]);
@@ -130,12 +141,45 @@ const MainContent = () => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [activeTab]);
 
+  const [trackNavKey, setTrackNavKey] = useState(0);
+
   // Navigation tab switcher synced with Browser History API (pushState)
   const changeActiveTab = (tab, pushHistory = true) => {
-    if (!currentUser && (tab === 'book' || tab === 'domestic-shipment' || tab === 'international-shipment' || tab === 'track' || tab === 'customer-dashboard' || tab === 'my-shipments' || tab === 'manage-shipment' || tab === 'driver-dashboard' || tab === 'admin-dashboard')) {
-      openAuthModalWithoutClose();
+    if (tab === 'track') {
+      setTrackNavKey(prev => prev + 1);
+    }
+    // Check authentication for protected pages
+    if (!currentUser && (
+      tab === 'book' || 
+      tab === 'domestic-shipment' || 
+      tab === 'international-shipment' || 
+      tab === 'customer-dashboard' || 
+      tab === 'my-shipments' || 
+      tab === 'manage-shipment'
+    )) {
+      setIsAuthModalOpen(true);
       return;
     }
+
+    // Protect Admin and Driver portals strictly
+    if (tab === 'admin-dashboard') {
+      const role = currentUser?.role || currentRole;
+      if (!currentUser || role !== 'admin') {
+        setIsAuthModalOpen(true);
+        if (showToast) showToast('Admin authentication required for Admin Dashboard', 'warning');
+        return;
+      }
+    }
+
+    if (tab === 'driver-dashboard') {
+      const role = currentUser?.role || currentRole;
+      if (!currentUser || role !== 'driver') {
+        setIsAuthModalOpen(true);
+        if (showToast) showToast('Driver authentication required for Driver Portal', 'warning');
+        return;
+      }
+    }
+
     setActiveTab(tab);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const hash = `#${tab}`;
@@ -145,15 +189,35 @@ const MainContent = () => {
     }
   };
 
-  // Sync with Browser Back / Forward buttons (popstate & hashchange)
+  // Sync with Browser Back / Forward buttons (popstate & hashchange) and handle /admin and /driver
   useEffect(() => {
     const syncHistoryState = (e) => {
       const path = window.location.pathname.toLowerCase();
       const rawHash = window.location.hash.toLowerCase();
       
-      if (path === '/admin' || path.endsWith('/admin') || rawHash === '#admin' || rawHash === '#/admin') {
-        toggleRole('admin');
-        setActiveTab('admin-dashboard');
+      // Protected /admin direct route check
+      if (path === '/admin' || path.endsWith('/admin') || rawHash === '#admin' || rawHash === '#/admin' || rawHash === '#admin-dashboard') {
+        const userRole = currentUser?.role || currentRole;
+        if (currentUser && userRole === 'admin') {
+          setActiveTab('admin-dashboard');
+        } else {
+          setIsAuthModalOpen(true);
+          if (showToast) showToast('Please sign in with Admin credentials to access Admin Hub.', 'warning');
+          setActiveTab('home');
+        }
+        return;
+      }
+
+      // Protected /driver direct route check
+      if (path === '/driver' || path.endsWith('/driver') || rawHash === '#driver' || rawHash === '#/driver' || rawHash === '#driver-dashboard') {
+        const userRole = currentUser?.role || currentRole;
+        if (currentUser && userRole === 'driver') {
+          setActiveTab('driver-dashboard');
+        } else {
+          setIsAuthModalOpen(true);
+          if (showToast) showToast('Please sign in with Driver credentials to access Driver Portal.', 'warning');
+          setActiveTab('home');
+        }
         return;
       }
 
@@ -166,7 +230,6 @@ const MainContent = () => {
       if (cleanHash && validTabs.includes(cleanHash)) {
         setActiveTab(cleanHash);
       } else if (cleanHash && document.getElementById(cleanHash)) {
-        // In-page section anchor (e.g. #cargo-modes, #freight-services-grid) - keep current tab and scroll
         const el = document.getElementById(cleanHash);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else if (e && e.state && e.state.tab) {
@@ -183,10 +246,19 @@ const MainContent = () => {
       window.removeEventListener('popstate', syncHistoryState);
       window.removeEventListener('hashchange', syncHistoryState);
     };
-  }, []);
+  }, [currentUser, currentRole]);
 
   const renderPage = () => {
-    if (!currentUser && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment' || activeTab === 'track' || activeTab === 'book' || activeTab === 'domestic-shipment' || activeTab === 'international-shipment')) {
+    if (!currentUser && (
+      activeTab === 'driver-dashboard' || 
+      activeTab === 'admin-dashboard' || 
+      activeTab === 'customer-dashboard' || 
+      activeTab === 'my-shipments' || 
+      activeTab === 'manage-shipment' || 
+      activeTab === 'book' || 
+      activeTab === 'domestic-shipment' || 
+      activeTab === 'international-shipment'
+    )) {
       return <HomePage setActiveTab={changeActiveTab} />;
     }
 
@@ -202,7 +274,11 @@ const MainContent = () => {
       case 'contact':
         return <ContactPage />;
       case 'track':
-        return <TrackShipmentPage setActiveTab={changeActiveTab} />;
+        return <TrackShipmentPage key={`track-${trackNavKey}`} setActiveTab={changeActiveTab} />;
+      case 'fleet':
+        return <FleetPage setActiveTab={changeActiveTab} />;
+      case 'quote':
+        return <QuotePage setActiveTab={changeActiveTab} />;
       case 'book':
         return <BookShipmentPage setActiveTab={changeActiveTab} />;
       case 'domestic-shipment':
@@ -225,9 +301,9 @@ const MainContent = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 w-full overflow-x-hidden">
       <Navbar activeTab={activeTab} setActiveTab={changeActiveTab} />
-      <main className="flex-1">
+      <main className="flex-1 w-full overflow-x-hidden">
         <ErrorBoundary onReset={() => changeActiveTab('home')}>
           {renderPage()}
         </ErrorBoundary>
@@ -236,6 +312,7 @@ const MainContent = () => {
       <AuthModal setActiveTab={changeActiveTab} />
       <ShipmentTypeModal setActiveTab={changeActiveTab} />
       <InvoiceModal />
+      <ShipmentDetailsView />
       <ToastNotification />
     </div>
   );

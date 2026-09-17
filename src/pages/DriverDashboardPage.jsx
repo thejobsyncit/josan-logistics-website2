@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { RealTruckGraphic } from '../components/RealTruckGraphic';
@@ -41,7 +41,10 @@ import {
   Target,
   ShieldAlert,
   Sun,
-  Fuel
+  Fuel,
+  Lock,
+  Download,
+  RotateCcw
 } from 'lucide-react';
 
 export const DriverDashboardPage = ({ setActiveTab }) => {
@@ -57,7 +60,13 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     setDriverSubTab: setDriverTab,
     driverIntimations,
     acceptDriverIntimation,
-    declineDriverIntimation
+    declineDriverIntimation,
+    startDriverTrip,
+    updateShipmentLocation,
+    reachDestination,
+    verifyDeliveryOtp,
+    submitPod,
+    setSelectedDetailShipment
   } = useLogistics();
 
   const defaultDriver = {
@@ -227,6 +236,124 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   // Delivery Update Form State
   const [proofPhotoUploaded, setProofPhotoUploaded] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [recipientName, setRecipientName] = useState('Authorized Receiving Officer');
+  const [deliveryRemarks, setDeliveryRemarks] = useState('Pallet received intact, seals verified undamaged.');
+  const [otpInput, setOtpInput] = useState('');
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [currentWaypoint, setCurrentWaypoint] = useState(activeJob?.currentLocation || 'PIE Expressway (Exit 19)');
+
+  // Signature Canvas State
+  const sigCanvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasSignature, setHasSignature] = useState(false);
+
+  const startDrawing = (e) => {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const ctx = canvas.getContext('2d');
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#10182D';
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    ctx.beginPath();
+    ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    setIsDrawing(true);
+    setHasSignature(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const ctx = canvas.getContext('2d');
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    ctx.lineTo(clientX - rect.left, clientY - rect.top);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearSignature = () => {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasSignature(false);
+  };
+
+  const handleStartTrip = () => {
+    startDriverTrip(activeJob.id);
+    setActiveJob(prev => ({ ...prev, status: 'In Transit' }));
+    showToast(`Trip started for #${activeJob.id}. Telematics broadcast live.`, 'success');
+  };
+
+  const handleUpdateLocationSubmit = (newLoc) => {
+    updateShipmentLocation(activeJob.id, newLoc);
+    setCurrentWaypoint(newLoc);
+    setActiveJob(prev => ({ ...prev, currentLocation: newLoc }));
+    showToast(`Location updated to ${newLoc}`);
+  };
+
+  const handleReachDestination = () => {
+    reachDestination(activeJob.id);
+    setActiveJob(prev => ({ ...prev, status: 'Near Destination' }));
+    showToast(`Arrived near destination for #${activeJob.id}. 6-digit delivery OTP dispatched to customer.`, 'info');
+  };
+
+  const handleVerifyOtp = (e) => {
+    e.preventDefault();
+    setOtpError('');
+    const res = verifyDeliveryOtp(activeJob.id, otpInput);
+    if (res.success) {
+      setOtpVerified(true);
+      showToast(res.message, 'success');
+    } else {
+      setOtpError(res.message);
+      showToast(res.message, 'error');
+    }
+  };
+
+  const handleCompleteDeliveryWithPod = (e) => {
+    e.preventDefault();
+    if (!otpVerified && activeJob.status !== 'Delivered') {
+      showToast('Please verify customer delivery OTP before submitting POD.', 'warning');
+      return;
+    }
+    if (!proofPhotoUploaded && !photoPreview) {
+      showToast('Please capture or upload cargo delivery photo.', 'warning');
+      return;
+    }
+    if (!recipientName.trim()) {
+      showToast('Please enter recipient full name.', 'warning');
+      return;
+    }
+    
+    let signatureDataUrl = '';
+    if (sigCanvasRef.current && hasSignature) {
+      signatureDataUrl = sigCanvasRef.current.toDataURL('image/png');
+    }
+
+    const podRes = submitPod(activeJob.id, {
+      photo: photoPreview || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&auto=format&fit=crop&q=80',
+      recipientName: recipientName.trim(),
+      recipientSignature: signatureDataUrl || `Signed by ${recipientName.trim()}`,
+      remarks: deliveryRemarks.trim() || 'Delivered in good condition, seals verified.',
+      driverId: driverInfo.id
+    });
+
+    setActiveJob(prev => ({ 
+      ...prev, 
+      status: 'Delivered',
+      pod: podRes 
+    }));
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -1193,117 +1320,348 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
       )}
 
       {/* ========================================================================= */}
-      {/* SUB-SCREEN (c): DELIVERY UPDATE SCREEN (MARK PICKED, UPLOAD PROOF, COMPLETE) */}
+      {/* SUB-SCREEN (c): TRIP PROGRESSION, DELIVERY OTP & DIGITAL POD PORTAL */}
       {/* ========================================================================= */}
       {driverTab === 'update' && (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in">
           
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
-                <span className="text-xs font-bold text-orange-600 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-                  Proof of Delivery (POD) Portal
+                <span className="text-xs font-bold text-orange uppercase tracking-widest bg-orange/10 px-3 py-1 rounded-full border border-orange/20">
+                  Web-Based Trip & Proof of Delivery (POD) Center
                 </span>
-                <h2 className="text-xl font-extrabold text-slate-900 mt-2">Delivery Update & E-Signature Uploader</h2>
-                <p className="text-xs text-slate-500">Update live package status, upload proof photos, and confirm delivery completion.</p>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2">
+                  Trip Execution, Delivery OTP & Digital POD
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Start trip, broadcast current highway location, verify customer 2FA OTP, and submit signed e-POD.
+                </p>
               </div>
 
-              <span className="font-mono text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-200">
-                Shipment #{activeJob.id}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-bold text-orange bg-orange/10 px-3 py-1.5 rounded-xl border border-orange/20">
+                  Shipment #{activeJob.id}
+                </span>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                  activeJob.status === 'Delivered'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : activeJob.status === 'Near Destination'
+                    ? 'bg-amber-100 text-amber-800 animate-pulse'
+                    : 'bg-blue-100 text-blue-800'
+                }`}>
+                  ● {activeJob.status}
+                </span>
+              </div>
             </div>
 
-            <form onSubmit={handleCompleteDeliverySubmit} className="space-y-8">
-              
-              {/* STEP 1: MARK AS PICKED / STATUS SWITCHER */}
-              <div className="space-y-3">
+            {/* SECTION 1: TRIP PROGRESSION & LOCATION BROADCAST (Requirement 2) */}
+            <div className="bg-[#F5F6F8] rounded-2xl p-5 border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
                 <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                  <CheckSquare className="w-4 h-4 text-orange-500" />
-                  <span>1. Mark Live Telematics Status</span>
+                  <Navigation className="w-4 h-4 text-orange" />
+                  <span>1. Trip Controls & Waypoint Telematics</span>
                 </h3>
+                <span className="text-[11px] text-slate-500 font-mono">
+                  Waypoint: <strong className="text-[#10182D]">{activeJob.currentLocation || 'Staging Bay'}</strong>
+                </span>
+              </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-bold">
-                  {[
-                    { status: 'Picked Up', label: 'Mark Picked Up' },
-                    { status: 'In Transit', label: 'In Transit' },
-                    { status: 'Out for Delivery', label: 'Out for Delivery' },
-                    { status: 'Delivered', label: 'Delivered ✓' }
-                  ].map((st) => (
-                    <button
-                      key={st.status}
-                      type="button"
-                      onClick={() => handleStatusChange(activeJob.id, st.status)}
-                      className={`p-3.5 rounded-xl border transition-all ${
-                        activeJob.status === st.status
-                          ? 'bg-orange-gradient text-white border-orange-500 shadow-orange-sm font-extrabold'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {st.label}
-                    </button>
-                  ))}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Start Trip */}
+                <button
+                  type="button"
+                  onClick={handleStartTrip}
+                  disabled={activeJob.status === 'In Transit' || activeJob.status === 'Near Destination' || activeJob.status === 'Delivered'}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    activeJob.status === 'In Transit'
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-bold'
+                      : 'bg-white hover:bg-orange/5 border-slate-200 hover:border-orange/40 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span>Start Highway Trip</span>
+                    <Truck className="w-4 h-4 text-orange" />
+                  </div>
+                  <span className="text-[11px] text-slate-500 block mt-1">
+                    {activeJob.status === 'In Transit' ? '✓ Trip En Route' : 'Set status to In Transit'}
+                  </span>
+                </button>
+
+                {/* Arrive Near Destination */}
+                <button
+                  type="button"
+                  onClick={handleReachDestination}
+                  disabled={activeJob.status === 'Near Destination' || activeJob.status === 'Delivered'}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    activeJob.status === 'Near Destination'
+                      ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold'
+                      : 'bg-white hover:bg-orange/5 border-slate-200 hover:border-orange/40 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span>Arrive Near Destination</span>
+                    <MapPin className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <span className="text-[11px] text-slate-500 block mt-1">
+                    {activeJob.status === 'Near Destination' ? '✓ 2FA OTP Dispatched' : 'Dispatches 6-digit OTP'}
+                  </span>
+                </button>
+
+                {/* Quick Waypoint Dropdown */}
+                <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase mb-1">Broadcast Waypoint</span>
+                  <select
+                    value={currentWaypoint}
+                    onChange={(e) => handleUpdateLocationSubmit(e.target.value)}
+                    className="w-full bg-slate-50 p-2 rounded-lg text-slate-800 font-semibold border border-slate-200 focus:outline-none focus:border-orange text-xs"
+                  >
+                    <option value="PIE Expressway (Exit 19 Telematics Gate)">PIE Expressway (Exit 19 Gate)</option>
+                    <option value="AYE Highway Logistics Corridor">AYE Highway Corridor</option>
+                    <option value="KPE Expressway Highway Tunnel">KPE Expressway Highway</option>
+                    <option value="BKE Expressway Gate 3">BKE Expressway Gate 3</option>
+                    <option value="Woodlands North Sector Dock">Woodlands North Sector Dock</option>
+                    <option value="Jurong Port Container Gate">Jurong Port Container Gate</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 2: DELIVERY 2FA OTP VERIFICATION (Requirement 5) */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              otpVerified || activeJob.status === 'Delivered'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                : 'bg-amber-50/70 border-amber-300 text-amber-950'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 pb-3">
+                <div className="flex items-center gap-2">
+                  <Lock className={`w-5 h-5 ${otpVerified || activeJob.status === 'Delivered' ? 'text-emerald-600' : 'text-amber-600'}`} />
+                  <div>
+                    <h3 className="text-sm font-bold">2. Customer Delivery 2FA OTP Verification</h3>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      Customer receives a 6-digit one-time PIN upon arrival. Enter the code below to authorize handover.
+                    </p>
+                  </div>
+                </div>
+
+                <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase font-mono ${
+                  otpVerified || activeJob.status === 'Delivered'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-amber-200 text-amber-900 animate-pulse'
+                }`}>
+                  {otpVerified || activeJob.status === 'Delivered' ? '✓ OTP Verified' : 'Awaiting Customer OTP'}
+                </span>
+              </div>
+
+              {!otpVerified && activeJob.status !== 'Delivered' ? (
+                <form onSubmit={handleVerifyOtp} className="mt-4 flex flex-col sm:flex-row items-center gap-3">
+                  <div className="relative w-full sm:w-72">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={otpInput}
+                      onChange={(e) => {
+                        setOtpInput(e.target.value.replace(/[^0-9]/g, ''));
+                        setOtpError('');
+                      }}
+                      placeholder="Enter 6-digit OTP"
+                      className="w-full px-4 py-3 bg-white border border-amber-300 rounded-xl text-center text-lg font-mono font-black tracking-widest text-[#10182D] focus:outline-none focus:border-orange focus:ring-2 focus:ring-orange/20"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto px-6 py-3 bg-orange hover:bg-orange/90 text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
+                  >
+                    Verify Handover OTP
+                  </button>
+                  <span className="text-[11px] text-slate-500">
+                    Hint: Demo OTP is <code className="bg-white px-1.5 py-0.5 rounded font-mono text-slate-800">{activeJob.otpActive || activeJob.deliveryOtp || '482910'}</code>
+                  </span>
+                </form>
+              ) : (
+                <div className="mt-3 flex items-center gap-2 text-xs font-bold text-emerald-800">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>2FA Delivery Authentication complete. Handover security cleared.</span>
+                </div>
+              )}
+
+              {otpError && (
+                <p className="text-xs text-rose-600 font-bold mt-2 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{otpError}</span>
+                </p>
+              )}
+            </div>
+
+            {/* SECTION 3: DIGITAL PROOF OF DELIVERY FORM (Requirement 4) */}
+            <form onSubmit={handleCompleteDeliveryWithPod} className="space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-orange" />
+                  <span>3. Digital Proof of Delivery (e-POD) Sign-Off</span>
+                </h3>
+                <span className="text-xs text-slate-400">All fields required for carrier compliance</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Recipient Full Name */}
+                <div className="space-y-1 text-xs">
+                  <label className="block font-bold text-slate-700">
+                    Recipient Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    placeholder="e.g. Tan Ah Seng (Receiving Supervisor)"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    required
+                  />
+                  <span className="text-[10px] text-slate-400">Consignee representative receiving physical custody</span>
+                </div>
+
+                {/* Driver Remarks */}
+                <div className="space-y-1 text-xs">
+                  <label className="block font-bold text-slate-700">
+                    Delivery Handover Remarks
+                  </label>
+                  <input
+                    type="text"
+                    value={deliveryRemarks}
+                    onChange={(e) => setDeliveryRemarks(e.target.value)}
+                    placeholder="e.g. Pallets unloaded, security seals intact"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-medium focus-orange"
+                  />
+                  <span className="text-[10px] text-slate-400">Dock number, cargo condition, exception notes</span>
                 </div>
               </div>
 
-              {/* STEP 2: UPLOAD PROOF (PHOTO) */}
-              <div className="space-y-4 pt-4 border-t border-slate-100">
-                <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                  <Camera className="w-4 h-4 text-orange-500" />
-                  <span>2. Upload Cargo Photo Verification</span>
-                </h3>
+              {/* Photo & Signature Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                {/* Delivery Photo */}
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-700 flex items-center gap-1.5">
+                      <Camera className="w-4 h-4 text-orange" />
+                      <span>Cargo Delivery Proof Photo *</span>
+                    </label>
+                    {proofPhotoUploaded && (
+                      <span className="text-[11px] text-emerald-700 font-bold">✓ Photo Uploaded</span>
+                    )}
+                  </div>
 
-                <div className="max-w-md mx-auto text-xs">
-                  {/* Photo Proof Input & Preview */}
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-                    <label className="block font-bold text-slate-700 text-left">Cargo Photo Verification</label>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      id="cargo-photo-upload" 
-                      className="hidden" 
-                      onChange={handlePhotoChange} 
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id="cargo-photo-upload" 
+                    className="hidden" 
+                    onChange={handlePhotoChange} 
+                  />
+                  <div 
+                    onClick={() => document.getElementById('cargo-photo-upload').click()}
+                    className={`h-48 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-2 cursor-pointer transition-all overflow-hidden relative ${
+                      proofPhotoUploaded
+                        ? 'border-emerald-500 bg-emerald-50/50 text-emerald-800'
+                        : 'border-slate-300 hover:border-orange bg-slate-50 text-slate-500'
+                    }`}
+                  >
+                    {proofPhotoUploaded && photoPreview ? (
+                      <div className="w-full h-full relative group">
+                        <img src={photoPreview} alt="Cargo Proof" className="w-full h-full object-cover rounded-xl" />
+                        <div className="absolute inset-0 bg-slate-950/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity text-white font-extrabold text-xs rounded-xl">
+                          Click to Change Photo
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center space-y-1.5">
+                        <Upload className="w-8 h-8 text-orange mx-auto" />
+                        <p className="font-bold text-xs text-slate-800">Tap to Upload or Capture Delivery Photo</p>
+                        <p className="text-[10px] text-slate-400">Loading dock, pallets, or building exterior</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* HTML5 Interactive Signature Canvas Pad */}
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-700 flex items-center gap-1.5">
+                      <Edit2 className="w-4 h-4 text-orange" />
+                      <span>Recipient Digital Signature *</span>
+                    </label>
+                    {hasSignature && (
+                      <button
+                        type="button"
+                        onClick={clearSignature}
+                        className="text-[11px] font-bold text-rose-600 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Clear Signature</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="h-48 rounded-2xl border-2 border-slate-300 bg-white relative overflow-hidden flex flex-col">
+                    <canvas
+                      ref={sigCanvasRef}
+                      width={450}
+                      height={190}
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                      className="w-full h-full cursor-crosshair touch-none"
                     />
-                    <div 
-                      onClick={() => document.getElementById('cargo-photo-upload').click()}
-                      className={`h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 cursor-pointer transition-all overflow-hidden relative ${
-                        proofPhotoUploaded
-                          ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                          : 'border-slate-300 hover:border-orange-500 bg-white text-slate-500'
-                      }`}
-                    >
-                      {proofPhotoUploaded && photoPreview ? (
-                        <div className="w-full h-full relative group">
-                          <img src={photoPreview} alt="Cargo Proof" className="w-full h-full object-cover rounded-lg" />
-                          <div className="absolute inset-0 bg-slate-950/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity text-white font-extrabold text-xs">
-                            Change Photo
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center space-y-1">
-                          <Upload className="w-8 h-8 text-orange-500 mx-auto" />
-                          <p className="font-bold text-xs text-slate-800">Tap to Upload / Capture Delivery Photo</p>
-                          <p className="text-[10px] text-slate-400">Supports JPG, PNG (Max 10MB)</p>
-                        </div>
-                      )}
-                    </div>
+                    {!hasSignature && (
+                      <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-slate-400">
+                        <span className="text-xs font-semibold">Sign here with mouse or fingertip</span>
+                        <span className="text-[10px] text-slate-300">Signatory legal acknowledgement</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-between text-[10px] text-slate-400">
+                    <span>Legally binding e-sign record</span>
+                    <span className="font-mono">Security Token: SHA256-POD</span>
                   </div>
                 </div>
               </div>
 
-              {/* STEP 3: COMPLETE DELIVERY BUTTON */}
+              {/* Submit & PDF Download Bar */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-xs text-slate-500">
-                  Status will instantly update client tracking timeline and issue an electronic invoice POD.
+                  Submitting will mark shipment as <strong>Delivered</strong>, notify customer and admin, and generate certified PDF.
                 </div>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-extrabold text-sm shadow-xl transition-all flex items-center justify-center space-x-2 active:scale-95 shrink-0"
-                >
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span>3. Complete Freight Delivery</span>
-                </button>
-              </div>
 
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  {activeJob.status === 'Delivered' && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDetailShipment(activeJob)}
+                      className="px-5 py-3 bg-[#10182D] hover:bg-navy/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Download className="w-4 h-4 text-orange" />
+                      <span>Download e-POD PDF</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={activeJob.status === 'Delivered'}
+                    className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-xs shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95 ${
+                      activeJob.status === 'Delivered'
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{activeJob.status === 'Delivered' ? 'Delivery Completed ✓' : 'Submit Official Digital POD'}</span>
+                  </button>
+                </div>
+              </div>
             </form>
 
           </div>

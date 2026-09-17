@@ -33,12 +33,15 @@ const DEMO_SHIPMENTS_MAP = {
     destination: 'Woodlands Roadways Terminal',
     currentLocation: 'PIE Expressway Telematics Gate (Exit 19)',
     estimatedDelivery: 'Today, 4:30 PM (SGT)',
+    lastUpdatedTime: '5 mins ago (Telematics Ping)',
     serviceLevel: 'Express Road Freight & Highway Linehaul (FTL)',
     cargoType: 'High-Tech Electronics & Components',
     driverName: 'Tan Wei Ming',
     driver: 'Tan Wei Ming',
     driverPhone: '+65 9123 4567',
     vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
+    vehiclePlate: 'SG-8819',
+    vehicleType: '14-Ton Highway Box Truck',
     sender: 'Razer Asia-Pacific Distribution Hub',
     senderAddress: '1 Raffles Place, #20-01, Singapore 048616',
     receiver: 'Woodlands North Logistics Park Gate 4',
@@ -48,27 +51,32 @@ const DEMO_SHIPMENTS_MAP = {
     declaredValue: 'S$ 68,500',
     price: 'S$ 740.00',
     timeline: [
-      { title: 'Consignment Booked & Lorry Receipt (LR) Issued', location: 'Jurong Central Highway Depot', timestamp: 'Aug 31, 08:15 AM', completed: true },
-      { title: 'Vehicle Loaded & Weighbridge Clearance Passed', location: 'Depot Loading Bay 4', timestamp: 'Aug 31, 10:40 AM', completed: true },
-      { title: 'Highway Transit via PIE Expressway Corridor', location: 'PIE Expressway Telematics Gate', timestamp: 'Aug 31, 01:20 PM', completed: true, current: true },
-      { title: 'Arrived at Woodlands Offloading Bay', location: 'Woodlands North Park Bay 2', timestamp: 'Expected Today, 03:45 PM', completed: false },
-      { title: 'Final Handover & Digital LR Signature Confirmed', location: 'Woodlands Industrial Depot', timestamp: 'Expected Today, 04:30 PM', completed: false }
+      { step: 1, title: 'Consignment Booked & LR Issued', location: 'Jurong Central Highway Depot', timestamp: 'Today 08:15 AM', completed: true },
+      { step: 2, title: 'Confirmed by Fleet Operations', location: 'Operations Desk Hub', timestamp: 'Today 09:00 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled & Pilot Assigned', location: 'Jurong Central Highway Depot', timestamp: 'Today 09:45 AM', completed: true },
+      { step: 4, title: 'Picked Up & Axle Load Cleared', location: 'Depot Loading Bay 4', timestamp: 'Today 10:40 AM', completed: true },
+      { step: 5, title: 'In Transit (PIE Expressway Corridor)', location: 'PIE Expressway Telematics Gate', timestamp: 'Today 01:20 PM', completed: true, current: true },
+      { step: 6, title: 'Near Destination & Consignee Alert', location: 'Woodlands North Park Bay 2', timestamp: 'Expected 03:45 PM', completed: false },
+      { step: 7, title: 'Delivered & Digital POD Verified', location: 'Woodlands Industrial Depot', timestamp: 'Expected 04:30 PM', completed: false }
     ]
   },
   'JOS-44021-SG': {
     id: 'JOS-44021-SG',
     referenceNumber: 'REF-4402-SG',
-    status: 'Out for Delivery',
+    status: 'Near Destination',
     origin: 'Pasir Panjang Terminal Gate',
     destination: 'Woodlands Tech Park',
-    currentLocation: 'AYE Expressway Telematics Gate (BKE Exit 3)',
+    currentLocation: 'BKE Expressway Exit 3 (Approaching Tech Park)',
     estimatedDelivery: 'Today, 5:15 PM (SGT)',
+    lastUpdatedTime: '3 mins ago (Proximity Checkpoint)',
     serviceLevel: 'Container Road Trucking & Trailer Haulage',
     cargoType: 'Industrial Precision Components & Dies',
     driverName: 'Muhammad Rizal',
     driver: 'Muhammad Rizal',
     driverPhone: '+65 8234 5678',
     vehicle: 'Volvo Heavy Container Truck #SG-4402',
+    vehiclePlate: 'SG-4402',
+    vehicleType: 'Heavy Prime Mover Haulier',
     sender: 'PSA Pasir Panjang Road Gate',
     senderAddress: '33 Harbour Drive, Singapore 117606',
     receiver: 'Woodlands High-Tech Industrial Park',
@@ -77,12 +85,15 @@ const DEMO_SHIPMENTS_MAP = {
     pieces: 12,
     declaredValue: 'S$ 145,000',
     price: 'S$ 1,280.00',
+    otpActive: '749201',
     timeline: [
-      { title: '40ft Container Mounted on Prime Mover Chassis', location: 'Pasir Panjang Terminal Berth 5', timestamp: 'Aug 30, 11:30 AM', completed: true },
-      { title: 'Port Security & Axle Load Weighbridge Cleared', location: 'Pasir Panjang Inspection Gate', timestamp: 'Aug 30, 03:00 PM', completed: true },
-      { title: 'Highway Linehaul Dispatched on Volvo Prime Mover', location: 'AYE Expressway Corridor', timestamp: 'Aug 31, 09:00 AM', completed: true },
-      { title: 'Out for Final Delivery to Woodlands Hub', location: 'BKE Expressway Corridor Gate', timestamp: 'Aug 31, 02:00 PM', completed: true, current: true },
-      { title: 'Docking & Yard Unloading Completed', location: 'Woodlands Loop Depot Dock 3', timestamp: 'Expected Today, 05:15 PM', completed: false }
+      { step: 1, title: 'Consignment Booked & Chassis Allocated', location: 'Pasir Panjang Terminal Berth 5', timestamp: 'Today 08:30 AM', completed: true },
+      { step: 2, title: 'Confirmed by Port Logistics', location: 'Port Gate Operations', timestamp: 'Today 09:15 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled & Volvo Haulier Assigned', location: 'Berth 5 Inspection Bay', timestamp: 'Today 10:00 AM', completed: true },
+      { step: 4, title: 'Picked Up & Axle Load Weighed', location: 'Port Gate Weighbridge', timestamp: 'Today 11:30 AM', completed: true },
+      { step: 5, title: 'In Transit via AYE / BKE Highway', location: 'Expressway Route Corridor', timestamp: 'Today 01:15 PM', completed: true },
+      { step: 6, title: 'Near Destination (Customer OTP Dispatched)', location: 'BKE Expressway Exit 3 Gate', timestamp: 'Today 02:45 PM', completed: true, current: true },
+      { step: 7, title: 'Delivered & POD Verified', location: 'Woodlands Loop Depot Dock 3', timestamp: 'Expected Today, 05:15 PM', completed: false }
     ]
   },
   'JOS-66301-SG': {
@@ -93,12 +104,15 @@ const DEMO_SHIPMENTS_MAP = {
     destination: 'Biopolis Bio-Hub Research Dock',
     currentLocation: 'Biopolis Biomedical Dock Bay 2, Singapore',
     estimatedDelivery: 'Delivered Today, 11:15 AM (SGT)',
+    lastUpdatedTime: 'Today, 11:15 AM (Handover Signed)',
     serviceLevel: 'Refrigerated Road Cold-Chain (2°C - 8°C)',
     cargoType: 'Vaccine & Temperature-Sensitive Pharma',
     driverName: 'Gurpreet Singh',
     driver: 'Gurpreet Singh',
     driverPhone: '+65 9876 5432',
     vehicle: 'Josan Reefer Highway Truck #SG-6630',
+    vehiclePlate: 'SG-6630',
+    vehicleType: 'Refrigerated Cold-Chain Van',
     sender: 'Tuas Pharma Cold Storage Hub',
     senderAddress: '20 Tuas South Ave 2, Singapore 637560',
     receiver: 'Biopolis Medical Research Hub',
@@ -107,11 +121,21 @@ const DEMO_SHIPMENTS_MAP = {
     pieces: 18,
     declaredValue: 'S$ 310,000',
     price: 'S$ 890.00',
+    pod: {
+      recipientName: 'Dr. Evelyn Tan (Biopolis Receiving Head)',
+      recipientSignature: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="60"><path d="M 10 40 Q 50 10 90 35 T 180 20" fill="none" stroke="%2310182D" stroke-width="3"/></svg>',
+      photo: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&auto=format&fit=crop&q=80',
+      deliveredAt: 'Today, 11:15 AM (SGT)',
+      remarks: 'Vaccine cold chain unbroken at 3.8°C. Seals intact, e-POD confirmed.'
+    },
     timeline: [
-      { title: 'Reefer Truck Pre-Cooled to 4.0°C & Cargo Loaded', location: 'Tuas Mega Cold Hub Bay 1', timestamp: 'Aug 31, 06:00 AM', completed: true },
-      { title: 'Expressway Transit with Continuous IoT Temp Monitoring', location: 'AYE Expressway Highway Corridor', timestamp: 'Aug 31, 08:30 AM', completed: true },
-      { title: 'Arrived at Biopolis Facility Gate', location: 'Biopolis Biomedical Grove', timestamp: 'Aug 31, 10:50 AM', completed: true },
-      { title: 'Unloaded into Cold Vault & E-Sign Received', location: 'Biopolis Vault Bay 2', timestamp: 'Aug 31, 11:15 AM', completed: true, current: true }
+      { step: 1, title: 'Consignment Booked in Cold-Chain Vault', location: 'Tuas Mega Cold Hub', timestamp: 'Today 05:30 AM', completed: true },
+      { step: 2, title: 'Booking Confirmed & Pre-Cooling Verified', location: 'Quality Assurance Desk', timestamp: 'Today 06:00 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled & Reefer Assigned', location: 'Tuas Bay 1', timestamp: 'Today 06:45 AM', completed: true },
+      { step: 4, title: 'Picked Up & Temp Validated at 3.8°C', location: 'Tuas Mega Cold Hub Bay 1', timestamp: 'Today 07:15 AM', completed: true },
+      { step: 5, title: 'In Transit with IoT Temp Telemetry', location: 'AYE Expressway Highway Corridor', timestamp: 'Today 08:30 AM', completed: true },
+      { step: 6, title: 'Near Destination (OTP Verified)', location: 'Biopolis Biomedical Grove', timestamp: 'Today 10:50 AM', completed: true },
+      { step: 7, title: 'Delivered & Digital POD Verified', location: 'Biopolis Vault Bay 2', timestamp: 'Today 11:15 AM', completed: true, current: true }
     ]
   },
   'JOS-99210-SG': {
@@ -122,12 +146,15 @@ const DEMO_SHIPMENTS_MAP = {
     destination: 'Woodlands Border Checkpoint Hub',
     currentLocation: 'KPE Expressway Highway (Rain Speed Advisory in Effect)',
     estimatedDelivery: 'Today, 07:45 PM (SGT)',
+    lastUpdatedTime: '8 mins ago (Telematics Advisory)',
     serviceLevel: 'Cross-Border Highway Haulage (SG ↔ MY)',
     cargoType: 'Heavy Electrical Machinery & 18W Motors',
     driverName: 'Robert Martinez',
     driver: 'Robert Martinez',
     driverPhone: '+65 9112 3456',
     vehicle: '18-Wheeler Multi-Axle Heavy Haulier #SG-9921',
+    vehiclePlate: 'SG-9921',
+    vehicleType: '18-Wheeler Heavy Lowbed Haulier',
     sender: 'Singapore Jurong Heavy Industrial Yard',
     senderAddress: '15 Jurong Port Road, Singapore 619116',
     receiver: 'Woodlands Checkpoint Border Distribution Hub',
@@ -142,14 +169,16 @@ const DEMO_SHIPMENTS_MAP = {
       etaImpact: '+45 Mins Buffer Added for Highway Brake Safety Protocol',
       smsSent: true,
       emailSent: true,
-      timestamp: 'Aug 31, 01:45 PM'
+      timestamp: 'Today, 01:45 PM'
     },
     timeline: [
-      { title: 'Heavy Trailer Loaded, Strapped & Escort Cleared', location: 'Jurong Heavy Industrial Depot', timestamp: 'Aug 31, 09:30 AM', completed: true },
-      { title: 'Highway Haulage En Route via PIE Expressway', location: 'PIE Expressway Exit 20', timestamp: 'Aug 31, 11:15 AM', completed: true },
-      { title: '⛈️ Monsoon Rain Road Safety Protocol (Speed Reduced)', location: 'KPE Expressway Corridor', timestamp: 'Aug 31, 01:45 PM', completed: true, current: true },
-      { title: 'Resume Highway Cruise Speed After Rain Clears', location: 'SLE Expressway Corridor', timestamp: 'Expected 05:30 PM', completed: false },
-      { title: 'Final Delivery at Woodlands Border Gate', location: 'Woodlands Checkpoint Depot', timestamp: 'Expected 07:45 PM', completed: false }
+      { step: 1, title: 'Consignment Booked & Heavy Trailer Staged', location: 'Jurong Industrial Yard', timestamp: 'Today 07:30 AM', completed: true },
+      { step: 2, title: 'Confirmed & Police Escort Cleared', location: 'Heavy Haulage Operations', timestamp: 'Today 08:30 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled & 18-Wheeler Assigned', location: 'Jurong Depot Loading Bay', timestamp: 'Today 09:15 AM', completed: true },
+      { step: 4, title: 'Picked Up & Axle Weights Verified', location: 'Jurong Heavy Industrial Depot', timestamp: 'Today 09:45 AM', completed: true },
+      { step: 5, title: 'In Transit (Storm Safety Speed Advisory Active)', location: 'KPE Expressway Corridor', timestamp: 'Today 01:45 PM', completed: true, current: true },
+      { step: 6, title: 'Near Destination & Custom Clearance', location: 'Woodlands Centre Gate', timestamp: 'Expected 06:30 PM', completed: false },
+      { step: 7, title: 'Delivered & Consignee Handover', location: 'Woodlands Checkpoint Hub', timestamp: 'Expected 07:45 PM', completed: false }
     ]
   }
 };
@@ -160,29 +189,42 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     activeTrackingId, 
     setActiveTrackingId, 
     setSelectedInvoiceShipment,
+    setSelectedDetailShipment,
     showToast
   } = useLogistics();
 
-  const [searchInput, setSearchInput] = useState(activeTrackingId || '');
-  const [trackType, setTrackType] = useState('shipment');
-  const [captchaCode, setCaptchaCode] = useState('6T59S5');
-  const [captchaInput, setCaptchaInput] = useState('');
-  const [captchaError, setCaptchaError] = useState('');
-
-  const generateNewCaptcha = () => {
+  const generateRandomCaptcha = () => {
     const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
     let code = '';
     for (let i = 0; i < 6; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
+    return code;
+  };
+
+  const [searchInput, setSearchInput] = useState(activeTrackingId || '');
+  const [trackType, setTrackType] = useState('shipment');
+  const [captchaCode, setCaptchaCode] = useState(generateRandomCaptcha);
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
+
+  const generateNewCaptcha = () => {
+    const code = generateRandomCaptcha();
     setCaptchaCode(code);
     setCaptchaInput('');
     setCaptchaError('');
+    return code;
   };
 
+  // Generate a fresh randomized captcha on mount
+  useEffect(() => {
+    generateNewCaptcha();
+  }, []);
+
   const renderCaptchaSvg = (text) => {
-    const colors = ['#1e40af', '#b91c1c', '#047857', '#7c2d12', '#4338ca', '#0f172a'];
-    const chars = (text || '6T59S5').split('');
+    const colors = ['#1e40af', '#b91c1c', '#047857', '#c2410c', '#4338ca', '#0f172a', '#7c2d12', '#0284c7'];
+    const currentCode = text || generateRandomCaptcha();
+    const chars = currentCode.split('');
     return (
       <svg viewBox="0 0 220 50" className="w-full h-full select-none" preserveAspectRatio="none">
         <rect width="220" height="50" fill="#f8fafc" />
@@ -205,13 +247,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
         {/* Characters with distinct rotation, colors and font sizing */}
         {chars.map((char, index) => {
-          const x = 24 + index * 30;
-          const y = 33 + (index % 2 === 0 ? -3 : 2);
-          const rot = ((index * 9) % 24) - 12;
-          const color = colors[index % colors.length];
+          const charCodeVal = char.charCodeAt(0) || 65;
+          const x = 22 + index * 31;
+          const y = 33 + ((charCodeVal % 5) - 2);
+          const rot = ((charCodeVal * 7 + index * 11) % 27) - 13;
+          const color = colors[(charCodeVal + index * 3) % colors.length];
           return (
             <text
-              key={index}
+              key={`${char}-${index}`}
               x={x}
               y={y}
               transform={`rotate(${rot}, ${x}, ${y})`}
@@ -394,6 +437,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       setSearchInput(val);
       setActiveTrackingId(found.id);
       setCaptchaError('');
+      generateNewCaptcha();
       if (showToast) showToast(`Loaded Live Satellite Tracking Feed for #${found.id}`);
       setTimeout(() => {
         const el = document.getElementById('shipment-details');
@@ -436,6 +480,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       }, 50);
     } else {
       setCaptchaError(`No shipment found matching "${query}". Please check the number.`);
+      generateNewCaptcha();
     }
   };
 
@@ -661,8 +706,6 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               type="button"
               onClick={() => {
                 setSearchInput(trackType === 'reference' ? sample.ref : sample.id);
-                setCaptchaInput(captchaCode);
-                setCaptchaError('');
                 handleSelectDemo(sample.id);
               }}
               className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 group ${
@@ -719,26 +762,161 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 </div>
               </div>
 
-              {/* Current Location & Estimated Delivery Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs">
-                <div>
-                  <p className="text-slate-700 font-extrabold uppercase text-[10px]">Current Location (Highway / Hub)</p>
-                  <p className="font-extrabold text-slate-900 text-sm mt-0.5 flex items-center space-x-1 text-orange-600">
-                    <MapPin className="w-4 h-4 shrink-0" />
-                    <span>{currentShipment.currentLocation}</span>
-                  </p>
+              {/* 9 Required Display Fields Grid: ID, Status, Pickup, Destination, Current Location, Driver, Vehicle, ETA, Last Updated */}
+              <div className="bg-[#F5F6F8] p-5 rounded-2xl border border-[#E2E8F0] space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Shipment ID</p>
+                    <p className="font-mono font-bold text-[#10182D] text-xs sm:text-sm mt-0.5">{currentShipment.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Current Status</p>
+                    <p className="font-bold text-orange text-xs sm:text-sm mt-0.5">{currentShipment.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Pickup Location</p>
+                    <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <span className="truncate">{currentShipment.origin || 'Jurong Central Hub'}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Destination</p>
+                    <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <span className="truncate">{currentShipment.destination || 'Woodlands Terminal'}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Current Location</p>
+                    <p className="font-bold text-[#FF6B00] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
+                      <Navigation className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{currentShipment.currentLocation || 'Expressway Corridor'}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Assigned Driver</p>
+                    <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <span className="truncate">{currentShipment.driverName || currentShipment.driver || 'Tan Wei Ming'}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Vehicle Plate / Class</p>
+                    <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
+                      <Truck className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <span className="truncate">{currentShipment.vehiclePlate || 'SG-8819'}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Estimated Delivery</p>
+                    <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <span>{currentShipment.estimatedDelivery || 'Today, Scheduled'}</span>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-slate-700 font-extrabold uppercase text-[10px]">Estimated SLA Delivery</p>
-                  <p className="font-extrabold text-slate-900 text-sm mt-0.5 flex items-center space-x-1">
-                    <Clock className="w-4 h-4 shrink-0 text-slate-700" />
-                    <span>{currentShipment.estimatedDelivery}</span>
-                  </p>
+
+                {/* Sub-bar: Last Updated Time & Telematics Architecture Notice */}
+                <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Last Updated: <strong className="text-slate-800">{currentShipment.lastUpdatedTime || 'Just now'}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="italic text-slate-400">Structured for Regional GPS / IoT Telematics API</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDetailShipment(currentShipment)}
+                      className="text-orange font-bold hover:underline flex items-center gap-1"
+                    >
+                      <span>Open Full Dossier & POD</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-slate-700 font-extrabold uppercase text-[10px]">Road Transport Class</p>
-                  <p className="font-extrabold text-slate-900 text-sm mt-0.5">{currentShipment.serviceLevel}</p>
+              </div>
+
+              {/* Standardized 7-Stage Timeline: Booked → Confirmed → Pickup Scheduled → Picked Up → In Transit → Near Destination → Delivered */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-[#10182D] uppercase tracking-wider block">
+                    7-Stage Consignment Progression Timeline
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Stage {(() => {
+                      const st = currentShipment.status;
+                      if (st === 'Delivered') return '7 of 7';
+                      if (st === 'Near Destination') return '6 of 7';
+                      if (st === 'In Transit' || st === 'Delayed') return '5 of 7';
+                      if (st === 'Picked Up') return '4 of 7';
+                      if (st === 'Pickup Scheduled') return '3 of 7';
+                      if (st === 'Confirmed') return '2 of 7';
+                      return '1 of 7';
+                    })()}
+                  </span>
                 </div>
+
+                {(() => {
+                  const status = currentShipment.status || '';
+                  const getStepNum = (s) => {
+                    switch (s) {
+                      case 'Booked': return 1;
+                      case 'Confirmed': return 2;
+                      case 'Pickup Scheduled': return 3;
+                      case 'Picked Up': return 4;
+                      case 'In Transit':
+                      case 'Delayed': return 5;
+                      case 'Near Destination': return 6;
+                      case 'Delivered': return 7;
+                      default: return 5;
+                    }
+                  };
+                  const activeStep = getStepNum(status);
+                  const stages7 = [
+                    { num: 1, label: 'Booked' },
+                    { num: 2, label: 'Confirmed' },
+                    { num: 3, label: 'Pickup Sched.' },
+                    { num: 4, label: 'Picked Up' },
+                    { num: 5, label: 'In Transit' },
+                    { num: 6, label: 'Near Dest.' },
+                    { num: 7, label: 'Delivered' }
+                  ];
+
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                      {stages7.map((st) => {
+                        const isDone = activeStep >= st.num;
+                        const isCurrent = activeStep === st.num;
+                        return (
+                          <div
+                            key={st.num}
+                            className={`p-2.5 rounded-xl border text-center transition-all ${
+                              isCurrent
+                                ? 'bg-[#FFF8F2] border-[#FF6B00] shadow-xs'
+                                : isDone
+                                ? 'bg-white border-[#16A34A]/40'
+                                : 'bg-[#F5F6F8] border-[#E2E8F0] opacity-60'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 mx-auto rounded-full text-[10px] font-bold flex items-center justify-center mb-1 ${
+                              isCurrent
+                                ? 'bg-[#FF6B00] text-white ring-2 ring-orange/20'
+                                : isDone
+                                ? 'bg-[#16A34A] text-white'
+                                : 'bg-[#CBD5E1] text-[#64748B]'
+                            }`}>
+                              {isDone && !isCurrent ? '✓' : st.num}
+                            </div>
+                            <span className={`text-[11px] font-bold block truncate ${isCurrent ? 'text-[#FF6B00]' : 'text-[#10182D]'}`}>
+                              {st.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* AUTOMATED WEATHER & TELEMATICS RADAR ALERT BANNER */}
@@ -820,6 +998,40 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   })}
                 </div>
               </div>
+
+              {/* DIGITAL PROOF OF DELIVERY (POD) CALLOUT */}
+              {currentShipment.status === 'Delivered' && (
+                <div className="bg-[#FFF8F2] border-2 border-orange/40 rounded-2xl p-5 space-y-3 shadow-sm animate-fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-[#10182D] font-extrabold text-sm font-outfit">
+                      <ShieldCheck className="w-5 h-5 text-orange" />
+                      <span>Electronic Proof of Delivery (e-POD) Verified</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDetailShipment(currentShipment)}
+                      className="px-4 py-2 bg-orange hover:bg-orange/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>View & Download Official POD PDF</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-orange/20 text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Consignee Signatory</span>
+                      <strong className="text-[#10182D]">{currentShipment.pod?.recipientName || 'Authorized Consignee Signatory'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Handover Completed</span>
+                      <span className="text-slate-700">{currentShipment.pod?.deliveredAt || currentShipment.lastUpdatedTime || 'Today, Verified'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">2FA Security Status</span>
+                      <span className="text-emerald-700 font-bold">✓ 6-Digit OTP Authenticated</span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
 

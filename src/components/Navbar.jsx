@@ -17,7 +17,15 @@ import {
   Edit2,
   Save,
   Camera,
-  FileText
+  FileText,
+  Calculator,
+  User,
+  MapPin,
+  Layers,
+  Zap,
+  Thermometer,
+  Shield,
+  CreditCard
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab }) => {
@@ -32,12 +40,16 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     showToast,
     setIsShipmentTypeModalOpen,
     resetShipmentScope,
-    setShipmentScope
+    setShipmentScope,
+    setCustomerSubTab
   } = useLogistics();
 
   const [headerSearch, setHeaderSearch] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [mobileShipmentsOpen, setMobileShipmentsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const dropdownIgnoreHoverRef = useRef(false);
 
@@ -64,6 +76,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     setShipmentDropdownOpen(false);
   };
 
+  // Profile Edit State
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editCountryCode, setEditCountryCode] = useState('+65');
@@ -71,9 +84,11 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const [editCompany, setEditCompany] = useState('');
   const [editLicense, setEditLicense] = useState('');
   const [editDob, setEditDob] = useState('');
+  const [editPhoto, setEditPhoto] = useState('');
 
   const handleLogout = () => {
     setIsProfileOpen(false);
+    setMobileMenuOpen(false);
     logoutUser();
     if (setActiveTab) {
       setActiveTab('home');
@@ -85,7 +100,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       }
     }
   };
-  const [editPhoto, setEditPhoto] = useState('');
 
   const handleEditPhotoUpload = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -148,141 +162,126 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  const handleGoToServices = () => {
+  const handleGoToServiceSection = (sectionId) => {
     dropdownIgnoreHoverRef.current = true;
-    setActiveTab('services');
     setServicesDropdownOpen(false);
     setMobileMenuOpen(false);
-    
+
+    if (sectionId === 'customs-clearance') {
+      setActiveTab('customs-clearance');
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setActiveTab('services');
     setTimeout(() => {
-      const targetElem = document.getElementById('freight-services-grid');
-      if (targetElem) {
-        targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
         window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       }
-    }, 50);
-  };
-
-  const handleGoToCustomsClearance = () => {
-    dropdownIgnoreHoverRef.current = true;
-    setActiveTab('customs-clearance');
-    setServicesDropdownOpen(false);
-    setMobileMenuOpen(false);
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }, 80);
   };
 
   const handleGoToShipmentTab = (tabId) => {
     shipmentDropdownIgnoreHoverRef.current = true;
-    if (tabId === 'book') {
+    setShipmentDropdownOpen(false);
+    setMobileMenuOpen(false);
+
+    if (tabId === 'book' || tabId === 'domestic-shipment') {
       if (!currentUser) {
         setIsAuthModalOpen(true);
         return;
       }
-      resetShipmentScope();
-      setActiveTab('book');
-      setShipmentDropdownOpen(false);
-      setMobileMenuOpen(false);
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      return;
-    }
-    if (tabId === 'domestic') {
-      if (!currentUser) {
-        setIsAuthModalOpen(true);
-        return;
-      }
-      setShipmentScope('domestic');
+      if (setShipmentScope) setShipmentScope('domestic');
       setActiveTab('domestic-shipment');
-      if (typeof window !== 'undefined') window.location.hash = '#domestic-shipment';
-      setShipmentDropdownOpen(false);
-      setMobileMenuOpen(false);
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       return;
     }
-    if (tabId === 'international') {
+    if (tabId === 'my-shipments') {
       if (!currentUser) {
         setIsAuthModalOpen(true);
         return;
       }
-      setShipmentScope('international');
-      setActiveTab('international-shipment');
-      if (typeof window !== 'undefined') window.location.hash = '#international-shipment';
-      setShipmentDropdownOpen(false);
-      setMobileMenuOpen(false);
+      if (setCustomerSubTab) setCustomerSubTab('orders');
+      setActiveTab('customer-dashboard');
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       return;
     }
     setActiveTab(tabId);
-    setShipmentDropdownOpen(false);
-    setMobileMenuOpen(false);
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
-  let navItems = [
+  const handleCustomerDashboardNav = (subTab) => {
+    setIsProfileOpen(false);
+    setMobileMenuOpen(false);
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    if (subTab === 'track') {
+      setActiveTab('track');
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      return;
+    }
+    if (setCustomerSubTab) setCustomerSubTab(subTab);
+    setActiveTab('customer-dashboard');
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+
+  // Public Navigation Links (Always Clean & Standard across all public visitors)
+  const navItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services', hasDropdown: true },
-    { id: 'shipment', label: 'Shipment', hasDropdown: true },
+    { id: 'shipments', label: 'Shipments', hasDropdown: true },
     { id: 'track', label: 'Track Shipment' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'fleet', label: 'Fleet' },
+    { id: 'contact', label: 'Contact Us' }
   ];
 
-  if (currentUser) {
-    const role = currentUser.role || currentRole;
-    if (role === 'customer') {
-      navItems = [
-        { id: 'home', label: 'Home' },
-        { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services', hasDropdown: true },
-        { id: 'shipment', label: 'Shipment', hasDropdown: true },
-        { id: 'track', label: 'Track Shipment' },
-        { id: 'contact', label: 'Contact' },
-      ];
-    } else if (role === 'driver') {
-      navItems = [
-        { id: 'home', label: 'Home' },
-        { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services', hasDropdown: true },
-        { id: 'shipment', label: 'Shipment', hasDropdown: true },
-        { id: 'track', label: 'Track Shipment' },
-        { id: 'contact', label: 'Contact' },
-        { id: 'driver-dashboard', label: 'Driver Portal' },
-      ];
-    } else if (role === 'admin') {
-      navItems = [
-        { id: 'home', label: 'Home' },
-        { id: 'about', label: 'About Us' },
-        { id: 'services', label: 'Services', hasDropdown: true },
-        { id: 'shipment', label: 'Shipment', hasDropdown: true },
-        { id: 'track', label: 'Track Shipment' },
-        { id: 'contact', label: 'Contact' },
-        { id: 'admin-dashboard', label: 'Admin Hub' },
-      ];
-    }
-  }
+  const servicesDropdownItems = [
+    { id: 'road-transportation', label: 'Road Transportation', desc: 'Overland highway linehaul & regional freight' },
+    { id: 'ftl-transportation', label: 'FTL', desc: 'Dedicated full truckload point-to-point delivery' },
+    { id: 'ltl-transportation', label: 'LTL', desc: 'Consolidated partial pallet freight & scheduled runs' },
+    { id: 'express-delivery', label: 'Express Delivery', desc: 'Under 4h rapid city & express courier dispatch' },
+    { id: 'specialized-cargo', label: 'Specialized Cargo', desc: 'Multi-temp cold chain (-25°C to +25°C) & reefer vans' },
+    { id: 'customs-clearance', label: 'Customs Clearance', desc: 'TradeNet documentation, brokerage & port release' },
+    { id: 'cargo-types', label: 'Cargo Types', desc: 'Explore supported commodities & industry classifications' }
+  ];
+
+  const shipmentsDropdownItems = [
+    { id: 'book', label: 'Book Shipment', desc: 'Express road haulage & priority dispatch' },
+    { id: 'my-shipments', label: 'My Shipments', desc: 'View active consignments, status & delivery history' }
+  ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all duration-300">
-      {/* Main Navbar */}
+    <header className="sticky top-0 z-40 bg-white border-b border-[#E2E8F0] shadow-xs transition-all duration-300">
+      {/* Main Navbar (76px height) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-[76px]">
           
           {/* Logo */}
           <div 
-            onClick={() => setActiveTab('home')}
-            className="flex items-center space-x-3 cursor-pointer group"
+            onClick={() => {
+              setActiveTab('home');
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            }}
+            className="flex items-center space-x-3 cursor-pointer group shrink-0"
           >
             <img 
               src="/assets/josan_logo.png" 
               alt="Josan Logistics Logo" 
-              className="h-12 sm:h-14 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-200" 
+              className="h-11 sm:h-13 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-200" 
             />
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden xl:flex items-center space-x-1 2xl:space-x-1.5">
             {navItems.map((item) => {
               if (item.id === 'services') {
+                const isServicesActive = activeTab === 'services' || activeTab === 'customs-clearance';
                 return (
                   <div 
                     key={item.id} 
@@ -291,46 +290,36 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                     onMouseLeave={handleMouseLeaveServices}
                   >
                     <button
-                      onClick={handleGoToServices}
-                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 inline-flex items-center space-x-1 cursor-pointer ${
-                        activeTab === 'services' || activeTab === 'customs-clearance'
-                          ? 'bg-orange-50 text-orange-600 font-bold'
-                          : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
+                      onClick={() => handleGoToServiceSection('road-transportation')}
+                      className={`px-3 py-2 rounded-lg text-sm 2xl:text-[15px] font-medium transition-all duration-150 inline-flex items-center space-x-1 cursor-pointer whitespace-nowrap ${
+                        isServicesActive
+                          ? 'bg-[#FFF8F2] text-[#FF6B00] font-semibold'
+                          : 'text-[#10182D] hover:text-[#FF6B00] hover:bg-[#FFF8F2]/60'
                       }`}
                     >
                       <span>Services</span>
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${servicesDropdownOpen ? 'rotate-180 text-orange-600' : ''}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180 text-[#FF6B00]' : ''}`} />
                     </button>
 
                     {/* Services Dropdown Menu */}
                     {servicesDropdownOpen && (
-                      <div className="absolute left-0 top-full pt-1 w-72 sm:w-80 z-50 animate-fade-in">
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-2.5 space-y-1">
-                          <button
-                            type="button"
-                            onClick={handleGoToServices}
-                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer"
-                          >
-                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              Roadways Freight Services
-                            </span>
-                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Dedicated Highway Trucking, FTL & LTL
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={handleGoToCustomsClearance}
-                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
-                          >
-                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              Customs Clearance
-                            </span>
-                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Smooth clearance, from docs to release
-                            </span>
-                          </button>
+                      <div className="absolute left-0 top-full pt-1.5 w-80 z-50 animate-fade-in">
+                        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xl p-2 space-y-0.5">
+                          {servicesDropdownItems.map((s) => (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => handleGoToServiceSection(s.id)}
+                              className="w-full text-left p-2.5 rounded-xl hover:bg-[#FFF8F2] transition-colors block group cursor-pointer"
+                            >
+                              <span className="block text-xs font-bold text-[#10182D] group-hover:text-[#FF6B00] transition-colors">
+                                {s.label}
+                              </span>
+                              <span className="block text-[11px] font-medium text-[#64748B] mt-0.5 leading-snug">
+                                {s.desc}
+                              </span>
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -338,8 +327,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 );
               }
 
-              if (item.id === 'shipment') {
-                const isShipmentActive = activeTab === 'book' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
+              if (item.id === 'shipments') {
+                const isShipmentActive = activeTab === 'book' || activeTab === 'domestic-shipment' || activeTab === 'international-shipment' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments';
                 return (
                   <div 
                     key={item.id} 
@@ -349,58 +338,35 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   >
                     <button
                       onClick={() => handleGoToShipmentTab('book')}
-                      className={`px-3.5 xl:px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 inline-flex items-center space-x-1 whitespace-nowrap cursor-pointer ${
+                      className={`px-3 py-2 rounded-lg text-sm 2xl:text-[15px] font-medium transition-all duration-150 inline-flex items-center space-x-1 whitespace-nowrap cursor-pointer ${
                         isShipmentActive
-                          ? 'bg-orange-50 text-orange-600 font-bold'
-                          : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
+                          ? 'bg-[#FFF8F2] text-[#FF6B00] font-semibold'
+                          : 'text-[#10182D] hover:text-[#FF6B00] hover:bg-[#FFF8F2]/60'
                       }`}
                     >
-                      <span>Shipment</span>
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${shipmentDropdownOpen ? 'rotate-180 text-orange-600' : ''}`} />
+                      <span>Shipments</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${shipmentDropdownOpen ? 'rotate-180 text-[#FF6B00]' : ''}`} />
                     </button>
 
-                    {/* Shipment Dropdown Menu */}
+                    {/* Shipments Dropdown Menu */}
                     {shipmentDropdownOpen && (
-                      <div className="absolute left-0 top-full pt-1 w-72 sm:w-80 z-50 animate-fade-in">
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-2.5 space-y-1">
-                          <button
-                            type="button"
-                            onClick={() => handleGoToShipmentTab('domestic')}
-                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer"
-                          >
-                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              Book Road Shipment
-                            </span>
-                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Express motorbike, van, lorry & road haulage
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleGoToShipmentTab('my-shipments')}
-                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
-                          >
-                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              My Shipments
-                            </span>
-                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              View active orders & delivery history
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleGoToShipmentTab('track')}
-                            className="w-full text-left p-3 rounded-xl hover:bg-orange-50/80 transition-colors block group cursor-pointer border-t border-slate-100"
-                          >
-                            <span className="block text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors">
-                              Track Shipment
-                            </span>
-                            <span className="block text-xs font-medium text-slate-500 mt-0.5">
-                              Real-time GPS telematics & status updates
-                            </span>
-                          </button>
+                      <div className="absolute left-0 top-full pt-1.5 w-80 z-50 animate-fade-in">
+                        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xl p-2 space-y-0.5">
+                          {shipmentsDropdownItems.map((s) => (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => handleGoToShipmentTab(s.id)}
+                              className="w-full text-left p-2.5 rounded-xl hover:bg-[#FFF8F2] transition-colors block group cursor-pointer"
+                            >
+                              <span className="block text-xs font-bold text-[#10182D] group-hover:text-[#FF6B00] transition-colors">
+                                {s.label}
+                              </span>
+                              <span className="block text-[11px] font-medium text-[#64748B] mt-0.5 leading-snug">
+                                {s.desc}
+                              </span>
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -415,10 +381,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                     setActiveTab(item.id);
                     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}
-                  className={`px-3.5 xl:px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                  className={`px-3 py-2 rounded-lg text-sm 2xl:text-[15px] font-medium transition-all duration-150 whitespace-nowrap cursor-pointer ${
                     activeTab === item.id
-                      ? 'bg-orange-50 text-orange-600 font-bold'
-                      : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
+                      ? 'bg-[#FFF8F2] text-[#FF6B00] font-semibold'
+                      : 'text-[#10182D] hover:text-[#FF6B00] hover:bg-[#FFF8F2]/60'
                   }`}
                 >
                   {item.label}
@@ -427,321 +393,176 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             })}
           </nav>
 
-          {/* Search Widget & User Profile / Login */}
-          <div className="hidden md:flex items-center space-x-3">
-            {/* Quick Tracking Search Bar (Only shown when user is signed in) */}
-            {currentUser && (
-              <form onSubmit={handleHeaderSearch} className="relative flex items-center">
-                <input
-                  type="text"
-                  value={headerSearch}
-                  onChange={(e) => setHeaderSearch(e.target.value)}
-                  placeholder="Track ID (e.g. JOS-89421-US)..."
-                  className="w-48 xl:w-56 pl-9 pr-7 py-1.5 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange placeholder:text-slate-400 font-semibold"
-                />
-                <button 
-                  type="submit" 
-                  title="Search Parcel"
-                  className="absolute left-2.5 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-              </form>
-            )}
+          {/* Right Action Section: CTAs + Customer Account */}
+          <div className="hidden lg:flex items-center space-x-2.5 2xl:space-x-3">
+            
+            {/* CTA 1: Get a Quote (Primary Orange) */}
+            <button
+              onClick={() => {
+                setActiveTab('quote');
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className="h-11 px-4 2xl:px-5 rounded-lg sm:rounded-xl bg-[#FF6B00] hover:bg-[#E55C00] text-white font-sans text-xs 2xl:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap active:scale-95"
+            >
+              <Calculator className="w-3.5 h-3.5" />
+              <span>Get a Quote</span>
+            </button>
 
+            {/* CTA 2: Book Shipment (Dark Navy Secondary CTA) */}
+            <button
+              onClick={() => {
+                if (!currentUser) {
+                  setIsAuthModalOpen(true);
+                  return;
+                }
+                if (setShipmentScope) setShipmentScope('domestic');
+                setActiveTab('domestic-shipment');
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className="h-11 px-4 2xl:px-5 rounded-lg sm:rounded-xl bg-[#10182D] hover:bg-[#1A243F] text-white font-sans text-xs 2xl:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap active:scale-95"
+            >
+              <Package className="w-3.5 h-3.5 text-[#FF6B00]" />
+              <span>Book Shipment</span>
+            </button>
+
+            {/* Customer Login / Dashboard Navigation Menu */}
             {currentUser ? (
-              <div className="flex items-center space-x-2 border-l border-slate-200 pl-3 relative">
+              <div className="relative pl-1">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
                 >
-                  <div className="w-8 h-8 rounded-full overflow-hidden border border-orange-400 bg-orange-100 flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-8 h-8 rounded-lg overflow-hidden border border-orange-400 bg-orange-100 flex items-center justify-center shrink-0 shadow-2xs">
                     {currentUser.photo ? (
                       <img src={currentUser.photo} alt={currentUser.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="font-bold text-sm text-orange-600">{currentUser.name.charAt(0)}</span>
+                      <span className="font-extrabold text-xs text-orange-600">{currentUser.name ? currentUser.name.charAt(0) : 'U'}</span>
                     )}
                   </div>
-                  <div className="text-left">
-                    <p className="text-xs font-bold text-slate-900 line-clamp-1">{currentUser.name}</p>
-                    <p className="text-[10px] text-orange-600 font-semibold capitalize">{currentUser.role || currentRole}</p>
+                  <div className="text-left hidden 2xl:block max-w-[120px]">
+                    <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
+                    <p className="text-[10px] text-orange-600 font-extrabold uppercase tracking-wider">{currentUser.role || currentRole}</p>
                   </div>
-                </button>
-                <button
-                  onClick={handleLogout}
-                  title="Logout"
-                  className="p-2 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" />
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
 
-                {/* Floating Profile Details Dropdown Card */}
+                {/* Customer Dashboard Navigation Dropdown */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 top-12 w-[380px] bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 z-50 text-slate-955 space-y-4 animate-fade-in">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <span className="text-sm font-extrabold uppercase tracking-wider text-orange-600">
-                        {isEditing ? 'Edit Profile Details' : 'Profile Details'}
+                  <div className="absolute right-0 top-12 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 z-50 text-slate-900 animate-fade-in space-y-1">
+                    <div className="px-3 py-2 border-b border-slate-100">
+                      <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
+                      <p className="text-[10px] text-slate-500 font-mono truncate">{currentUser.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-800 text-[10px] font-black rounded-full uppercase">
+                        {currentUser.role || currentRole} Portal
                       </span>
-                      <button 
-                        onClick={() => {
-                          setIsProfileOpen(false);
-                          setIsEditing(false);
-                        }}
-                        className="text-slate-450 hover:text-slate-700 cursor-pointer"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
                     </div>
 
-                    {isEditing ? (
-                      <form onSubmit={saveProfileChanges} className="space-y-4 text-xs text-left">
-                        {/* Profile Image Edit Field */}
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Profile Picture</label>
-                          <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                            <img
-                              src={editPhoto || currentUser.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                              alt="Profile Preview"
-                              className="w-12 h-12 rounded-full object-cover border-2 border-orange-500 shrink-0"
-                            />
-                            <div>
-                              <label className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[11px] font-extrabold shadow-orange-sm cursor-pointer transition-all inline-flex items-center space-x-1.5">
-                                <Camera className="w-3.5 h-3.5" />
-                                <span>Change Photo</span>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={handleEditPhotoUpload}
-                                  className="hidden"
-                                />
-                              </label>
-                              <span className="text-[10px] text-slate-400 block mt-1 font-semibold">Upload new image file</span>
-                            </div>
-                          </div>
-                        </div>
+                    {/* Customer Specific Separate Dashboard Navigation */}
+                    {(currentUser.role === 'customer' || currentRole === 'customer') && (
+                      <div className="space-y-0.5 py-1">
+                        <button
+                          onClick={() => handleCustomerDashboardNav('profile')}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                        >
+                          <User className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <span>My Profile</span>
+                        </button>
 
-                        {/* Name Input */}
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name (Alphabets Only)</label>
-                          <input
-                            type="text"
-                            value={editName}
-                            onChange={(e) => {
-                              const lettersOnly = e.target.value.replace(/[0-9]/g, '');
-                              setEditName(lettersOnly);
-                            }}
-                            className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
-                            required
-                          />
-                          <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Letters only (no numbers)</span>
-                        </div>
+                        <button
+                          onClick={() => handleCustomerDashboardNav('orders')}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                        >
+                          <Package className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <span>My Shipments</span>
+                        </button>
 
-                        {/* Phone Input with Country Code Selector */}
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center justify-between">
-                            <span>Phone Number *</span>
-                            <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
-                          </label>
-                          <div className="flex items-center">
-                            <select
-                              value={editCountryCode}
-                              onChange={(e) => setEditCountryCode(e.target.value)}
-                              className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
-                            >
-                              {countryCodesList.map((item) => (
-                                <option key={item.code} value={item.code}>
-                                  {item.flag} {item.code} ({item.country})
-                                </option>
-                              ))}
-                            </select>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              maxLength={getPhoneLength(editCountryCode)}
-                              value={editPhoneDigits}
-                              onChange={(e) => {
-                                const numericOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(editCountryCode));
-                                setEditPhoneDigits(numericOnly);
-                              }}
-                              placeholder={`e.g. ${'9'.repeat(getPhoneLength(editCountryCode))}`}
-                              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-r-xl font-mono font-bold text-slate-900 focus-orange text-xs"
-                              required
-                            />
-                          </div>
-                          <span className="text-[10px] text-slate-400 font-medium block mt-1">
-                            Accepts numbers only (max {getPhoneLength(editCountryCode)} digits for {editCountryCode})
-                          </span>
-                        </div>
+                        <button
+                          onClick={() => handleCustomerDashboardNav('track')}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                        >
+                          <Search className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <span>Track Shipment</span>
+                        </button>
 
-                        {/* Company Name (if Customer) */}
-                        {currentRole === 'customer' && (
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Company Name</label>
-                            <input
-                              type="text"
-                              value={editCompany}
-                              onChange={(e) => setEditCompany(e.target.value)}
-                              className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
-                              required
-                            />
-                          </div>
-                        )}
+                        <button
+                          onClick={() => handleCustomerDashboardNav('billing')}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <span>Invoices</span>
+                        </button>
 
-                        {/* License Number (if Driver) */}
-                        {currentRole === 'driver' && (
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">License Number</label>
-                            <input
-                              type="text"
-                              value={editLicense}
-                              onChange={(e) => setEditLicense(e.target.value)}
-                              className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
-                              required
-                            />
-                          </div>
-                        )}
-
-                        {/* DOB (if Driver) */}
-                        {currentRole === 'driver' && (
-                          <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date of Birth</label>
-                            <input
-                              type="date"
-                              value={editDob}
-                              onChange={(e) => setEditDob(e.target.value)}
-                              className="w-full p-2.5 bg-slate-55 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
-                              required
-                            />
-                          </div>
-                        )}
-
-                        <div className="pt-2 flex items-center space-x-3">
-                          <button
-                            type="submit"
-                            className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center space-x-1.5 cursor-pointer shadow-orange-sm"
-                          >
-                            <Save className="w-4 h-4" />
-                            <span>Save Changes</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setIsEditing(false)}
-                            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    ) : (
-                      <div className="space-y-4 text-xs text-left">
-                        {/* Profile Header Image Display */}
-                        <div className="flex items-center space-x-3.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                          <div className="relative shrink-0">
-                            <img
-                              src={currentUser.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                              alt={currentUser.name}
-                              className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
-                            />
-                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
-                          </div>
-                          <div className="text-left space-y-0.5 overflow-hidden">
-                            <h4 className="font-extrabold text-slate-900 text-sm leading-tight truncate">{currentUser.name}</h4>
-                            <p className="text-xs text-orange-600 font-bold uppercase tracking-wider">{currentRole} Account</p>
-                            <p className="text-[11px] text-slate-500 font-mono truncate">{currentUser.email}</p>
-                          </div>
-                        </div>
-
-                        {/* Name */}
-                        <div>
-                          <span className="block text-xs text-slate-400 font-bold uppercase">Full Name</span>
-                          <span className="font-bold text-sm text-slate-800">{currentUser.name}</span>
-                        </div>
-
-                        {/* Email */}
-                        <div>
-                          <span className="block text-xs text-slate-400 font-bold uppercase">Email Address</span>
-                          <span className="font-bold text-sm text-slate-800">{currentUser.email}</span>
-                        </div>
-
-                        {/* Phone */}
-                        <div>
-                          <span className="block text-xs text-slate-400 font-bold uppercase">Phone Number</span>
-                          <span className="font-bold text-sm text-slate-800">{currentUser.phone || '+65 8765 4321'}</span>
-                        </div>
-
-                        {/* Company (if Customer) */}
-                        {currentRole === 'customer' && (
-                          <div>
-                            <span className="block text-xs text-slate-400 font-bold uppercase">Company Name</span>
-                            <span className="font-bold text-sm text-slate-800">{currentUser.company || 'Global Client Corp'}</span>
-                          </div>
-                        )}
-
-                        {/* License Number (if Driver) */}
-                        {currentRole === 'driver' && (
-                          <div>
-                            <span className="block text-xs text-slate-400 font-bold uppercase">License Number</span>
-                            <span className="font-bold text-sm text-slate-800">{currentUser.licenseNumber || 'S9876543A'}</span>
-                          </div>
-                        )}
-
-                        {/* Date of Birth (if Driver) */}
-                        {currentRole === 'driver' && (
-                          <div>
-                            <span className="block text-xs text-slate-400 font-bold uppercase">Date of Birth</span>
-                            <span className="font-bold text-sm text-slate-800">{currentUser.dob || '1990-05-12'}</span>
-                          </div>
-                        )}
-
-                        {/* Status */}
-                        <div>
-                          <span className="block text-xs text-slate-400 font-bold uppercase">Account Status</span>
-                          <span className="text-emerald-600 font-extrabold flex items-center space-x-1.5 mt-0.5 text-xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                            <span>Active & Verified</span>
-                          </span>
-                        </div>
-
-                        {/* Access Level */}
-                        <div>
-                          <span className="block text-xs text-slate-400 font-bold uppercase">Access Level</span>
-                          <span className="inline-block px-2.5 py-0.5 bg-orange-100 text-orange-800 text-[10px] font-extrabold rounded-full uppercase mt-1">
-                            {currentRole}
-                          </span>
-                        </div>
-
-                        <div className="pt-2">
-                          <button
-                            type="button"
-                            onClick={startEditing}
-                            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
-                          >
-                            <Edit2 className="w-4 h-4 text-orange-400" />
-                            <span>Edit Profile Info</span>
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleCustomerDashboardNav('addresses')}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                        >
+                          <MapPin className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <span>Saved Addresses</span>
+                        </button>
                       </div>
                     )}
+
+                    {/* Driver Portal Link if authenticated as Driver */}
+                    {(currentUser.role === 'driver' || currentRole === 'driver') && (
+                      <div className="space-y-0.5 py-1">
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            setActiveTab('driver-dashboard');
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 cursor-pointer"
+                        >
+                          <Truck className="w-4 h-4 text-orange-500" />
+                          <span>Open Driver Portal</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Admin Portal Link if authenticated as Admin */}
+                    {(currentUser.role === 'admin' || currentRole === 'admin') && (
+                      <div className="space-y-0.5 py-1">
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            setActiveTab('admin-dashboard');
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 cursor-pointer"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-orange-500" />
+                          <span>Open Admin Hub</span>
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="border-t border-slate-100 pt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold shadow-orange-sm transition-all flex items-center space-x-1.5"
+                className="h-11 px-4 text-xs 2xl:text-sm font-semibold text-[#10182D] hover:text-[#FF6B00] hover:border-[#FF6B00] bg-white border border-[#E2E8F0] rounded-lg sm:rounded-xl transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
               >
-                <span>Sign In / Register</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <User className="w-3.5 h-3.5 text-[#64748B]" />
+                <span>Login</span>
               </button>
             )}
+
           </div>
 
           {/* Mobile menu button */}
-          <div className="flex lg:hidden items-center space-x-2">
+          <div className="flex xl:hidden items-center space-x-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:text-orange-500 rounded-lg focus:outline-none"
+              className="p-2 text-slate-700 hover:text-orange-500 rounded-xl focus:outline-none border border-slate-200"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -751,146 +572,230 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
-          {currentUser && (
-            <form onSubmit={handleHeaderSearch} className="relative mb-3 flex items-center">
-              <input
-                type="text"
-                value={headerSearch}
-                onChange={(e) => setHeaderSearch(e.target.value)}
-                placeholder="Track Shipment ID..."
-                className="w-full pl-9 pr-7 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-900 focus-orange"
-              />
-              <button 
-                type="submit" 
-                title="Search Parcel"
-                className="absolute left-3 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
-              >
-                <Search className="w-4 h-4" />
-              </button>
-            </form>
-          )}
+        <div className="xl:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
+          {/* Mobile CTAs */}
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              onClick={() => {
+                setActiveTab('quote');
+                setMobileMenuOpen(false);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className="py-2.5 px-3 rounded-xl text-xs font-extrabold border-2 border-orange-500 text-orange-600 hover:bg-orange-50 flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <Calculator className="w-3.5 h-3.5" />
+              <span>Get a Quote</span>
+            </button>
 
-          <div className="grid grid-cols-1 gap-1">
-            {navItems.map((item) => {
-              if (item.id === 'services') {
-                return (
-                  <div key={item.id} className="space-y-1">
-                    <button
-                      onClick={() => {
-                        handleGoToServices();
-                      }}
-                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-between ${
-                        activeTab === 'services' || activeTab === 'customs-clearance'
-                          ? 'bg-orange-50 text-orange-600 font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>Services</span>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </button>
-                    <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4">
-                      <button
-                        onClick={handleGoToServices}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
-                      >
-                        Roadways Freight Services
-                      </button>
-                      <button
-                        onClick={handleGoToCustomsClearance}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
-                      >
-                        Customs Clearance
-                      </button>
-                    </div>
-                  </div>
-                );
-              }
-
-              if (item.id === 'shipment') {
-                const isShipmentActive = activeTab === 'book' || activeTab === 'customer-dashboard' || activeTab === 'my-shipments' || activeTab === 'manage-shipment';
-                return (
-                  <div key={item.id} className="space-y-1">
-                    <button
-                      onClick={() => handleGoToShipmentTab('book')}
-                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-between ${
-                        isShipmentActive
-                          ? 'bg-orange-50 text-orange-600 font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>Shipment</span>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </button>
-                    <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4">
-                      <button
-                        onClick={() => handleGoToShipmentTab('domestic')}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
-                      >
-                        Book Road Shipment
-                      </button>
-                      <button
-                        onClick={() => handleGoToShipmentTab('my-shipments')}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
-                      >
-                        My Shipments
-                      </button>
-                      <button
-                        onClick={() => handleGoToShipmentTab('track')}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm font-bold text-slate-800 hover:text-orange-600 hover:bg-orange-50 block"
-                      >
-                        Track Shipment
-                      </button>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setMobileMenuOpen(false);
-                    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-                  }}
-                  className={`text-left px-4 py-2.5 rounded-lg text-sm font-semibold ${
-                    activeTab === item.id
-                      ? 'bg-orange-50 text-orange-600 font-bold'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
+            <button
+              onClick={() => {
+                if (!currentUser) {
+                  setIsAuthModalOpen(true);
+                  setMobileMenuOpen(false);
+                  return;
+                }
+                resetShipmentScope();
+                setActiveTab('book');
+                setMobileMenuOpen(false);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className="py-2.5 px-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>Book Shipment</span>
+            </button>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-            {currentUser ? (
-              <>
-                <div className="text-xs text-slate-500">
-                  Active Mode: <span className="font-bold text-orange-600 capitalize">{currentUser.role || currentRole}</span>
+          {/* Mobile Navigation List */}
+          <div className="grid grid-cols-1 gap-1 border-t border-slate-100 pt-3">
+            {/* Home */}
+            <button
+              onClick={() => {
+                setActiveTab('home');
+                setMobileMenuOpen(false);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className={`text-left px-3.5 py-2.5 rounded-xl text-xs font-bold ${
+                activeTab === 'home' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Home
+            </button>
+
+            {/* About Us */}
+            <button
+              onClick={() => {
+                setActiveTab('about');
+                setMobileMenuOpen(false);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className={`text-left px-3.5 py-2.5 rounded-xl text-xs font-bold ${
+                activeTab === 'about' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              About Us
+            </button>
+
+            {/* Services (Accordion) */}
+            <div className="space-y-1">
+              <button
+                onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
+                className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between text-slate-700 hover:bg-slate-50"
+              >
+                <span>Services</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${mobileServicesOpen ? 'rotate-180 text-orange-600' : ''}`} />
+              </button>
+
+              {mobileServicesOpen && (
+                <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4 py-1">
+                  {servicesDropdownItems.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => handleGoToServiceSection(s.id)}
+                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 block"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
                 </div>
+              )}
+            </div>
+
+            {/* Shipments (Accordion) */}
+            <div className="space-y-1">
+              <button
+                onClick={() => setMobileShipmentsOpen(!mobileShipmentsOpen)}
+                className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between text-slate-700 hover:bg-slate-50"
+              >
+                <span>Shipments</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${mobileShipmentsOpen ? 'rotate-180 text-orange-600' : ''}`} />
+              </button>
+
+              {mobileShipmentsOpen && (
+                <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4 py-1">
+                  {shipmentsDropdownItems.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => handleGoToShipmentTab(s.id)}
+                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 block"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Track Shipment */}
+            <button
+              onClick={() => {
+                setActiveTab('track');
+                setMobileMenuOpen(false);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className={`text-left px-3.5 py-2.5 rounded-xl text-xs font-bold ${
+                activeTab === 'track' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Track Shipment
+            </button>
+
+            {/* Fleet */}
+            <button
+              onClick={() => {
+                setActiveTab('fleet');
+                setMobileMenuOpen(false);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className={`text-left px-3.5 py-2.5 rounded-xl text-xs font-bold ${
+                activeTab === 'fleet' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Fleet
+            </button>
+
+            {/* Contact Us */}
+            <button
+              onClick={() => {
+                setActiveTab('contact');
+                setMobileMenuOpen(false);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
+              className={`text-left px-3.5 py-2.5 rounded-xl text-xs font-bold ${
+                activeTab === 'contact' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Contact Us
+            </button>
+          </div>
+
+          {/* Mobile Customer Account / Login Area */}
+          <div className="pt-3 border-t border-slate-100">
+            {currentUser ? (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2.5 p-2 bg-slate-50 rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">
+                    {currentUser.name ? currentUser.name.charAt(0) : 'U'}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">{currentUser.name}</p>
+                    <p className="text-[10px] text-slate-500 font-mono">{currentUser.email}</p>
+                  </div>
+                </div>
+
+                {/* Separate Customer Dashboard Links on Mobile */}
+                {(currentUser.role === 'customer' || currentRole === 'customer') && (
+                  <div className="grid grid-cols-2 gap-1.5 pt-1 text-xs font-bold">
+                    <button
+                      onClick={() => handleCustomerDashboardNav('profile')}
+                      className="p-2 bg-slate-50 hover:bg-orange-50 text-slate-700 rounded-lg text-left"
+                    >
+                      👤 My Profile
+                    </button>
+                    <button
+                      onClick={() => handleCustomerDashboardNav('orders')}
+                      className="p-2 bg-slate-50 hover:bg-orange-50 text-slate-700 rounded-lg text-left"
+                    >
+                      📦 My Shipments
+                    </button>
+                    <button
+                      onClick={() => handleCustomerDashboardNav('track')}
+                      className="p-2 bg-slate-50 hover:bg-orange-50 text-slate-700 rounded-lg text-left"
+                    >
+                      📍 Track Shipment
+                    </button>
+                    <button
+                      onClick={() => handleCustomerDashboardNav('billing')}
+                      className="p-2 bg-slate-50 hover:bg-orange-50 text-slate-700 rounded-lg text-left"
+                    >
+                      📄 Invoices
+                    </button>
+                    <button
+                      onClick={() => handleCustomerDashboardNav('addresses')}
+                      className="p-2 bg-slate-50 hover:bg-orange-50 text-slate-700 rounded-lg text-left col-span-2"
+                    >
+                      🏠 Saved Addresses
+                    </button>
+                  </div>
+                )}
+
                 <button
-                  onClick={() => {
-                    handleLogout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-xs font-bold text-rose-600 underline cursor-pointer"
+                  onClick={handleLogout}
+                  className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold text-center cursor-pointer mt-2"
                 >
                   Sign Out
                 </button>
-              </>
+              </div>
             ) : (
               <button
                 onClick={() => {
                   setIsAuthModalOpen(true);
                   setMobileMenuOpen(false);
                 }}
-                className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold text-center"
+                className="w-full h-11 bg-[#FF6B00] hover:bg-[#E55C00] text-white rounded-xl text-sm font-semibold text-center shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
               >
-                Sign In / Register
+                <User className="w-3.5 h-3.5" />
+                <span>Sign In / Register</span>
               </button>
             )}
           </div>

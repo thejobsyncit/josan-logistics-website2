@@ -1,0 +1,286 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - img "Josan Logistics Logo" [ref=e8] [cursor=pointer]
+      - navigation [ref=e9]:
+        - button "Home" [ref=e10] [cursor=pointer]
+        - button "About Us" [ref=e11] [cursor=pointer]
+        - button "Services" [ref=e13] [cursor=pointer]
+        - button "Shipments" [active] [ref=e18] [cursor=pointer]
+        - button "Track Shipment" [ref=e22] [cursor=pointer]
+        - button "Fleet" [ref=e23] [cursor=pointer]
+        - button "Contact Us" [ref=e24] [cursor=pointer]
+      - generic [ref=e25]:
+        - button "Get a Quote" [ref=e26] [cursor=pointer]
+        - button "Book Shipment" [ref=e30] [cursor=pointer]
+        - button "Login" [ref=e36] [cursor=pointer]
+  - main [ref=e41]:
+    - generic [ref=e600]:
+      - generic [ref=e602]:
+        - generic [ref=e603]: Integrated Logistics Services
+        - heading "Comprehensive Road & Freight Services" [level=1] [ref=e610]
+        - paragraph [ref=e611]: From dedicated full truckload linehaul and consolidated LTL runs to express couriers, specialized cold chain, and customs clearance, Josan Logistics provides premier overland transport with dynamic live telematics.
+        - generic [ref=e612]:
+          - link "Road Transportation" [ref=e613] [cursor=pointer]:
+            - /url: "#road-transportation"
+          - link "FTL Transportation" [ref=e614] [cursor=pointer]:
+            - /url: "#ftl-transportation"
+          - link "LTL Transportation" [ref=e615] [cursor=pointer]:
+            - /url: "#ltl-transportation"
+          - link "Express Delivery" [ref=e616] [cursor=pointer]:
+            - /url: "#express-delivery"
+          - link "Specialized Cargo" [ref=e617] [cursor=pointer]:
+            - /url: "#specialized-cargo"
+          - button "Customs Clearance" [ref=e618] [cursor=pointer]
+          - link "Cargo Types" [ref=e619] [cursor=pointer]:
+            - /url: "#cargo-types"
+      - generic [ref=e621]:
+        - generic [ref=e622]:
+          - text: Interactive Estimator
+          - heading "Calculate Instant Freight Rate" [level=3] [ref=e623]
+          - paragraph [ref=e624]: Adjust weight and service speed to get an instant estimate.
+        - generic [ref=e625]:
+          - generic [ref=e626]:
+            - generic [ref=e627]:
+              - text: "Cargo Weight:"
+              - generic [ref=e628]: 25 kg
+            - generic [ref=e629]:
+              - slider [ref=e630] [cursor=pointer]: "25"
+              - generic [ref=e631] [cursor=pointer]
+            - generic [ref=e632]:
+              - generic [ref=e633]: 0 kg
+              - generic [ref=e634]: 250 kg
+              - generic [ref=e635]: 500 kg
+          - generic [ref=e636]:
+            - generic [ref=e637]:
+              - generic [ref=e638]: Service Mode
+              - combobox [ref=e639] [cursor=pointer]:
+                - option "Roadways Freight & Land Haulage ($4/kg)" [selected]
+                - option "Full Truckload (FTL) Dedicated ($6/kg)"
+                - option "Express Highway Road Courier ($8/kg)"
+            - generic [ref=e640] [cursor=pointer]:
+              - checkbox "Add Full Cargo Insurance (+$25)" [ref=e641]
+              - generic [ref=e642]: Add Full Cargo Insurance (+$25)
+          - generic [ref=e643]:
+            - generic [ref=e644]: Estimated Total Rate
+            - generic [ref=e645]: $100.00
+            - generic [ref=e646]: 25kg × $4/kg
+        - button "Proceed To Book" [ref=e648] [cursor=pointer]
+      - generic [ref=e652]:
+        - generic [ref=e653]:
+          - generic [ref=e654]:
+            - generic [ref=e655]: Road Transportation
+            - heading "Road Transportation & Land Haulage" [level=3] [ref=e663]
+            - paragraph [ref=e664]: Primary Domestic & Cross-Border Highway Corridor Network
+            - paragraph [ref=e665]: Modern roadway transport fleet equipped with satellite GPS telematics for seamless highway freight and door-to-door road transport across Singapore, ports, and regional expressway gateways.
+            - generic [ref=e666]:
+              - generic [ref=e667]: Door-to-door pickup & scheduled drops
+              - generic [ref=e672]: Automated AI route optimization
+              - generic [ref=e677]: Hydraulic lift-gate vans & lorries available
+              - generic [ref=e682]: 24/7 driver telemetry feed & live ETA
+            - generic [ref=e687]:
+              - button "Book This Service" [ref=e688] [cursor=pointer]
+              - button "Get Instant Quote" [ref=e692] [cursor=pointer]
+          - generic [ref=e695]:
+            - img "Road Transportation & Land Haulage view 2" [ref=e1091]
+            - button "Previous Image" [ref=e698] [cursor=pointer]
+            - button "Next Image" [ref=e701] [cursor=pointer]
+            - generic [ref=e704]:
+              - button [ref=e705] [cursor=pointer]
+              - button [ref=e706] [cursor=pointer]
+              - button [ref=e707] [cursor=pointer]
+        - generic [ref=e708]:
+          - generic [ref=e709]:
+            - generic [ref=e710]: FTL Transportation
+            - heading "Full Truckload (FTL) Dedicated Transportation" [level=3] [ref=e717]
+            - paragraph [ref=e718]: Exclusive Point-to-Point Bulk Haulage without Intermediate Stops
+            - paragraph [ref=e719]: Exclusive full-capacity truckload services for bulk shipments, palletized merchandise, and industrial machinery. Your cargo occupies the entire vehicle, ensuring direct, untranshipped routing with maximum security and the fastest highway transit times.
+            - generic [ref=e720]:
+              - generic [ref=e721]: Dedicated 24ft–40ft lorries & prime movers
+              - generic [ref=e726]: Direct origin-to-destination non-stop delivery
+              - generic [ref=e731]: Up to 24,000 kg payload capacity
+              - generic [ref=e736]: Sealed container & anti-tamper security locks
+            - generic [ref=e741]:
+              - button "Book This Service" [ref=e742] [cursor=pointer]
+              - button "Get Instant Quote" [ref=e746] [cursor=pointer]
+          - generic [ref=e749]:
+            - img "Full Truckload (FTL) Dedicated Transportation view 2" [ref=e1092]
+            - button "Previous Image" [ref=e752] [cursor=pointer]
+            - button "Next Image" [ref=e755] [cursor=pointer]
+            - generic [ref=e758]:
+              - button [ref=e759] [cursor=pointer]
+              - button [ref=e760] [cursor=pointer]
+              - button [ref=e761] [cursor=pointer]
+        - generic [ref=e762]:
+          - generic [ref=e763]:
+            - generic [ref=e764]: LTL Transportation
+            - heading "Less-Than-Truckload (LTL) Consolidated Freight" [level=3] [ref=e771]
+            - paragraph [ref=e772]: Cost-Optimized Shared Capacity with Scheduled Linehaul Runs
+            - paragraph [ref=e773]: Economical consolidated road freight for businesses shipping 1 to 10 pallets. Share trailer space while benefiting from computerized manifests, scheduled daily departures, and automated warehouse sorting across our regional hubs.
+            - generic [ref=e774]:
+              - generic [ref=e775]: Tiered volumetric and pallet pricing
+              - generic [ref=e780]: Daily scheduled linehaul departures
+              - generic [ref=e785]: Automated cross-dock sorting & scanning
+              - generic [ref=e790]: Individual pallet barcode tracking
+            - generic [ref=e795]:
+              - button "Book This Service" [ref=e796] [cursor=pointer]
+              - button "Get Instant Quote" [ref=e800] [cursor=pointer]
+          - generic [ref=e803]:
+            - img "Less-Than-Truckload (LTL) Consolidated Freight view 2" [ref=e1093]
+            - button "Previous Image" [ref=e806] [cursor=pointer]
+            - button "Next Image" [ref=e809] [cursor=pointer]
+            - generic [ref=e812]:
+              - button [ref=e813] [cursor=pointer]
+              - button [ref=e814] [cursor=pointer]
+              - button [ref=e815] [cursor=pointer]
+        - generic [ref=e816]:
+          - generic [ref=e817]:
+            - generic [ref=e818]: Express Delivery
+            - heading "Express Highway & City Delivery" [level=3] [ref=e823]
+            - paragraph [ref=e824]: Priority Same-Day Dispatch for Time-Critical Consignments
+            - paragraph [ref=e825]: Rapid express courier and dedicated sprinter dispatch for mission-critical parts, urgent medical samples, legal documentation, and time-sensitive customer orders with guaranteed SLA turnaround.
+            - generic [ref=e826]:
+              - generic [ref=e827]: Under 4-hour direct point-to-point delivery
+              - generic [ref=e832]: Immediate priority driver dispatch
+              - generic [ref=e837]: Real-time minute-by-minute satellite telemetry
+              - generic [ref=e842]: Digital Proof-of-Delivery (POD) with signature
+            - generic [ref=e847]:
+              - button "Book This Service" [ref=e848] [cursor=pointer]
+              - button "Get Instant Quote" [ref=e852] [cursor=pointer]
+          - generic [ref=e855]:
+            - img "Express Highway & City Delivery view 2" [ref=e1094]
+            - button "Previous Image" [ref=e858] [cursor=pointer]
+            - button "Next Image" [ref=e861] [cursor=pointer]
+            - generic [ref=e864]:
+              - button [ref=e865] [cursor=pointer]
+              - button [ref=e866] [cursor=pointer]
+              - button [ref=e867] [cursor=pointer]
+        - generic [ref=e868]:
+          - generic [ref=e869]:
+            - generic [ref=e870]: Specialized Cargo
+            - heading "Specialized & Cold Chain Temperature Cargo" [level=3] [ref=e875]
+            - paragraph [ref=e876]: Active Thermoregulation (-25°C to +25°C) & High-Care Logistics
+            - paragraph [ref=e877]: Engineered transport solutions for pharmaceuticals, perishables, and delicate industrial materials. Active climate-controlled reefer vans equipped with dual-probe IoT dataloggers maintain continuous compliance throughout transit.
+            - generic [ref=e878]:
+              - generic [ref=e879]: Precise multi-temp control (-25°C to +25°C)
+              - generic [ref=e884]: Continuous IoT datalogger temperature reports
+              - generic [ref=e889]: GDP pharmaceutical & cold chain certified
+              - generic [ref=e894]: Thermal air curtain doors & standby power
+            - generic [ref=e899]:
+              - button "Book This Service" [ref=e900] [cursor=pointer]
+              - button "Get Instant Quote" [ref=e904] [cursor=pointer]
+          - generic [ref=e907]:
+            - img "Specialized & Cold Chain Temperature Cargo view 2" [ref=e1095]
+            - button "Previous Image" [ref=e910] [cursor=pointer]
+            - button "Next Image" [ref=e913] [cursor=pointer]
+            - generic [ref=e916]:
+              - button [ref=e917] [cursor=pointer]
+              - button [ref=e918] [cursor=pointer]
+              - button [ref=e919] [cursor=pointer]
+      - generic [ref=e921]:
+        - generic [ref=e922]:
+          - generic [ref=e923]: Commodity Classification
+          - heading "Supported Cargo Types & Industries" [level=2] [ref=e924]
+          - paragraph [ref=e925]: Josan Logistics handles over 10 major commercial cargo categories and hundreds of subcategories, with customized securing protocols, temperature logs, and specialized handling equipment.
+        - generic [ref=e926]:
+          - button "Beverages, Foods & Plants" [ref=e927] [cursor=pointer]
+          - button "Chemicals & Healthcare" [ref=e931] [cursor=pointer]
+          - button "Furnitures & Accessories" [ref=e935] [cursor=pointer]
+          - button "Industrial Products" [ref=e940] [cursor=pointer]
+          - button "Apparels and Accessories" [ref=e944] [cursor=pointer]
+          - button "Building Materials" [ref=e948] [cursor=pointer]
+          - button "Vehicles, Engines & Spare Parts" [ref=e952] [cursor=pointer]
+          - button "Appliances and Material" [ref=e958] [cursor=pointer]
+          - button "Leisure Items" [ref=e963] [cursor=pointer]
+          - button "Paperboard & Prints" [ref=e971] [cursor=pointer]
+          - button "Other / Custom Cargo" [ref=e976] [cursor=pointer]
+        - generic [ref=e980]:
+          - generic [ref=e981]:
+            - generic [ref=e986]:
+              - heading "Beverages, Foods & Plants" [level=3] [ref=e987]
+              - paragraph [ref=e988]: Approved for Road Transport, FTL, LTL & Cross-Border Delivery
+            - button "Quote for Beverages, Foods & Plants" [ref=e989] [cursor=pointer]
+          - generic [ref=e993]:
+            - heading "Accepted Cargo Subcategories:" [level=4] [ref=e994]
+            - generic [ref=e995]:
+              - generic [ref=e996]: Non-perishable Foods
+              - generic [ref=e1001]: Water, Soft Drinks
+              - generic [ref=e1006]: Still and Sparkling Wines
+              - generic [ref=e1011]: Spirits, Liquors
+              - generic [ref=e1016]: Fresh & Frozen Products
+              - generic [ref=e1021]: Tobacco
+              - generic [ref=e1026]: Plants, Flowers & Seeds
+      - generic [ref=e1033]:
+        - generic [ref=e1034]:
+          - generic [ref=e1035]: Regulatory Compliance & Brokerage
+          - heading "Roadways Customs Clearance" [level=3] [ref=e1036]
+          - paragraph [ref=e1037]: Smooth Overland Customs Clearance, From Documentation to Highway Delivery
+          - paragraph [ref=e1038]: Simplify road freight customs clearance with documentation support, border checkpoint declarations, duty assessment, highway inspection coordination, compliance support, and cargo release for overland roadways freight.
+          - generic [ref=e1039]:
+            - button "Explore Customs Clearance" [ref=e1040] [cursor=pointer]
+            - button "Request Customs Clearance" [ref=e1044] [cursor=pointer]
+        - generic [ref=e1045]:
+          - generic [ref=e1046]:
+            - generic [ref=e1047]: 99.4%
+            - generic [ref=e1048]: First-Pass Release
+          - generic [ref=e1049]:
+            - generic [ref=e1050]: < 24h
+            - generic [ref=e1051]: Border Clearance
+          - generic [ref=e1052]:
+            - generic [ref=e1053]: Roadways
+            - generic [ref=e1054]: Dedicated Overland Service
+          - generic [ref=e1055]:
+            - generic [ref=e1056]: 100%
+            - generic [ref=e1057]: AEO Compliant
+  - contentinfo [ref=e515]:
+    - generic [ref=e516]:
+      - generic [ref=e517]:
+        - generic [ref=e518]:
+          - img "Josan Logistics Logo" [ref=e520] [cursor=pointer]
+          - paragraph [ref=e521]: Josan Logistics is a premier roadways freight and land haulage provider, offering full truckload (FTL), partial freight (LTL), express highway road couriers, and cross-border customs clearance.
+          - generic [ref=e522]:
+            - generic [ref=e523]: ISO 9001 Certified
+            - generic [ref=e528]: 120+ Hubs Worldwide
+        - generic [ref=e533]:
+          - heading "Quick Navigation" [level=4] [ref=e534]
+          - list [ref=e535]:
+            - listitem [ref=e536]:
+              - button "Home" [ref=e537] [cursor=pointer]
+            - listitem [ref=e541]:
+              - button "About Us" [ref=e542] [cursor=pointer]
+            - listitem [ref=e546]:
+              - button "Services" [ref=e547] [cursor=pointer]
+            - listitem [ref=e551]:
+              - button "Contact" [ref=e552] [cursor=pointer]
+        - generic [ref=e556]:
+          - heading "Our Solutions" [level=4] [ref=e557]
+          - list [ref=e558]:
+            - listitem [ref=e559] [cursor=pointer]: Roadways Freight (FTL / LTL)
+            - listitem [ref=e560] [cursor=pointer]: Heavy Haulage & Flatbed Trucking
+            - listitem [ref=e561] [cursor=pointer]: Express Highway Road Courier
+            - listitem [ref=e562] [cursor=pointer]: Temperature-Controlled Reefer Trucks
+            - listitem [ref=e563] [cursor=pointer]: Roadways Customs Clearance
+        - generic [ref=e564]:
+          - generic [ref=e566]:
+            - heading "Singapore HQ & Dispatch" [level=4] [ref=e567]
+            - generic [ref=e568]: 24/7 LIVE
+          - generic [ref=e572]:
+            - generic [ref=e573]:
+              - paragraph [ref=e574]: Singapore Dispatch Hotline
+              - link "+65 6789 0123" [ref=e578] [cursor=pointer]:
+                - /url: tel:+6567890123
+            - generic [ref=e579]: "Regional HQ: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438"
+            - link "contact@josanlogistics.com.sg" [ref=e588] [cursor=pointer]:
+              - /url: mailto:contact@josanlogistics.com.sg
+          - generic [ref=e589]:
+            - text: Subscribe for Freight Updates
+            - generic [ref=e590]:
+              - textbox "Enter corporate email..." [ref=e591]
+              - button "Join" [ref=e592] [cursor=pointer]
+      - generic [ref=e593]:
+        - paragraph [ref=e594]: © 2026 Josan Logistics Inc. All rights reserved.
+        - generic [ref=e595]:
+          - generic [ref=e596] [cursor=pointer]: Privacy Policy
+          - generic [ref=e597] [cursor=pointer]: Terms of Service
+          - generic [ref=e598] [cursor=pointer]: Security SLAs
+          - generic [ref=e599] [cursor=pointer]: Carrier Portal

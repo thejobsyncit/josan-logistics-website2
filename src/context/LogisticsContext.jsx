@@ -1,5 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { initialShipments, initialDrivers, initialWarehouses, analyticsData } from '../data/mockData';
+import { 
+  initialShipments, 
+  initialDrivers, 
+  initialWarehouses, 
+  analyticsData,
+  initialQuotes,
+  initialNotifications,
+  initialCustomers,
+  initialDocuments,
+  initialInvoices,
+  initialTickets
+} from '../data/mockData';
 
 const LogisticsContext = createContext();
 
@@ -74,6 +85,105 @@ export const LogisticsProvider = ({ children }) => {
       return initialWarehouses;
     }
   });
+
+  // Quotation Management State
+  const [quotes, setQuotes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_quotes');
+      return saved ? JSON.parse(saved) : initialQuotes;
+    } catch (e) {
+      return initialQuotes;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_quotes', JSON.stringify(quotes));
+    } catch (e) {}
+  }, [quotes]);
+
+  // Website Notification System State
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_notifications');
+      return saved ? JSON.parse(saved) : initialNotifications;
+    } catch (e) {
+      return initialNotifications;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_notifications', JSON.stringify(notifications));
+    } catch (e) {}
+  }, [notifications]);
+
+  // Phase 3: Customers Directory
+  const [customers, setCustomers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_customers');
+      return saved ? JSON.parse(saved) : initialCustomers;
+    } catch (e) {
+      return initialCustomers;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_customers', JSON.stringify(customers));
+    } catch (e) {}
+  }, [customers]);
+
+  // Phase 3: Linked Shipment Documents
+  const [documents, setDocuments] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_documents');
+      return saved ? JSON.parse(saved) : initialDocuments;
+    } catch (e) {
+      return initialDocuments;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_documents', JSON.stringify(documents));
+    } catch (e) {}
+  }, [documents]);
+
+  // Phase 3: Invoices & Billing
+  const [invoices, setInvoices] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_invoices');
+      return saved ? JSON.parse(saved) : initialInvoices;
+    } catch (e) {
+      return initialInvoices;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_invoices', JSON.stringify(invoices));
+    } catch (e) {}
+  }, [invoices]);
+
+  // Phase 3: Support Tickets System
+  const [tickets, setTickets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_tickets');
+      return saved ? JSON.parse(saved) : initialTickets;
+    } catch (e) {
+      return initialTickets;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_tickets', JSON.stringify(tickets));
+    } catch (e) {}
+  }, [tickets]);
+
+  // Global Shipment Details Modal/View
+  const [selectedDetailShipment, setSelectedDetailShipment] = useState(null);
 
   // User & Auth state
   const [currentRole, setCurrentRole] = useState(() => {
@@ -465,32 +575,65 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const updateShipmentStatus = (shipmentId, newStatus, newLocation = '') => {
+    const stageMap = {
+      'Booked': 1,
+      'Confirmed': 2,
+      'Pickup Scheduled': 3,
+      'Picked Up': 4,
+      'In Transit': 5,
+      'Near Destination': 6,
+      'Out for Delivery': 6,
+      'Delivered': 7,
+      'Delayed': 5
+    };
+
+    const targetStageNum = stageMap[newStatus] || 5;
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
     setShipments(prev => prev.map(s => {
       if (s.id === shipmentId) {
         let updatedStatusType = 'active';
         if (newStatus === 'Delivered') updatedStatusType = 'success';
         if (newStatus === 'Delayed') updatedStatusType = 'warning';
 
-        const updatedTimeline = s.timeline.map((step, idx) => {
-          if (newStatus === 'Picked Up') {
-            if (idx <= 1) return { ...step, completed: true, current: idx === 1, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
-            return { ...step, completed: false, current: false };
-          }
-          if (newStatus === 'In Transit') {
-            if (idx <= 2) return { ...step, completed: true, current: idx === 2, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
-            return { ...step, completed: false, current: false };
-          }
-          if (newStatus === 'Out for Delivery') {
-            if (idx <= 3) return { ...step, completed: true, current: idx === 3, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
-            return { ...step, completed: false, current: false };
-          }
-          if (newStatus === 'Delivered') {
-            return { ...step, completed: true, current: idx === 4, timestamp: step.timestamp === 'Pending' ? 'Just Now' : step.timestamp };
-          }
-          if (newStatus === 'Delayed' && idx === 2) {
-            return { ...step, completed: true, current: true, title: 'Delay Flagged (Traffic/Customs)' };
-          }
-          return step;
+        // Auto-generate OTP if reaching destination and none exists
+        let activeOtp = s.deliveryOtp;
+        if ((newStatus === 'Near Destination' || newStatus === 'Out for Delivery') && !activeOtp) {
+          activeOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        const default7StageTitles = [
+          'Consignment Booked',
+          'Booking Confirmed by Operations',
+          'Pickup Scheduled',
+          'Picked Up by Fleet Driver',
+          'In Transit on Highway Corridor',
+          'Near Destination Terminal',
+          'Delivered & POD Verified'
+        ];
+
+        // Ensure 7 stages in timeline
+        let baseTimeline = Array.isArray(s.timeline) && s.timeline.length >= 7 ? s.timeline : (
+          default7StageTitles.map((title, i) => ({
+            step: i + 1,
+            title,
+            location: i <= 2 ? s.origin : i === 3 ? 'Origin Loading Bay' : i === 4 ? (newLocation || s.currentLocation || 'Expressway Corridor') : s.destination,
+            timestamp: i + 1 <= targetStageNum ? (i + 1 === targetStageNum ? timeNow : 'Completed') : 'Pending',
+            completed: i + 1 <= targetStageNum,
+            current: i + 1 === targetStageNum
+          }))
+        );
+
+        const updatedTimeline = baseTimeline.map((step, idx) => {
+          const stepNum = step.step || (idx + 1);
+          const isDone = stepNum <= targetStageNum;
+          const isCurrent = stepNum === targetStageNum;
+          return {
+            ...step,
+            completed: isDone,
+            current: isCurrent,
+            timestamp: isCurrent ? timeNow : (step.timestamp === 'Pending' && isDone ? timeNow : step.timestamp)
+          };
         });
 
         return {
@@ -498,12 +641,587 @@ export const LogisticsProvider = ({ children }) => {
           status: newStatus,
           statusType: updatedStatusType,
           currentLocation: newLocation || s.currentLocation,
+          lastUpdatedTime: `Just now (${timeNow} SGT)`,
+          deliveryOtp: activeOtp,
+          otpVerified: newStatus === 'Delivered' ? true : s.otpVerified,
           timeline: updatedTimeline
         };
       }
       return s;
     }));
+
+    // Trigger in-app notifications
+    if (newStatus === 'Confirmed') {
+      addNotification({
+        role: 'customer',
+        type: 'shipment',
+        title: `✅ Booking Confirmed: #${shipmentId}`,
+        message: `Your booking has been reviewed and verified by Josan Central Operations.`,
+        shipmentId
+      });
+    } else if (newStatus === 'Pickup Scheduled') {
+      addNotification({
+        role: 'customer',
+        type: 'shipment',
+        title: `📅 Pickup Scheduled: #${shipmentId}`,
+        message: `Pickup has been assigned to driver. Fleet arrival scheduled at loading terminal.`,
+        shipmentId
+      });
+    } else if (newStatus === 'Picked Up') {
+      addNotification({
+        role: 'customer',
+        type: 'shipment',
+        title: `📦 Cargo Picked Up: #${shipmentId}`,
+        message: `Consignment picked up and weighed. Highway linehaul transit commencing.`,
+        shipmentId
+      });
+    } else if (newStatus === 'Near Destination' || newStatus === 'Out for Delivery') {
+      const targetS = shipments.find(item => item.id === shipmentId);
+      const otpCode = targetS?.deliveryOtp || '482910';
+      addNotification({
+        role: 'customer',
+        type: 'otp',
+        title: `🚚 Delivery Approaching: OTP ${otpCode}`,
+        message: `Driver is near destination. Please present Delivery OTP: ${otpCode} upon arrival.`,
+        shipmentId
+      });
+    } else if (newStatus === 'Delivered') {
+      addNotification({
+        role: 'customer',
+        type: 'pod_verified',
+        title: `🎉 Order #${shipmentId} Delivered!`,
+        message: `Delivered successfully. Digital Proof of Delivery (POD) certified.`,
+        shipmentId
+      });
+    }
+
     showToast(`Updated status of ${shipmentId} to "${newStatus}"`);
+  };
+
+  // Driver Trip & Location Operations
+  const startDriverTrip = (shipmentId) => {
+    updateShipmentStatus(shipmentId, 'In Transit', 'En Route via Highway Telematics Corridor');
+    showToast(`Trip started for #${shipmentId}! Real-time tracking active.`, 'success');
+  };
+
+  const updateShipmentLocation = (shipmentId, newLocationText, coords) => {
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setShipments(prev => prev.map(s => {
+      if (s.id === shipmentId) {
+        return {
+          ...s,
+          currentLocation: newLocationText,
+          lastUpdatedTime: `Just now (${timeNow} SGT)`,
+          coordinates: coords ? { ...s.coordinates, current: coords } : s.coordinates
+        };
+      }
+      return s;
+    }));
+    showToast(`Location updated to "${newLocationText}" for #${shipmentId}`);
+  };
+
+  const reachDestination = (shipmentId) => {
+    updateShipmentStatus(shipmentId, 'Near Destination', 'Arrived at Destination Receiving Gate');
+    showToast(`Arrived near destination for #${shipmentId}! Delivery OTP issued.`, 'success');
+  };
+
+  const verifyDeliveryOtp = (shipmentId, enteredOtp) => {
+    const s = shipments.find(item => item.id === shipmentId);
+    if (!s) return { success: false, message: 'Shipment record not found.' };
+
+    const cleanInput = (enteredOtp || '').trim();
+    const targetOtp = (s.deliveryOtp || s.otpActive || '482910').trim();
+
+    if (!cleanInput) {
+      return { success: false, message: 'Please enter the 6-digit delivery OTP from the customer.' };
+    }
+
+    if (cleanInput !== targetOtp) {
+      return { success: false, message: 'Invalid OTP code. Please confirm OTP with recipient.' };
+    }
+
+    setShipments(prev => prev.map(item => item.id === shipmentId ? { ...item, otpVerified: true } : item));
+    return { success: true, message: 'OTP verified successfully! Please capture recipient signature and photo to complete POD.' };
+  };
+
+  const submitPod = (shipmentId, podData) => {
+    const timeNow = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const completePod = {
+      photo: podData.photo || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&auto=format&fit=crop&q=80',
+      recipientName: podData.recipientName || 'Authorized Receiving Officer',
+      recipientSignature: podData.recipientSignature || '',
+      deliveredAt: `${timeNow} SGT`,
+      remarks: podData.remarks || 'Consignment handed over in verified undamaged condition.',
+      driverId: podData.driverId || 'DRV-101'
+    };
+
+    setShipments(prev => prev.map(s => {
+      if (s.id === shipmentId) {
+        const updatedTimeline = (s.timeline || []).map(step => ({
+          ...step,
+          completed: true,
+          current: step.step === 7,
+          timestamp: step.step === 7 ? timeNow : step.timestamp
+        }));
+
+        return {
+          ...s,
+          status: 'Delivered',
+          statusType: 'success',
+          currentLocation: `${s.destination} (Delivered)`,
+          lastUpdatedTime: `${timeNow} (Digital POD Stamped)`,
+          otpVerified: true,
+          pod: completePod,
+          timeline: updatedTimeline
+        };
+      }
+      return s;
+    }));
+
+    addNotification({
+      role: 'customer',
+      type: 'pod_verified',
+      title: `✅ Order #${shipmentId} Delivered!`,
+      message: `Handed over to ${completePod.recipientName}. Digital Proof of Delivery (POD) signed.`,
+      shipmentId
+    });
+
+    addNotification({
+      role: 'admin',
+      type: 'pod_verified',
+      title: `✍️ Digital POD Stamped for #${shipmentId}`,
+      message: `Delivery completed by driver. Signed by ${completePod.recipientName}.`,
+      shipmentId
+    });
+
+    showToast(`Delivery completed and Digital POD stamped for #${shipmentId}!`, 'success');
+    return completePod;
+  };
+
+  // Notification Operations
+  const addNotification = ({ role = 'customer', userId = 'all', type = 'info', title, message, shipmentId, quoteId }) => {
+    const newNotif = {
+      id: `NOTIF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      role,
+      userId,
+      type,
+      title,
+      message,
+      shipmentId: shipmentId || null,
+      quoteId: quoteId || null,
+      timestamp: 'Just now',
+      read: false
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    return newNotif;
+  };
+
+  const markNotificationAsRead = (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const markAllNotificationsAsRead = (role) => {
+    setNotifications(prev => prev.map(n => (!role || n.role === role) ? { ...n, read: true } : n));
+    showToast('All notifications marked as read', 'info');
+  };
+
+  const clearNotifications = (role) => {
+    setNotifications(prev => prev.filter(n => role && n.role !== role));
+    showToast('Notifications cleared', 'info');
+  };
+
+  // Quotation Management Operations
+  const requestQuote = (quoteData) => {
+    const quoteId = `QTE-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+    const weightVal = Number(quoteData.cargoWeight) || 100;
+    const baseRate = quoteData.freightMode === 'reefer' ? 6.50 : quoteData.freightMode === 'express' ? 8.00 : 5.00;
+    const baseTransportation = Number((weightVal * baseRate).toFixed(2));
+    const distanceCharge = Number((baseTransportation * 0.18).toFixed(2));
+    const cargoCharge = Number((baseTransportation * 0.12).toFixed(2));
+    const vehicleCharge = quoteData.freightMode === 'ftl' ? 120.00 : 60.00;
+    const additionalServices = quoteData.tailgateRequired ? 35.00 : 0.00;
+    const subtotal = baseTransportation + distanceCharge + cargoCharge + vehicleCharge + additionalServices;
+    const taxAmount = Number((subtotal * 0.09).toFixed(2));
+    const finalAmount = Number((subtotal + taxAmount).toFixed(2));
+
+    const newQuote = {
+      id: quoteId,
+      customerId: currentUser?.id || 'USR-GUEST',
+      customerName: quoteData.contactName || currentUser?.name || 'Enterprise Shipper',
+      customerEmail: quoteData.contactEmail || currentUser?.email || 'contact@enterprise.com',
+      customerPhone: quoteData.contactPhone || currentUser?.phone || '+65 9123 4567',
+      company: quoteData.contactCompany || currentUser?.company || 'Commercial Shipper',
+      origin: quoteData.originZone || 'Jurong West Logistics Hub',
+      destination: quoteData.destinationZone || 'Woodlands Distribution Complex',
+      cargoCategory: quoteData.cargoCategory || 'General Commercial Cargo',
+      cargoWeight: weightVal,
+      freightMode: quoteData.freightMode || 'ftl',
+      deliverySpeed: quoteData.deliverySpeed || 'standard',
+      notes: quoteData.specialInstructions || '',
+      status: 'Draft',
+      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      validUntil: new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+      lineItems: {
+        baseTransportationCharge: baseTransportation,
+        distanceCharge,
+        cargoCharge,
+        vehicleCharge,
+        additionalServices,
+        taxRate: 0.09,
+        taxAmount,
+        finalAmount
+      },
+      adminNotes: 'Awaiting operations review and vehicle allocation.'
+    };
+
+    setQuotes(prev => [newQuote, ...prev]);
+
+    addNotification({
+      role: 'admin',
+      type: 'quote_request',
+      title: `📥 New Quote Request #${quoteId}`,
+      message: `${newQuote.customerName} (${newQuote.company}) requested a quote for ${newQuote.origin} → ${newQuote.destination}.`,
+      quoteId
+    });
+
+    showToast(`Quotation #${quoteId} created! Our operations desk has been notified.`, 'success');
+    return newQuote;
+  };
+
+  const updateAdminQuote = (quoteId, updatedLineItems, adminNotes) => {
+    setQuotes(prev => prev.map(q => {
+      if (q.id === quoteId) {
+        const subtotal = 
+          Number(updatedLineItems.baseTransportationCharge || 0) +
+          Number(updatedLineItems.distanceCharge || 0) +
+          Number(updatedLineItems.cargoCharge || 0) +
+          Number(updatedLineItems.vehicleCharge || 0) +
+          Number(updatedLineItems.additionalServices || 0);
+        const taxAmount = Number((subtotal * 0.09).toFixed(2));
+        const finalAmount = Number((subtotal + taxAmount).toFixed(2));
+
+        return {
+          ...q,
+          lineItems: {
+            ...updatedLineItems,
+            taxRate: 0.09,
+            taxAmount,
+            finalAmount
+          },
+          adminNotes: adminNotes !== undefined ? adminNotes : q.adminNotes
+        };
+      }
+      return q;
+    }));
+    showToast(`Quotation #${quoteId} line items updated!`, 'success');
+  };
+
+  const sendQuoteToCustomer = (quoteId) => {
+    let sentQuote = null;
+    setQuotes(prev => prev.map(q => {
+      if (q.id === quoteId) {
+        sentQuote = { ...q, status: 'Sent' };
+        return sentQuote;
+      }
+      return q;
+    }));
+
+    if (sentQuote) {
+      addNotification({
+        role: 'customer',
+        type: 'quote',
+        title: `📄 Quotation #${quoteId} Ready for Review`,
+        message: `Your requested quote from ${sentQuote.origin} to ${sentQuote.destination} is ready: S$ ${sentQuote.lineItems.finalAmount.toFixed(2)}. Review and accept to proceed.`,
+        quoteId
+      });
+      showToast(`Quotation #${quoteId} sent to customer!`, 'success');
+    }
+  };
+
+  const customerRespondQuote = (quoteId, response) => {
+    let targetQuote = null;
+    setQuotes(prev => prev.map(q => {
+      if (q.id === quoteId) {
+        targetQuote = { ...q, status: response };
+        return targetQuote;
+      }
+      return q;
+    }));
+
+    if (targetQuote) {
+      addNotification({
+        role: 'admin',
+        type: 'quote_response',
+        title: `Quotation #${quoteId} ${response}`,
+        message: `Customer ${targetQuote.customerName} has ${response.toLowerCase()} quotation #${quoteId}.`,
+        quoteId
+      });
+      showToast(`Quotation #${quoteId} marked as ${response}!`, response === 'Accepted' ? 'success' : 'info');
+    }
+  };
+
+  const convertQuoteToShipment = (quoteId) => {
+    const q = quotes.find(item => item.id === quoteId);
+    if (!q) return null;
+
+    const newShipmentId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+    const newShipment = {
+      id: newShipmentId,
+      referenceNumber: `REF-${q.id.replace(/[^0-9]/g, '').slice(-4)}-SG`,
+      quoteId: q.id,
+      sender: q.customerName,
+      senderPhone: q.customerPhone,
+      senderAddress: q.origin,
+      receiver: q.destination,
+      receiverPhone: '+65 9123 4567',
+      receiverAddress: q.destination,
+      origin: q.origin,
+      destination: q.destination,
+      currentLocation: `${q.origin} (Staging Bay)`,
+      status: 'Confirmed',
+      statusType: 'active',
+      paymentStatus: 'Unpaid',
+      serviceLevel: q.freightMode === 'reefer' ? 'Cold Chain Pharma Vault' : 'Express Road Freight & Highway Linehaul (FTL)',
+      cargoType: q.cargoCategory,
+      weight: `${q.cargoWeight} kg`,
+      pieces: Math.ceil(q.cargoWeight / 50),
+      declaredValue: 'S$ 35,000',
+      price: `S$ ${q.lineItems.finalAmount.toFixed(2)}`,
+      driverId: 'DRV-101',
+      driverName: 'Tan Wei Ming',
+      driverPhone: '+65 9123 4567',
+      vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
+      vehiclePlate: 'SG-8819',
+      vehicleType: '14-Ton Highway Box Truck',
+      estimatedDelivery: 'Tomorrow, 04:30 PM (SGT)',
+      lastUpdatedTime: 'Just now',
+      createdDate: new Date().toLocaleString(),
+      timeline: [
+        { step: 1, title: 'Consignment Booked from Quote', location: q.origin, timestamp: 'Just now', completed: true },
+        { step: 2, title: 'Booking Confirmed by Operations', location: 'Operations Desk', timestamp: 'Just now', completed: true, current: true },
+        { step: 3, title: 'Pickup Scheduled', location: q.origin, timestamp: 'Pending', completed: false },
+        { step: 4, title: 'Picked Up', location: q.origin, timestamp: 'Pending', completed: false },
+        { step: 5, title: 'In Transit', location: 'Expressway Corridor', timestamp: 'Pending', completed: false },
+        { step: 6, title: 'Near Destination', location: q.destination, timestamp: 'Pending', completed: false },
+        { step: 7, title: 'Delivered & POD Verified', location: q.destination, timestamp: 'Pending', completed: false }
+      ],
+      coordinates: { origin: [1.3400, 103.7100], current: [1.3400, 103.7100], destination: [1.4420, 103.7680] }
+    };
+
+    setShipments(prev => [newShipment, ...prev]);
+    setQuotes(prev => prev.map(item => item.id === quoteId ? { ...item, status: 'Converted', convertedShipmentId: newShipmentId } : item));
+
+    addNotification({
+      role: 'customer',
+      type: 'shipment',
+      title: `🎉 Order #${newShipmentId} Booked!`,
+      message: `Your quotation #${quoteId} was successfully converted to Roadway Shipment #${newShipmentId}.`,
+      shipmentId: newShipmentId
+    });
+
+    addNotification({
+      role: 'admin',
+      type: 'shipment',
+      title: `📦 New Booking from Quote #${quoteId}`,
+      message: `Quotation converted to Order #${newShipmentId}. Assigned driver Tan Wei Ming.`,
+      shipmentId: newShipmentId
+    });
+
+    showToast(`Converted Quote #${quoteId} into active Shipment #${newShipmentId}!`, 'success');
+    return newShipment;
+  };
+
+  // ==========================================
+  // PHASE 3: SUPPORT TICKETS OPERATIONS
+  // ==========================================
+  const createSupportTicket = (ticketData) => {
+    const ticketId = `TCK-${Math.floor(100 + Math.random() * 900)}`;
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateNow = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    
+    const newTicket = {
+      id: ticketId,
+      shipmentId: ticketData.shipmentId || 'General Inquiry',
+      customerName: ticketData.customerName || currentUser?.name || 'Customer Account',
+      customerEmail: ticketData.customerEmail || currentUser?.email || 'customer@josan.com',
+      customerPhone: ticketData.customerPhone || currentUser?.phone || '+65 6789 0123',
+      subject: ticketData.subject || 'Consignment Inquiry',
+      priority: ticketData.priority || 'Medium',
+      status: 'Open',
+      assignedTo: 'Unassigned',
+      createdAt: `${dateNow}, ${timeNow} SGT`,
+      lastUpdated: 'Just now',
+      messages: [
+        {
+          id: `msg-${Date.now()}`,
+          sender: ticketData.customerName || currentUser?.name || 'Customer Account',
+          role: 'customer',
+          text: ticketData.message || 'Support inquiry submitted regarding consignment.',
+          timestamp: timeNow
+        }
+      ]
+    };
+
+    setTickets(prev => [newTicket, ...prev]);
+
+    addNotification({
+      role: 'admin',
+      type: 'ticket',
+      title: `🎫 New Support Ticket #${ticketId}`,
+      message: `${newTicket.customerName} opened a ${newTicket.priority} priority ticket: "${newTicket.subject}".`,
+      shipmentId: ticketData.shipmentId !== 'General Inquiry' ? ticketData.shipmentId : null
+    });
+
+    showToast(`Support Ticket #${ticketId} submitted to dispatch team!`, 'success');
+    return newTicket;
+  };
+
+  const replySupportTicket = (ticketId, messageText, role = 'admin', senderName = '') => {
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const author = senderName || (role === 'admin' ? (currentUser?.name || 'Operations Lead') : (currentUser?.name || 'Customer'));
+
+    let targetTicket = null;
+    setTickets(prev => prev.map(t => {
+      if (t.id === ticketId) {
+        const updatedMessages = [
+          ...t.messages,
+          {
+            id: `msg-${Date.now()}`,
+            sender: author,
+            role,
+            text: messageText,
+            timestamp: timeNow
+          }
+        ];
+        const nextStatus = role === 'admin' ? (t.status === 'Open' ? 'In Progress' : 'Waiting for Customer') : 'In Progress';
+        targetTicket = {
+          ...t,
+          status: nextStatus,
+          lastUpdated: 'Just now',
+          messages: updatedMessages
+        };
+        return targetTicket;
+      }
+      return t;
+    }));
+
+    if (targetTicket) {
+      if (role === 'admin') {
+        addNotification({
+          role: 'customer',
+          type: 'ticket',
+          title: `💬 Update on Ticket #${ticketId}`,
+          message: `${author} replied to your support ticket: "${targetTicket.subject}".`,
+          shipmentId: targetTicket.shipmentId !== 'General Inquiry' ? targetTicket.shipmentId : null
+        });
+      } else {
+        addNotification({
+          role: 'admin',
+          type: 'ticket',
+          title: `💬 Customer Reply on Ticket #${ticketId}`,
+          message: `${author} replied to ticket #${ticketId}: "${targetTicket.subject}".`,
+          shipmentId: targetTicket.shipmentId !== 'General Inquiry' ? targetTicket.shipmentId : null
+        });
+      }
+      showToast(`Reply sent to Ticket #${ticketId}!`, 'success');
+    }
+  };
+
+  const updateTicketStatus = (ticketId, newStatus, assignedTo) => {
+    setTickets(prev => prev.map(t => {
+      if (t.id === ticketId) {
+        return {
+          ...t,
+          status: newStatus,
+          assignedTo: assignedTo !== undefined ? assignedTo : t.assignedTo,
+          lastUpdated: 'Just now'
+        };
+      }
+      return t;
+    }));
+    showToast(`Ticket #${ticketId} status changed to ${newStatus}!`, 'info');
+  };
+
+  // ==========================================
+  // PHASE 3: INVOICES & PAYMENT OPERATIONS
+  // ==========================================
+  const updateInvoicePaymentStatus = (invoiceId, newStatus, notes = '') => {
+    let targetInv = null;
+    setInvoices(prev => prev.map(inv => {
+      if (inv.id === invoiceId || inv.invoiceNumber === invoiceId) {
+        targetInv = {
+          ...inv,
+          paymentStatus: newStatus,
+          notes: notes || inv.notes
+        };
+        return targetInv;
+      }
+      return inv;
+    }));
+
+    // If invoice is linked to a shipment, sync shipment.paymentStatus
+    if (targetInv && targetInv.shipmentId) {
+      setShipments(prev => prev.map(s => {
+        if (s.id === targetInv.shipmentId) {
+          return {
+            ...s,
+            paymentStatus: newStatus
+          };
+        }
+        return s;
+      }));
+
+      // Customer notification on payment confirmation or refund
+      if (newStatus === 'Paid' || newStatus === 'Refunded') {
+        addNotification({
+          role: 'customer',
+          type: 'billing',
+          title: `💳 Invoice #${targetInv.invoiceNumber} Marked as ${newStatus}`,
+          message: `Payment status for consignment #${targetInv.shipmentId} updated to ${newStatus}. Total: S$ ${targetInv.total.toFixed(2)}.`,
+          shipmentId: targetInv.shipmentId
+        });
+      }
+    }
+
+    showToast(`Invoice #${targetInv?.invoiceNumber || invoiceId} payment status updated to "${newStatus}"!`, 'success');
+  };
+
+  // ==========================================
+  // PHASE 3: SHIPMENT DOCUMENT VAULT
+  // ==========================================
+  const uploadShipmentDocument = (shipmentId, docData) => {
+    const docId = `DOC-${shipmentId.replace(/[^0-9]/g, '').slice(-4) || 'GEN'}-${Date.now().toString().slice(-3)}`;
+    const newDoc = {
+      id: docId,
+      shipmentId,
+      customerName: docData.customerName || 'Consignment Shipper',
+      type: docData.type || 'Commercial Document',
+      name: docData.name || `Document_${docId}.pdf`,
+      fileSize: docData.fileSize || '150 KB',
+      uploadedBy: docData.uploadedBy || (currentUser?.name ? `${currentUser.name} (${currentUser.role})` : 'Authorized User'),
+      uploadDate: `${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} SGT`,
+      status: docData.status || 'Verified',
+      docCategory: docData.docCategory || 'other'
+    };
+
+    setDocuments(prev => [newDoc, ...prev]);
+
+    addNotification({
+      role: 'customer',
+      type: 'document',
+      title: `📄 New Document Attached: #${shipmentId}`,
+      message: `${newDoc.type} ("${newDoc.name}") has been uploaded and archived.`,
+      shipmentId
+    });
+
+    showToast(`Uploaded ${newDoc.type} for Consignment #${shipmentId}!`, 'success');
+    return newDoc;
+  };
+
+  const deleteShipmentDocument = (docId) => {
+    setDocuments(prev => prev.filter(d => d.id !== docId));
+    showToast('Document removed from archive.', 'info');
   };
 
   const flagWeatherDelay = (shipmentId, weatherCondition = 'Severe Thunderstorm & High Crosswind Corridor') => {
@@ -813,6 +1531,40 @@ export const LogisticsProvider = ({ children }) => {
       acceptDriverIntimation,
       declineDriverIntimation,
       getShipmentByTracking,
+      quotes,
+      setQuotes,
+      notifications,
+      setNotifications,
+      customers,
+      setCustomers,
+      documents,
+      setDocuments,
+      invoices,
+      setInvoices,
+      tickets,
+      setTickets,
+      createSupportTicket,
+      replySupportTicket,
+      updateTicketStatus,
+      updateInvoicePaymentStatus,
+      uploadShipmentDocument,
+      deleteShipmentDocument,
+      selectedDetailShipment,
+      setSelectedDetailShipment,
+      addNotification,
+      markNotificationAsRead,
+      markAllNotificationsAsRead,
+      clearNotifications,
+      startDriverTrip,
+      updateShipmentLocation,
+      reachDestination,
+      verifyDeliveryOtp,
+      submitPod,
+      requestQuote,
+      updateAdminQuote,
+      sendQuoteToCustomer,
+      customerRespondQuote,
+      convertQuoteToShipment,
       shipmentScope,
       setShipmentScope,
       resetShipmentScope,

@@ -40,16 +40,16 @@ export const ContactPage = () => {
     <div className="space-y-16 pb-20">
 
       {/* Header Banner */}
-      <section className="bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <section className="bg-[#10182D] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
-          <span className="text-orange-400 font-bold uppercase text-xs tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+          <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-block">
             24/7 Customer & Fleet Support
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold font-sans">
+          <h1 className="text-4xl sm:text-5xl font-extrabold font-heading text-white tracking-tight">
             Get In Touch With Our Dispatch Team
           </h1>
-          <p className="text-slate-200 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-white/90 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
             Have questions regarding cargo bookings, tracking updates, or custom enterprise supply chain quotes? Our team is active 24/7.
           </p>
         </div>
@@ -78,13 +78,13 @@ export const ContactPage = () => {
                       setFormData({ ...formData, name: lettersOnly });
                     }}
                     placeholder="John Doe"
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                    className="input-standard"
                     required
                   />
-                  <span className="text-[10px] text-slate-600 font-bold block mt-0.5">Strictly letters only (no numbers)</span>
+                  <span className="text-[10px] text-slate-500 font-medium block mt-0.5">Strictly letters only (no numbers)</span>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Corporate Email Address *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Corporate Email Address *</label>
                   <input
                     type="email"
                     pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -92,30 +92,30 @@ export const ContactPage = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="john@company.com"
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                    className="input-standard"
                     required
                   />
-                  <span className="text-[10px] text-slate-600 font-bold block mt-0.5">Must be valid email format (e.g. name@company.com)</span>
+                  <span className="text-[10px] text-slate-500 font-medium block mt-0.5">Must be valid email format (e.g. name@company.com)</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tracking ID (Optional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tracking ID (Optional)</label>
                   <input
                     type="text"
                     value={formData.trackingId}
                     onChange={(e) => setFormData({ ...formData, trackingId: e.target.value })}
-                    placeholder="e.g. JOS-89421-US"
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                    placeholder="e.g. JOS-88190-SG"
+                    className="input-standard"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Inquiry Subject</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Inquiry Subject</label>
                   <select
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-semibold"
+                    className="input-standard font-semibold"
                   >
                     <option value="General Support">General Support & Tracking</option>
                     <option value="Corporate Freight Quote">Enterprise Freight Quote</option>
@@ -126,20 +126,20 @@ export const ContactPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Message / Cargo Specs *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Message / Cargo Specs *</label>
                 <textarea
                   rows="4"
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Provide shipment details or your query..."
-                  className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange"
+                  className="w-full p-3.5 text-[15px] bg-white border border-[#E2E8F0] rounded-xl text-[#172033] focus-orange"
                   required
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-4 bg-orange-gradient hover:bg-orange-600 text-white rounded-xl font-bold text-sm shadow-orange-glow transition-all flex items-center justify-center space-x-2 active:scale-95"
+                className="btn-primary w-full h-12 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>Submit Inquiry</span>
