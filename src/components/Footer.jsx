@@ -19,20 +19,20 @@ export const Footer = ({ setActiveTab }) => {
     : ['Home', 'About Us', 'Services', 'Contact'];
 
   return (
-    <footer className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t-4 border-orange-500 relative overflow-hidden">
+    <footer className="bg-[#10182D] text-slate-300 pt-16 pb-12 border-t-4 border-[#FF6B00] relative overflow-hidden">
       {/* Background Accent SVG Glow */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+            <div className="cursor-pointer inline-block" onClick={() => setActiveTab('home')}>
               <img 
                 src="/assets/josan_logo.png" 
                 alt="Josan Logistics Logo" 
-                className="h-14 w-auto object-contain rounded-xl bg-white p-1" 
+                className="h-14 sm:h-16 w-auto max-w-[240px] object-contain hover:scale-105 transition-transform duration-200" 
               />
             </div>
             <p className="text-slate-200 font-medium text-sm leading-relaxed max-w-sm">

@@ -22,6 +22,7 @@ import { InternationalShipmentPage } from './pages/InternationalShipmentPage';
 import { CustomerDashboardPage } from './pages/CustomerDashboardPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { DriverDashboardPage } from './pages/DriverDashboardPage';
+import { CrmPage } from './pages/CrmPage';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
@@ -64,7 +65,7 @@ const ToastNotification = () => {
   if (!toast) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+    <div className="fixed bottom-6 right-6 z-[90] animate-fade-in">
       <div className={`px-5 py-4 rounded-2xl shadow-2xl border flex items-center space-x-3 text-sm font-extrabold ${
         toast.type === 'warning'
           ? 'bg-amber-900 text-amber-100 border-amber-700'
@@ -109,11 +110,16 @@ const MainContent = () => {
     'my-shipments', 
     'manage-shipment', 
     'driver-dashboard', 
-    'admin-dashboard'
+    'admin-dashboard',
+    'crm'
   ];
 
   const [activeTab, setActiveTab] = useState(() => {
+    const path = window.location.pathname.toLowerCase();
     const rawHash = window.location.hash.replace('#', '').toLowerCase();
+    if (path === '/crm' || path.endsWith('/crm') || rawHash === 'crm' || rawHash === '/crm') {
+      return 'crm';
+    }
     if (rawHash.startsWith('track-map-')) return 'track';
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
@@ -195,6 +201,12 @@ const MainContent = () => {
       const path = window.location.pathname.toLowerCase();
       const rawHash = window.location.hash.toLowerCase();
       
+      // Direct /crm route check
+      if (path === '/crm' || path.endsWith('/crm') || rawHash === '#crm' || rawHash === '#/crm') {
+        setActiveTab('crm');
+        return;
+      }
+
       // Protected /admin direct route check
       if (path === '/admin' || path.endsWith('/admin') || rawHash === '#admin' || rawHash === '#/admin' || rawHash === '#admin-dashboard') {
         const userRole = currentUser?.role || currentRole;
@@ -295,6 +307,8 @@ const MainContent = () => {
         return <DriverDashboardPage setActiveTab={changeActiveTab} />;
       case 'admin-dashboard':
         return <AdminDashboardPage />;
+      case 'crm':
+        return <CrmPage setActiveTab={changeActiveTab} />;
       default:
         return <HomePage setActiveTab={changeActiveTab} />;
     }
@@ -311,8 +325,8 @@ const MainContent = () => {
       <Footer setActiveTab={changeActiveTab} />
       <AuthModal setActiveTab={changeActiveTab} />
       <ShipmentTypeModal setActiveTab={changeActiveTab} />
-      <InvoiceModal />
       <ShipmentDetailsView />
+      <InvoiceModal />
       <ToastNotification />
     </div>
   );

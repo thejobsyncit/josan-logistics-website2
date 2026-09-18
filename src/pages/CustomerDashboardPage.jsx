@@ -31,7 +31,10 @@ import {
   Download,
   Upload,
   Send,
-  Paperclip
+  Paperclip,
+  Building2,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 
 export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }) => {
@@ -665,133 +668,215 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             <span className="text-xs text-slate-800 font-extrabold">Total Orders: {(shipments || []).length}</span>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="space-y-4">
             {(shipments || []).map((s) => (
-              <div key={s.id} className="py-5 hover:bg-slate-50 p-4 rounded-2xl transition-colors space-y-4">
-                
-                <div className="space-y-3">
-                  {/* Order Details Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono font-extrabold text-slate-900 text-base">{s.id}</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          s.status === 'Delivered' 
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-                            : s.status === 'Near Destination'
-                            ? 'bg-orange-100 text-orange-800 border border-orange-200 animate-pulse'
-                            : 'bg-orange-100 text-orange-800 border border-orange-200'
-                        }`}>
-                          ● {s.status}
-                        </span>
-                        {s.referenceNumber && (
-                          <span className="text-[11px] text-slate-500 font-mono">Ref: {s.referenceNumber}</span>
-                        )}
-                      </div>
+              <div 
+                key={s.id} 
+                className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-orange-300/80 transition-all p-5 sm:p-6 space-y-4"
+              >
+                {/* 1. Header Bar: ID, Status, Service Tag, Ref & Amount */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="font-mono text-sm sm:text-base font-extrabold text-[#10182D] tracking-tight bg-slate-100 px-3 py-1 rounded-lg border border-slate-200/60">
+                      {s.id}
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide ${
+                      s.status === 'Delivered' 
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' 
+                        : s.status === 'Near Destination'
+                        ? 'bg-amber-50 text-amber-900 border border-amber-300'
+                        : 'bg-orange-50 text-orange-800 border border-orange-200'
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full ${s.status === 'Delivered' ? 'bg-emerald-500' : 'bg-orange-500 animate-ping'}`}></span>
+                      <span>{s.status}</span>
+                    </span>
+                    <span className="text-xs font-bold text-[#FF6B00] bg-orange-50/80 px-3 py-1 rounded-full border border-orange-200/60">
+                      {s.serviceLevel || 'Express Linehaul'}
+                    </span>
+                    {s.referenceNumber && (
+                      <span className="text-xs text-slate-500 font-mono hidden md:inline-block">
+                        Ref: <strong className="text-slate-700">{s.referenceNumber}</strong>
+                      </span>
+                    )}
+                  </div>
 
-                      <p className="text-xs text-slate-800 font-semibold">
-                        <span className="font-bold text-slate-900">{s.origin}</span> → <span className="font-bold text-slate-900">{s.destination}</span> | <span className="text-orange-600 font-extrabold">{s.serviceLevel || 'Express Linehaul'}</span>
-                      </p>
-                      <p className="text-[11px] text-slate-700 font-semibold">
-                        Consignee: {s.receiver} &bull; Cargo: {s.cargoType || 'General Freight'} &bull; Weight: {s.weight}
-                      </p>
+                  <div className="text-left sm:text-right shrink-0">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Contract Total</span>
+                    <span className="font-mono text-base font-black text-[#10182D]">{s.price || 'S$ 350.00'}</span>
+                  </div>
+                </div>
+
+                {/* 2. Visual Route & Consignment Info Box */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-[#F8FAFC] rounded-xl p-4 border border-slate-200/80">
+                  {/* Visual Route Corridor */}
+                  <div className="lg:col-span-7 flex items-center space-x-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-1.5 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Origin Depot</span>
+                      </div>
+                      <p className="text-xs sm:text-sm font-bold text-slate-900 truncate" title={s.origin}>{s.origin}</p>
                     </div>
 
-                    <div className="text-left sm:text-right text-xs">
-                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Contract Amount</span>
-                      <span className="font-mono font-extrabold text-slate-900 text-sm">{s.price || 'S$ 350.00'}</span>
+                    <div className="flex flex-col items-center px-1 sm:px-2 shrink-0">
+                      <div className="flex items-center text-slate-300 space-x-1">
+                        <div className="w-8 sm:w-14 border-t-2 border-dashed border-slate-300"></div>
+                        <Truck className="w-4 h-4 text-[#FF6B00]" />
+                        <div className="w-8 sm:w-14 border-t-2 border-dashed border-slate-300"></div>
+                      </div>
+                      <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5">Express Corridors</span>
+                    </div>
+
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="flex items-center justify-end space-x-1.5 mb-1">
+                        <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Destination Hub</span>
+                        <span className="w-2 h-2 rounded-full bg-[#FF6B00] shrink-0"></span>
+                      </div>
+                      <p className="text-xs sm:text-sm font-bold text-slate-900 truncate" title={s.destination}>{s.destination}</p>
                     </div>
                   </div>
 
-                  {/* Telematics, Driver & Vehicle Row (Requirement 2) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#F5F6F8] p-3 rounded-xl border border-slate-200/90 text-xs">
-                    <div className="flex items-center gap-2">
-                      <User className="w-3.5 h-3.5 text-orange shrink-0" />
-                      <div>
-                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Driver</span>
-                        <span className="font-bold text-[#10182D]">{s.driverName || s.driver || 'Tan Wei Ming'}</span>
-                        <span className="text-slate-500 text-[10px] block">{s.driverPhone || '+65 9123 4567'}</span>
-                      </div>
+                  {/* Consignee, Cargo & Weight Chips */}
+                  <div className="lg:col-span-5 flex flex-wrap lg:justify-end items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-200 lg:pl-4 text-xs">
+                    <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 text-slate-700 flex items-center space-x-1.5 shadow-2xs">
+                      <Building2 className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <span className="truncate max-w-[150px]" title={s.receiver}>
+                        <span className="text-slate-400 font-medium">Consignee:</span> <strong className="text-slate-800 font-bold">{s.receiver}</strong>
+                      </span>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-3.5 h-3.5 text-orange shrink-0" />
-                      <div>
-                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Vehicle Plate & Class</span>
-                        <span className="font-mono font-bold text-[#10182D]">{s.vehiclePlate || 'SG-8819'}</span>
-                        <span className="text-slate-500 text-[10px] block truncate">{s.vehicle || 'Heavy Linehaul Truck'}</span>
-                      </div>
+                    <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 text-slate-700 flex items-center space-x-1.5 shadow-2xs">
+                      <Package className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <span className="truncate max-w-[140px]" title={s.cargoType || 'General Freight'}>
+                        <span className="text-slate-400 font-medium">Cargo:</span> <strong className="text-slate-800 font-bold">{s.cargoType || 'General Freight'}</strong>
+                      </span>
                     </div>
+                    <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 text-slate-700 flex items-center space-x-1.5 shadow-2xs">
+                      <Layers className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <span>
+                        <span className="text-slate-400 font-medium">Weight:</span> <strong className="text-slate-800 font-bold font-mono">{s.weight}</strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-                    <div className="flex items-center gap-2">
-                      <Navigation className="w-3.5 h-3.5 text-orange shrink-0" />
-                      <div>
-                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Current Location</span>
-                        <span className="font-bold text-orange truncate block">{s.currentLocation || 'Expressway Corridor'}</span>
-                        <span className="text-slate-500 text-[10px] block">Updated: {s.lastUpdatedTime || 'Just now'}</span>
-                      </div>
+                {/* 3. Operational Telematics: Driver, Vehicle & GPS Sync */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Driver Tile */}
+                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80 flex items-center space-x-3">
+                    <div className="w-9 h-9 rounded-xl bg-orange-100/90 text-[#FF6B00] flex items-center justify-center shrink-0 shadow-2xs">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Assigned Driver</span>
+                      <p className="text-xs font-bold text-slate-900 truncate">{s.driverName || s.driver || 'Tan Wei Ming'}</p>
+                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">{s.driverPhone || '+65 9123 4567'}</p>
                     </div>
                   </div>
 
-                  {/* Delivery OTP Callout (Requirement 5: Driver reaches destination -> Customer receives OTP) */}
-                  {(s.status === 'Near Destination' || s.otpActive) && (
-                    <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                      <div className="flex items-center gap-2.5 text-amber-950 font-bold">
-                        <Lock className="w-4 h-4 text-amber-600 shrink-0" />
-                        <div>
-                          <span>🚚 Driver approaching destination dock! Delivery 2FA Security Code:</span>
-                          <p className="text-[11px] font-normal text-amber-800">
-                            Present this 6-digit OTP to the driver to authorize handover and generate your certified e-POD.
-                          </p>
+                  {/* Vehicle Tile */}
+                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80 flex items-center space-x-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-100/90 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+                      <Truck className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Vehicle Plate & Class</span>
+                      <p className="text-xs font-mono font-bold text-slate-900 truncate">{s.vehiclePlate || 'SG-8819'}</p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5" title={s.vehicle || 'Heavy Linehaul Truck'}>
+                        {s.vehicle || 'Heavy Linehaul Truck'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Live Telematics Location Tile */}
+                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80 flex items-center space-x-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-100/90 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+                      <Navigation className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Live Telematics</span>
+                        <span className="text-[10px] text-slate-400 font-mono">{s.lastUpdatedTime || 'Just now'}</span>
+                      </div>
+                      <p className="text-xs font-bold text-[#FF6B00] truncate mt-0.5" title={s.currentLocation}>
+                        {s.currentLocation || 'Expressway Corridor'}
+                      </p>
+                      <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        GPS Telematics Sync
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Near Destination Delivery 2FA OTP Banner */}
+                {(s.status === 'Near Destination' || s.otpActive) && (
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300/90 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+                    <div className="flex items-center gap-3 text-amber-950 font-bold">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-amber-900 font-extrabold">Driver Approaching Destination Receiving Dock!</span>
+                          <span className="px-2 py-0.5 bg-amber-200 text-amber-900 text-[10px] font-black rounded-full uppercase">Security 2FA</span>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[10px] uppercase font-bold text-amber-700">Handover OTP:</span>
-                        <span className="px-3 py-1 bg-amber-600 text-white font-mono font-black text-sm rounded-lg tracking-widest shadow-xs">
-                          {s.otpActive || '749201'}
-                        </span>
+                        <p className="text-[11px] font-normal text-amber-800 mt-0.5">
+                          Present this 6-digit verification code to the driver upon vehicle arrival to authorize handover and sign the electronic POD.
+                        </p>
                       </div>
                     </div>
-                  )}
-
-                  {/* POD Badge for Delivered Orders (Requirement 4) */}
-                  {s.status === 'Delivered' && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 px-3 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2 text-emerald-800 font-bold">
-                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                        <span>Proof of Delivery (e-POD) signed and verified by consignee.</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedDetailShipment(s)}
-                        className="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-1"
-                      >
-                        <Download className="w-3 h-3" />
-                        <span>View / Download POD</span>
-                      </button>
+                    <div className="flex items-center gap-2 sm:self-center shrink-0 bg-white px-3.5 py-2 rounded-xl border border-amber-300 shadow-2xs">
+                      <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Handover OTP:</span>
+                      <span className="px-2.5 py-0.5 bg-amber-600 text-white font-mono font-black text-sm rounded-md tracking-widest">
+                        {s.otpActive || '749201'}
+                      </span>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Clean Action Button Toolbar (Unified Horizontal Row) */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-start sm:justify-end gap-2 text-xs">
+                {/* 5. Delivered e-POD Notice */}
+                {s.status === 'Delivered' && (
+                  <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl p-3 px-4 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2.5 text-emerald-900 font-bold">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Proof of Delivery (e-POD) signed and certified by recipient.</span>
+                    </div>
                     <button
+                      type="button"
                       onClick={() => setSelectedDetailShipment(s)}
-                      className="px-3.5 py-1.5 bg-[#10182D] hover:bg-navy/90 text-white rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                      className="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-1 cursor-pointer"
                     >
-                      <FileText className="w-3.5 h-3.5 text-orange" />
-                      <span>Full Dossier & POD</span>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Certified POD</span>
                     </button>
+                  </div>
+                )}
 
+                {/* 6. Clean Action Toolbar */}
+                <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                  <div className="text-slate-400 text-[11px] font-medium hidden sm:block">
+                    Order logged with real-time road freight telematics
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 ml-auto">
                     <button
                       onClick={() => setExpandedMapId(expandedMapId === s.id ? null : s.id)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap ${
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap shadow-xs active:scale-95 ${
                         expandedMapId === s.id
-                          ? 'bg-slate-900 text-white shadow-md'
-                          : 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-sm active:scale-95'
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-[#FF6B00] hover:bg-[#E55C00] text-white shadow-orange-sm'
                       }`}
                     >
                       <Search className="w-3.5 h-3.5" />
-                      <span>{expandedMapId === s.id ? 'Close Timeline' : '📍 Track Timeline'}</span>
+                      <span>{expandedMapId === s.id ? 'Close Timeline' : 'Track Timeline'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedDetailShipment(s)}
+                      className="px-3.5 py-2 bg-[#10182D] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Full Dossier & POD</span>
                     </button>
 
                     <button
@@ -799,17 +884,17 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                         setActiveTrackingId(s.id);
                         setActiveTab('track');
                       }}
-                      className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1 whitespace-nowrap cursor-pointer"
+                      className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer border border-slate-200/60"
                     >
-                      <ExternalLink className="w-3.5 h-3.5 text-orange-600" />
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
                       <span>Public Tracking</span>
                     </button>
 
                     <button
                       onClick={() => setSelectedInvoiceShipment(s)}
-                      className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1 whitespace-nowrap cursor-pointer"
+                      className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer border border-slate-200/60"
                     >
-                      <FileText className="w-3.5 h-3.5 text-slate-600" />
+                      <FileText className="w-3.5 h-3.5 text-slate-500" />
                       <span>Invoice</span>
                     </button>
 
@@ -817,7 +902,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     {activeSubTab === 'manage' && (
                       <button
                         onClick={() => handleDeleteOrder(s.id)}
-                        className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer shadow-2xs"
+                        className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer shadow-2xs"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-rose-600" />
                         <span>Delete Order</span>

@@ -59,13 +59,13 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
 
         {/* Header: Logo, Title & Subtitle */}
         <div className="text-center space-y-2.5 relative z-10 pt-1 pb-6">
-          <div className="inline-flex items-center space-x-2 bg-orange-50 border border-orange-200 px-3.5 py-1.5 rounded-full">
+          <div className="inline-flex items-center space-x-2 bg-[#10182D] border border-slate-700 px-3.5 py-1.5 rounded-full shadow-xs">
             <img 
               src="/assets/josan_logo.png" 
               alt="Josan Logistics" 
-              className="h-5 w-auto object-contain" 
+              className="h-6 w-auto object-contain" 
             />
-            <span className="text-xs font-black text-orange-600 tracking-wide uppercase">
+            <span className="text-xs font-black text-white tracking-wide uppercase">
               Josan Logistics
             </span>
           </div>
