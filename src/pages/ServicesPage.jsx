@@ -178,12 +178,14 @@ export const ServicesPage = ({ setActiveTab }) => {
         '/assets/vehicle_motorbike.jpg',
         '/assets/vehicle_mpv.jpg'
       ],
-      desc: 'Rapid parcel dispatch and scheduled courier delivery designed for e-commerce, commercial documents, spare parts, and retail parcels. Every parcel is logged with real-time telematics and digital proof of delivery.',
+      desc: [
+        'Fast and secure door-to-door parcel delivery across Singapore, designed for businesses and individuals who need dependable last-mile logistics.',
+        'From documents to retail packages, every delivery is handled with care and real-time visibility.'
+      ],
       features: [
-        'Same-day and next-day scheduled road dispatch',
-        'Direct door-to-door pickup and drop-off',
-        'Barcoded parcel tracking and digital POD',
-        'Automated SMS & email delivery alerts'
+        'Same-day and scheduled delivery options',
+        'Real-time tracking updates',
+        'Electronic proof of delivery (POD)'
       ]
     },
     {
@@ -434,15 +436,32 @@ export const ServicesPage = ({ setActiveTab }) => {
 
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{service.title}</h3>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{service.subtitle}</p>
-                <p className="text-slate-800 font-medium text-sm sm:text-base leading-relaxed">{service.desc}</p>
+                {Array.isArray(service.desc) ? (
+                  <div className="space-y-2">
+                    {service.desc.map((para, pIdx) => (
+                      <p key={pIdx} className="text-slate-800 font-medium text-sm sm:text-base leading-relaxed">
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-800 font-medium text-sm sm:text-base leading-relaxed whitespace-pre-line">
+                    {service.desc}
+                  </p>
+                )}
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                  {service.features.map((feat, i) => (
-                    <div key={i} className="flex items-center space-x-2 text-xs sm:text-[13px] font-bold text-slate-900">
-                      <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
+                <div className="pt-2 space-y-2">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Key Features:
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {service.features.map((feat, i) => (
+                      <div key={i} className="flex items-center space-x-2 text-xs sm:text-[13px] font-bold text-slate-900">
+                        <CheckCircle2 className="w-4 h-4 text-orange-500 shrink-0" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="pt-4 flex items-center space-x-3">

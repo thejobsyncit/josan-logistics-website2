@@ -158,8 +158,8 @@ export const HomePage = ({ setActiveTab }) => {
       id: 'parcel-delivery',
       title: 'Parcel Delivery',
       tag: 'Express Road Freight',
-      desc: 'Scheduled door-to-door road courier service for commercial cartons, documents, and retail parcels with same-day delivery windows.',
-      specs: ['Sub-4h expedited runs', 'Real-time GPS telemetry', 'Electronic recipient POD'],
+      desc: 'Fast and secure door-to-door parcel delivery across Singapore for commercial cartons, documents, and retail packages.',
+      specs: ['Same-day & scheduled options', 'Real-time tracking updates', 'Electronic proof of delivery (POD)'],
       icon: Package,
       image: '/assets/parcel_delivery_handover.png'
     },
