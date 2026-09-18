@@ -94,7 +94,7 @@ export const AuthModal = ({ setActiveTab }) => {
         {/* Header Banner */}
         <div className="bg-[#10182D] p-5 text-white sticky top-0 z-10 flex items-center justify-between border-b border-slate-800 shadow-sm">
           <div className="flex items-center space-x-2.5">
-            <img src="/assets/josan_logo.png" alt="Josan Logistics" className="h-9 w-auto object-contain rounded-lg bg-white p-1" />
+            <img src="/assets/josan_logo.png" alt="Josan Logistics" className="h-10 w-auto object-contain" />
             <div>
               <h3 className="text-base font-bold tracking-tight font-heading text-white">
                 {isLogin ? 'Sign In' : 'Create Account'}

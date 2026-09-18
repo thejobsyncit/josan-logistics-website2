@@ -64,9 +64,9 @@ const countryOptions = [
 ];
 
 const cargoTypeOptions = [
-  'Air Freight',
-  'Ocean Freight',
-  'Land Freight / Trucking'
+  'Road Freight / Express Haulage',
+  'Bulk Shipment (FTL)',
+  'Consolidated Road Freight (LTL)'
 ];
 
 const documentDescriptionOptions = [

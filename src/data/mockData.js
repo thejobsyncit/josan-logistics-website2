@@ -555,7 +555,8 @@ export const initialCustomers = [
     totalSpent: 5320.00,
     activeShipments: 1,
     status: 'Active',
-    registeredDate: '15 Jan 2025'
+    registeredDate: '15 Jan 2025',
+    tags: ['Key Account', 'Electronics', 'Express Logistics', 'Net-30']
   },
   {
     id: 'CUST-002',
@@ -572,7 +573,8 @@ export const initialCustomers = [
     totalSpent: 4180.00,
     activeShipments: 1,
     status: 'Active',
-    registeredDate: '02 Mar 2025'
+    registeredDate: '02 Mar 2025',
+    tags: ['Cold Chain', 'Pharma GDP', 'High Priority', 'Audited']
   },
   {
     id: 'CUST-003',
@@ -589,7 +591,8 @@ export const initialCustomers = [
     totalSpent: 8950.00,
     activeShipments: 1,
     status: 'Active',
-    registeredDate: '10 Nov 2024'
+    registeredDate: '10 Nov 2024',
+    tags: ['Aviation Cargo', 'Air Freight Feeder', 'Prepaid', '24/7 Ramp']
   },
   {
     id: 'CUST-004',
@@ -606,7 +609,8 @@ export const initialCustomers = [
     totalSpent: 2640.00,
     activeShipments: 1,
     status: 'Active',
-    registeredDate: '28 Jul 2025'
+    registeredDate: '28 Jul 2025',
+    tags: ['Biotech', 'Standard Corporate', 'Biopolis', 'Net-30']
   }
 ];
 
@@ -874,3 +878,147 @@ export const initialTickets = [
     ]
   }
 ];
+
+// ==========================================
+// CRM MODULE MOCK DATA
+// ==========================================
+
+export const initialLeads = [
+  {
+    id: 'LEAD-101',
+    name: 'Derrick Tan',
+    company: 'Nordic Sea Foods Asia Pte Ltd',
+    email: 'derrick.tan@nordicseafoods.sg',
+    phone: '+65 6778 9912',
+    source: 'Website Quote Form',
+    stage: 'Negotiating',
+    estimatedValue: 18500,
+    tags: ['Cold Chain', 'Reefer', 'High Value', 'Tuas Fisheries'],
+    createdDate: '2026-09-10',
+    convertedCustomerId: null
+  },
+  {
+    id: 'LEAD-102',
+    name: 'Siti Rahmah',
+    company: 'Apex Precision Engineering Pte Ltd',
+    email: 'siti@apexprecision.com.sg',
+    phone: '+65 6892 3341',
+    source: 'Referral',
+    stage: 'Quote Sent',
+    estimatedValue: 12000,
+    tags: ['Industrial', 'Heavy Machinery', 'Monthly Contract'],
+    createdDate: '2026-09-12',
+    convertedCustomerId: null
+  },
+  {
+    id: 'LEAD-103',
+    name: 'Michael Chang',
+    company: 'MediLife Pharma Distribution',
+    email: 'mchang@medilife.sg',
+    phone: '+65 6334 1109',
+    source: 'Cold Outreach',
+    stage: 'Contacted',
+    estimatedValue: 24000,
+    tags: ['Pharma GDP', 'Temperature Controlled', 'Urgent'],
+    createdDate: '2026-09-14',
+    convertedCustomerId: null
+  },
+  {
+    id: 'LEAD-104',
+    name: 'Clara Teo',
+    company: 'Zenith Semiconductor Corp',
+    email: 'clara.teo@zenithsemi.com',
+    phone: '+65 6901 8823',
+    source: 'Website Quote Form',
+    stage: 'Won',
+    estimatedValue: 35000,
+    tags: ['Electronics', 'Cleanroom', 'Enterprise'],
+    createdDate: '2026-08-25',
+    convertedCustomerId: 'CUST-001'
+  },
+  {
+    id: 'LEAD-105',
+    name: 'Raymond Koh',
+    company: 'Sentosa Hospitality Supplies',
+    email: 'raymond.koh@sentosasupplies.sg',
+    phone: '+65 6451 0092',
+    source: 'Cold Outreach',
+    stage: 'New',
+    estimatedValue: 6500,
+    tags: ['FMCG', 'Daily Deliveries'],
+    createdDate: '2026-09-16',
+    convertedCustomerId: null
+  },
+  {
+    id: 'LEAD-106',
+    name: 'Jason Patel',
+    company: 'BioChemical Express Pte Ltd',
+    email: 'jason@biochemexpress.sg',
+    phone: '+65 6744 5510',
+    source: 'Referral',
+    stage: 'Lost',
+    estimatedValue: 15000,
+    tags: ['Hazardous', 'Chemicals'],
+    createdDate: '2026-08-20',
+    convertedCustomerId: null
+  },
+  {
+    id: 'LEAD-107',
+    name: 'Benjamin Lee',
+    company: 'Pacific Rim Solar Components',
+    email: 'b.lee@pacificsolar.com.sg',
+    phone: '+65 6812 9044',
+    source: 'Website Quote Form',
+    stage: 'New',
+    estimatedValue: 21000,
+    tags: ['Renewable Energy', 'FTL', 'Jurong Hub'],
+    createdDate: '2026-09-17',
+    convertedCustomerId: null
+  }
+];
+
+export const initialCommunications = [];
+
+export const initialTasks = [
+  {
+    id: 'TASK-301',
+    leadId: 'LEAD-101',
+    customerId: null,
+    title: 'Send finalized service contract with 30-day payment term rider',
+    dueDate: '2026-09-18',
+    assignedTo: 'Darren Josan',
+    status: 'pending',
+    priority: 'high'
+  },
+  {
+    id: 'TASK-302',
+    leadId: 'LEAD-102',
+    customerId: null,
+    title: 'Follow up on CNC machinery route clearance quote',
+    dueDate: '2026-09-19',
+    assignedTo: 'Sherry Lim',
+    status: 'pending',
+    priority: 'medium'
+  },
+  {
+    id: 'TASK-303',
+    leadId: null,
+    customerId: 'CUST-001',
+    title: 'Review Q4 peak season reserved fleet allocation',
+    dueDate: '2026-09-22',
+    assignedTo: 'Darren Josan',
+    status: 'pending',
+    priority: 'high'
+  },
+  {
+    id: 'TASK-304',
+    leadId: null,
+    customerId: 'CUST-002',
+    title: 'Upload GDP vehicle audit certificate to customer documents vault',
+    dueDate: '2026-09-16',
+    assignedTo: 'David Ng',
+    status: 'done',
+    priority: 'medium'
+  }
+];
+

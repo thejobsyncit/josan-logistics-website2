@@ -9,7 +9,10 @@ import {
   initialCustomers,
   initialDocuments,
   initialInvoices,
-  initialTickets
+  initialTickets,
+  initialLeads,
+  initialCommunications,
+  initialTasks
 } from '../data/mockData';
 
 const LogisticsContext = createContext();
@@ -181,6 +184,54 @@ export const LogisticsProvider = ({ children }) => {
       localStorage.setItem('josan_tickets', JSON.stringify(tickets));
     } catch (e) {}
   }, [tickets]);
+
+  // CRM Module: Leads & Pipeline
+  const [leads, setLeads] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_leads');
+      return saved ? JSON.parse(saved) : initialLeads;
+    } catch (e) {
+      return initialLeads;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_leads', JSON.stringify(leads));
+    } catch (e) {}
+  }, [leads]);
+
+  // CRM Module: Communications Log
+  const [communications, setCommunications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_communications');
+      return saved ? JSON.parse(saved) : initialCommunications;
+    } catch (e) {
+      return initialCommunications;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_communications', JSON.stringify(communications));
+    } catch (e) {}
+  }, [communications]);
+
+  // CRM Module: Tasks & Follow-ups
+  const [tasks, setTasks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_tasks');
+      return saved ? JSON.parse(saved) : initialTasks;
+    } catch (e) {
+      return initialTasks;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_tasks', JSON.stringify(tasks));
+    } catch (e) {}
+  }, [tasks]);
 
   // Global Shipment Details Modal/View
   const [selectedDetailShipment, setSelectedDetailShipment] = useState(null);
@@ -1224,6 +1275,175 @@ export const LogisticsProvider = ({ children }) => {
     showToast('Document removed from archive.', 'info');
   };
 
+  // ==========================================
+  // CRM MODULE OPERATIONS
+  // ==========================================
+  const addLead = (leadData) => {
+    const newId = `LEAD-${Math.floor(100 + Math.random() * 900)}`;
+    const today = new Date().toISOString().split('T')[0];
+    const tagsArr = Array.isArray(leadData.tags) 
+      ? leadData.tags 
+      : (typeof leadData.tags === 'string' ? leadData.tags.split(',').map(t => t.trim()).filter(Boolean) : []);
+
+    const newLead = {
+      id: newId,
+      name: leadData.name || '',
+      company: leadData.company || leadData.name || 'New Enterprise Prospect',
+      email: leadData.email || '',
+      phone: leadData.phone || '',
+      source: leadData.source || 'Website Inquiry',
+      stage: leadData.stage || 'New',
+      estimatedValue: Number(leadData.estimatedValue) || 0,
+      tags: tagsArr,
+      createdDate: today,
+      convertedCustomerId: null
+    };
+
+    setLeads(prev => [newLead, ...prev]);
+    showToast(`Lead for ${newLead.company} created (#${newId})!`, 'success');
+    return newLead;
+  };
+
+  const updateLeadStage = (leadId, newStage) => {
+    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage: newStage } : l));
+    showToast(`Lead stage updated to ${newStage}!`, 'info');
+  };
+
+  const updateLead = (leadId, updatedData) => {
+    setLeads(prev => prev.map(l => {
+      if (l.id === leadId) {
+        const tagsArr = updatedData.tags !== undefined
+          ? (Array.isArray(updatedData.tags) ? updatedData.tags : String(updatedData.tags).split(',').map(t => t.trim()).filter(Boolean))
+          : l.tags;
+        return {
+          ...l,
+          ...updatedData,
+          tags: tagsArr,
+          estimatedValue: updatedData.estimatedValue !== undefined ? Number(updatedData.estimatedValue) : l.estimatedValue
+        };
+      }
+      return l;
+    }));
+    showToast(`Lead #${leadId} updated!`, 'info');
+  };
+
+  const deleteLead = (leadId) => {
+    setLeads(prev => prev.filter(l => l.id !== leadId));
+    showToast(`Lead #${leadId} deleted.`, 'info');
+  };
+
+  const convertLeadToCustomer = (leadId, extraDetails = {}) => {
+    const targetLead = leads.find(l => l.id === leadId);
+    if (!targetLead) return null;
+
+    const newCustId = `CUST-${String(customers.length + 1).padStart(3, '0')}`;
+    const newCustomer = {
+      id: newCustId,
+      name: targetLead.company || targetLead.name,
+      contactPerson: `${targetLead.name} (${extraDetails.designation || 'Supply Chain Lead'})`,
+      email: targetLead.email,
+      phone: targetLead.phone,
+      company: targetLead.company || targetLead.name,
+      address: extraDetails.address || 'Singapore Logistics Hub, SG',
+      tier: extraDetails.tier || 'Standard Corporate',
+      creditLimit: extraDetails.creditLimit || 'S$ 35,000',
+      paymentTerms: extraDetails.paymentTerms || 'Net 30 Days',
+      totalOrders: 0,
+      totalSpent: 0,
+      activeShipments: 0,
+      status: 'Active',
+      registeredDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      tags: [...(targetLead.tags || []), 'Converted Lead']
+    };
+
+    setCustomers(prev => [...prev, newCustomer]);
+    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage: 'Won', convertedCustomerId: newCustId } : l));
+
+    // Log a communication event for record
+    const timeStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' SGT';
+    const commId = `COMM-${Math.floor(100 + Math.random() * 900)}`;
+    const newComm = {
+      id: commId,
+      leadId: leadId,
+      customerId: newCustId,
+      type: 'note',
+      summary: `🎉 Qualified lead converted to Corporate Account #${newCustId} (${newCustomer.name}) with ${newCustomer.tier} status.`,
+      staffName: currentUser?.name || 'CRM Lead Specialist',
+      timestamp: timeStr
+    };
+    setCommunications(prev => [newComm, ...prev]);
+
+    showToast(`🎉 Lead #${leadId} converted to Corporate Customer ${newCustomer.name} (${newCustId})!`, 'success');
+    return newCustomer;
+  };
+
+  const addCommunication = (commData) => {
+    const newId = `COMM-${Math.floor(100 + Math.random() * 900)}`;
+    const timeStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' SGT';
+    const newComm = {
+      id: newId,
+      leadId: commData.leadId || null,
+      customerId: commData.customerId || null,
+      type: commData.type || 'note',
+      summary: commData.summary || '',
+      staffName: commData.staffName || currentUser?.name || 'Staff Member',
+      timestamp: commData.timestamp || timeStr
+    };
+    setCommunications(prev => [newComm, ...prev]);
+    showToast(`Logged communication entry #${newId}!`, 'success');
+    return newComm;
+  };
+
+  const deleteCommunication = (commId) => {
+    setCommunications(prev => prev.filter(c => c.id !== commId));
+    showToast('Communication entry removed.', 'info');
+  };
+
+  const addTask = (taskData) => {
+    const newId = `TASK-${Math.floor(100 + Math.random() * 900)}`;
+    const newTask = {
+      id: newId,
+      leadId: taskData.leadId || null,
+      customerId: taskData.customerId || null,
+      title: taskData.title || 'Follow-up Task',
+      dueDate: taskData.dueDate || new Date().toISOString().split('T')[0],
+      assignedTo: taskData.assignedTo || currentUser?.name || 'Darren Josan',
+      status: taskData.status || 'pending',
+      priority: (taskData.priority || 'medium').toLowerCase()
+    };
+    setTasks(prev => [newTask, ...prev]);
+    showToast(`CRM Task created (#${newId})!`, 'success');
+    return newTask;
+  };
+
+  const updateTask = (taskId, updatedData) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updatedData } : t));
+    showToast(`Task #${taskId} updated!`, 'info');
+  };
+
+  const toggleTaskStatus = (taskId) => {
+    let updatedStatus = 'pending';
+    setTasks(prev => prev.map(t => {
+      if (t.id === taskId) {
+        updatedStatus = t.status === 'pending' ? 'done' : 'pending';
+        return { ...t, status: updatedStatus };
+      }
+      return t;
+    }));
+    showToast(`Task marked as ${updatedStatus}!`, 'info');
+  };
+
+  const deleteTask = (taskId) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    showToast('Task removed.', 'info');
+  };
+
+  const updateCustomerTags = (customerId, tags) => {
+    const tagsArr = Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean);
+    setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, tags: tagsArr } : c));
+    showToast(`Customer #${customerId} tags updated!`, 'info');
+  };
+
   const flagWeatherDelay = (shipmentId, weatherCondition = 'Severe Thunderstorm & High Crosswind Corridor') => {
     setShipments(prev => prev.map(s => {
       if (s.id === shipmentId) {
@@ -1543,6 +1763,24 @@ export const LogisticsProvider = ({ children }) => {
       setInvoices,
       tickets,
       setTickets,
+      leads,
+      setLeads,
+      communications,
+      setCommunications,
+      tasks,
+      setTasks,
+      addLead,
+      updateLeadStage,
+      updateLead,
+      deleteLead,
+      convertLeadToCustomer,
+      addCommunication,
+      deleteCommunication,
+      addTask,
+      updateTask,
+      toggleTaskStatus,
+      deleteTask,
+      updateCustomerTags,
       createSupportTicket,
       replySupportTicket,
       updateTicketStatus,

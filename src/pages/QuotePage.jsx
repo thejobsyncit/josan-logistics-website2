@@ -20,7 +20,7 @@ import { useLogistics } from '../context/LogisticsContext';
 import { cargoCategories } from '../components/CargoTypeSelector';
 
 export const QuotePage = ({ setActiveTab }) => {
-  const { showToast, currentUser, setIsAuthModalOpen, resetShipmentScope, requestQuote, setCustomerSubTab } = useLogistics();
+  const { showToast, currentUser, setIsAuthModalOpen, resetShipmentScope, requestQuote, setCustomerSubTab, addLead } = useLogistics();
 
   // Form State
   const [freightMode, setFreightMode] = useState('ftl');
@@ -73,6 +73,24 @@ export const QuotePage = ({ setActiveTab }) => {
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
+
+    if (addLead) {
+      addLead({
+        name: contactName || 'Prospective Shipper',
+        company: contactCompany || (contactName ? `${contactName} Logistics` : 'Website Quote Inquiry'),
+        email: contactEmail || '',
+        phone: contactPhone || '',
+        source: 'Website Quote Form',
+        stage: 'Quote Sent',
+        estimatedValue: parseFloat(grandTotal) || 0,
+        tags: [
+          'Website Quote',
+          freightMode ? freightMode.toUpperCase() : 'FTL',
+          cargoCategory
+        ].filter(Boolean)
+      });
+    }
+
     if (requestQuote) {
       const newQuote = requestQuote({
         freightMode,

@@ -3,7 +3,7 @@ import { useLogistics } from '../context/LogisticsContext';
 import { Mail, Phone, MapPin, Send, HelpCircle, ChevronDown, Clock, Building2, Globe } from 'lucide-react';
 
 export const ContactPage = () => {
-  const { showToast } = useLogistics();
+  const { showToast, addLead } = useLogistics();
   const [formData, setFormData] = useState({ name: '', email: '', trackingId: '', subject: 'General Support', message: '' });
   const [activeFaq, setActiveFaq] = useState(null);
 
@@ -23,6 +23,19 @@ export const ContactPage = () => {
     if (!validateEmail(formData.email)) {
       showToast('Please enter a valid corporate email address (e.g. name@company.com)', 'warning');
       return;
+    }
+
+    if (addLead) {
+      addLead({
+        name: formData.name,
+        company: formData.name ? `${formData.name}'s Organization` : 'Inbound Web Lead',
+        email: formData.email,
+        phone: '',
+        source: 'Website Contact Form',
+        stage: 'New',
+        estimatedValue: formData.subject === 'Corporate Freight Quote' ? 8000 : 2500,
+        tags: [formData.subject, formData.trackingId ? `Tracking: ${formData.trackingId}` : 'Web Contact'].filter(Boolean)
+      });
     }
 
     showToast('Your inquiry has been submitted to Josan Dispatch Support!', 'success');
