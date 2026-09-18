@@ -92,7 +92,14 @@ const DynamicServiceGallery = ({ images, title }) => {
 };
 
 export const ServicesPage = ({ setActiveTab }) => {
-  const { setIsAuthModalOpen, setAuthModalHideClose, isAuthModalOpen, currentUser, setAuthRedirectTab } = useLogistics();
+  const { 
+    setIsAuthModalOpen, 
+    setAuthModalHideClose, 
+    isAuthModalOpen, 
+    currentUser, 
+    setAuthRedirectTab,
+    showToast 
+  } = useLogistics();
 
   const [calculatorWeight, setCalculatorWeight] = useState(25);
   const [calculatorService, setCalculatorService] = useState('parcel');
@@ -146,10 +153,16 @@ export const ServicesPage = ({ setActiveTab }) => {
       if (setAuthRedirectTab) {
         setAuthRedirectTab('book');
       }
-      openLoginModal();
-    } else {
-      setActiveTab('book');
+      if (setAuthModalHideClose) {
+        setAuthModalHideClose(false);
+      }
+      setIsAuthModalOpen(true);
+      if (showToast) {
+        showToast('Please sign in or create an account to book your shipment.', 'info');
+      }
+      return;
     }
+    setActiveTab('book');
   };
 
   const servicesData = [
@@ -382,7 +395,7 @@ export const ServicesPage = ({ setActiveTab }) => {
               onClick={handleBookServiceClick}
               className="px-8 py-3.5 bg-orange-gradient hover:bg-orange-600 text-white font-extrabold text-sm rounded-xl shadow-orange-glow transition-all inline-flex items-center space-x-2 cursor-pointer"
             >
-              <span>Proceed To Book</span>
+              <span>Book Shipment</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -437,7 +450,7 @@ export const ServicesPage = ({ setActiveTab }) => {
                     onClick={handleBookServiceClick}
                     className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer"
                   >
-                    <span>Book This Service</span>
+                    <span>Book Shipment</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                   <button

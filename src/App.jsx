@@ -130,6 +130,13 @@ const MainContent = () => {
   useEffect(() => {
     if (!currentUser) {
       if (['driver-dashboard', 'admin-dashboard', 'customer-dashboard', 'my-shipments', 'manage-shipment', 'book', 'track'].includes(activeTab)) {
+        if (['book', 'track'].includes(activeTab) && setAuthRedirectTab) {
+          setAuthRedirectTab(activeTab);
+        }
+        setIsAuthModalOpen(true);
+        if (showToast) {
+          showToast(`Please sign in or create an account to access ${activeTab === 'book' ? 'shipment booking' : activeTab === 'track' ? 'live tracking' : 'your dashboard'}.`, 'warning');
+        }
         changeActiveTab('home');
       }
     } else {

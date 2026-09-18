@@ -463,7 +463,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             <button
               onClick={() => {
                 if (!currentUser) {
+                  if (setAuthRedirectTab) setAuthRedirectTab('book');
                   setIsAuthModalOpen(true);
+                  if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
                   return;
                 }
                 if (setShipmentScope) setShipmentScope('domestic');
