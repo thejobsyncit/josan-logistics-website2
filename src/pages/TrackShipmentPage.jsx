@@ -51,13 +51,13 @@ const DEMO_SHIPMENTS_MAP = {
     declaredValue: 'S$ 68,500',
     price: 'S$ 740.00',
     timeline: [
-      { step: 1, title: 'Consignment Booked & LR Issued', location: 'Jurong Central Highway Depot', timestamp: 'Today 08:15 AM', completed: true },
-      { step: 2, title: 'Confirmed by Fleet Operations', location: 'Operations Desk Hub', timestamp: 'Today 09:00 AM', completed: true },
-      { step: 3, title: 'Pickup Scheduled & Pilot Assigned', location: 'Jurong Central Highway Depot', timestamp: 'Today 09:45 AM', completed: true },
-      { step: 4, title: 'Picked Up & Axle Load Cleared', location: 'Depot Loading Bay 4', timestamp: 'Today 10:40 AM', completed: true },
-      { step: 5, title: 'In Transit (PIE Expressway Corridor)', location: 'PIE Expressway Telematics Gate', timestamp: 'Today 01:20 PM', completed: true, current: true },
-      { step: 6, title: 'Near Destination & Consignee Alert', location: 'Woodlands North Park Bay 2', timestamp: 'Expected 03:45 PM', completed: false },
-      { step: 7, title: 'Delivered & Digital POD Verified', location: 'Woodlands Industrial Depot', timestamp: 'Expected 04:30 PM', completed: false }
+      { step: 1, title: 'Book Shipment', location: 'Jurong Central Highway Depot', timestamp: 'Today 08:15 AM', completed: true },
+      { step: 2, title: 'Confirmed', location: 'Operations Desk Hub', timestamp: 'Today 09:00 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled', location: 'Jurong Central Highway Depot', timestamp: 'Today 09:45 AM', completed: true },
+      { step: 4, title: 'Picked Up', location: 'Depot Loading Bay 4', timestamp: 'Today 10:40 AM', completed: true },
+      { step: 5, title: 'In Transit', location: 'PIE Expressway Telematics Gate', timestamp: 'Today 01:20 PM', completed: true, current: true },
+      { step: 6, title: 'Near Destination', location: 'Woodlands North Park Bay 2', timestamp: 'Expected 03:45 PM', completed: false },
+      { step: 7, title: 'Delivered', location: 'Woodlands Industrial Depot', timestamp: 'Expected 04:30 PM', completed: false }
     ]
   },
   'JOS-44021-SG': {
@@ -87,13 +87,13 @@ const DEMO_SHIPMENTS_MAP = {
     price: 'S$ 1,280.00',
     otpActive: '749201',
     timeline: [
-      { step: 1, title: 'Consignment Booked & Chassis Allocated', location: 'Pasir Panjang Terminal Berth 5', timestamp: 'Today 08:30 AM', completed: true },
-      { step: 2, title: 'Confirmed by Port Logistics', location: 'Port Gate Operations', timestamp: 'Today 09:15 AM', completed: true },
-      { step: 3, title: 'Pickup Scheduled & Volvo Haulier Assigned', location: 'Berth 5 Inspection Bay', timestamp: 'Today 10:00 AM', completed: true },
-      { step: 4, title: 'Picked Up & Axle Load Weighed', location: 'Port Gate Weighbridge', timestamp: 'Today 11:30 AM', completed: true },
-      { step: 5, title: 'In Transit via AYE / BKE Highway', location: 'Expressway Route Corridor', timestamp: 'Today 01:15 PM', completed: true },
-      { step: 6, title: 'Near Destination (Customer OTP Dispatched)', location: 'BKE Expressway Exit 3 Gate', timestamp: 'Today 02:45 PM', completed: true, current: true },
-      { step: 7, title: 'Delivered & POD Verified', location: 'Woodlands Loop Depot Dock 3', timestamp: 'Expected Today, 05:15 PM', completed: false }
+      { step: 1, title: 'Book Shipment', location: 'Pasir Panjang Terminal Berth 5', timestamp: 'Today 08:30 AM', completed: true },
+      { step: 2, title: 'Confirmed', location: 'Port Gate Operations', timestamp: 'Today 09:15 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled', location: 'Berth 5 Inspection Bay', timestamp: 'Today 10:00 AM', completed: true },
+      { step: 4, title: 'Picked Up', location: 'Port Gate Weighbridge', timestamp: 'Today 11:30 AM', completed: true },
+      { step: 5, title: 'In Transit', location: 'Expressway Route Corridor', timestamp: 'Today 01:15 PM', completed: true },
+      { step: 6, title: 'Near Destination', location: 'BKE Expressway Exit 3 Gate', timestamp: 'Today 02:45 PM', completed: true, current: true },
+      { step: 7, title: 'Delivered', location: 'Woodlands Loop Depot Dock 3', timestamp: 'Expected Today, 05:15 PM', completed: false }
     ]
   },
   'JOS-66301-SG': {
@@ -129,13 +129,13 @@ const DEMO_SHIPMENTS_MAP = {
       remarks: 'Vaccine cold chain unbroken at 3.8°C. Seals intact, e-POD confirmed.'
     },
     timeline: [
-      { step: 1, title: 'Consignment Booked in Cold-Chain Vault', location: 'Tuas Mega Cold Hub', timestamp: 'Today 05:30 AM', completed: true },
-      { step: 2, title: 'Booking Confirmed & Pre-Cooling Verified', location: 'Quality Assurance Desk', timestamp: 'Today 06:00 AM', completed: true },
-      { step: 3, title: 'Pickup Scheduled & Reefer Assigned', location: 'Tuas Bay 1', timestamp: 'Today 06:45 AM', completed: true },
-      { step: 4, title: 'Picked Up & Temp Validated at 3.8°C', location: 'Tuas Mega Cold Hub Bay 1', timestamp: 'Today 07:15 AM', completed: true },
-      { step: 5, title: 'In Transit with IoT Temp Telemetry', location: 'AYE Expressway Highway Corridor', timestamp: 'Today 08:30 AM', completed: true },
-      { step: 6, title: 'Near Destination (OTP Verified)', location: 'Biopolis Biomedical Grove', timestamp: 'Today 10:50 AM', completed: true },
-      { step: 7, title: 'Delivered & Digital POD Verified', location: 'Biopolis Vault Bay 2', timestamp: 'Today 11:15 AM', completed: true, current: true }
+      { step: 1, title: 'Book Shipment', location: 'Tuas Mega Cold Hub', timestamp: 'Today 05:30 AM', completed: true },
+      { step: 2, title: 'Confirmed', location: 'Quality Assurance Desk', timestamp: 'Today 06:00 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled', location: 'Tuas Bay 1', timestamp: 'Today 06:45 AM', completed: true },
+      { step: 4, title: 'Picked Up', location: 'Tuas Mega Cold Hub Bay 1', timestamp: 'Today 07:15 AM', completed: true },
+      { step: 5, title: 'In Transit', location: 'AYE Expressway Highway Corridor', timestamp: 'Today 08:30 AM', completed: true },
+      { step: 6, title: 'Near Destination', location: 'Biopolis Biomedical Grove', timestamp: 'Today 10:50 AM', completed: true },
+      { step: 7, title: 'Delivered', location: 'Biopolis Vault Bay 2', timestamp: 'Today 11:15 AM', completed: true, current: true }
     ]
   },
   'JOS-99210-SG': {
@@ -172,13 +172,13 @@ const DEMO_SHIPMENTS_MAP = {
       timestamp: 'Today, 01:45 PM'
     },
     timeline: [
-      { step: 1, title: 'Consignment Booked & Heavy Trailer Staged', location: 'Jurong Industrial Yard', timestamp: 'Today 07:30 AM', completed: true },
-      { step: 2, title: 'Confirmed & Police Escort Cleared', location: 'Heavy Haulage Operations', timestamp: 'Today 08:30 AM', completed: true },
-      { step: 3, title: 'Pickup Scheduled & 18-Wheeler Assigned', location: 'Jurong Depot Loading Bay', timestamp: 'Today 09:15 AM', completed: true },
-      { step: 4, title: 'Picked Up & Axle Weights Verified', location: 'Jurong Heavy Industrial Depot', timestamp: 'Today 09:45 AM', completed: true },
-      { step: 5, title: 'In Transit (Storm Safety Speed Advisory Active)', location: 'KPE Expressway Corridor', timestamp: 'Today 01:45 PM', completed: true, current: true },
-      { step: 6, title: 'Near Destination & Custom Clearance', location: 'Woodlands Centre Gate', timestamp: 'Expected 06:30 PM', completed: false },
-      { step: 7, title: 'Delivered & Consignee Handover', location: 'Woodlands Checkpoint Hub', timestamp: 'Expected 07:45 PM', completed: false }
+      { step: 1, title: 'Book Shipment', location: 'Jurong Industrial Yard', timestamp: 'Today 07:30 AM', completed: true },
+      { step: 2, title: 'Confirmed', location: 'Heavy Haulage Operations', timestamp: 'Today 08:30 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled', location: 'Jurong Depot Loading Bay', timestamp: 'Today 09:15 AM', completed: true },
+      { step: 4, title: 'Picked Up', location: 'Jurong Heavy Industrial Depot', timestamp: 'Today 09:45 AM', completed: true },
+      { step: 5, title: 'In Transit', location: 'KPE Expressway Corridor', timestamp: 'Today 01:45 PM', completed: true, current: true },
+      { step: 6, title: 'Near Destination', location: 'Woodlands Centre Gate', timestamp: 'Expected 06:30 PM', completed: false },
+      { step: 7, title: 'Delivered', location: 'Woodlands Checkpoint Hub', timestamp: 'Expected 07:45 PM', completed: false }
     ]
   }
 };
@@ -544,7 +544,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               <span className={`text-sm font-bold transition-colors ${
                 trackType === 'shipment' ? 'text-slate-900' : 'text-slate-500'
               }`}>
-                Shipment / LR Number
+                Shipment ID
               </span>
             </label>
 
@@ -590,7 +590,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                     setActiveTrackingId('');
                   }
                 }}
-                placeholder={trackType === 'shipment' ? 'Enter Consignment / LR Number (e.g. JOS-88190-SG)' : 'Enter Reference / Waybill Number (e.g. REF-8819-SG)'}
+                placeholder={trackType === 'shipment' ? 'Enter Shipment ID (e.g. JOS-88190-SG)' : 'Enter Reference / Waybill Number (e.g. REF-8819-SG)'}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200/90 rounded-xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-mono transition-all pr-10"
                 required
               />
@@ -646,12 +646,12 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               </p>
             )}
 
-            {/* Brand Orange TRACK ORDER NOW Button */}
+            {/* Brand Orange TRACK SHIPMENT Button */}
             <button
               type="submit"
               className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 active:scale-[0.99] text-white font-extrabold text-sm tracking-wider uppercase rounded-xl shadow-orange-sm transition-all cursor-pointer flex items-center justify-center space-x-2"
             >
-              <span>TRACK ORDER NOW</span>
+              <span>TRACK SHIPMENT</span>
             </button>
           </form>
 
@@ -659,7 +659,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
           <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h4 className="text-xs font-bold text-slate-900">
-                Can't Find Your Order Details?
+                Can't Find Your Shipment ID?
               </h4>
               <p className="text-xs text-slate-500 font-medium mt-0.5 leading-relaxed">
                 Your Consignment Note (CN) or Lorry Receipt (LR) number was sent via SMS or Email at booking confirmation.
@@ -874,12 +874,12 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   };
                   const activeStep = getStepNum(status);
                   const stages7 = [
-                    { num: 1, label: 'Booked' },
+                    { num: 1, label: 'Book Shipment' },
                     { num: 2, label: 'Confirmed' },
-                    { num: 3, label: 'Pickup Sched.' },
+                    { num: 3, label: 'Pickup Scheduled' },
                     { num: 4, label: 'Picked Up' },
                     { num: 5, label: 'In Transit' },
-                    { num: 6, label: 'Near Dest.' },
+                    { num: 6, label: 'Near Destination' },
                     { num: 7, label: 'Delivered' }
                   ];
 

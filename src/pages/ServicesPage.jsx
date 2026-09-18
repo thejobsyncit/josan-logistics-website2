@@ -38,17 +38,28 @@ const DynamicServiceGallery = ({ images, title }) => {
 
   return (
     <div className="w-full">
-      <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-80 bg-slate-900">
+      <div className="relative group overflow-hidden rounded-2xl border border-slate-200 shadow-md h-80 bg-slate-950 flex items-center justify-center">
+        {/* Ambient blurred backdrop for consistent edge filling */}
+        <img
+          key={`bg-${currentIndex}`}
+          src={images[currentIndex]}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover blur-xl scale-125 opacity-35 pointer-events-none"
+        />
+
+        {/* Shrunk, fully uncropped image displaying 100% of the graphic */}
         <img
           key={currentIndex}
           src={images[currentIndex]}
           alt={`${title} view ${currentIndex + 1}`}
-          className="w-full h-full object-cover transition-all duration-700 ease-in-out transform group-hover:scale-105 animate-fade-in"
+          className="relative z-1 max-h-full max-w-full object-contain p-2 transition-all duration-500 transform group-hover:scale-[1.02] animate-fade-in drop-shadow-md"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60"></div>
+
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none z-2"></div>
         <button
           onClick={handlePrev}
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
           title="Previous Image"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -56,7 +67,7 @@ const DynamicServiceGallery = ({ images, title }) => {
 
         <button
           onClick={handleNext}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-orange-500 text-white flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
           title="Next Image"
         >
           <ChevronRight className="w-5 h-5" />
@@ -84,7 +95,7 @@ export const ServicesPage = ({ setActiveTab }) => {
   const { setIsAuthModalOpen, setAuthModalHideClose, isAuthModalOpen, currentUser, setAuthRedirectTab } = useLogistics();
 
   const [calculatorWeight, setCalculatorWeight] = useState(25);
-  const [calculatorService, setCalculatorService] = useState('ground');
+  const [calculatorService, setCalculatorService] = useState('parcel');
   const [calculatorInsurance, setCalculatorInsurance] = useState(false);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState(cargoCategories[0]?.id || 'beverages-food-plants');
 
@@ -120,9 +131,10 @@ export const ServicesPage = ({ setActiveTab }) => {
 
   const getRatePerKg = () => {
     switch (calculatorService) {
-      case 'ground': return 4;
-      case 'ftl': return 6;
-      case 'express-road': return 8;
+      case 'parcel': return 4;
+      case 'bulk': return 6;
+      case 'intra': return 3;
+      case 'inter': return 5;
       default: return 4;
     }
   };
@@ -142,103 +154,83 @@ export const ServicesPage = ({ setActiveTab }) => {
 
   const servicesData = [
     {
-      id: 'road-transportation',
-      anchorId: 'road-transportation',
-      tabName: 'Road Transportation',
-      title: 'Road Transportation & Land Haulage',
-      subtitle: 'Primary Domestic & Cross-Border Highway Corridor Network',
-      icon: Truck,
-      images: [
-        'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
-      ],
-      desc: 'Modern roadway transport fleet equipped with satellite GPS telematics for seamless highway freight and door-to-door road transport across Singapore, ports, and regional expressway gateways.',
-      features: [
-        'Door-to-door pickup & scheduled drops',
-        'Automated AI route optimization',
-        'Hydraulic lift-gate vans & lorries available',
-        '24/7 driver telemetry feed & live ETA'
-      ]
-    },
-    {
-      id: 'ftl-transportation',
-      anchorId: 'ftl-transportation',
-      tabName: 'FTL Transportation',
-      title: 'Full Truckload (FTL) Dedicated Transportation',
-      subtitle: 'Exclusive Point-to-Point Bulk Haulage without Intermediate Stops',
-      icon: Layers,
-      images: [
-        '/assets/lorry_24ft_heavy.jpg',
-        '/assets/clean_domestic_truck.jpg',
-        'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80'
-      ],
-      desc: 'Exclusive full-capacity truckload services for bulk shipments, palletized merchandise, and industrial machinery. Your cargo occupies the entire vehicle, ensuring direct, untranshipped routing with maximum security and the fastest highway transit times.',
-      features: [
-        'Dedicated 24ft–40ft lorries & prime movers',
-        'Direct origin-to-destination non-stop delivery',
-        'Up to 24,000 kg payload capacity',
-        'Sealed container & anti-tamper security locks'
-      ]
-    },
-    {
-      id: 'ltl-transportation',
-      anchorId: 'ltl-transportation',
-      tabName: 'LTL Transportation',
-      title: 'Less-Than-Truckload (LTL) Consolidated Freight',
-      subtitle: 'Cost-Optimized Shared Capacity with Scheduled Linehaul Runs',
+      id: 'parcel-delivery',
+      anchorId: 'parcel-delivery',
+      tabName: 'Parcel Delivery',
+      title: 'Parcel Delivery & Express Courier',
+      subtitle: 'Fast, secure door-to-door courier service for small to medium road shipments',
       icon: Package,
       images: [
-        '/assets/vehicle_10ft_lorry.jpg',
-        '/assets/lorry_14ft_tailgate.jpg',
-        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
-      ],
-      desc: 'Economical consolidated road freight for businesses shipping 1 to 10 pallets. Share trailer space while benefiting from computerized manifests, scheduled daily departures, and automated warehouse sorting across our regional hubs.',
-      features: [
-        'Tiered volumetric and pallet pricing',
-        'Daily scheduled linehaul departures',
-        'Automated cross-dock sorting & scanning',
-        'Individual pallet barcode tracking'
-      ]
-    },
-    {
-      id: 'express-delivery',
-      anchorId: 'express-delivery',
-      tabName: 'Express Delivery',
-      title: 'Express Highway & City Delivery',
-      subtitle: 'Priority Same-Day Dispatch for Time-Critical Consignments',
-      icon: Zap,
-      images: [
-        '/assets/van_1_7m.jpg',
+        '/assets/parcel_delivery_handover.png',
         '/assets/vehicle_motorbike.jpg',
         '/assets/vehicle_mpv.jpg'
       ],
-      desc: 'Rapid express courier and dedicated sprinter dispatch for mission-critical parts, urgent medical samples, legal documentation, and time-sensitive customer orders with guaranteed SLA turnaround.',
+      desc: 'Rapid parcel dispatch and scheduled courier delivery designed for e-commerce, commercial documents, spare parts, and retail parcels. Every parcel is logged with real-time telematics and digital proof of delivery.',
       features: [
-        'Under 4-hour direct point-to-point delivery',
-        'Immediate priority driver dispatch',
-        'Real-time minute-by-minute satellite telemetry',
-        'Digital Proof-of-Delivery (POD) with signature'
+        'Same-day and next-day scheduled road dispatch',
+        'Direct door-to-door pickup and drop-off',
+        'Barcoded parcel tracking and digital POD',
+        'Automated SMS & email delivery alerts'
       ]
     },
     {
-      id: 'specialized-cargo',
-      anchorId: 'specialized-cargo',
-      tabName: 'Specialized Cargo',
-      title: 'Specialized & Cold Chain Temperature Cargo',
-      subtitle: 'Active Thermoregulation (-25°C to +25°C) & High-Care Logistics',
-      icon: Thermometer,
+      id: 'bulk-shipment',
+      anchorId: 'bulk-shipment',
+      tabName: 'Bulk Shipment',
+      title: 'Bulk Shipment & Dedicated Truckloads',
+      subtitle: 'Full Truckload (FTL) and multi-axle trailers for high-volume commercial freight',
+      icon: Layers,
       images: [
-        '/assets/vehicle_cold_chain.jpg',
+        '/assets/bulk_shipment_containers.png',
+        '/assets/clean_domestic_truck.jpg',
+        'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'Exclusive full-capacity truckload transport for bulk goods, palletized industrial cargo, construction materials, and raw commodities. Direct non-stop transit from loading facility to consignee without intermediate handling.',
+      features: [
+        'Dedicated 24ft to 40ft heavy lorries and prime movers',
+        'Up to 24,000 kg payload capacity with sealed containers',
+        'Direct point-to-point non-stop highway transport',
+        'Weighbridge certification and axle-load compliance'
+      ]
+    },
+    {
+      id: 'intra-city-transport',
+      anchorId: 'intra-city-transport',
+      tabName: 'Intra-city Transport',
+      title: 'Intra-city Transport & Metro Delivery',
+      subtitle: 'Scheduled local distribution, store replenishment, and multi-drop delivery within the city',
+      icon: Truck,
+      images: [
+        '/assets/intra_city_logistics_route.png',
+        '/assets/lorry_14ft_tailgate.jpg',
+        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
+      ],
+      desc: 'High-frequency metropolitan road delivery connecting local warehouses, retail stores, fulfillment hubs, and residential drop points. Optimized multi-stop delivery routes ensure minimal transit times in urban traffic.',
+      features: [
+        'Automated AI route optimization for city traffic',
+        'Multi-drop scheduling and store restocking',
+        'Tailgate-equipped lorries for easy ground loading',
+        'Flexible same-day intra-city delivery slots'
+      ]
+    },
+    {
+      id: 'inter-city-logistics',
+      anchorId: 'inter-city-logistics',
+      tabName: 'Inter-city Logistics',
+      title: 'Inter-city Logistics & Highway Corridors',
+      subtitle: 'Long-haul road freight connecting major industrial hubs, state lines, and regional corridors',
+      icon: Compass,
+      images: [
+        '/assets/inter_city_highway_corridor.png',
         'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
       ],
-      desc: 'Engineered transport solutions for pharmaceuticals, perishables, and delicate industrial materials. Active climate-controlled reefer vans equipped with dual-probe IoT dataloggers maintain continuous compliance throughout transit.',
+      desc: 'Reliable long-distance linehaul operations across national highway corridors. Operating daily scheduled departures with 24/7 telematics, verified checkpoint clearances, and team driver rotations for uninterrupted road transit.',
       features: [
-        'Precise multi-temp control (-25°C to +25°C)',
-        'Continuous IoT datalogger temperature reports',
-        'GDP pharmaceutical & cold chain certified',
-        'Thermal air curtain doors & standby power'
+        'Daily scheduled linehaul departures along major corridors',
+        'Real-time GPS telematics and waypoint geofencing',
+        'Consolidated LTL and dedicated FTL road options',
+        'Inter-state transport documentation and clearance'
       ]
     }
   ];
@@ -356,9 +348,10 @@ export const ServicesPage = ({ setActiveTab }) => {
                   onChange={(e) => setCalculatorService(e.target.value)}
                   className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
                 >
-                  <option value="ground">Roadways Freight & Land Haulage ($4/kg)</option>
-                  <option value="ftl">Full Truckload (FTL) Dedicated ($6/kg)</option>
-                  <option value="express-road">Express Highway Road Courier ($8/kg)</option>
+                  <option value="parcel">Parcel Delivery ($4/kg)</option>
+                  <option value="bulk">Bulk Shipment &amp; FTL ($6/kg)</option>
+                  <option value="intra">Intra-city Transport ($3/kg)</option>
+                  <option value="inter">Inter-city Logistics ($5/kg)</option>
                 </select>
               </div>
 
@@ -397,19 +390,25 @@ export const ServicesPage = ({ setActiveTab }) => {
       </section>
 
       {/* Services Detailed Sections (with IDs corresponding to Navbar Dropdown) */}
-      <section id="freight-services-grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 scroll-mt-28">
-        {servicesData.map((service, index) => {
-          const IconComp = service.icon;
-          const isEven = index % 2 === 0;
-          return (
-            <div 
-              key={service.id} 
-              id={service.anchorId}
-              className={`grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-card scroll-mt-28 hover:border-orange-200 transition-all ${
-                !isEven ? 'lg:flex-row-reverse' : ''
-              }`}
-            >
-              {/* Details Column */}
+      <section id="road-transportation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 scroll-mt-28">
+        <div id="freight-services-grid" className="sr-only" />
+          {servicesData.map((service, index) => {
+            const IconComp = service.icon;
+            const isEven = index % 2 === 0;
+            return (
+              <div 
+                key={service.id} 
+                id={service.anchorId}
+                className={`grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-card scroll-mt-28 hover:border-orange-200 transition-all relative ${
+                  !isEven ? 'lg:flex-row-reverse' : ''
+                }`}
+              >
+                {/* Direct ID Aliases for Navbar Dropdown items */}
+                {service.id === 'parcel-delivery' && <div id="express-delivery" className="scroll-mt-28 -top-28 absolute" />}
+                {service.id === 'bulk-shipment' && <div id="ftl-transportation" className="scroll-mt-28 -top-28 absolute" />}
+                {service.id === 'inter-city-logistics' && <div id="ltl-transportation" className="scroll-mt-28 -top-28 absolute" />}
+
+                {/* Details Column */}
               <div className={`lg:col-span-6 space-y-4 ${!isEven ? 'lg:order-2' : ''}`}>
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-sm">
@@ -460,7 +459,8 @@ export const ServicesPage = ({ setActiveTab }) => {
       </section>
 
       {/* CARGO TYPES SECTION (Interactive Industry Cargo Classification Showcase) */}
-      <section id="cargo-types" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-28">
+      <section id="cargo-types" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-28 relative">
+        <div id="specialized-cargo" className="scroll-mt-28 -top-28 absolute" />
         <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-card space-y-8">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-orange-600 font-bold uppercase text-xs tracking-widest bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200 inline-block">

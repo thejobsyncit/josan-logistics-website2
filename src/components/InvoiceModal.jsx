@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
-import { X, Printer, Download, Truck, CheckCircle2, ShieldCheck, FileText, CreditCard, QrCode, Lock, Loader2 } from 'lucide-react';
+import { X, Printer, Download, Truck, CheckCircle2, ShieldCheck, FileText, CreditCard, QrCode, Lock, Loader2, ExternalLink } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { safeDownloadPdf, openPdfInNewTab } from '../utils/pdfDownload';
 
 export const InvoiceModal = () => {
   const { selectedInvoiceShipment, setSelectedInvoiceShipment, showToast, payShipmentInvoice } = useLogistics();
@@ -239,9 +240,8 @@ export const InvoiceModal = () => {
     }, 1500);
   };
 
-  const handleDownloadPDF = () => {
-    try {
-      const doc = new jsPDF({
+  const generateInvoiceDoc = () => {
+    const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
@@ -488,9 +488,15 @@ export const InvoiceModal = () => {
       doc.setTextColor(255, 107, 0);
       doc.text('support@josanlogistics.com', 195, 217, { align: 'right' });
 
-      // Save PDF directly to user download folder
-      const filename = `Invoice-${shipment.id}.pdf`;
-      doc.save(filename);
+      return doc;
+  };
+
+  const handleDownloadPDF = () => {
+    try {
+      const doc = generateInvoiceDoc();
+      const cleanId = String(shipment.id || 'Consignment').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const filename = `Josan_Invoice_${cleanId}.pdf`;
+      safeDownloadPdf(doc, filename);
       if (showToast) {
         showToast(`Downloaded Invoice PDF: ${filename}`, 'success');
       }
@@ -503,12 +509,25 @@ export const InvoiceModal = () => {
     }
   };
 
+  const handleOpenPDF = () => {
+    try {
+      const doc = generateInvoiceDoc();
+      openPdfInNewTab(doc);
+      if (showToast) {
+        showToast('Opened Invoice PDF in new tab', 'info');
+      }
+    } catch (err) {
+      console.error('Error opening PDF in new tab:', err);
+      handlePrint();
+    }
+  };
+
   return (
     <div 
       onClick={(e) => {
         if (e.target === e.currentTarget) setSelectedInvoiceShipment(null);
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
     >
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-scale-up">
         
@@ -522,9 +541,19 @@ export const InvoiceModal = () => {
             <button
               onClick={handleDownloadPDF}
               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
+              title="Download official PDF invoice file"
             >
               <Download className="w-3.5 h-3.5 text-orange-400" />
-              <span>Download Invoice (PDF)</span>
+              <span>Download PDF</span>
+            </button>
+
+            <button
+              onClick={handleOpenPDF}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
+              title="Open and view PDF directly in browser"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-sky-400" />
+              <span>Open PDF</span>
             </button>
 
             <button
@@ -551,7 +580,9 @@ export const InvoiceModal = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-orange-500 pb-6">
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <img src="/assets/josan_logo.png" alt="Josan Logistics Logo" className="h-12 w-auto object-contain" />
+                <div className="bg-[#10182D] p-2 rounded-xl inline-block shadow-xs">
+                  <img src="/assets/josan_logo.png" alt="Josan Logistics Logo" className="h-9 w-auto object-contain" />
+                </div>
               </div>
               <p className="text-xs text-slate-500 font-semibold">Regional & Global Supply Chain Management</p>
               <p className="text-xs text-slate-500">450 Logistics Parkway, Chicago, IL 60607</p>

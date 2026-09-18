@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         orange: {
+          DEFAULT: '#FF6B00',
           50: '#FFF8F2',
           100: '#FFE8D6',
           200: '#FFCEAD',
@@ -21,6 +22,7 @@ export default {
           950: '#471600',
         },
         navy: {
+          DEFAULT: '#10182D',
           50: '#F5F7FC',
           100: '#E8ECF7',
           200: '#D5DCF0',

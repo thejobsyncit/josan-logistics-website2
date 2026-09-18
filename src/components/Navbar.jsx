@@ -25,7 +25,12 @@ import {
   Zap,
   Thermometer,
   Shield,
-  CreditCard
+  CreditCard,
+  Target,
+  Phone,
+  Mail,
+  Globe,
+  ArrowRight
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab }) => {
@@ -173,15 +178,39 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       return;
     }
 
+    // Mapping dropdown IDs to the exact element IDs on ServicesPage
+    const targetMap = {
+      'road-transportation': 'road-transportation',
+      'ftl-transportation': 'ftl-transportation',
+      'ltl-transportation': 'ltl-transportation',
+      'express-delivery': 'express-delivery',
+      'specialized-cargo': 'specialized-cargo',
+      'cargo-types': 'cargo-types',
+      'parcel-delivery': 'parcel-delivery',
+      'bulk-shipment': 'bulk-shipment',
+      'intra-city-transport': 'intra-city-transport',
+      'inter-city-logistics': 'inter-city-logistics'
+    };
+
+    const targetId = targetMap[sectionId] || sectionId;
+
     setActiveTab('services');
-    setTimeout(() => {
-      const el = document.getElementById(sectionId);
+
+    const scrollToElement = () => {
+      const el = document.getElementById(targetId) || document.getElementById(sectionId);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        return true;
       }
-    }, 80);
+      return false;
+    };
+
+    // Attempt immediate scroll or retry as React switches to Services tab
+    if (!scrollToElement()) {
+      setTimeout(scrollToElement, 60);
+      setTimeout(scrollToElement, 180);
+      setTimeout(scrollToElement, 400);
+    }
   };
 
   const handleGoToShipmentTab = (tabId) => {
@@ -235,9 +264,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services', hasDropdown: true },
-    { id: 'shipments', label: 'Shipments', hasDropdown: true },
     { id: 'track', label: 'Track Shipment' },
-    { id: 'fleet', label: 'Fleet' },
     { id: 'contact', label: 'Contact Us' }
   ];
 
@@ -257,7 +284,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-[#E2E8F0] shadow-xs transition-all duration-300">
+    <header className="sticky top-0 z-40 bg-[#10182D] border-b border-slate-800 shadow-md transition-all duration-300">
       {/* Main Navbar (76px height) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[76px]">
@@ -273,12 +300,20 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             <img 
               src="/assets/josan_logo.png" 
               alt="Josan Logistics Logo" 
-              className="h-11 sm:h-13 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-200" 
+              className="h-11 sm:h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-200" 
             />
+            <div className="flex flex-col">
+              <span className="text-white font-black text-lg sm:text-xl tracking-wider leading-none">
+                JOSAN
+              </span>
+              <span className="text-[#FF6B00] font-black text-[9px] sm:text-[10px] tracking-widest uppercase mt-0.5">
+                LOGISTICS PTE. LTD.
+              </span>
+            </div>
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center space-x-1 2xl:space-x-1.5">
+          <nav className="hidden xl:flex items-center space-x-3 2xl:space-x-5">
             {navItems.map((item) => {
               if (item.id === 'services') {
                 const isServicesActive = activeTab === 'services' || activeTab === 'customs-clearance';
@@ -290,32 +325,36 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                     onMouseLeave={handleMouseLeaveServices}
                   >
                     <button
-                      onClick={() => handleGoToServiceSection('road-transportation')}
-                      className={`px-3 py-2 rounded-lg text-sm 2xl:text-[15px] font-medium transition-all duration-150 inline-flex items-center space-x-1 cursor-pointer whitespace-nowrap ${
+                      onClick={() => {
+                        setServicesDropdownOpen(false);
+                        setActiveTab('services');
+                        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                      }}
+                      className={`py-2 text-sm 2xl:text-[15px] transition-all duration-150 inline-flex items-center space-x-1 cursor-pointer whitespace-nowrap ${
                         isServicesActive
-                          ? 'bg-[#FFF8F2] text-[#FF6B00] font-semibold'
-                          : 'text-[#10182D] hover:text-[#FF6B00] hover:bg-[#FFF8F2]/60'
+                          ? 'text-white font-bold border-b-2 border-[#FF6B00]'
+                          : 'text-slate-300 hover:text-white font-medium'
                       }`}
                     >
                       <span>Services</span>
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180 text-[#FF6B00]' : ''}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180 text-[#FF6B00]' : 'text-slate-400'}`} />
                     </button>
 
                     {/* Services Dropdown Menu */}
                     {servicesDropdownOpen && (
-                      <div className="absolute left-0 top-full pt-1.5 w-80 z-50 animate-fade-in">
-                        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xl p-2 space-y-0.5">
+                      <div className="absolute left-0 top-full pt-2 w-80 z-50 animate-fade-in">
+                        <div className="bg-[#10182D] rounded-2xl border border-slate-700/80 shadow-2xl p-2.5 space-y-1">
                           {servicesDropdownItems.map((s) => (
                             <button
                               key={s.id}
                               type="button"
                               onClick={() => handleGoToServiceSection(s.id)}
-                              className="w-full text-left p-2.5 rounded-xl hover:bg-[#FFF8F2] transition-colors block group cursor-pointer"
+                              className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 transition-colors block group cursor-pointer"
                             >
-                              <span className="block text-xs font-bold text-[#10182D] group-hover:text-[#FF6B00] transition-colors">
+                              <span className="block text-xs font-bold text-white group-hover:text-[#FF6B00] transition-colors">
                                 {s.label}
                               </span>
-                              <span className="block text-[11px] font-medium text-[#64748B] mt-0.5 leading-snug">
+                              <span className="block text-[11px] font-medium text-slate-400 mt-0.5 leading-snug">
                                 {s.desc}
                               </span>
                             </button>
@@ -338,31 +377,31 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   >
                     <button
                       onClick={() => handleGoToShipmentTab('book')}
-                      className={`px-3 py-2 rounded-lg text-sm 2xl:text-[15px] font-medium transition-all duration-150 inline-flex items-center space-x-1 whitespace-nowrap cursor-pointer ${
+                      className={`py-2 text-sm 2xl:text-[15px] transition-all duration-150 inline-flex items-center space-x-1 whitespace-nowrap cursor-pointer ${
                         isShipmentActive
-                          ? 'bg-[#FFF8F2] text-[#FF6B00] font-semibold'
-                          : 'text-[#10182D] hover:text-[#FF6B00] hover:bg-[#FFF8F2]/60'
+                          ? 'text-white font-bold border-b-2 border-[#FF6B00]'
+                          : 'text-slate-300 hover:text-white font-medium'
                       }`}
                     >
                       <span>Shipments</span>
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${shipmentDropdownOpen ? 'rotate-180 text-[#FF6B00]' : ''}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${shipmentDropdownOpen ? 'rotate-180 text-[#FF6B00]' : 'text-slate-400'}`} />
                     </button>
 
                     {/* Shipments Dropdown Menu */}
                     {shipmentDropdownOpen && (
-                      <div className="absolute left-0 top-full pt-1.5 w-80 z-50 animate-fade-in">
-                        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xl p-2 space-y-0.5">
+                      <div className="absolute left-0 top-full pt-2 w-80 z-50 animate-fade-in">
+                        <div className="bg-[#10182D] rounded-2xl border border-slate-700/80 shadow-2xl p-2.5 space-y-1">
                           {shipmentsDropdownItems.map((s) => (
                             <button
                               key={s.id}
                               type="button"
                               onClick={() => handleGoToShipmentTab(s.id)}
-                              className="w-full text-left p-2.5 rounded-xl hover:bg-[#FFF8F2] transition-colors block group cursor-pointer"
+                              className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 transition-colors block group cursor-pointer"
                             >
-                              <span className="block text-xs font-bold text-[#10182D] group-hover:text-[#FF6B00] transition-colors">
+                              <span className="block text-xs font-bold text-white group-hover:text-[#FF6B00] transition-colors">
                                 {s.label}
                               </span>
-                              <span className="block text-[11px] font-medium text-[#64748B] mt-0.5 leading-snug">
+                              <span className="block text-[11px] font-medium text-slate-400 mt-0.5 leading-snug">
                                 {s.desc}
                               </span>
                             </button>
@@ -374,6 +413,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 );
               }
 
+              const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
@@ -381,10 +421,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                     setActiveTab(item.id);
                     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}
-                  className={`px-3 py-2 rounded-lg text-sm 2xl:text-[15px] font-medium transition-all duration-150 whitespace-nowrap cursor-pointer ${
-                    activeTab === item.id
-                      ? 'bg-[#FFF8F2] text-[#FF6B00] font-semibold'
-                      : 'text-[#10182D] hover:text-[#FF6B00] hover:bg-[#FFF8F2]/60'
+                  className={`py-2 text-sm 2xl:text-[15px] transition-all duration-150 whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'text-white font-bold border-b-2 border-[#FF6B00]'
+                      : 'text-slate-300 hover:text-white font-medium'
                   }`}
                 >
                   {item.label}
@@ -394,21 +434,21 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           </nav>
 
           {/* Right Action Section: CTAs + Customer Account */}
-          <div className="hidden lg:flex items-center space-x-2.5 2xl:space-x-3">
+          <div className="hidden lg:flex items-center space-x-3">
             
-            {/* CTA 1: Get a Quote (Primary Orange) */}
+            {/* CTA 1: Instant Quote (Vibrant Orange Pill) */}
             <button
               onClick={() => {
                 setActiveTab('quote');
                 window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
               }}
-              className="h-11 px-4 2xl:px-5 rounded-lg sm:rounded-xl bg-[#FF6B00] hover:bg-[#E55C00] text-white font-sans text-xs 2xl:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap active:scale-95"
+              className="h-10 px-5 rounded-full bg-gradient-to-r from-[#FF6B00] to-[#FF8500] hover:from-[#E55C00] hover:to-[#FF6B00] text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-orange-500/25 transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap active:scale-95"
             >
-              <Calculator className="w-3.5 h-3.5" />
-              <span>Get a Quote</span>
+              <span>INSTANT QUOTE</span>
+              <ArrowRight className="w-3.5 h-3.5 -rotate-45" />
             </button>
 
-            {/* CTA 2: Book Shipment (Dark Navy Secondary CTA) */}
+            {/* CTA 2: Book Shipment (Dark Navy Translucent Pill) */}
             <button
               onClick={() => {
                 if (!currentUser) {
@@ -419,7 +459,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 setActiveTab('domestic-shipment');
                 window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
               }}
-              className="h-11 px-4 2xl:px-5 rounded-lg sm:rounded-xl bg-[#10182D] hover:bg-[#1A243F] text-white font-sans text-xs 2xl:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap active:scale-95"
+              className="h-10 px-4 rounded-full bg-[#10182D] hover:bg-slate-800 text-white font-medium text-xs border border-slate-700 shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap active:scale-95"
             >
               <Package className="w-3.5 h-3.5 text-[#FF6B00]" />
               <span>Book Shipment</span>
@@ -430,29 +470,29 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               <div className="relative pl-1">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+                  className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-750 border border-slate-700 shadow-sm transition-all cursor-pointer hover:border-slate-600"
                 >
-                  <div className="w-8 h-8 rounded-lg overflow-hidden border border-orange-400 bg-orange-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="w-7 h-7 rounded-full overflow-hidden border border-orange-500/80 bg-[#FF6B00] flex items-center justify-center shrink-0 shadow-sm">
                     {currentUser.photo ? (
                       <img src={currentUser.photo} alt={currentUser.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="font-extrabold text-xs text-orange-600">{currentUser.name ? currentUser.name.charAt(0) : 'U'}</span>
+                      <span className="font-extrabold text-xs text-white uppercase">{currentUser.name ? currentUser.name.charAt(0) : 'U'}</span>
                     )}
                   </div>
-                  <div className="text-left hidden 2xl:block max-w-[120px]">
-                    <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
-                    <p className="text-[10px] text-orange-600 font-extrabold uppercase tracking-wider">{currentUser.role || currentRole}</p>
+                  <div className="text-left hidden sm:block max-w-[120px]">
+                    <p className="text-xs font-bold text-white truncate leading-tight">{currentUser.name}</p>
+                    <p className="text-[10px] text-[#FF8500] font-black uppercase tracking-wider leading-none mt-0.5">{currentUser.role || currentRole}</p>
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-300" />
                 </button>
 
                 {/* Customer Dashboard Navigation Dropdown */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 top-12 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 z-50 text-slate-900 animate-fade-in space-y-1">
-                    <div className="px-3 py-2 border-b border-slate-100">
-                      <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
-                      <p className="text-[10px] text-slate-500 font-mono truncate">{currentUser.email}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-800 text-[10px] font-black rounded-full uppercase">
+                  <div className="absolute right-0 top-12 w-64 bg-[#10182D] rounded-2xl border border-slate-700 shadow-2xl p-2 z-50 text-white animate-fade-in space-y-1">
+                    <div className="px-3 py-2 border-b border-slate-800">
+                      <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
+                      <p className="text-[10px] text-slate-400 font-mono truncate">{currentUser.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 bg-orange-500/20 text-[#FF8500] border border-orange-500/30 text-[10px] font-black rounded-full uppercase">
                         {currentUser.role || currentRole} Portal
                       </span>
                     </div>
@@ -462,41 +502,41 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       <div className="space-y-0.5 py-1">
                         <button
                           onClick={() => handleCustomerDashboardNav('profile')}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 transition-colors cursor-pointer"
                         >
-                          <User className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <User className="w-4 h-4 text-orange-400" />
                           <span>My Profile</span>
                         </button>
 
                         <button
                           onClick={() => handleCustomerDashboardNav('orders')}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 transition-colors cursor-pointer"
                         >
-                          <Package className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <Package className="w-4 h-4 text-orange-400" />
                           <span>My Shipments</span>
                         </button>
 
                         <button
                           onClick={() => handleCustomerDashboardNav('track')}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 transition-colors cursor-pointer"
                         >
-                          <Search className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <Search className="w-4 h-4 text-orange-400" />
                           <span>Track Shipment</span>
                         </button>
 
                         <button
                           onClick={() => handleCustomerDashboardNav('billing')}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 transition-colors cursor-pointer"
                         >
-                          <FileText className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <FileText className="w-4 h-4 text-orange-400" />
                           <span>Invoices</span>
                         </button>
 
                         <button
                           onClick={() => handleCustomerDashboardNav('addresses')}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 transition-colors cursor-pointer"
                         >
-                          <MapPin className="w-4 h-4 text-slate-400 group-hover:text-orange-500" />
+                          <MapPin className="w-4 h-4 text-orange-400" />
                           <span>Saved Addresses</span>
                         </button>
                       </div>
@@ -510,9 +550,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                             setIsProfileOpen(false);
                             setActiveTab('driver-dashboard');
                           }}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 cursor-pointer"
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 cursor-pointer"
                         >
-                          <Truck className="w-4 h-4 text-orange-500" />
+                          <Truck className="w-4 h-4 text-orange-400" />
                           <span>Open Driver Portal</span>
                         </button>
                       </div>
@@ -526,18 +566,29 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                             setIsProfileOpen(false);
                             setActiveTab('admin-dashboard');
                           }}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 flex items-center space-x-2 cursor-pointer"
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 cursor-pointer"
                         >
-                          <ShieldCheck className="w-4 h-4 text-orange-500" />
+                          <ShieldCheck className="w-4 h-4 text-orange-400" />
                           <span>Open Admin Hub</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            setActiveTab('crm');
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 cursor-pointer"
+                        >
+                          <Target className="w-4 h-4 text-orange-400" />
+                          <span>Open CRM Hub</span>
                         </button>
                       </div>
                     )}
 
-                    <div className="border-t border-slate-100 pt-1">
+                    <div className="border-t border-slate-800 pt-1">
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 flex items-center space-x-2 transition-colors cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Logout</span>
@@ -549,9 +600,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             ) : (
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="h-11 px-4 text-xs 2xl:text-sm font-semibold text-[#10182D] hover:text-[#FF6B00] hover:border-[#FF6B00] bg-white border border-[#E2E8F0] rounded-lg sm:rounded-xl transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                className="h-10 px-4 text-xs font-semibold text-slate-200 hover:text-white hover:border-slate-500 bg-slate-800/80 border border-slate-700 rounded-full transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
               >
-                <User className="w-3.5 h-3.5 text-[#64748B]" />
+                <User className="w-3.5 h-3.5 text-slate-400" />
                 <span>Login</span>
               </button>
             )}
@@ -562,7 +613,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           <div className="flex xl:hidden items-center space-x-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:text-orange-500 rounded-xl focus:outline-none border border-slate-200"
+              className="p-2 text-slate-200 hover:text-[#FF6B00] rounded-xl focus:outline-none border border-slate-700 bg-slate-850"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -572,7 +623,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="xl:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
+        <div className="xl:hidden bg-[#0B1020] border-b border-slate-800 px-4 pt-3 pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
           {/* Mobile CTAs */}
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button
@@ -661,31 +712,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               )}
             </div>
 
-            {/* Shipments (Accordion) */}
-            <div className="space-y-1">
-              <button
-                onClick={() => setMobileShipmentsOpen(!mobileShipmentsOpen)}
-                className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between text-slate-700 hover:bg-slate-50"
-              >
-                <span>Shipments</span>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${mobileShipmentsOpen ? 'rotate-180 text-orange-600' : ''}`} />
-              </button>
-
-              {mobileShipmentsOpen && (
-                <div className="pl-4 space-y-1 border-l-2 border-orange-200 ml-4 py-1">
-                  {shipmentsDropdownItems.map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => handleGoToShipmentTab(s.id)}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-orange-600 hover:bg-orange-50 block"
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Track Shipment */}
             <button
               onClick={() => {
@@ -698,20 +724,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               }`}
             >
               Track Shipment
-            </button>
-
-            {/* Fleet */}
-            <button
-              onClick={() => {
-                setActiveTab('fleet');
-                setMobileMenuOpen(false);
-                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-              }}
-              className={`text-left px-3.5 py-2.5 rounded-xl text-xs font-bold ${
-                activeTab === 'fleet' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Fleet
             </button>
 
             {/* Contact Us */}
