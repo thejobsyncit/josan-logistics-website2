@@ -650,20 +650,12 @@ export const HomePage = ({ setActiveTab }) => {
                 className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs hover:shadow-card hover:border-orange-300 transition-all flex flex-col justify-between space-y-5 group"
               >
                 <div className="space-y-4">
-                  {/* Consistent Real-World Service Image - Full Uncut Display */}
-                  <div className="h-60 sm:h-64 w-full rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-950/5 relative flex items-center justify-center">
-                    {/* Ambient blurred background */}
-                    <img 
-                      src={svc.image} 
-                      alt="" 
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover blur-xl scale-125 opacity-30 pointer-events-none" 
-                    />
-                    {/* Full uncropped original image */}
+                  {/* Real-World Service Image - Full Card Coverage */}
+                  <div className="h-56 sm:h-60 w-full rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 relative">
                     <img 
                       src={svc.image} 
                       alt={svc.title} 
-                      className="relative z-10 max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 rounded-xl" 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     />
                     <div className="absolute top-3 left-3 z-20 w-10 h-10 rounded-xl bg-white/95 text-[#FF6B00] shadow-xs flex items-center justify-center backdrop-blur-xs">
                       <IconComp className="w-5 h-5" />
