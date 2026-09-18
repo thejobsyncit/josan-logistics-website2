@@ -224,12 +224,12 @@ export const HomePage = ({ setActiveTab }) => {
   ];
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-20 bg-white">
+    <div className="w-full">
       
       {/* ========================================================================= */}
       {/* 1. HERO SECTION WITH PROMINENT TRACKING BOX                              */}
       {/* ========================================================================= */}
-      <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 overflow-hidden bg-[#0A101D] text-white border-b border-slate-800">
+      <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 overflow-hidden bg-[#0A101D] text-white">
         
         {/* Logistics Hub Background with Light Blue Shade Tint Overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -412,12 +412,29 @@ export const HomePage = ({ setActiveTab }) => {
           </div>
 
         </div>
+
+        {/* Seamless visual blend from Dark Navy into Cool-Gray (#EEF2F6) */}
+        <div 
+          className="absolute bottom-0 inset-x-0 h-16 sm:h-24 pointer-events-none z-10"
+          style={{
+            background: 'linear-gradient(180deg, rgba(10, 16, 29, 0) 0%, rgba(10, 16, 29, 0.35) 40%, rgba(238, 242, 246, 0.85) 85%, #EEF2F6 100%)'
+          }}
+        />
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. WHY CHOOSE US (Aligned with Services Capabilities)                     */}
+      {/* SECTIONS 2-6 (LIGHT COOL-GRAY GRADIENT BACKGROUND)                       */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div 
+        className="space-y-16 sm:space-y-24 pt-12 sm:pt-16 pb-20 relative"
+        style={{
+          background: 'linear-gradient(180deg, #EEF2F6 0%, #F4F6F8 50%, #F7F8FA 100%)'
+        }}
+      >
+        {/* ========================================================================= */}
+        {/* 2. WHY CHOOSE US (Aligned with Services Capabilities)                     */}
+        {/* ========================================================================= */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
             Engineered Road Logistics
@@ -819,6 +836,7 @@ export const HomePage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      </div>
     </div>
   );
 };
