@@ -29,6 +29,7 @@ export const HomePage = ({ setActiveTab }) => {
   const { 
     currentUser, 
     setIsAuthModalOpen, 
+    setAuthRedirectTab,
     resetShipmentScope, 
     setActiveTrackingId,
     showToast 
@@ -64,6 +65,12 @@ export const HomePage = ({ setActiveTab }) => {
 
   const handleTrackSubmit = (e) => {
     if (e) e.preventDefault();
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('track');
+      setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+      return;
+    }
     const query = (trackQuery || '').trim().toUpperCase() || 'JOS-88190-SG';
     setActiveTrackingId(query);
     setActiveTab('track');
@@ -71,6 +78,12 @@ export const HomePage = ({ setActiveTab }) => {
   };
 
   const handleSampleClick = (sample) => {
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('track');
+      setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+      return;
+    }
     setTrackQuery(sample.id);
     setActiveTrackingId(sample.id);
     setInlineResult(sample);
@@ -78,7 +91,9 @@ export const HomePage = ({ setActiveTab }) => {
 
   const handleBookingAction = () => {
     if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('book');
       setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
       return;
     }
     if (resetShipmentScope) resetShipmentScope();

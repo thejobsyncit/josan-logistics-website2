@@ -39,6 +39,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     currentUser, 
     toggleRole, 
     setIsAuthModalOpen, 
+    setAuthRedirectTab,
     setActiveTrackingId,
     logoutUser,
     updateUserProfile,
@@ -154,7 +155,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const handleHeaderSearch = (e) => {
     if (e) e.preventDefault();
     if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('track');
       setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in to track road shipments.', 'warning');
       return;
     }
     if (headerSearch.trim()) {
@@ -220,7 +223,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
     if (tabId === 'book' || tabId === 'domestic-shipment') {
       if (!currentUser) {
+        if (setAuthRedirectTab) setAuthRedirectTab('book');
         setIsAuthModalOpen(true);
+        if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
         return;
       }
       if (setShipmentScope) setShipmentScope('domestic');
@@ -418,6 +423,12 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 <button
                   key={item.id}
                   onClick={() => {
+                    if (item.id === 'track' && !currentUser) {
+                      if (setAuthRedirectTab) setAuthRedirectTab('track');
+                      setIsAuthModalOpen(true);
+                      if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+                      return;
+                    }
                     setActiveTab(item.id);
                     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}
@@ -641,8 +652,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             <button
               onClick={() => {
                 if (!currentUser) {
+                  if (setAuthRedirectTab) setAuthRedirectTab('book');
                   setIsAuthModalOpen(true);
                   setMobileMenuOpen(false);
+                  if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
                   return;
                 }
                 resetShipmentScope();
@@ -715,6 +728,13 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             {/* Track Shipment */}
             <button
               onClick={() => {
+                if (!currentUser) {
+                  if (setAuthRedirectTab) setAuthRedirectTab('track');
+                  setIsAuthModalOpen(true);
+                  setMobileMenuOpen(false);
+                  if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+                  return;
+                }
                 setActiveTab('track');
                 setMobileMenuOpen(false);
                 window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });

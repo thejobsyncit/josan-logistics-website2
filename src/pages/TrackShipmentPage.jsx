@@ -21,7 +21,8 @@ import {
   X,
   Maximize2,
   ArrowLeft,
-  RotateCw
+  RotateCw,
+  Lock
 } from 'lucide-react';
 
 const DEMO_SHIPMENTS_MAP = {
@@ -190,7 +191,10 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     setActiveTrackingId, 
     setSelectedInvoiceShipment,
     setSelectedDetailShipment,
-    showToast
+    showToast,
+    currentUser,
+    setIsAuthModalOpen,
+    setAuthRedirectTab
   } = useLogistics();
 
   const generateRandomCaptcha = () => {
@@ -216,10 +220,44 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     return code;
   };
 
-  // Generate a fresh randomized captcha on mount
   useEffect(() => {
     generateNewCaptcha();
   }, []);
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center py-16 px-4 bg-[#F5F6F8]">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center space-y-5 animate-fade-in">
+          <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto text-[#FF6B00]">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold font-outfit text-[#10182D]">Authentication Required</h2>
+            <p className="text-sm text-slate-500">
+              Please sign in or create an account to track road freight consignments and view live telematics.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => {
+                if (setAuthRedirectTab) setAuthRedirectTab('track');
+                setIsAuthModalOpen(true);
+              }}
+              className="flex-1 btn-primary text-sm font-bold shadow-md cursor-pointer"
+            >
+              Sign In to Track
+            </button>
+            <button
+              onClick={() => setActiveTab('home')}
+              className="px-5 py-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-sm transition-colors cursor-pointer"
+            >
+              Return Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderCaptchaSvg = (text) => {
     const colors = ['#1e40af', '#b91c1c', '#047857', '#c2410c', '#4338ca', '#0f172a', '#7c2d12', '#0284c7'];
