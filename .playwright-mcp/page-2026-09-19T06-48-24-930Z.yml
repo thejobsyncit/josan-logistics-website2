@@ -1,0 +1,317 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e4]:
+    - generic [ref=f1e6]:
+      - generic [ref=f1e7] [cursor=pointer]:
+        - img "Josan Logistics Logo" [ref=f1e8]
+        - generic [ref=f1e9]:
+          - generic [ref=f1e10]: JOSAN
+          - generic [ref=f1e11]: LOGISTICS PTE. LTD.
+      - button [ref=f1e13] [cursor=pointer]
+  - main [ref=f1e15]:
+    - generic [ref=f1e16]:
+      - generic [ref=f1e17]:
+        - generic:
+          - img "Singapore road freight container truck network"
+        - generic [ref=f1e18]:
+          - generic [ref=f1e19]:
+            - generic [ref=f1e20]:
+              - generic [ref=f1e21]: ⚡
+              - generic [ref=f1e22]: ROAD TRANSPORTATION & LOGISTICS
+            - heading "Reliable Road Freight & Express Transportation" [level=1] [ref=f1e23]:
+              - generic [ref=f1e24]: Reliable Road Freight
+              - generic [ref=f1e25]: "& Express Transportation"
+            - paragraph [ref=f1e26]: Josan Logistics specializes exclusively in dependable roadway transportation. From intra-city express parcels to heavy-haul inter-state full truckloads, we move your cargo safely with reliable delivery timelines.
+            - button "Get a Quote" [ref=f1e28] [cursor=pointer]
+            - generic [ref=f1e32]:
+              - generic [ref=f1e33]: Real-Time Shipment Tracking
+              - generic [ref=f1e38]: Proof of Delivery (POD)
+              - generic [ref=f1e43]: Cargo Insurance Available
+          - generic [ref=f1e48]:
+            - generic [ref=f1e49]:
+              - generic [ref=f1e50]:
+                - text: Live Consignment Status
+                - heading "Track Your Road Shipment" [level=2] [ref=f1e51]
+                - paragraph [ref=f1e52]: Track your road shipment with real-time status and delivery updates
+              - generic [ref=f1e53]:
+                - generic [ref=f1e54]: "Sample Shipments:"
+                - generic [ref=f1e55]:
+                  - button "JOS-88190-SG" [ref=f1e56] [cursor=pointer]
+                  - button "JOS-44021-SG" [ref=f1e57] [cursor=pointer]
+                  - button "JOS-66301-SG" [ref=f1e58] [cursor=pointer]
+            - generic [ref=f1e59]:
+              - textbox "Enter Shipment ID (e.g. JOS-88190-SG)" [ref=f1e64]
+              - button "Track Shipment" [ref=f1e65] [cursor=pointer]
+      - generic [ref=f1e70]:
+        - generic [ref=f1e71]:
+          - generic [ref=f1e72]:
+            - text: Engineered Road Logistics
+            - heading "Why Choose Josan Logistics" [level=2] [ref=f1e73]
+            - paragraph [ref=f1e74]: Our operational infrastructure is built specifically for roadway freight reliability, driver accountability, and secure on-time delivery.
+          - generic [ref=f1e75]:
+            - generic [ref=f1e76]:
+              - img "Josan reliable road transport expressway network" [ref=f1e78]
+              - heading "Reliable Road Transport Network" [level=3] [ref=f1e85]
+              - paragraph [ref=f1e86]: A company-owned fleet of 10ft–24ft canopy lorries, prime mover trailers, and reefer box trucks providing guaranteed cargo capacity across all routes.
+            - generic [ref=f1e87]:
+              - img "Real-time shipment GPS telematics and container trailer inspection" [ref=f1e89]
+              - heading "Real-Time Shipment Tracking" [level=3] [ref=f1e93]
+              - paragraph [ref=f1e94]: Direct telemetry pings every 5 minutes from onboard GPS units, providing exact expressway positions, vehicle speeds, and accurate ETA calculations.
+            - generic [ref=f1e95]:
+              - img "Secure verified parcel handover by courier" [ref=f1e97]
+              - heading "Secure & Verified Deliveries" [level=3] [ref=f1e102]
+              - paragraph [ref=f1e103]: Tamper-evident seals, one-time delivery verification PINs (OTP), and immediate photographic Proof-of-Delivery (POD) signed by verified recipients.
+            - generic [ref=f1e104]:
+              - img "Dynamic road navigation map with Point A to Point B route optimization" [ref=f1e106]
+              - heading "Efficient Route Optimization" [level=3] [ref=f1e109]
+              - paragraph [ref=f1e110]: Dynamic highway routing engines account for traffic bottlenecks, bridge clearances, and multi-drop sequences to cut delays and minimize fuel burn.
+        - generic [ref=f1e112]:
+          - generic [ref=f1e113]:
+            - text: 7-Stage Progression Flow
+            - heading "How Your Road Shipment Moves" [level=2] [ref=f1e114]
+            - paragraph [ref=f1e115]: From consignment booking to final electronic handover, every milestone is verified through our real-time road logistics tracking system.
+          - generic [ref=f1e116]:
+            - generic [ref=f1e117]:
+              - generic [ref=f1e118]:
+                - generic [ref=f1e119]:
+                  - generic [ref=f1e120]: "01"
+                  - generic [ref=f1e121]: Step 1
+                - img "Book Shipment" [ref=f1e123]
+              - generic [ref=f1e125]:
+                - heading "Book Shipment" [level=4] [ref=f1e126]
+                - paragraph [ref=f1e127]: Manifest & LR generated
+            - generic [ref=f1e128]:
+              - generic [ref=f1e129]:
+                - generic [ref=f1e130]:
+                  - generic [ref=f1e131]: "02"
+                  - generic [ref=f1e132]: Step 2
+                - img "Confirmed" [ref=f1e134]
+              - generic [ref=f1e136]:
+                - heading "Confirmed" [level=4] [ref=f1e137]
+                - paragraph [ref=f1e138]: Fleet operations approved
+            - generic [ref=f1e139]:
+              - generic [ref=f1e140]:
+                - generic [ref=f1e141]:
+                  - generic [ref=f1e142]: "03"
+                  - generic [ref=f1e143]: Step 3
+                - img "Pickup Scheduled" [ref=f1e145]
+              - generic [ref=f1e147]:
+                - heading "Pickup Scheduled" [level=4] [ref=f1e148]
+                - paragraph [ref=f1e149]: Vehicle & driver allocated
+            - generic [ref=f1e150]:
+              - generic [ref=f1e151]:
+                - generic [ref=f1e152]:
+                  - generic [ref=f1e153]: "04"
+                  - generic [ref=f1e154]: Step 4
+                - img "Picked Up" [ref=f1e156]
+              - generic [ref=f1e158]:
+                - heading "Picked Up" [level=4] [ref=f1e159]
+                - paragraph [ref=f1e160]: Loaded & weight verified
+            - generic [ref=f1e161]:
+              - generic [ref=f1e162]:
+                - generic [ref=f1e163]:
+                  - generic [ref=f1e164]: "05"
+                  - generic [ref=f1e165]: Step 5
+                - img "In Transit" [ref=f1e167]
+              - generic [ref=f1e169]:
+                - heading "In Transit" [level=4] [ref=f1e170]
+                - paragraph [ref=f1e171]: Active highway telemetry
+            - generic [ref=f1e172]:
+              - generic [ref=f1e173]:
+                - generic [ref=f1e174]:
+                  - generic [ref=f1e175]: "06"
+                  - generic [ref=f1e176]: Step 6
+                - img "Near Destination" [ref=f1e178]
+              - generic [ref=f1e180]:
+                - heading "Near Destination" [level=4] [ref=f1e181]
+                - paragraph [ref=f1e182]: Approaching recipient hub
+            - generic [ref=f1e183]:
+              - generic [ref=f1e184]:
+                - generic [ref=f1e185]:
+                  - generic [ref=f1e186]: "07"
+                  - generic [ref=f1e187]: Step 7
+                - img "Delivered" [ref=f1e189]
+              - generic [ref=f1e191]:
+                - heading "Delivered" [level=4] [ref=f1e192]
+                - paragraph [ref=f1e193]: Digital POD signature captured
+          - button "Explore full telemetry map on Tracking Page" [ref=f1e195] [cursor=pointer]
+        - generic [ref=f1e199]:
+          - generic [ref=f1e200]:
+            - generic [ref=f1e201]:
+              - text: Core Road Capabilities
+              - heading "Road Transportation Services" [level=2] [ref=f1e202]
+              - paragraph [ref=f1e203]: Dedicated freight solutions designed exclusively for roadway transit and scheduled supply chains.
+            - button "View All Services" [ref=f1e204] [cursor=pointer]
+          - generic [ref=f1e208]:
+            - generic [ref=f1e209]:
+              - generic [ref=f1e210]:
+                - generic [ref=f1e211]:
+                  - img "Parcel Delivery" [ref=f1e212]
+                  - generic [ref=f1e218]: Express Road Freight
+                - generic [ref=f1e219]:
+                  - heading "Parcel Delivery" [level=3] [ref=f1e220]
+                  - paragraph [ref=f1e221]: Fast and secure door-to-door parcel delivery across Singapore for commercial cartons, documents, and retail packages.
+                - list [ref=f1e222]:
+                  - listitem [ref=f1e223]:
+                    - generic [ref=f1e227]: Same-day & scheduled options
+                  - listitem [ref=f1e228]:
+                    - generic [ref=f1e232]: Real-time tracking updates
+                  - listitem [ref=f1e233]:
+                    - generic [ref=f1e237]: Electronic proof of delivery (POD)
+              - button "Learn more" [ref=f1e239] [cursor=pointer]
+            - generic [ref=f1e243]:
+              - generic [ref=f1e244]:
+                - generic [ref=f1e245]:
+                  - img "Bulk Shipment" [ref=f1e246]
+                  - generic [ref=f1e252]: Full Truckload (FTL)
+                - generic [ref=f1e253]:
+                  - heading "Bulk Shipment" [level=3] [ref=f1e254]
+                  - paragraph [ref=f1e255]: Dedicated heavy-duty linehaul prime movers and 24ft–40ft box lorries for palletized cargo, factory equipment, and volumetric freight.
+                - list [ref=f1e256]:
+                  - listitem [ref=f1e257]:
+                    - generic [ref=f1e261]: Up to 24,000 kg payload
+                  - listitem [ref=f1e262]:
+                    - generic [ref=f1e266]: Direct point-to-point
+                  - listitem [ref=f1e267]:
+                    - generic [ref=f1e271]: Dedicated vehicle exclusive
+              - button "Learn more" [ref=f1e273] [cursor=pointer]
+            - generic [ref=f1e277]:
+              - generic [ref=f1e278]:
+                - generic [ref=f1e279]:
+                  - img "Intra-city Transport" [ref=f1e280]
+                  - generic [ref=f1e284]: Metropolitan Linehaul
+                - generic [ref=f1e285]:
+                  - heading "Intra-city Transport" [level=3] [ref=f1e286]
+                  - paragraph [ref=f1e287]: High-frequency urban trucking connecting corporate warehouses, distribution hubs, commercial docks, and retail outlets within the city.
+                - list [ref=f1e288]:
+                  - listitem [ref=f1e289]:
+                    - generic [ref=f1e293]: Multi-drop scheduled routes
+                  - listitem [ref=f1e294]:
+                    - generic [ref=f1e298]: Hydraulic tailgate fleet
+                  - listitem [ref=f1e299]:
+                    - generic [ref=f1e303]: Dock-to-dock transfer
+              - button "Learn more" [ref=f1e305] [cursor=pointer]
+            - generic [ref=f1e309]:
+              - generic [ref=f1e310]:
+                - generic [ref=f1e311]:
+                  - img "Inter-city Logistics" [ref=f1e312]
+                  - generic [ref=f1e319]: Regional Highway Corridors
+                - generic [ref=f1e320]:
+                  - heading "Inter-city Logistics" [level=3] [ref=f1e321]
+                  - paragraph [ref=f1e322]: Scheduled expressway long-haul networks connecting commercial centers, state industrial gateways, and cross-border customs checkpoints.
+                - list [ref=f1e323]:
+                  - listitem [ref=f1e324]:
+                    - generic [ref=f1e328]: Daily linehaul departures
+                  - listitem [ref=f1e329]:
+                    - generic [ref=f1e333]: LTL cross-dock consolidation
+                  - listitem [ref=f1e334]:
+                    - generic [ref=f1e338]: Continuous telemetry check
+              - button "Learn more" [ref=f1e340] [cursor=pointer]
+        - generic [ref=f1e344]:
+          - generic:
+            - img "Logistics road routes network map"
+          - generic [ref=f1e345]:
+            - text: Road Network Coverage
+            - heading "Comprehensive Roadway Service Coverage" [level=2] [ref=f1e346]
+            - paragraph [ref=f1e347]: Reliable road logistics connecting cities, regions, and states efficiently
+          - generic [ref=f1e348]:
+            - generic [ref=f1e349]:
+              - generic [ref=f1e350]:
+                - img "Local Transport" [ref=f1e351]
+                - generic [ref=f1e352]: Within City
+              - generic [ref=f1e353]:
+                - heading "Local Transport" [level=3] [ref=f1e354]
+                - paragraph [ref=f1e355]: "SLA: Same-day / Under 4 Hours"
+              - paragraph [ref=f1e356]: Comprehensive urban roadway coverage connecting industrial estates, seaport gates, and airport cargo logistics zones.
+              - generic [ref=f1e357]:
+                - generic [ref=f1e358]: Islandwide Singapore coverage
+                - generic [ref=f1e363]: Express last-mile dispatch
+                - generic [ref=f1e368]: Real-time city traffic routing
+            - generic [ref=f1e373]:
+              - generic [ref=f1e374]:
+                - img "Regional Transport" [ref=f1e375]
+                - generic [ref=f1e376]: Within State / Province
+              - generic [ref=f1e377]:
+                - heading "Regional Transport" [level=3] [ref=f1e378]
+                - paragraph [ref=f1e379]: "SLA: Same-Day / Next-Morning"
+              - paragraph [ref=f1e380]: Inter-district highway transport linking key regional distribution hubs, manufacturing clusters, and secondary logistics centers.
+              - generic [ref=f1e381]:
+                - generic [ref=f1e382]: Industrial park linehaul
+                - generic [ref=f1e387]: Cross-dock pallet sorting
+                - generic [ref=f1e392]: Scheduled daily departures
+            - generic [ref=f1e397]:
+              - generic [ref=f1e398]:
+                - img "Inter-State Transport" [ref=f1e399]
+                - generic [ref=f1e400]: Inter-State Corridors
+              - generic [ref=f1e401]:
+                - heading "Inter-State Transport" [level=3] [ref=f1e402]
+                - paragraph [ref=f1e403]: "SLA: Guaranteed Transit Windows"
+              - paragraph [ref=f1e404]: Cross-state linehaul connecting interstate checkpoints, regional expressway routes, and major economic gateways.
+              - generic [ref=f1e405]:
+                - generic [ref=f1e406]: Heavy prime mover haulage
+                - generic [ref=f1e411]: Customs clearance corridor
+                - generic [ref=f1e416]: Dual-driver continuous movement
+        - generic [ref=f1e422]:
+          - img "Truck on highway sunset logistics scene" [ref=f1e424]
+          - generic [ref=f1e426]:
+            - generic [ref=f1e427]: Express Roadways Reservation
+            - heading "Need a Custom Quote?" [level=2] [ref=f1e428]
+            - paragraph [ref=f1e429]: Plan and schedule your shipment with accurate pricing. Reserve dedicated linehaul prime movers or book same-day road parcel runs with transparent rate matrices.
+            - generic [ref=f1e430]:
+              - button "Book Shipment" [ref=f1e431] [cursor=pointer]
+              - button "Get a Quote" [ref=f1e437] [cursor=pointer]
+  - contentinfo [ref=f1e441]:
+    - generic [ref=f1e442]:
+      - generic [ref=f1e443]:
+        - generic [ref=f1e444]:
+          - img "Josan Logistics Logo" [ref=f1e446] [cursor=pointer]
+          - paragraph [ref=f1e447]: Josan Logistics is a premier roadways freight and land haulage provider, offering full truckload (FTL), partial freight (LTL), express highway road couriers, and cross-border customs clearance.
+          - generic [ref=f1e448]:
+            - generic [ref=f1e449]: ISO 9001 Certified
+            - generic [ref=f1e454]: 120+ Hubs Worldwide
+        - generic [ref=f1e459]:
+          - heading "Quick Navigation" [level=4] [ref=f1e460]
+          - list [ref=f1e461]:
+            - listitem [ref=f1e462]:
+              - button "Home" [ref=f1e463] [cursor=pointer]
+            - listitem [ref=f1e467]:
+              - button "About Us" [ref=f1e468] [cursor=pointer]
+            - listitem [ref=f1e472]:
+              - button "Services" [ref=f1e473] [cursor=pointer]
+            - listitem [ref=f1e477]:
+              - button "Track Shipment" [ref=f1e478] [cursor=pointer]
+            - listitem [ref=f1e482]:
+              - button "Book Shipment" [ref=f1e483] [cursor=pointer]
+            - listitem [ref=f1e487]:
+              - button "Contact" [ref=f1e488] [cursor=pointer]
+        - generic [ref=f1e492]:
+          - heading "Our Solutions" [level=4] [ref=f1e493]
+          - list [ref=f1e494]:
+            - listitem [ref=f1e495] [cursor=pointer]: Roadways Freight (FTL / LTL)
+            - listitem [ref=f1e496] [cursor=pointer]: Heavy Haulage & Flatbed Trucking
+            - listitem [ref=f1e497] [cursor=pointer]: Express Highway Road Courier
+            - listitem [ref=f1e498] [cursor=pointer]: Temperature-Controlled Reefer Trucks
+            - listitem [ref=f1e499] [cursor=pointer]: Roadways Customs Clearance
+        - generic [ref=f1e500]:
+          - generic [ref=f1e502]:
+            - heading "Singapore HQ & Dispatch" [level=4] [ref=f1e503]
+            - generic [ref=f1e504]: 24/7 LIVE
+          - generic [ref=f1e508]:
+            - generic [ref=f1e509]:
+              - paragraph [ref=f1e510]: Singapore Dispatch Hotline
+              - link "+65 6789 0123" [ref=f1e514] [cursor=pointer]:
+                - /url: tel:+6567890123
+            - generic [ref=f1e515]: "Regional HQ: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438"
+            - link "contact@josanlogistics.com.sg" [ref=f1e524] [cursor=pointer]:
+              - /url: mailto:contact@josanlogistics.com.sg
+          - generic [ref=f1e525]:
+            - text: Subscribe for Freight Updates
+            - generic [ref=f1e526]:
+              - textbox "Enter corporate email..." [ref=f1e527]
+              - button "Join" [ref=f1e528] [cursor=pointer]
+      - generic [ref=f1e529]:
+        - paragraph [ref=f1e530]: © 2026 Josan Logistics Inc. All rights reserved.
+        - generic [ref=f1e531]:
+          - generic [ref=f1e532] [cursor=pointer]: Privacy Policy
+          - generic [ref=f1e533] [cursor=pointer]: Terms of Service
+          - generic [ref=f1e534] [cursor=pointer]: Security SLAs
+          - generic [ref=f1e535] [cursor=pointer]: Carrier Portal

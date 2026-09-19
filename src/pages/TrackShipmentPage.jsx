@@ -713,56 +713,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
         </div>
       </div>
 
-      {/* Quick Test Queue Chips */}
-      <div className="max-w-4xl mx-auto space-y-2.5">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider block">
-            Sample Roadway Fleet Feeds (Click to test):
-          </span>
-          <div className="flex items-center space-x-3">
-            <span className="text-xs text-orange-600 font-bold">4 Active Roadway Trucks</span>
-            <button
-              type="button"
-              onClick={handleViewInvoice}
-              className="text-xs font-bold text-slate-600 hover:text-orange-600 flex items-center space-x-1 cursor-pointer transition-colors"
-            >
-              <Printer className="w-3.5 h-3.5 text-orange-500" />
-              <span>View LR / Waybill</span>
-            </button>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { id: 'JOS-88190-SG', ref: 'REF-8819-SG', name: 'Express Road Freight (FTL)', status: 'In Transit', statusColor: 'bg-orange-50 text-orange-700 border-orange-200' },
-            { id: 'JOS-44021-SG', ref: 'REF-4402-SG', name: 'Container Haulage (40ft)', status: 'Out for Delivery', statusColor: 'bg-blue-50 text-blue-700 border-blue-200' },
-            { id: 'JOS-66301-SG', ref: 'REF-6630-SG', name: 'Reefer Road Truck (Cold-Chain)', status: 'Delivered', statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-            { id: 'JOS-99210-SG', ref: 'REF-9921-SG', name: '18-Wheeler Heavy Haulage', status: 'Monsoon Delay', statusColor: 'bg-amber-50 text-amber-700 border-amber-200' }
-          ].map((sample) => (
-            <button
-              key={sample.id}
-              type="button"
-              onClick={() => {
-                setSearchInput(trackType === 'reference' ? sample.ref : sample.id);
-                handleSelectDemo(sample.id);
-              }}
-              className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 group ${
-                currentShipment?.id === sample.id
-                  ? 'bg-orange-50/50 border-orange-500 shadow-sm ring-1 ring-orange-500/40'
-                  : 'bg-white border-slate-200/90 hover:border-orange-400 hover:shadow-sm'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{sample.id}</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${sample.statusColor}`}>
-                  {sample.status}
-                </span>
-              </div>
-              <span className="text-[11px] text-slate-500 font-medium truncate block">{sample.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Shipment Details Section */}
       <div id="shipment-details" className="scroll-mt-24">
