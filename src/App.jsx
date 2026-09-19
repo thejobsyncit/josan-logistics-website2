@@ -124,12 +124,19 @@ const MainContent = () => {
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
   
-  const { currentRole, currentUser, setIsAuthModalOpen, showToast } = useLogistics();
+  const { currentRole, currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
 
   // Enforce strict protected role routes
   useEffect(() => {
     if (!currentUser) {
-      if (['driver-dashboard', 'admin-dashboard', 'customer-dashboard', 'my-shipments', 'manage-shipment'].includes(activeTab)) {
+      if (['driver-dashboard', 'admin-dashboard', 'customer-dashboard', 'my-shipments', 'manage-shipment', 'book', 'track'].includes(activeTab)) {
+        if (['book', 'track'].includes(activeTab) && setAuthRedirectTab) {
+          setAuthRedirectTab(activeTab);
+        }
+        setIsAuthModalOpen(true);
+        if (showToast) {
+          showToast(`Please sign in or create an account to access ${activeTab === 'book' ? 'shipment booking' : activeTab === 'track' ? 'live tracking' : 'your dashboard'}.`, 'warning');
+        }
         changeActiveTab('home');
       }
     } else {
@@ -164,9 +171,18 @@ const MainContent = () => {
       tab === 'international-shipment' || 
       tab === 'customer-dashboard' || 
       tab === 'my-shipments' || 
-      tab === 'manage-shipment'
+      tab === 'manage-shipment' ||
+      tab === 'track'
     )) {
+      if (setAuthRedirectTab) setAuthRedirectTab(tab);
       setIsAuthModalOpen(true);
+      if (showToast) {
+        if (tab === 'track') {
+          showToast('Please sign in to track road shipments.', 'warning');
+        } else {
+          showToast('Please sign in or create an account to book a shipment.', 'warning');
+        }
+      }
       return;
     }
 
@@ -234,8 +250,27 @@ const MainContent = () => {
         return;
       }
 
-      if (rawHash.startsWith('#track-map-')) {
+      if (rawHash.startsWith('#track-map-') || rawHash === '#track' || rawHash === '#/track' || path === '/track') {
+        if (!currentUser) {
+          if (setAuthRedirectTab) setAuthRedirectTab('track');
+          setIsAuthModalOpen(true);
+          if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+          setActiveTab('home');
+          return;
+        }
         setActiveTab('track');
+        return;
+      }
+
+      if (rawHash === '#book' || rawHash === '#/book' || path === '/book') {
+        if (!currentUser) {
+          if (setAuthRedirectTab) setAuthRedirectTab('book');
+          setIsAuthModalOpen(true);
+          if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
+          setActiveTab('home');
+          return;
+        }
+        setActiveTab('book');
         return;
       }
 
@@ -270,7 +305,8 @@ const MainContent = () => {
       activeTab === 'manage-shipment' || 
       activeTab === 'book' || 
       activeTab === 'domestic-shipment' || 
-      activeTab === 'international-shipment'
+      activeTab === 'international-shipment' ||
+      activeTab === 'track'
     )) {
       return <HomePage setActiveTab={changeActiveTab} />;
     }

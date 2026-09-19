@@ -3,7 +3,7 @@ import { Truck, Mail, Phone, MapPin, ArrowRight, ShieldCheck, Globe, Clock, Chec
 import { useLogistics } from '../context/LogisticsContext';
 
 export const Footer = ({ setActiveTab }) => {
-  const { showToast, currentUser, resetShipmentScope } = useLogistics();
+  const { showToast, currentUser, resetShipmentScope, setIsAuthModalOpen, setAuthRedirectTab } = useLogistics();
   const [emailInput, setEmailInput] = useState('');
 
   const handleSubscribe = (e) => {
@@ -15,38 +15,42 @@ export const Footer = ({ setActiveTab }) => {
   };
 
   const quickLinks = currentUser 
-    ? ['Home', 'About Us', 'Services', 'Track Shipment', 'Book Shipment', 'Contact']
-    : ['Home', 'About Us', 'Services', 'Contact'];
+    ? ['Home', 'About Us', 'Services', 'Track Shipment', 'Book Shipment', 'Contact Us']
+    : ['Home', 'About Us', 'Services', 'Track Shipment', 'Book Shipment', 'Contact Us'];
 
   return (
-    <footer className="bg-[#10182D] text-slate-300 pt-16 pb-12 border-t-4 border-[#FF6B00] relative overflow-hidden">
-      {/* Background Accent SVG Glow */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
+    <footer className="bg-[#10182D] text-slate-300 pt-16 pb-8 border-t border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
           
-          {/* Brand Info */}
+          {/* Company Brand Column */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="cursor-pointer inline-block" onClick={() => setActiveTab('home')}>
+            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
               <img 
                 src="/assets/josan_logo.png" 
                 alt="Josan Logistics Logo" 
-                className="h-14 sm:h-16 w-auto max-w-[240px] object-contain hover:scale-105 transition-transform duration-200" 
+                className="h-10 w-auto object-contain" 
               />
+              <div className="flex flex-col">
+                <span className="text-white font-black text-lg tracking-wider leading-none">
+                  JOSAN
+                </span>
+                <span className="text-[#FF6B00] font-black text-[9px] tracking-widest uppercase mt-0.5">
+                  LOGISTICS PTE. LTD.
+                </span>
+              </div>
             </div>
-            <p className="text-slate-200 font-medium text-sm leading-relaxed max-w-sm">
-              Josan Logistics is a premier roadways freight and land haulage provider, offering full truckload (FTL), partial freight (LTL), express highway road couriers, and cross-border customs clearance.
+            <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
+              Singapore's premier express road haulage network and interstate highway linehaul. Dedicated fleet telematics, tamper-evident transit security, and guaranteed SLA freight handling.
             </p>
-
-            <div className="pt-2 flex items-center space-x-4 text-xs font-bold text-slate-200">
-              <span className="flex items-center space-x-1">
-                <ShieldCheck className="w-4 h-4 text-orange-400" />
-                <span>ISO 9001 Certified</span>
-              </span>
-              <span className="flex items-center space-x-1">
-                <Globe className="w-4 h-4 text-orange-400" />
-                <span>120+ Hubs Worldwide</span>
+            <div className="flex items-center space-x-2 text-xs text-orange-400 font-semibold bg-orange-950/30 border border-orange-800/40 px-3 py-2 rounded-xl w-fit">
+              <ShieldCheck className="w-4 h-4 text-orange-400 shrink-0" />
+              <span>Certified Inland Roadway Carrier &bull; ISO-9001 Fleet Operations</span>
+            </div>
+            <div className="pt-1">
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>24/7 Road Dispatch & Telematics Monitoring</span>
               </span>
             </div>
           </div>
@@ -63,13 +67,23 @@ export const Footer = ({ setActiveTab }) => {
                       onClick={() => {
                         if (tabId === 'bookshipment') {
                           if (!currentUser) {
-                            setActiveTab('home');
-                          } else {
-                            resetShipmentScope();
-                            setActiveTab('book');
+                            if (setAuthRedirectTab) setAuthRedirectTab('book');
+                            setIsAuthModalOpen(true);
+                            if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
+                            return;
                           }
+                          resetShipmentScope();
+                          setActiveTab('book');
+                        } else if (tabId === 'trackshipment') {
+                          if (!currentUser) {
+                            if (setAuthRedirectTab) setAuthRedirectTab('track');
+                            setIsAuthModalOpen(true);
+                            if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+                            return;
+                          }
+                          setActiveTab('track');
                         } else {
-                          setActiveTab(tabId === 'trackshipment' ? 'track' : tabId);
+                          setActiveTab(tabId);
                         }
                       }}
                       className="hover:text-orange-400 transition-colors flex items-center space-x-1.5 cursor-pointer"
