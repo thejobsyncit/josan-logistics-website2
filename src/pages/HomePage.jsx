@@ -29,6 +29,7 @@ export const HomePage = ({ setActiveTab }) => {
   const { 
     currentUser, 
     setIsAuthModalOpen, 
+    setAuthRedirectTab,
     resetShipmentScope, 
     setActiveTrackingId,
     showToast 
@@ -64,6 +65,12 @@ export const HomePage = ({ setActiveTab }) => {
 
   const handleTrackSubmit = (e) => {
     if (e) e.preventDefault();
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('track');
+      setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+      return;
+    }
     const query = (trackQuery || '').trim().toUpperCase() || 'JOS-88190-SG';
     setActiveTrackingId(query);
     setActiveTab('track');
@@ -71,6 +78,12 @@ export const HomePage = ({ setActiveTab }) => {
   };
 
   const handleSampleClick = (sample) => {
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('track');
+      setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+      return;
+    }
     setTrackQuery(sample.id);
     setActiveTrackingId(sample.id);
     setInlineResult(sample);
@@ -78,7 +91,9 @@ export const HomePage = ({ setActiveTab }) => {
 
   const handleBookingAction = () => {
     if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('book');
       setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
       return;
     }
     if (resetShipmentScope) resetShipmentScope();
@@ -143,8 +158,14 @@ export const HomePage = ({ setActiveTab }) => {
       id: 'parcel-delivery',
       title: 'Parcel Delivery',
       tag: 'Express Road Freight',
-      desc: 'Scheduled door-to-door road courier service for commercial cartons, documents, and retail parcels with same-day delivery windows.',
-      specs: ['Sub-4h expedited runs', 'Real-time GPS telemetry', 'Electronic recipient POD'],
+      desc: 'Fast and secure door-to-door parcel delivery across Singapore, designed for businesses and individuals who need dependable last-mile logistics.',
+      desc2: 'From documents to retail packages, every delivery is handled with care and real-time visibility.',
+      specsLabel: 'Key Features:',
+      specs: [
+        'Same-day and scheduled delivery options',
+        'Real-time tracking updates',
+        'Electronic proof of delivery (POD)'
+      ],
       icon: Package,
       image: '/assets/parcel_delivery_handover.png'
     },
@@ -152,8 +173,14 @@ export const HomePage = ({ setActiveTab }) => {
       id: 'bulk-shipment',
       title: 'Bulk Shipment',
       tag: 'Full Truckload (FTL)',
-      desc: 'Dedicated heavy-duty linehaul prime movers and 24ft–40ft box lorries for palletized cargo, factory equipment, and volumetric freight.',
-      specs: ['Up to 24,000 kg payload', 'Direct point-to-point', 'Dedicated vehicle exclusive'],
+      desc: 'Efficient road-based bulk transportation within Singapore for businesses moving high-volume goods between warehouses, distribution centers, and commercial locations.',
+      desc2: 'Optimized for reliability, capacity, and timely execution.',
+      specsLabel: 'Key Features:',
+      specs: [
+        'Dedicated vehicle allocation',
+        'Direct point-to-point movement',
+        'High-capacity load handling'
+      ],
       icon: Layers,
       image: '/assets/bulk_shipment_containers.png'
     },
@@ -161,17 +188,29 @@ export const HomePage = ({ setActiveTab }) => {
       id: 'intra-city',
       title: 'Intra-city Transport',
       tag: 'Metropolitan Linehaul',
-      desc: 'High-frequency urban trucking connecting corporate warehouses, distribution hubs, commercial docks, and retail outlets within the city.',
-      specs: ['Multi-drop scheduled routes', 'Hydraulic tailgate fleet', 'Dock-to-dock transfer'],
+      desc: 'Seamless intra-city roadway logistics across Singapore, connecting warehouses, fulfillment hubs, retail outlets, and customer destinations.',
+      desc2: 'Built for high-frequency, time-sensitive urban deliveries.',
+      specsLabel: 'Key Features:',
+      specs: [
+        'Multi-stop delivery routes',
+        'Flexible scheduling',
+        'Optimized urban delivery network'
+      ],
       icon: Navigation,
       image: '/assets/intra_city_logistics_route.png'
     },
     {
-      id: 'inter-city',
-      title: 'Inter-city Logistics',
-      tag: 'Regional Highway Corridors',
-      desc: 'Scheduled expressway long-haul networks connecting commercial centers, state industrial gateways, and cross-border customs checkpoints.',
-      specs: ['Daily linehaul departures', 'LTL cross-dock consolidation', 'Continuous telemetry check'],
+      id: 'island-wide',
+      title: 'Island-wide Delivery',
+      tag: 'Singapore-wide Coverage',
+      desc: 'Reliable end-to-end delivery coverage across Singapore, ensuring smooth movement of goods from pickup to final destination anywhere on the island.',
+      desc2: 'Designed for consistent, scalable logistics operations.',
+      specsLabel: 'Key Features:',
+      specs: [
+        'Coverage across major Singapore regions',
+        'Scheduled delivery windows',
+        'Continuous delivery monitoring'
+      ],
       icon: Truck,
       image: '/assets/inter_city_highway_corridor.png'
     }
@@ -209,62 +248,53 @@ export const HomePage = ({ setActiveTab }) => {
   ];
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-20 bg-white">
+    <div className="w-full">
       
       {/* ========================================================================= */}
       {/* 1. HERO SECTION WITH PROMINENT TRACKING BOX                              */}
       {/* ========================================================================= */}
-      <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 overflow-hidden bg-[#0A101D] text-white border-b border-slate-800">
-        
-        {/* Logistics Hub Background with Light Blue Shade Tint Overlay */}
+      <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 overflow-hidden bg-[#0A101D] text-white">
+                {/* Singapore Road Logistics Hero Background */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <img 
-            src="/assets/homepage_logistics_hub_bg.jpg" 
-            alt="Road logistics hub and highway fleet network" 
-            className="w-full h-full object-cover object-center scale-102 transform brightness-90 contrast-105"
+            src="/assets/singapore_road_freight_hero.jpg" 
+            alt="Singapore road freight container truck network" 
+            className="w-full h-full object-cover object-[72%_center] scale-102 transform brightness-95 contrast-105"
           />
-          {/* Light shade of navy blue overlay allowing background image to be clearly visible while maintaining brand blue tone */}
-          <div className="absolute inset-0 bg-[#0B1528]/50 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A101D]/80 via-[#0B1528]/55 to-[#0B1528]/35"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A101D] via-transparent to-[#0A101D]/30"></div>
+          {/* Elegant gradient overlay ensuring high contrast for text while keeping the truck crisp and clearly visible */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0A101D]/90 via-[#0A101D]/55 sm:via-[#0A101D]/40 to-[#0A101D]/20 sm:to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A101D] via-transparent to-black/25"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
           
           <div className="max-w-3xl space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-950/60 border border-[#FF6B00]/40 text-xs font-bold text-[#FF8500] shadow-xs backdrop-blur-xs">
-              <span className="text-[#FF8500]">⚡</span>
-              <span className="tracking-wide uppercase font-black text-[11px]">Premier Road Transportation Network</span>
+              <span className="text-[#FF6B00]">⚡</span>
+              <span className="tracking-wide uppercase font-black text-[11px]">ROAD TRANSPORTATION & LOGISTICS</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black tracking-tight text-white leading-[1.12] drop-shadow-md">
-              Reliable Road Freight & <br />
-              <span className="text-[#FF6B00] drop-shadow-sm">Express Highway Transport</span>
+            <h1 className="text-[26px] sm:text-5xl lg:text-[54px] font-black tracking-tight text-white leading-[1.2] sm:leading-[1.12] drop-shadow-md">
+              <span className="block sm:inline">Reliable Road Freight</span>{' '}
+              <span className="hidden sm:inline">&amp;</span> <br className="hidden sm:block" />
+              <span className="text-[#FF6B00] drop-shadow-sm">
+                <span className="sm:hidden">&amp;&nbsp;</span>Express Transportation
+              </span>
             </h1>
 
             <p className="text-slate-200 text-base sm:text-lg leading-relaxed max-w-2xl font-medium drop-shadow-sm">
-              Josan Logistics specializes exclusively in dependable roadway transportation. From intra-city express parcels to heavy-haul inter-state full truckloads, we move your cargo safely with guaranteed timelines.
+              Josan Logistics specializes exclusively in dependable roadway transportation. From intra-city express parcels to heavy-haul inter-state full truckloads, we move your cargo safely with reliable delivery timelines.
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <button
-                type="button"
-                onClick={handleBookingAction}
-                className="px-7 py-3.5 bg-gradient-to-r from-[#FF6B00] to-[#FF8500] hover:from-[#E55C00] hover:to-[#FF6B00] text-white rounded-full font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-orange-500/25 transition-all flex items-center space-x-2 cursor-pointer active:scale-95"
-              >
-                <Package className="w-4 h-4" />
-                <span>Book Shipment</span>
-                <ArrowRight className="w-4 h-4 -rotate-45" />
-              </button>
-
+            {/* Action Buttons - Clean single primary CTA */}
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={handleQuoteAction}
-                className="px-6 py-3.5 bg-slate-800/80 hover:bg-slate-750 text-white border border-slate-700 rounded-full font-bold text-xs sm:text-sm tracking-wide transition-all flex items-center space-x-2 cursor-pointer active:scale-95"
+                className="px-8 py-4 bg-gradient-to-r from-[#FF6B00] to-[#FF8500] hover:from-[#E55C00] hover:to-[#FF6B00] text-white rounded-full font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all flex items-center space-x-2.5 cursor-pointer active:scale-95 group"
               >
                 <span>Get a Quote</span>
-                <ArrowRight className="w-4 h-4 text-[#FF6B00]" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
 
@@ -272,15 +302,15 @@ export const HomePage = ({ setActiveTab }) => {
             <div className="pt-2 flex flex-wrap items-center gap-6 text-xs font-semibold text-slate-300">
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>GPS Telematics Included</span>
+                <span>Real-Time Shipment Tracking</span>
               </span>
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Verified Recipient POD</span>
+                <span>Proof of Delivery (POD)</span>
               </span>
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>All-Risk Cargo Insurance</span>
+                <span>Cargo Insurance Available</span>
               </span>
             </div>
           </div>
@@ -397,12 +427,29 @@ export const HomePage = ({ setActiveTab }) => {
           </div>
 
         </div>
+
+        {/* Seamless visual blend from Dark Navy into Cool-Gray (#EEF2F6) */}
+        <div 
+          className="absolute bottom-0 inset-x-0 h-16 sm:h-24 pointer-events-none z-10"
+          style={{
+            background: 'linear-gradient(180deg, rgba(10, 16, 29, 0) 0%, rgba(10, 16, 29, 0.35) 40%, rgba(238, 242, 246, 0.85) 85%, #EEF2F6 100%)'
+          }}
+        />
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. WHY CHOOSE US (Aligned with Services Capabilities)                     */}
+      {/* SECTIONS 2-6 (LIGHT COOL-GRAY GRADIENT BACKGROUND)                       */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div 
+        className="space-y-16 sm:space-y-24 pt-12 sm:pt-16 pb-20 relative"
+        style={{
+          background: 'linear-gradient(180deg, #EEF2F6 0%, #F4F6F8 50%, #F7F8FA 100%)'
+        }}
+      >
+        {/* ========================================================================= */}
+        {/* 2. WHY CHOOSE US (Aligned with Services Capabilities)                     */}
+        {/* ========================================================================= */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
             Engineered Road Logistics
@@ -618,20 +665,12 @@ export const HomePage = ({ setActiveTab }) => {
                 className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs hover:shadow-card hover:border-orange-300 transition-all flex flex-col justify-between space-y-5 group"
               >
                 <div className="space-y-4">
-                  {/* Consistent Real-World Service Image - Full Uncut Display */}
-                  <div className="h-60 sm:h-64 w-full rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-950/5 relative flex items-center justify-center">
-                    {/* Ambient blurred background */}
-                    <img 
-                      src={svc.image} 
-                      alt="" 
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover blur-xl scale-125 opacity-30 pointer-events-none" 
-                    />
-                    {/* Full uncropped original image */}
+                  {/* Real-World Service Image - Full Card Coverage */}
+                  <div className="h-56 sm:h-60 w-full rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 relative">
                     <img 
                       src={svc.image} 
                       alt={svc.title} 
-                      className="relative z-10 max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 rounded-xl" 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     />
                     <div className="absolute top-3 left-3 z-20 w-10 h-10 rounded-xl bg-white/95 text-[#FF6B00] shadow-xs flex items-center justify-center backdrop-blur-xs">
                       <IconComp className="w-5 h-5" />
@@ -643,23 +682,35 @@ export const HomePage = ({ setActiveTab }) => {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <h3 className="text-base font-extrabold text-[#10182D] group-hover:text-[#FF6B00] transition-colors">
                       {svc.title}
                     </h3>
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed mt-2">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
                       {svc.desc}
                     </p>
+                    {svc.desc2 && (
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                        {svc.desc2}
+                      </p>
+                    )}
                   </div>
 
-                  <ul className="space-y-1.5 pt-1">
-                    {svc.specs.map((spec, i) => (
-                      <li key={i} className="text-[11px] text-slate-700 font-bold flex items-center space-x-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>{spec}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div>
+                    {svc.specsLabel && (
+                      <div className="text-[11px] font-bold text-slate-800 mb-1.5">
+                        {svc.specsLabel}
+                      </div>
+                    )}
+                    <ul className="space-y-1.5">
+                      {svc.specs.map((spec, i) => (
+                        <li key={i} className="text-[11px] text-slate-700 font-bold flex items-center space-x-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>{spec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="pt-3 border-t border-slate-100">
@@ -669,10 +720,10 @@ export const HomePage = ({ setActiveTab }) => {
                       setActiveTab('services');
                       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                     }}
-                    className="text-xs font-bold text-[#FF6B00] hover:text-[#E55C00] inline-flex items-center space-x-1 cursor-pointer"
+                    className="text-xs font-bold text-[#FF6B00] hover:text-[#E55C00] inline-flex items-center space-x-1.5 cursor-pointer group/cta"
                   >
-                    <span>Learn more</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <span>Learn More</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-1 transition-transform" />
                   </button>
                 </div>
               </div>
@@ -684,71 +735,73 @@ export const HomePage = ({ setActiveTab }) => {
       {/* ========================================================================= */}
       {/* 5. SERVICE COVERAGE (Aligned with Shipment Scope)                        */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative">
-        {/* Subtle Map & Logistics Network Route Graphic Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-3xl opacity-[0.06]">
-          <img 
-            src="/assets/singapore_google_map_hd.jpg" 
-            alt="Logistics road routes network map" 
-            className="w-full h-full object-cover" 
-          />
-        </div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative rounded-3xl bg-slate-50/80 border border-slate-200/80 shadow-xs p-6 sm:p-10 lg:p-12 pb-10 sm:pb-12 lg:pb-14 space-y-10 overflow-hidden">
+          {/* Subtle Map & Logistics Network Route Graphic Background */}
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-[0.07]">
+            <img 
+              src="/assets/singapore_google_map_hd.jpg" 
+              alt="Logistics road routes network map" 
+              className="w-full h-full object-cover" 
+            />
+          </div>
 
-        <div className="text-center max-w-2xl mx-auto space-y-3 relative z-10">
-          <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-            Road Network Coverage
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#10182D] font-heading">
-            Comprehensive Roadway Service Coverage
-          </h2>
-          <p className="text-slate-600 text-sm font-semibold">
-            Reliable road logistics connecting cities, regions, and states efficiently
-          </p>
-        </div>
+          <div className="text-center max-w-2xl mx-auto space-y-3 relative z-10">
+            <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+              Road Network Coverage
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#10182D] font-heading">
+              Comprehensive Roadway Service Coverage
+            </h2>
+            <p className="text-slate-600 text-sm font-semibold">
+              Reliable road logistics connecting cities, regions, and states efficiently
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-          {coverageTiers.map((tier, idx) => (
-            <div 
-              key={idx}
-              className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs hover:shadow-card hover:border-orange-300 transition-all space-y-4 group"
-            >
-              {/* Subtle Road Route Supporting Visual */}
-              <div className="h-44 sm:h-48 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 relative">
-                <img 
-                  src={tier.image} 
-                  alt={tier.tier} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                />
-                <div className="absolute top-2.5 left-2.5">
-                  <span className="text-[10px] font-black uppercase text-[#FF6B00] tracking-wider bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full border border-orange-200 shadow-2xs">
-                    {tier.scope}
-                  </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+            {coverageTiers.map((tier, idx) => (
+              <div 
+                key={idx}
+                className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs hover:shadow-card hover:border-orange-300 transition-all space-y-4 group"
+              >
+                {/* Subtle Road Route Supporting Visual */}
+                <div className="h-44 sm:h-48 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 relative">
+                  <img 
+                    src={tier.image} 
+                    alt={tier.tier} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className="text-[10px] font-black uppercase text-[#FF6B00] tracking-wider bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full border border-orange-200 shadow-2xs">
+                      {tier.scope}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-extrabold text-[#10182D]">
+                    {tier.tier}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-bold">
+                    SLA: {tier.turnaround}
+                  </p>
+                </div>
+
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                  {tier.desc}
+                </p>
+
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  {tier.features.map((feat, fIdx) => (
+                    <div key={fIdx} className="flex items-center space-x-2 text-xs font-semibold text-slate-800">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <div className="space-y-1">
-                <h3 className="text-lg font-extrabold text-[#10182D]">
-                  {tier.tier}
-                </h3>
-                <p className="text-xs text-slate-500 font-bold">
-                  SLA: {tier.turnaround}
-                </p>
-              </div>
-
-              <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                {tier.desc}
-              </p>
-
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                {tier.features.map((feat, fIdx) => (
-                  <div key={fIdx} className="flex items-center space-x-2 text-xs font-semibold text-slate-800">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{feat}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -804,6 +857,7 @@ export const HomePage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      </div>
     </div>
   );
 };

@@ -77,6 +77,16 @@ export const AuthModal = ({ setActiveTab }) => {
       setIsAuthModalOpen(false);
       setAuthModalHideClose(false);
       setError('');
+      if (setActiveTab) {
+        const targetRole = res?.user?.role || role;
+        if (targetRole === 'admin') {
+          setActiveTab('admin-dashboard', true, res?.user);
+        } else if (targetRole === 'driver') {
+          setActiveTab('driver-dashboard', true, res?.user);
+        } else {
+          setActiveTab('customer-dashboard', true, res?.user);
+        }
+      }
     }
   };
 

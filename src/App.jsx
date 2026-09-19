@@ -150,12 +150,15 @@ const MainContent = () => {
   const [trackNavKey, setTrackNavKey] = useState(0);
 
   // Navigation tab switcher synced with Browser History API (pushState)
-  const changeActiveTab = (tab, pushHistory = true) => {
+  const changeActiveTab = (tab, pushHistory = true, userOverride = null) => {
     if (tab === 'track') {
       setTrackNavKey(prev => prev + 1);
     }
+    const effectiveUser = userOverride !== null ? userOverride : currentUser;
+    const effectiveRole = effectiveUser?.role || (userOverride ? userOverride.role : currentRole);
+
     // Check authentication for protected pages
-    if (!currentUser && (
+    if (!effectiveUser && (
       tab === 'book' || 
       tab === 'domestic-shipment' || 
       tab === 'international-shipment' || 
@@ -169,8 +172,7 @@ const MainContent = () => {
 
     // Protect Admin and Driver portals strictly
     if (tab === 'admin-dashboard') {
-      const role = currentUser?.role || currentRole;
-      if (!currentUser || role !== 'admin') {
+      if (!effectiveUser || effectiveRole !== 'admin') {
         setIsAuthModalOpen(true);
         if (showToast) showToast('Admin authentication required for Admin Dashboard', 'warning');
         return;
@@ -178,8 +180,7 @@ const MainContent = () => {
     }
 
     if (tab === 'driver-dashboard') {
-      const role = currentUser?.role || currentRole;
-      if (!currentUser || role !== 'driver') {
+      if (!effectiveUser || effectiveRole !== 'driver') {
         setIsAuthModalOpen(true);
         if (showToast) showToast('Driver authentication required for Driver Portal', 'warning');
         return;
