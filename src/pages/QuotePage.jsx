@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calculator, 
   Truck, 
@@ -14,13 +14,60 @@ import {
   Mail, 
   Phone, 
   Building2,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
 import { cargoCategories } from '../components/CargoTypeSelector';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 
 export const QuotePage = ({ setActiveTab }) => {
-  const { showToast, currentUser, setIsAuthModalOpen, resetShipmentScope, requestQuote, setCustomerSubTab, addLead } = useLogistics();
+  const { showToast, currentUser, setIsAuthModalOpen, setAuthRedirectTab, resetShipmentScope, requestQuote, setCustomerSubTab, addLead } = useLogistics();
+
+  // Strict Authentication Guard: Never allow unauthenticated visitors to view the quote generator
+  useEffect(() => {
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('quote');
+      setIsAuthModalOpen(true);
+      if (showToast) {
+        showToast('Please sign in or create an account to get an instant quote.', 'warning');
+      }
+      if (setActiveTab) setActiveTab('home');
+    }
+  }, [currentUser, setActiveTab]);
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center p-6 text-center">
+        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card max-w-md w-full space-y-4">
+          <div className="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-extrabold text-slate-900">Customer Login Required</h2>
+          <p className="text-xs text-slate-500">
+            Please sign in with your customer account to access the instant rate calculator and freight quotation generator.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+            <button
+              onClick={() => {
+                if (setAuthRedirectTab) setAuthRedirectTab('quote');
+                setIsAuthModalOpen(true);
+              }}
+              className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+            >
+              Sign In to Continue
+            </button>
+            <button
+              onClick={() => setActiveTab && setActiveTab('home')}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Form State
   const [freightMode, setFreightMode] = useState('ftl');
@@ -37,7 +84,40 @@ export const QuotePage = ({ setActiveTab }) => {
   const [contactName, setContactName] = useState(currentUser?.name || '');
   const [contactEmail, setContactEmail] = useState(currentUser?.email || '');
   const [contactCompany, setContactCompany] = useState(currentUser?.company || '');
-  const [contactPhone, setContactPhone] = useState(currentUser?.phone || '');
+
+  // Helper to extract country code and clean numeric digits
+  const parseInitialPhone = (rawPhone) => {
+    if (!rawPhone) return { code: '+65', digits: '' };
+    const matched = countryCodesList.find(c => rawPhone.startsWith(c.code));
+    if (matched) {
+      return {
+        code: matched.code,
+        digits: rawPhone.slice(matched.code.length).replace(/[^0-9]/g, '').slice(0, matched.digits)
+      };
+    }
+    return { code: '+65', digits: rawPhone.replace(/[^0-9]/g, '').slice(0, 8) };
+  };
+
+  const [quoteCountryCode, setQuoteCountryCode] = useState(() => parseInitialPhone(currentUser?.phone).code);
+  const [quotePhoneDigits, setQuotePhoneDigits] = useState(() => parseInitialPhone(currentUser?.phone).digits);
+
+  useEffect(() => {
+    if (currentUser?.phone) {
+      const parsed = parseInitialPhone(currentUser.phone);
+      setQuoteCountryCode(parsed.code);
+      setQuotePhoneDigits(parsed.digits);
+    }
+    if (currentUser?.name && !contactName) setContactName(currentUser.name);
+    if (currentUser?.email && !contactEmail) setContactEmail(currentUser.email);
+    if (currentUser?.company && !contactCompany) setContactCompany(currentUser.company);
+  }, [currentUser]);
+
+  const handlePhoneDigitsChange = (e) => {
+    // Strictly filter out any alphabets, whitespace, and special characters
+    const cleanDigits = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(quoteCountryCode));
+    setQuotePhoneDigits(cleanDigits);
+  };
+
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
   const [generatedQuoteRef, setGeneratedQuoteRef] = useState('');
@@ -58,7 +138,8 @@ export const QuotePage = ({ setActiveTab }) => {
     return deliverySpeed === 'express' ? 1.35 : 1.0;
   };
 
-  const baseFreightCost = (cargoWeight * getRatePerKg() * getSpeedMultiplier()).toFixed(2);
+  const parsedWeight = parseFloat(cargoWeight) || 0;
+  const baseFreightCost = (parsedWeight * getRatePerKg() * getSpeedMultiplier()).toFixed(2);
   const tailgateCost = tailgateRequired ? 35.00 : 0.00;
   const insuranceCost = insuranceRequired ? Math.max(25, declaredValue * 0.004).toFixed(2) : '0.00';
   const customsFee = freightMode === 'customs' ? 120.00 : 0.00;
@@ -74,12 +155,31 @@ export const QuotePage = ({ setActiveTab }) => {
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
 
+    if (!cargoWeight || parseFloat(cargoWeight) <= 0) {
+      if (showToast) {
+        showToast('Please enter a valid cargo weight in kg.', 'warning');
+      }
+      return;
+    }
+
+    // Strict phone number validation: digits only and minimum length
+    const maxDigits = getPhoneLength(quoteCountryCode);
+    const minDigits = Math.max(6, maxDigits - 1);
+    if (!quotePhoneDigits || quotePhoneDigits.length < minDigits) {
+      if (showToast) {
+        showToast(`Please enter a valid ${maxDigits}-digit phone number (numbers only).`, 'warning');
+      }
+      return;
+    }
+
+    const fullContactPhone = `${quoteCountryCode} ${quotePhoneDigits}`.trim();
+
     if (addLead) {
       addLead({
         name: contactName || 'Prospective Shipper',
         company: contactCompany || (contactName ? `${contactName} Logistics` : 'Website Quote Inquiry'),
         email: contactEmail || '',
-        phone: contactPhone || '',
+        phone: fullContactPhone,
         source: 'Website Quote Form',
         stage: 'Quote Sent',
         estimatedValue: parseFloat(grandTotal) || 0,
@@ -105,7 +205,7 @@ export const QuotePage = ({ setActiveTab }) => {
         contactName,
         contactEmail,
         contactCompany,
-        contactPhone,
+        contactPhone: fullContactPhone,
         specialInstructions
       });
       const refId = newQuote?.id || `QTE-${Math.floor(10000 + Math.random() * 90000)}-SG`;
@@ -210,23 +310,38 @@ export const QuotePage = ({ setActiveTab }) => {
               {/* Weight & Cargo Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-xs font-bold text-slate-700 uppercase">Cargo Weight (kg) *</label>
-                    <span className="font-mono font-black text-orange-600 text-sm">{cargoWeight} kg</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="5"
-                    max="15000"
-                    step="25"
-                    value={cargoWeight}
-                    onChange={(e) => setCargoWeight(Number(e.target.value))}
-                    className="w-full accent-orange-500 cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                    <span>5 kg</span>
-                    <span>5,000 kg</span>
-                    <span>15,000 kg</span>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                    <span>Cargo Weight (kg) *</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Enter custom weight</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="100000"
+                      step="any"
+                      required
+                      value={cargoWeight}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setCargoWeight('');
+                        } else {
+                          const num = Math.max(0, parseFloat(val));
+                          setCargoWeight(isNaN(num) ? '' : num);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (['e', 'E', '+', '-'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      placeholder="e.g. 250"
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all pr-12"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">
+                      kg
+                    </span>
                   </div>
                 </div>
 
@@ -371,15 +486,44 @@ export const QuotePage = ({ setActiveTab }) => {
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-600 mb-1">Phone Number *</label>
-                    <input
-                      type="text"
-                      required
-                      value={contactPhone}
-                      onChange={(e) => setContactPhone(e.target.value)}
-                      placeholder="+65 8765 4321"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900"
-                    />
+                    <label className="block font-bold text-slate-600 mb-1 flex items-center justify-between">
+                      <span>Phone Number *</span>
+                      <span className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">Digits only</span>
+                    </label>
+                    <div className="flex items-center">
+                      <select
+                        value={quoteCountryCode}
+                        onChange={(e) => {
+                          const newCode = e.target.value;
+                          setQuoteCountryCode(newCode);
+                          setQuotePhoneDigits(prev => prev.slice(0, getPhoneLength(newCode)));
+                        }}
+                        className="p-2.5 bg-slate-100 border border-slate-300 rounded-l-xl text-slate-900 font-extrabold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none"
+                      >
+                        {countryCodesList.map((item) => (
+                          <option key={item.code} value={item.code}>
+                            {item.flag} {item.code} ({item.country})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        required
+                        maxLength={getPhoneLength(quoteCountryCode)}
+                        value={quotePhoneDigits}
+                        onChange={handlePhoneDigitsChange}
+                        onKeyDown={(e) => {
+                          const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
+                          if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                            e.preventDefault();
+                          }
+                        }}
+                        placeholder={`e.g. ${'9'.repeat(getPhoneLength(quoteCountryCode))}`}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-r-xl font-mono font-bold text-slate-900 text-xs focus:bg-white"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -426,7 +570,7 @@ export const QuotePage = ({ setActiveTab }) => {
               {/* Itemized Line Items */}
               <div className="space-y-3 text-xs">
                 <div className="flex justify-between items-center text-slate-300">
-                  <span>Base Freight ({cargoWeight}kg × ${getRatePerKg()}/kg):</span>
+                  <span>Base Freight ({parseFloat(cargoWeight) || 0}kg × ${getRatePerKg()}/kg):</span>
                   <span className="font-mono font-bold text-white">S$ {baseFreightCost}</span>
                 </div>
 

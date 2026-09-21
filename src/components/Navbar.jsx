@@ -450,6 +450,12 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             {/* CTA 1: Instant Quote (Vibrant Orange Pill) */}
             <button
               onClick={() => {
+                if (!currentUser) {
+                  if (setAuthRedirectTab) setAuthRedirectTab('quote');
+                  setIsAuthModalOpen(true);
+                  if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                  return;
+                }
                 setActiveTab('quote');
                 window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
               }}
@@ -478,8 +484,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               <span>Book Shipment</span>
             </button>
 
-            {/* Customer Login / Dashboard Navigation Menu */}
-            {currentUser ? (
+            {/* Customer Login / Dashboard Navigation Menu (Hidden on Admin Dashboard to prevent duplicate profile) */}
+            {activeTab === 'admin-dashboard' ? null : currentUser ? (
               <div className="relative pl-1">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -584,17 +590,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                           <ShieldCheck className="w-4 h-4 text-orange-400" />
                           <span>Open Admin Hub</span>
                         </button>
-
-                        <button
-                          onClick={() => {
-                            setIsProfileOpen(false);
-                            setActiveTab('crm');
-                          }}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 flex items-center space-x-2 cursor-pointer"
-                        >
-                          <Target className="w-4 h-4 text-orange-400" />
-                          <span>Open CRM Hub</span>
-                        </button>
                       </div>
                     )}
 
@@ -641,6 +636,13 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button
               onClick={() => {
+                if (!currentUser) {
+                  if (setAuthRedirectTab) setAuthRedirectTab('quote');
+                  setIsAuthModalOpen(true);
+                  setMobileMenuOpen(false);
+                  if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                  return;
+                }
                 setActiveTab('quote');
                 setMobileMenuOpen(false);
                 window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });

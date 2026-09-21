@@ -328,7 +328,7 @@ export const LogisticsProvider = ({ children }) => {
   const [isShipmentTypeModalOpen, setIsShipmentTypeModalOpen] = useState(false);
 
   const resetShipmentScope = () => {
-    setShipmentScope('domestic');
+    setShipmentScope(null);
   };
 
   // Sub-tab navigation state

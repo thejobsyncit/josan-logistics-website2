@@ -1315,7 +1315,10 @@ export const BookShipmentPage = ({ setActiveTab }) => {
               <button
                 type="button"
                 onClick={() => {
-                  resetShipmentScope();
+                  if (resetShipmentScope) resetShipmentScope();
+                  if (setShipmentScope) setShipmentScope(null);
+                  if (setActiveTab) setActiveTab('book');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                   showToast('Returned to Service Scope Selection');
                 }}
                 className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center space-x-1.5"
@@ -1350,7 +1353,10 @@ export const BookShipmentPage = ({ setActiveTab }) => {
             <button
               type="button"
               onClick={() => {
-                resetShipmentScope();
+                if (resetShipmentScope) resetShipmentScope();
+                if (setShipmentScope) setShipmentScope(null);
+                if (setActiveTab) setActiveTab('book');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 showToast('Returned to Service Scope Selection');
               }}
               className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-colors cursor-pointer"

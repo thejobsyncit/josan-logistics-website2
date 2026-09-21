@@ -249,60 +249,124 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
 
   const vehicleFleetSpecs = [
     {
+      id: 'motorbike',
+      vehicleOptionId: 'motorbike',
+      tabLabel: 'Motorbike',
+      name: 'City Courier Dispatch Motorbike',
+      category: 'Express Same-Hour Document & Small Parcel Courier',
+      badge: 'Express Courier (Two-Wheeler)',
+      payload: '8 kg',
+      volume: '0.15 m³',
+      pallets: 'Document Pouch / Top Box (No Pallets)',
+      dimensions: '0.5m (L) × 0.4m (W) × 0.4m (H)',
+      access: 'Lockable Weatherproof Top Box & Pouch',
+      telematics: 'Live Mobile GPS Telemetry, Instant Digital POD',
+      idealFor: ['Urgent legal documents & passports', 'Small electronics & chip samples', 'Prescription medicines & lab vials']
+    },
+    {
+      id: 'mpv',
+      vehicleOptionId: 'mpv',
+      tabLabel: 'MPV / SUV',
+      name: 'Urban Commercial MPV / SUV',
+      category: 'Same-Day Doorstep Commercial Express',
+      badge: 'Urban Commercial Vehicle',
+      payload: '120 kg',
+      volume: '1.8 m³',
+      pallets: 'Up to 6 Medium Cartons (No Pallets)',
+      dimensions: '1.8m (L) × 1.2m (W) × 1.1m (H)',
+      access: 'Rear Liftgate & Dual Passenger Side Doors',
+      telematics: 'Live GPS Route Guidance & Speed Telemetry',
+      idealFor: ['Medium retail carton drop-offs', 'Fragile electronic samples & IT gear', 'Direct office-to-door courier']
+    },
+    {
       id: 'van',
       vehicleOptionId: 'van',
-      name: '1.7T Sprinter Delivery Van',
+      tabLabel: '1.7m Van',
+      name: '1.7m Standard Delivery Van',
       category: 'City Express & Parcel Logistics',
       badge: 'Light Commercial (LCV)',
-      payload: '1,500 kg',
-      volume: '12.5 m³',
-      pallets: '2 Standard Pallets',
-      dimensions: '3.2m (L) × 1.7m (W) × 1.8m (H)',
-      access: 'Dual Rear 270° Barn Doors & Side Sliding Door',
+      payload: '500 kg',
+      volume: '5.5 m³',
+      pallets: '1 Standard Pallet / 25 Cartons',
+      dimensions: '1.7m (L) × 1.4m (W) × 1.2m (H)',
+      access: 'Dual Rear 180° Barn Doors & Side Sliding Door',
       telematics: 'Live GPS Telemetry, Geo-fence Alerting',
       idealFor: ['High-value retail cartons', 'Urgent biomedical supplies', 'E-Commerce last-mile drops']
     },
     {
-      id: 'lorry',
+      id: 'large_van',
+      vehicleOptionId: 'large_van',
+      tabLabel: '2.4m Van',
+      name: '2.4m High-Roof Cargo Van',
+      category: 'High-Volume Urban Freight & Bulk Cartons',
+      badge: 'High-Cube LCV',
+      payload: '900 kg',
+      volume: '9.2 m³',
+      pallets: '2 - 3 Standard Pallets / 50 Cartons',
+      dimensions: '2.4m (L) × 1.6m (W) × 1.5m (H)',
+      access: 'High-Clearance Rear Cargo Doors & Dual Sliding Doors',
+      telematics: 'Real-Time GPS Tracking & Fleet Telematics',
+      idealFor: ['Bulky retail store distribution', 'Electronic appliances & server racks', 'Department store replenishment']
+    },
+    {
+      id: 'lorry_10ft',
       vehicleOptionId: 'lorry_10ft',
-      name: '10T Rigid Box Lorry',
-      category: 'Medium-Duty LTL Consolidation',
+      tabLabel: '10ft Lorry',
+      name: '10ft Commercial Box Lorry',
+      category: 'Light Commercial Freight & Distribution',
+      badge: 'Light Commercial (MCV)',
+      payload: '1,500 kg',
+      volume: '14.0 m³',
+      pallets: '3 - 4 Standard Pallets',
+      dimensions: '3.1m (L) × 1.8m (W) × 1.9m (H)',
+      access: 'Hydraulic Tail-Lift (Optional) & Wide Rear Roll-up Door',
+      telematics: 'Electronic Waybill, Live GPS Satellite Tracking',
+      idealFor: ['Commercial pallet distribution', 'Furniture & commercial equipment', 'Factory-to-warehouse stock delivery']
+    },
+    {
+      id: 'lorry',
+      vehicleOptionId: 'lorry',
+      tabLabel: '14ft Lorry',
+      name: '14ft Heavy Box Truck with Tailgate',
+      category: 'Medium-Duty LTL Consolidation & Commercial Haulage',
       badge: 'Medium Commercial (MCV)',
-      payload: '8,500 kg',
-      volume: '38.0 m³',
-      pallets: '10 - 12 Standard Pallets',
-      dimensions: '7.2m (L) × 2.4m (W) × 2.5m (H)',
-      access: 'Hydraulic 1.5-Ton Cantilever Tail-Lift',
-      telematics: 'Electronic Waybill, Fleet Speed Governors',
-      idealFor: ['Consolidated pallet distribution', 'FMCG supermarket stocks', 'Wholesale manufacturing parts']
+      payload: '3,500 kg',
+      volume: '22.0 m³',
+      pallets: '6 - 8 Standard Pallets',
+      dimensions: '4.5m (L) × 2.1m (W) × 2.2m (H)',
+      access: 'Full Hydraulic 1.5-Ton Tailgate with Remote Control',
+      telematics: 'Fleet Speed Governors, Digital Dispatch Integration',
+      idealFor: ['Consolidated pallet distribution', 'FMCG supermarket bulk supply', 'Industrial hardware & machinery']
     },
     {
-      id: 'trailer',
+      id: 'truck_24ft',
       vehicleOptionId: 'truck_24ft',
-      name: '24T Multi-Axle Prime Mover',
-      category: 'Heavy-Duty FTL & Industrial Haulage',
-      badge: 'Heavy Articulated (FTL)',
-      payload: '24,000 kg',
-      volume: '76.0 m³',
-      pallets: '24 - 26 Standard Pallets',
-      dimensions: '13.6m (L) × 2.45m (W) × 2.7m (H)',
-      access: 'Full Side Curtain-Slider & Rear Dock Loading',
-      telematics: '24/7 Satellite Telemetry, Axle Weight Sensors',
-      idealFor: ['Full container load (FCL)', 'Heavy industrial machinery', 'Port-to-depot container haulage']
+      tabLabel: '24ft Lorry',
+      name: '24ft Multi-Axle Heavy Cargo Lorry',
+      category: 'Heavy-Duty FTL & Industrial Freight Haulage',
+      badge: 'Heavy Commercial (FTL)',
+      payload: '10,000 kg',
+      volume: '48.0 m³',
+      pallets: '12 - 14 Standard Pallets',
+      dimensions: '7.5m (L) × 2.4m (W) × 2.5m (H)',
+      access: 'Full Side Curtain Slider & Heavy Rear Dock Loading',
+      telematics: '24/7 Satellite Telemetry, Axle Load Weight Sensors',
+      idealFor: ['Full container loads (FCL)', 'Heavy industrial manufacturing steel & machinery', 'Port-to-depot container haulage']
     },
     {
-      id: 'reefer',
+      id: 'cold_chain',
       vehicleOptionId: 'cold_chain',
-      name: 'Multi-Temp Reefer Van',
-      category: 'Cold Chain & Active Thermoregulation',
+      tabLabel: 'Cold-Chain Van',
+      name: 'Multi-Temp Cold-Chain Reefer Van',
+      category: 'Active Thermoregulation & Chilled Logistics',
       badge: 'Temperature-Controlled (-25°C to +25°C)',
-      payload: '5,000 kg',
-      volume: '26.0 m³',
-      pallets: '6 - 8 Euro Pallets',
-      dimensions: '5.8m (L) × 2.2m (W) × 2.2m (H)',
+      payload: '800 kg',
+      volume: '8.5 m³',
+      pallets: '2 Euro Pallets / Insulated Totes',
+      dimensions: '2.4m (L) × 1.5m (W) × 1.4m (H)',
       access: 'Insulated Double Gasket Sealed Doors with Thermal Curtains',
       telematics: 'Dual-Probe IoT Datalogger, Real-Time Chilled Telemetry',
-      idealFor: ['Vaccines & pharmaceutical vials', 'Fresh produce & seafood', 'Temperature-critical chemicals']
+      idealFor: ['Vaccines, pharma vials & biological samples', 'Fresh produce, dairy & frozen seafood', 'Temperature-critical specialty chemicals']
     }
   ];
 
@@ -310,6 +374,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
 
   const handleApplyGuideVehicle = (vehicleOptionId, vehicleName) => {
     setForm(f => ({ ...f, vehicle: vehicleOptionId }));
+    setSelectedGuideVehicleId(vehicleOptionId);
     showToast(`Selected ${vehicleName} for your shipment`, 'success');
     window.scrollTo({ top: 380, behavior: 'smooth' });
   };
@@ -946,104 +1011,26 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                 </button>
               </div>
 
-              {/* Input trigger */}
-              <button
-                type="button"
-                onClick={() => setIsContentOpen(!isContentOpen)}
-                className={`w-full text-left rounded-xl border px-4 py-3.5 transition-all flex items-center justify-between cursor-pointer ${
-                  errors.content
-                    ? 'border-red-400 ring-2 ring-red-100 bg-red-50/20'
-                    : form.content
-                    ? 'border-[#FF6B00] bg-orange-50/30 text-slate-900 font-bold'
-                    : 'border-slate-300 hover:border-[#FF6B00]/60 bg-white text-slate-500 font-medium'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  {(() => {
-                    const sel = contentCategories.find((c) => c.name === form.content);
-                    if (sel) {
-                      const SelIcon = sel.icon;
-                      return (
-                        <div className="w-7 h-7 rounded-lg bg-[#FF6B00]/15 text-[#FF6B00] flex items-center justify-center shrink-0">
-                          <SelIcon className="w-4 h-4 stroke-[2.2]" />
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-                  <span className={`text-sm ${form.content ? 'font-bold text-slate-900' : 'font-medium text-slate-400'}`}>
-                    {form.content || 'Select Content'}
-                  </span>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isContentOpen ? 'rotate-180 text-[#FF6B00]' : ''}`} />
-              </button>
+              {/* Cargo Classification & Content Selector */}
+              <CargoTypeSelector
+                value={form.content || form.cargoType}
+                onChange={(val) => {
+                  setForm((f) => ({ ...f, content: val, cargoType: val }));
+                  if (errors.content) setErrors((prev) => ({ ...prev, content: undefined }));
+                  if (errors.cargoType) setErrors((prev) => ({ ...prev, cargoType: undefined }));
+                }}
+                placeholder="Select Shipment Content / Cargo Classification"
+                error={errors.content}
+                align="left"
+                categoriesOnly={true}
+                hideSearch={true}
+              />
 
               {errors.content && (
                 <p className="text-xs font-bold text-red-500 mt-1.5 flex items-center gap-1">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>{errors.content}</span>
                 </p>
-              )}
-
-              {/* Dropdown for Content */}
-              {isContentOpen && (
-                <div className="mt-2 rounded-2xl border border-slate-200 shadow-xl overflow-hidden bg-white animate-fade-in z-20">
-                  <div className="p-3 border-b border-slate-100 bg-slate-50/70">
-                    <div className="relative flex items-center">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
-                      <input
-                        type="text"
-                        value={contentSearch}
-                        onChange={(e) => setContentSearch(e.target.value)}
-                        placeholder="Search shipment contents..."
-                        className="w-full pl-10 pr-4 py-2 text-sm font-medium rounded-xl border border-slate-300 focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 outline-none placeholder:text-slate-400 bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
-                    {contentCategories
-                      .filter((c) => c.name.toLowerCase().includes(contentSearch.toLowerCase()))
-                      .map((item) => {
-                        const isSelected = form.content === item.name;
-                        const CategoryIcon = item.icon;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => {
-                              setForm((f) => ({ ...f, content: item.name, cargoType: item.name }));
-                              setIsContentOpen(false);
-                              if (errors.content) setErrors((prev) => ({ ...prev, content: undefined }));
-                            }}
-                            className={`w-full px-4 py-3 flex items-center justify-between text-left hover:bg-[#FFF8F2] transition-colors cursor-pointer group ${
-                              isSelected ? 'bg-[#FFF8F2]' : ''
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                                isSelected
-                                  ? 'bg-[#FF6B00] text-white shadow-xs'
-                                  : 'bg-[#FFF8F2] text-[#FF6B00] border border-[#FF6B00]/20 group-hover:bg-[#FF6B00] group-hover:text-white'
-                              }`}>
-                                <CategoryIcon className="w-4 h-4 stroke-[2.2]" />
-                              </div>
-                              <span className={`text-sm font-bold tracking-wide uppercase transition-colors ${
-                                isSelected ? 'text-[#FF6B00]' : 'text-slate-900 group-hover:text-[#FF6B00]'
-                              }`}>
-                                {item.name}
-                              </span>
-                            </div>
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              isSelected ? 'border-[#FF6B00] bg-[#FF6B00]' : 'border-slate-300'
-                            }`}>
-                              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-                            </div>
-                          </button>
-                        );
-                      })}
-                  </div>
-                </div>
               )}
             </div>
 
@@ -1248,7 +1235,10 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                     <button
                       type="button"
                       key={v.id}
-                      onClick={() => setForm((f) => ({ ...f, vehicle: v.id }))}
+                      onClick={() => {
+                        setForm((f) => ({ ...f, vehicle: v.id }));
+                        setSelectedGuideVehicleId(v.id);
+                      }}
                       className={`text-left rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col justify-between group relative ${
                         isSelected
                           ? 'border-orange-500 bg-orange-50/40 ring-2 ring-orange-500/20 shadow-sm'
@@ -1327,12 +1317,14 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
 
                 <Field label="Cargo type" error={errors.cargoType}>
                   <CargoTypeSelector
-                    value={form.cargoType}
+                    value={form.cargoType || form.content}
                     onChange={(val) => {
-                      setForm((f) => ({ ...f, cargoType: val }));
+                      setForm((f) => ({ ...f, cargoType: val, content: val }));
                       if (errors.cargoType) setErrors((prev) => ({ ...prev, cargoType: undefined }));
+                      if (errors.content) setErrors((prev) => ({ ...prev, content: undefined }));
                     }}
                     error={errors.cargoType}
+                    align="right"
                   />
                 </Field>
               </div>
@@ -1449,20 +1441,20 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                 </div>
               </div>
 
-              {/* Vehicle Tab Switcher */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {/* Vehicle Tab Switcher (All 8 Fleet Types) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                 {vehicleFleetSpecs.map((v) => (
                   <button
                     key={v.id}
                     type="button"
                     onClick={() => setSelectedGuideVehicleId(v.id)}
-                    className={`py-2.5 px-4 rounded-xl text-center text-xs font-bold transition-all cursor-pointer border ${
+                    className={`py-2.5 px-2 rounded-xl text-center text-xs font-bold transition-all cursor-pointer border ${
                       selectedGuideVehicleId === v.id
                         ? 'bg-[#10182D] text-white border-[#10182D] shadow-sm'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-[#FFF8F2] hover:border-[#FF6B00]/30 hover:text-[#FF6B00]'
                     }`}
                   >
-                    {v.name.split(' ')[0]} {v.name.split(' ')[1]}
+                    {v.tabLabel || v.name}
                   </button>
                 ))}
               </div>

@@ -10,6 +10,7 @@ import {
   Cpu,
   Trophy,
   FileText,
+  Files,
   ChevronRight,
   ChevronDown,
   ChevronLeft,
@@ -146,6 +147,20 @@ export const cargoCategories = [
     ]
   },
   {
+    id: 'documents',
+    name: 'Documents',
+    icon: Files,
+    subcategories: [
+      'Legal & Corporate Contracts',
+      'Confidential Business Documents',
+      'Financial & Accounting Records',
+      'Passports, Visas & Identification',
+      'Commercial Invoices & Shipping Permits',
+      'Tenders & Architectural Blueprints',
+      'Certificates & Official Correspondence'
+    ]
+  },
+  {
     id: 'other-custom',
     name: 'Other / Custom Cargo',
     icon: PlusCircle,
@@ -159,7 +174,16 @@ export const cargoCategories = [
   }
 ];
 
-export const CargoTypeSelector = ({ value, onChange, error, className = '' }) => {
+export const CargoTypeSelector = ({ 
+  value, 
+  onChange, 
+  error, 
+  className = '', 
+  align = 'left', 
+  placeholder = 'Select Cargo Type',
+  categoriesOnly = false,
+  hideSearch = false
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState(cargoCategories[0].id);
   const [searchQuery, setSearchQuery] = useState('');
@@ -175,6 +199,7 @@ export const CargoTypeSelector = ({ value, onChange, error, className = '' }) =>
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
         setMobileSubmenuOpen(false);
+        setShowCustomBox(false);
       }
     };
     if (isOpen) {
@@ -240,26 +265,33 @@ export const CargoTypeSelector = ({ value, onChange, error, className = '' }) =>
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {/* Clean Trigger Button: Blank by default, displays only dropdown option */}
+      {/* Clean Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full h-11 px-3.5 bg-white border rounded-xl text-sm transition-all cursor-pointer flex items-center justify-between text-left shadow-2xs hover:border-orange-400 group ${
+        className={`w-full min-h-[48px] px-3.5 py-2.5 bg-white border rounded-xl text-sm transition-all cursor-pointer flex items-center justify-between text-left shadow-2xs hover:border-[#FF6B00] group ${
           error
-            ? 'border-red-400 ring-1 ring-red-400/20'
+            ? 'border-red-400 ring-2 ring-red-100 bg-red-50/20'
             : isOpen
-            ? 'border-orange-500 ring-2 ring-orange-500/20'
-            : 'border-slate-200'
+            ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20 bg-orange-50/20'
+            : value
+            ? 'border-[#FF6B00] bg-orange-50/30'
+            : 'border-slate-300 hover:border-[#FF6B00]/60'
         }`}
       >
-        <div className="flex items-center space-x-2 truncate">
+        <div className="flex items-center space-x-2.5 truncate">
           {value ? (
-            <span className="font-semibold text-slate-900 truncate">
-              {value}
-            </span>
+            <>
+              <div className="w-7 h-7 rounded-lg bg-[#FF6B00]/15 text-[#FF6B00] flex items-center justify-center shrink-0">
+                <Package className="w-4 h-4 stroke-[2.2]" />
+              </div>
+              <span className="font-bold text-slate-900 truncate text-sm">
+                {value}
+              </span>
+            </>
           ) : (
-            <span className="text-slate-400 font-normal truncate">
-              Select Cargo Type
+            <span className="text-slate-400 font-medium truncate text-sm">
+              {placeholder}
             </span>
           )}
         </div>
@@ -281,7 +313,7 @@ export const CargoTypeSelector = ({ value, onChange, error, className = '' }) =>
           )}
           <ChevronDown
             className={`w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${
-              isOpen ? 'rotate-180 text-orange-500' : ''
+              isOpen ? 'rotate-180 text-[#FF6B00]' : ''
             }`}
           />
         </div>
@@ -290,63 +322,69 @@ export const CargoTypeSelector = ({ value, onChange, error, className = '' }) =>
       {/* Cascading Flyout Menu */}
       {isOpen && (
         <div 
-          className="absolute z-50 right-0 sm:right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-[560px] md:w-[620px] max-w-[95vw] bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-fade-in text-slate-800"
+          className={`absolute z-50 ${align === 'left' ? 'left-0' : 'right-0'} top-full mt-2 ${
+            categoriesOnly
+              ? 'w-[calc(100vw-2rem)] sm:w-[420px] max-w-[95vw]'
+              : 'w-[calc(100vw-2rem)] sm:w-[560px] md:w-[620px] max-w-[95vw]'
+          } bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-fade-in text-slate-800`}
           onClick={(e) => e.stopPropagation()}
         >
           
           {/* Enhanced Search Header with Explicit Search Button */}
-          <div className="p-3 border-b border-slate-100 bg-slate-50/90 flex items-center gap-2">
-            <div className="flex-1 flex items-center bg-white border border-slate-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 rounded-xl px-3 py-1.5 transition-all shadow-2xs">
-              <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (searchResults && searchResults.length > 0) {
-                      handleSelect(searchResults[0].subcategory);
-                    } else if (searchQuery.trim()) {
-                      handleApplyCustom();
+          {!hideSearch && !categoriesOnly && (
+            <div className="p-3 border-b border-slate-100 bg-slate-50/90 flex items-center gap-2">
+              <div className="flex-1 flex items-center bg-white border border-slate-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 rounded-xl px-3 py-1.5 transition-all shadow-2xs">
+                <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (searchResults && searchResults.length > 0) {
+                        handleSelect(searchResults[0].subcategory);
+                      } else if (searchQuery.trim()) {
+                        handleApplyCustom();
+                      }
                     }
+                  }}
+                  placeholder="Search cargo (e.g. wine, chemicals, lights, electronics)..."
+                  className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-400 border-none outline-none ring-0 focus:outline-hidden focus:ring-0 focus:border-none p-0"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="p-1 text-slate-400 hover:text-slate-600 rounded-md cursor-pointer ml-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Explicit Search / Filter Action Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (searchResults && searchResults.length > 0) {
+                    // Keep search filtered
+                  } else if (searchQuery.trim()) {
+                    handleApplyCustom();
                   }
                 }}
-                placeholder="Search cargo (e.g. wine, chemicals, lights, electronics)..."
-                className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-400 border-none outline-none ring-0 focus:outline-hidden focus:ring-0 focus:border-none p-0"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded-md cursor-pointer ml-1"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+                className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-xs shrink-0 flex items-center space-x-1 cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Search</span>
+              </button>
             </div>
-
-            {/* Explicit Search / Filter Action Button */}
-            <button
-              type="button"
-              onClick={() => {
-                if (searchResults && searchResults.length > 0) {
-                  // Keep search filtered
-                } else if (searchQuery.trim()) {
-                  handleApplyCustom();
-                }
-              }}
-              className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-xs shrink-0 flex items-center space-x-1 cursor-pointer"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Search</span>
-            </button>
-          </div>
+          )}
 
           {/* Quick Action: If searching, always provide button to set query as Custom Cargo */}
-          {searchQuery.trim() && (
+          {!categoriesOnly && searchQuery.trim() && (
             <div className="px-3 py-2 bg-orange-50 border-b border-orange-100 flex items-center justify-between gap-2">
               <div className="flex items-center space-x-1.5 text-xs text-orange-950 font-medium truncate">
                 <Sparkles className="w-3.5 h-3.5 text-orange-600 shrink-0" />
@@ -363,200 +401,240 @@ export const CargoTypeSelector = ({ value, onChange, error, className = '' }) =>
             </div>
           )}
 
-          {/* If Search Query is Active: show search results */}
-          {searchResults !== null ? (
+          {/* Single-Column Mode: Categories Only (No Search & No Subcategories) */}
+          {categoriesOnly ? (
             <div className="max-h-80 overflow-y-auto p-2 space-y-1">
-              {searchResults.length > 0 ? (
-                <>
-                  <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                    <span>Matching Cargo Items ({searchResults.length})</span>
-                    <span>Click to select</span>
-                  </div>
-                  {searchResults.map((item, idx) => {
-                    const Icon = item.category.icon;
-                    const isSelected = value === item.subcategory;
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSelect(item.subcategory)}
-                        className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center justify-between text-xs sm:text-sm transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-orange-500 text-white font-bold'
-                            : 'hover:bg-orange-50/70 text-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-2.5 truncate">
-                          <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`} />
-                          <span className="font-semibold truncate">{item.subcategory}</span>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-sm shrink-0 ${
-                            isSelected ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-500'
-                          }`}>
-                            {item.category.name}
-                          </span>
-                        </div>
-                        {isSelected && <Check className="w-4 h-4 text-white shrink-0 ml-2" />}
-                      </button>
-                    );
-                  })}
-                </>
-              ) : (
-                <div className="py-6 px-4 text-center space-y-3">
-                  <p className="text-xs text-slate-500 font-medium">
-                    No predefined cargo items matched "<strong>{searchQuery}</strong>"
-                  </p>
+              <div className="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                Cargo Categories
+              </div>
+              {cargoCategories.map((cat) => {
+                const Icon = cat.icon;
+                const isSelected = value === cat.name;
+
+                return (
                   <button
+                    key={cat.id}
                     type="button"
-                    onClick={handleApplyCustom}
-                    className="inline-flex items-center space-x-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+                    onClick={() => handleSelect(cat.name)}
+                    className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
+                      isSelected
+                        ? 'bg-orange-50 text-orange-600 font-extrabold border border-orange-200'
+                        : 'hover:bg-slate-100 text-slate-700'
+                    }`}
                   >
-                    <Pencil className="w-3.5 h-3.5" />
-                    <span>Set "{searchQuery}" as Custom Cargo Type</span>
+                    <div className="flex items-center space-x-2.5 truncate">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        isSelected ? 'bg-orange-500 text-white shadow-xs' : 'bg-orange-50 text-orange-600 group-hover:bg-orange-100'
+                      }`}>
+                        <Icon className="w-4 h-4 stroke-[2.2]" />
+                      </div>
+                      <span className="truncate font-bold">{cat.name}</span>
+                    </div>
+                    {isSelected && (
+                      <Check className="w-4 h-4 text-orange-600 shrink-0 ml-2 stroke-[2.5]" />
+                    )}
                   </button>
-                </div>
-              )}
+                );
+              })}
             </div>
           ) : (
-            /* Standard Cascading Two-Column View (Categories on left, Subcategories alongside) */
-            <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-slate-100 max-h-96">
-              
-              {/* Categories Column */}
-              <div className={`sm:w-1/2 overflow-y-auto p-2 bg-slate-50/50 space-y-0.5 ${mobileSubmenuOpen ? 'hidden sm:block' : 'block'}`}>
-                <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Cargo Categories
-                </div>
-                {cargoCategories.map((cat) => {
-                  const Icon = cat.icon;
-                  const isActive = activeCategoryId === cat.id;
-                  const hasSelected = cat.subcategories.includes(value);
-
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onMouseEnter={() => {
-                        setActiveCategoryId(cat.id);
-                        if (cat.id === 'other-custom') {
-                          setShowCustomBox(true);
-                        }
-                      }}
-                      onClick={() => {
-                        setActiveCategoryId(cat.id);
-                        setMobileSubmenuOpen(true);
-                        if (cat.id === 'other-custom') {
-                          setShowCustomBox(true);
-                        }
-                      }}
-                      className={`w-full px-3 py-2 rounded-xl flex items-center justify-between text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
-                        isActive
-                          ? 'bg-white shadow-xs text-orange-600 font-extrabold border border-orange-200'
-                          : 'hover:bg-slate-200/60 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2.5 truncate">
-                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                          isActive ? 'text-orange-500' : 'text-slate-500 group-hover:text-slate-700'
-                        }`} />
-                        <span className="truncate">{cat.name}</span>
-                        {hasSelected && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0"></span>
-                        )}
+            <>
+              {/* If Search Query is Active: show search results */}
+              {searchResults !== null ? (
+                <div className="max-h-80 overflow-y-auto p-2 space-y-1">
+                  {searchResults.length > 0 ? (
+                    <>
+                      <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                        <span>Matching Cargo Items ({searchResults.length})</span>
+                        <span>Click to select</span>
                       </div>
-                      <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                        isActive ? 'text-orange-500 translate-x-0.5' : 'text-slate-400'
-                      }`} />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Subcategories Column (Flyout Content) */}
-              <div className={`sm:w-1/2 overflow-y-auto p-2.5 bg-white space-y-2 ${!mobileSubmenuOpen ? 'hidden sm:block' : 'block'}`}>
-                {/* Mobile Back button */}
-                <div className="sm:hidden pb-2 mb-2 border-b border-slate-100 flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setMobileSubmenuOpen(false)}
-                    className="flex items-center space-x-1 text-xs font-bold text-orange-600 cursor-pointer"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Back to Categories</span>
-                  </button>
-                  <span className="text-xs font-bold text-slate-800 truncate">
-                    {currentCategory.name}
-                  </span>
-                </div>
-
-                {/* Subcategory Header */}
-                <div className="hidden sm:flex items-center space-x-2 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1.5 mb-1">
-                  {(() => {
-                    const CatIcon = currentCategory.icon;
-                    return <CatIcon className="w-3.5 h-3.5 text-orange-500" />;
-                  })()}
-                  <span className="truncate">{currentCategory.name}</span>
-                </div>
-
-                {/* Subcategory List Items */}
-                <div className="space-y-1">
-                  {currentCategory.subcategories.map((sub, idx) => {
-                    const isSelected = value === sub;
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSelect(sub)}
-                        className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-medium transition-colors cursor-pointer flex items-center justify-between ${
-                          isSelected
-                            ? 'bg-orange-500 text-white font-extrabold shadow-2xs'
-                            : 'hover:bg-orange-50/80 hover:text-orange-700 text-slate-700'
-                        }`}
-                      >
-                        <span className="truncate">{sub}</span>
-                        {isSelected && <Check className="w-4 h-4 text-white shrink-0 ml-2" />}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Customizable Text Box integrated inside the active column when in Other or clicked */}
-                {activeCategoryId === 'other-custom' && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 bg-orange-50/40 p-2.5 rounded-xl border border-orange-200/80 space-y-2 animate-fade-in">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-extrabold text-orange-800 flex items-center space-x-1">
-                        <Pencil className="w-3 h-3 text-orange-600" />
-                        <span>Specify Custom Cargo</span>
-                      </span>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        value={customText}
-                        onChange={(e) => setCustomText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleApplyCustom();
-                          }
-                        }}
-                        placeholder="e.g. Vintage Teakwood Dining Set..."
-                        className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-hidden focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20"
-                      />
+                      {searchResults.map((item, idx) => {
+                        const Icon = item.category.icon;
+                        const isSelected = value === item.subcategory;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelect(item.subcategory)}
+                            className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center justify-between text-xs sm:text-sm transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-orange-500 text-white font-bold'
+                                : 'hover:bg-orange-50/70 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2.5 truncate">
+                              <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`} />
+                              <span className="font-semibold truncate">{item.subcategory}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-sm shrink-0 ${
+                                isSelected ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-500'
+                              }`}>
+                                {item.category.name}
+                              </span>
+                            </div>
+                            {isSelected && <Check className="w-4 h-4 text-white shrink-0 ml-2" />}
+                          </button>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <div className="py-6 px-4 text-center space-y-3">
+                      <p className="text-xs text-slate-500 font-medium">
+                        No predefined cargo items matched "<strong>{searchQuery}</strong>"
+                      </p>
                       <button
                         type="button"
                         onClick={handleApplyCustom}
-                        disabled={!customText.trim()}
-                        className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shrink-0"
+                        className="inline-flex items-center space-x-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
                       >
-                        Set
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Set "{searchQuery}" as Custom Cargo Type</span>
                       </button>
                     </div>
+                  )}
+                </div>
+              ) : (
+                /* Standard Cascading Two-Column View (Categories on left, Subcategories alongside) */
+                <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-slate-100 max-h-96">
+                  
+                  {/* Categories Column */}
+                  <div className={`sm:w-1/2 overflow-y-auto p-2 bg-slate-50/50 space-y-0.5 ${mobileSubmenuOpen ? 'hidden sm:block' : 'block'}`}>
+                    <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Cargo Categories
+                    </div>
+                    {cargoCategories.map((cat) => {
+                      const Icon = cat.icon;
+                      const isActive = activeCategoryId === cat.id;
+                      const hasSelected = cat.subcategories.includes(value);
+
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onMouseEnter={() => {
+                            setActiveCategoryId(cat.id);
+                            if (cat.id === 'other-custom') {
+                              setShowCustomBox(true);
+                            }
+                          }}
+                          onClick={() => {
+                            setActiveCategoryId(cat.id);
+                            setMobileSubmenuOpen(true);
+                            if (cat.id === 'other-custom') {
+                              setShowCustomBox(true);
+                            }
+                          }}
+                          className={`w-full px-3 py-2 rounded-xl flex items-center justify-between text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
+                            isActive
+                              ? 'bg-white shadow-xs text-orange-600 font-extrabold border border-orange-200'
+                              : 'hover:bg-slate-200/60 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5 truncate">
+                            <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                              isActive ? 'text-orange-500' : 'text-slate-500 group-hover:text-slate-700'
+                            }`} />
+                            <span className="truncate">{cat.name}</span>
+                            {hasSelected && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0"></span>
+                            )}
+                          </div>
+                          <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-transform ${
+                            isActive ? 'text-orange-500 translate-x-0.5' : 'text-slate-400'
+                          }`} />
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
 
-              </div>
+                  {/* Subcategories Column (Flyout Content) */}
+                  <div className={`sm:w-1/2 overflow-y-auto p-2.5 bg-white space-y-2 ${!mobileSubmenuOpen ? 'hidden sm:block' : 'block'}`}>
+                    {/* Mobile Back button */}
+                    <div className="sm:hidden pb-2 mb-2 border-b border-slate-100 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setMobileSubmenuOpen(false)}
+                        className="flex items-center space-x-1 text-xs font-bold text-orange-600 cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        <span>Back to Categories</span>
+                      </button>
+                      <span className="text-xs font-bold text-slate-800 truncate">
+                        {currentCategory.name}
+                      </span>
+                    </div>
 
-            </div>
+                    {/* Subcategory Header */}
+                    <div className="hidden sm:flex items-center space-x-2 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1.5 mb-1">
+                      {(() => {
+                        const CatIcon = currentCategory.icon;
+                        return <CatIcon className="w-3.5 h-3.5 text-orange-500" />;
+                      })()}
+                      <span className="truncate">{currentCategory.name}</span>
+                    </div>
+
+                    {/* Subcategory List Items */}
+                    <div className="space-y-1">
+                      {currentCategory.subcategories.map((sub, idx) => {
+                        const isSelected = value === sub;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelect(sub)}
+                            className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-medium transition-colors cursor-pointer flex items-center justify-between ${
+                              isSelected
+                                ? 'bg-orange-500 text-white font-extrabold shadow-2xs'
+                                : 'hover:bg-orange-50/80 hover:text-orange-700 text-slate-700'
+                            }`}
+                          >
+                            <span className="truncate">{sub}</span>
+                            {isSelected && <Check className="w-4 h-4 text-white shrink-0 ml-2" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Customizable Text Box integrated inside the active column when in Other or clicked */}
+                    {activeCategoryId === 'other-custom' && (
+                      <div className="mt-3 pt-3 border-t border-slate-100 bg-orange-50/40 p-2.5 rounded-xl border border-orange-200/80 space-y-2 animate-fade-in">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-extrabold text-orange-800 flex items-center space-x-1">
+                            <Pencil className="w-3 h-3 text-orange-600" />
+                            <span>Specify Custom Cargo</span>
+                          </span>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            value={customText}
+                            onChange={(e) => setCustomText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleApplyCustom();
+                              }
+                            }}
+                            placeholder="e.g. Vintage Teakwood Dining Set..."
+                            className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-hidden focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleApplyCustom}
+                            disabled={!customText.trim()}
+                            className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shrink-0"
+                          >
+                            Set
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+
+                </div>
+              )}
+            </>
           )}
 
           {/* Bottom Persistent Customizable Text Box ("Other Options") */}

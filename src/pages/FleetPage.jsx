@@ -17,7 +17,7 @@ import {
 import { useLogistics } from '../context/LogisticsContext';
 
 export const FleetPage = ({ setActiveTab }) => {
-  const { currentUser, setIsAuthModalOpen, resetShipmentScope } = useLogistics();
+  const { currentUser, setIsAuthModalOpen, resetShipmentScope, setAuthRedirectTab, showToast } = useLogistics();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const fleetVehicles = [
@@ -206,6 +206,12 @@ export const FleetPage = ({ setActiveTab }) => {
   };
 
   const handleQuoteVehicle = () => {
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('quote');
+      setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+      return;
+    }
     setActiveTab('quote');
   };
 

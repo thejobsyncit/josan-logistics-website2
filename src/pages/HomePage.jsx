@@ -102,6 +102,12 @@ export const HomePage = ({ setActiveTab }) => {
   };
 
   const handleQuoteAction = () => {
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('quote');
+      setIsAuthModalOpen(true);
+      if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+      return;
+    }
     setActiveTab('quote');
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
@@ -737,13 +743,14 @@ export const HomePage = ({ setActiveTab }) => {
       {/* ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative rounded-3xl bg-slate-50/80 border border-slate-200/80 shadow-xs p-6 sm:p-10 lg:p-12 pb-10 sm:pb-12 lg:pb-14 space-y-10 overflow-hidden">
-          {/* Subtle Map & Logistics Network Route Graphic Background */}
-          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-[0.07]">
+          {/* Map & Logistics Network Route Graphic Background with Blur */}
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
             <img 
               src="/assets/singapore_google_map_hd.jpg" 
               alt="Logistics road routes network map" 
-              className="w-full h-full object-cover" 
+              className="w-full h-full object-cover object-center scale-105 blur-[3px] opacity-45" 
             />
+            <div className="absolute inset-0 bg-white/20"></div>
           </div>
 
           <div className="text-center max-w-2xl mx-auto space-y-3 relative z-10">
