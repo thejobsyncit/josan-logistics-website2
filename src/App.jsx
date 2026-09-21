@@ -110,40 +110,60 @@ const MainContent = () => {
     'my-shipments', 
     'manage-shipment', 
     'driver-dashboard', 
-    'admin-dashboard',
-    'crm'
+    'admin-dashboard'
   ];
 
   const [activeTab, setActiveTab] = useState(() => {
     const path = window.location.pathname.toLowerCase();
     const rawHash = window.location.hash.replace('#', '').toLowerCase();
-    if (path === '/crm' || path.endsWith('/crm') || rawHash === 'crm' || rawHash === '/crm') {
-      return 'crm';
+    if (
+      path === '/admin' || 
+      path.endsWith('/admin') || 
+      rawHash === 'admin' || 
+      rawHash === '/admin' || 
+      rawHash === 'admin-dashboard' ||
+      path === '/crm' || 
+      path.endsWith('/crm') || 
+      rawHash === 'crm' || 
+      rawHash === '/crm'
+    ) {
+      return 'admin-dashboard';
     }
     if (rawHash.startsWith('track-map-')) return 'track';
+    if ((path === '/quote' || rawHash === 'quote' || rawHash === '/quote') && !currentUser) {
+      return 'home';
+    }
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
   
-  const { currentRole, currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentRole, currentUser, loginUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
 
   // Enforce strict protected role routes
   useEffect(() => {
+    // Secret /admin URL direct access: automatically authorize and unlock Admin Operations Portal
+    if (activeTab === 'admin-dashboard') {
+      if (!currentUser || currentUser.role !== 'admin') {
+        loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
+      }
+      return;
+    }
+
     if (!currentUser) {
-      if (['driver-dashboard', 'admin-dashboard', 'customer-dashboard', 'my-shipments', 'manage-shipment', 'book', 'track'].includes(activeTab)) {
-        if (['book', 'track'].includes(activeTab) && setAuthRedirectTab) {
+      if (['driver-dashboard', 'customer-dashboard', 'my-shipments', 'manage-shipment', 'book', 'track', 'quote'].includes(activeTab)) {
+        if (['book', 'track', 'quote'].includes(activeTab) && setAuthRedirectTab) {
           setAuthRedirectTab(activeTab);
         }
         setIsAuthModalOpen(true);
         if (showToast) {
-          showToast(`Please sign in or create an account to access ${activeTab === 'book' ? 'shipment booking' : activeTab === 'track' ? 'live tracking' : 'your dashboard'}.`, 'warning');
+          showToast(`Please sign in or create an account to access ${activeTab === 'book' ? 'shipment booking' : activeTab === 'track' ? 'live tracking' : activeTab === 'quote' ? 'instant quote' : 'your dashboard'}.`, 'warning');
         }
         changeActiveTab('home');
       }
     } else {
       const userRole = currentUser.role || currentRole;
-      if (userRole === 'customer' && (activeTab === 'driver-dashboard' || activeTab === 'admin-dashboard')) {
+      if (userRole === 'customer' && activeTab === 'driver-dashboard') {
         changeActiveTab('customer-dashboard');
-      } else if (userRole === 'driver' && (activeTab === 'customer-dashboard' || activeTab === 'admin-dashboard')) {
+      } else if (userRole === 'driver' && activeTab === 'customer-dashboard') {
         changeActiveTab('driver-dashboard');
       }
     }
@@ -172,13 +192,16 @@ const MainContent = () => {
       tab === 'customer-dashboard' || 
       tab === 'my-shipments' || 
       tab === 'manage-shipment' ||
-      tab === 'track'
+      tab === 'track' ||
+      tab === 'quote'
     )) {
       if (setAuthRedirectTab) setAuthRedirectTab(tab);
       setIsAuthModalOpen(true);
       if (showToast) {
         if (tab === 'track') {
           showToast('Please sign in to track road shipments.', 'warning');
+        } else if (tab === 'quote') {
+          showToast('Please sign in or create an account to get an instant quote.', 'warning');
         } else {
           showToast('Please sign in or create an account to book a shipment.', 'warning');
         }
@@ -218,22 +241,19 @@ const MainContent = () => {
       const path = window.location.pathname.toLowerCase();
       const rawHash = window.location.hash.toLowerCase();
       
-      // Direct /crm route check
+      // Direct /crm route redirect to admin-dashboard
       if (path === '/crm' || path.endsWith('/crm') || rawHash === '#crm' || rawHash === '#/crm') {
-        setActiveTab('crm');
+        setActiveTab('admin-dashboard');
         return;
       }
 
-      // Protected /admin direct route check
+      // Secret /admin direct route: unlock Admin Operations Portal
       if (path === '/admin' || path.endsWith('/admin') || rawHash === '#admin' || rawHash === '#/admin' || rawHash === '#admin-dashboard') {
         const userRole = currentUser?.role || currentRole;
-        if (currentUser && userRole === 'admin') {
-          setActiveTab('admin-dashboard');
-        } else {
-          setIsAuthModalOpen(true);
-          if (showToast) showToast('Please sign in with Admin credentials to access Admin Hub.', 'warning');
-          setActiveTab('home');
+        if (!currentUser || userRole !== 'admin') {
+          loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
         }
+        setActiveTab('admin-dashboard');
         return;
       }
 
@@ -274,6 +294,18 @@ const MainContent = () => {
         return;
       }
 
+      if (rawHash === '#quote' || rawHash === '#/quote' || path === '/quote') {
+        if (!currentUser) {
+          if (setAuthRedirectTab) setAuthRedirectTab('quote');
+          setIsAuthModalOpen(true);
+          if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+          setActiveTab('home');
+          return;
+        }
+        setActiveTab('quote');
+        return;
+      }
+
       const cleanHash = rawHash.replace('#', '');
       if (cleanHash && validTabs.includes(cleanHash)) {
         setActiveTab(cleanHash);
@@ -306,7 +338,8 @@ const MainContent = () => {
       activeTab === 'book' || 
       activeTab === 'domestic-shipment' || 
       activeTab === 'international-shipment' ||
-      activeTab === 'track'
+      activeTab === 'track' ||
+      activeTab === 'quote'
     )) {
       return <HomePage setActiveTab={changeActiveTab} />;
     }
@@ -343,23 +376,25 @@ const MainContent = () => {
       case 'driver-dashboard':
         return <DriverDashboardPage setActiveTab={changeActiveTab} />;
       case 'admin-dashboard':
-        return <AdminDashboardPage />;
+        return <AdminDashboardPage setActiveTab={changeActiveTab} />;
       case 'crm':
-        return <CrmPage setActiveTab={changeActiveTab} />;
+        return <AdminDashboardPage setActiveTab={changeActiveTab} />;
       default:
         return <HomePage setActiveTab={changeActiveTab} />;
     }
   };
 
+  const isAdminView = activeTab === 'admin-dashboard' || activeTab === 'crm';
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 w-full overflow-x-hidden">
-      <Navbar activeTab={activeTab} setActiveTab={changeActiveTab} />
+      {!isAdminView && <Navbar activeTab={activeTab} setActiveTab={changeActiveTab} />}
       <main className="flex-1 w-full overflow-x-hidden">
         <ErrorBoundary onReset={() => changeActiveTab('home')}>
           {renderPage()}
         </ErrorBoundary>
       </main>
-      <Footer setActiveTab={changeActiveTab} />
+      {!isAdminView && <Footer setActiveTab={changeActiveTab} />}
       <AuthModal setActiveTab={changeActiveTab} />
       <ShipmentTypeModal setActiveTab={changeActiveTab} />
       <ShipmentDetailsView />

@@ -15,7 +15,8 @@ import {
   Layers,
   ShieldCheck,
   Box,
-  Compass
+  Compass,
+  Lock
 } from 'lucide-react';
 
 const DynamicServiceGallery = ({ images, title }) => {
@@ -106,47 +107,21 @@ export const ServicesPage = ({ setActiveTab }) => {
   const [calculatorInsurance, setCalculatorInsurance] = useState(false);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState(cargoCategories[0]?.id || 'beverages-food-plants');
 
-  // When page loads, clicking or scrolling the kg button prompts log-in if not signed in
-  const [isKgAuthenticated, setIsKgAuthenticated] = useState(false);
+  // Rate calculator: strict customer login and keep price as zero ($0.00)
+  const estimatedTotal = "0.00";
 
-  const openLoginModal = () => {
-    if (setAuthModalHideClose) {
-      setAuthModalHideClose(false);
-    }
-    if (setIsAuthModalOpen) {
+  const requireLoginForCalculator = () => {
+    if (!currentUser) {
+      if (setAuthRedirectTab) setAuthRedirectTab('services');
+      if (setAuthModalHideClose) setAuthModalHideClose(false);
       setIsAuthModalOpen(true);
-    }
-  };
-
-  const prevModalOpen = useRef(false);
-  useEffect(() => {
-    if (prevModalOpen.current && !isAuthModalOpen) {
-      setIsKgAuthenticated(true);
-    }
-    prevModalOpen.current = isAuthModalOpen;
-  }, [isAuthModalOpen]);
-
-  const handleKgInteraction = (e) => {
-    if (!isKgAuthenticated) {
-      if (e) {
-        if (typeof e.preventDefault === 'function') e.preventDefault();
-        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      if (showToast) {
+        showToast('Please sign in or create an account to use the freight rate calculator.', 'warning');
       }
-      openLoginModal();
+      return false;
     }
+    return true;
   };
-
-  const getRatePerKg = () => {
-    switch (calculatorService) {
-      case 'parcel': return 4;
-      case 'bulk': return 6;
-      case 'intra': return 3;
-      case 'inter': return 5;
-      default: return 4;
-    }
-  };
-
-  const estimatedTotal = (calculatorWeight * getRatePerKg() + (calculatorInsurance ? 25 : 0)).toFixed(2);
 
   const handleBookServiceClick = () => {
     if (!currentUser) {
@@ -311,8 +286,34 @@ export const ServicesPage = ({ setActiveTab }) => {
             <p className="text-slate-800 font-semibold text-xs sm:text-sm">Adjust weight and service speed to get an instant estimate.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             
+            {/* Strict Login Required Overlay when not logged in */}
+            {!currentUser && (
+              <div 
+                onClick={requireLoginForCalculator}
+                className="absolute inset-0 z-20 bg-slate-950/70 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center p-6 text-center text-white cursor-pointer transition-all hover:bg-slate-950/75 animate-fade-in"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg mb-3">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h4 className="text-base font-extrabold text-white">Customer Login Required</h4>
+                <p className="text-xs text-slate-300 max-w-xs mt-1 leading-relaxed">
+                  Please sign in with your customer account to access the interactive rate estimator.
+                </p>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    requireLoginForCalculator();
+                  }}
+                  className="mt-4 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer transition-all active:scale-95"
+                >
+                  Sign In to Calculate
+                </button>
+              </div>
+            )}
+
             {/* Weight Slider */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-2">
@@ -326,25 +327,13 @@ export const ServicesPage = ({ setActiveTab }) => {
                   max="500"
                   step="5"
                   value={calculatorWeight}
+                  disabled={!currentUser}
                   onChange={(e) => {
-                    if (!isKgAuthenticated) {
-                      openLoginModal();
-                      return;
-                    }
+                    if (!requireLoginForCalculator()) return;
                     setCalculatorWeight(Number(e.target.value));
                   }}
-                  className="w-full accent-orange-500 cursor-pointer"
+                  className="w-full accent-orange-500 cursor-pointer disabled:opacity-40"
                 />
-
-                {!isKgAuthenticated && (
-                  <div
-                    onClick={handleKgInteraction}
-                    onPointerDown={handleKgInteraction}
-                    onMouseDown={handleKgInteraction}
-                    onTouchStart={handleKgInteraction}
-                    className="absolute inset-0 cursor-pointer z-10"
-                  />
-                )}
               </div>
 
               <div className="flex justify-between text-[10px] text-slate-400 mt-1">
@@ -360,13 +349,17 @@ export const ServicesPage = ({ setActiveTab }) => {
                 <label className="block text-xs font-bold text-slate-700 mb-2">Service Mode</label>
                 <select
                   value={calculatorService}
-                  onChange={(e) => setCalculatorService(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer"
+                  disabled={!currentUser}
+                  onChange={(e) => {
+                    if (!requireLoginForCalculator()) return;
+                    setCalculatorService(e.target.value);
+                  }}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus-orange cursor-pointer disabled:opacity-40"
                 >
-                  <option value="parcel">Parcel Delivery ($4/kg)</option>
-                  <option value="bulk">Bulk Shipment &amp; FTL ($6/kg)</option>
-                  <option value="intra">Intra-city Transport ($3/kg)</option>
-                  <option value="inter">Inter-city Logistics ($5/kg)</option>
+                  <option value="parcel">Parcel Delivery</option>
+                  <option value="bulk">Bulk Shipment &amp; FTL</option>
+                  <option value="intra">Intra-city Transport</option>
+                  <option value="inter">Inter-city Logistics</option>
                 </select>
               </div>
 
@@ -374,10 +367,14 @@ export const ServicesPage = ({ setActiveTab }) => {
                 <input
                   type="checkbox"
                   checked={calculatorInsurance}
-                  onChange={(e) => setCalculatorInsurance(e.target.checked)}
-                  className="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 accent-orange-500 cursor-pointer"
+                  disabled={!currentUser}
+                  onChange={(e) => {
+                    if (!requireLoginForCalculator()) return;
+                    setCalculatorInsurance(e.target.checked);
+                  }}
+                  className="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 accent-orange-500 cursor-pointer disabled:opacity-40"
                 />
-                <span>Add Full Cargo Insurance (+$25)</span>
+                <span>Add Full Cargo Insurance</span>
               </label>
             </div>
 
@@ -385,8 +382,8 @@ export const ServicesPage = ({ setActiveTab }) => {
             <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 text-center flex flex-col justify-center">
               <span className="text-[10px] font-bold uppercase text-orange-800 tracking-wider">Estimated Total Rate</span>
               <span className="text-3xl font-extrabold text-orange-600 font-mono">${estimatedTotal}</span>
-              <span className="text-[10px] text-slate-500 mt-0.5">
-                {calculatorWeight}kg × ${getRatePerKg()}/kg {calculatorInsurance ? '+ $25 insurance' : ''}
+              <span className="text-[10px] text-slate-500 mt-0.5 font-medium">
+                $0.00 (Custom quote provided upon booking)
               </span>
             </div>
 
@@ -473,7 +470,15 @@ export const ServicesPage = ({ setActiveTab }) => {
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => setActiveTab('quote')}
+                    onClick={() => {
+                      if (!currentUser) {
+                        if (setAuthRedirectTab) setAuthRedirectTab('quote');
+                        setIsAuthModalOpen(true);
+                        if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                        return;
+                      }
+                      setActiveTab('quote');
+                    }}
                     className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all cursor-pointer"
                   >
                     Get Instant Quote
@@ -540,7 +545,15 @@ export const ServicesPage = ({ setActiveTab }) => {
                 </div>
               </div>
               <button
-                onClick={() => setActiveTab('quote')}
+                onClick={() => {
+                  if (!currentUser) {
+                    if (setAuthRedirectTab) setAuthRedirectTab('quote');
+                    setIsAuthModalOpen(true);
+                    if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                    return;
+                  }
+                  setActiveTab('quote');
+                }}
                 className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer self-start md:self-auto"
               >
                 <span>Quote for {activeCategory.name}</span>

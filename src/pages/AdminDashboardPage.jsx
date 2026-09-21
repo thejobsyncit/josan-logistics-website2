@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
@@ -13,7 +13,9 @@ import {
   Line, 
   PieChart, 
   Pie, 
-  Cell 
+  Cell,
+  AreaChart,
+  Area 
 } from 'recharts';
 import { 
   Package, 
@@ -37,6 +39,7 @@ import {
   Printer, 
   ChevronRight,
   TrendingUp,
+  TrendingDown,
   MapPin,
   FileCheck,
   Phone,
@@ -71,12 +74,18 @@ import {
   Building2,
   Send,
   Check,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft,
+  LayoutDashboard,
+  Settings,
+  ChevronDown,
+  Globe,
+  LogOut
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { safeDownloadPdf } from '../utils/pdfDownload';
 
-export const AdminDashboardPage = () => {
+export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   const { 
     shipments, 
     drivers, 
@@ -126,10 +135,434 @@ export const AdminDashboardPage = () => {
     updateInvoicePaymentStatus,
     uploadShipmentDocument,
     deleteShipmentDocument,
-    showToast 
+    showToast,
+    logoutUser,
+    currentUser
   } = useLogistics();
 
   const [adminTab, setAdminTab] = useState('overview');
+  const [adminSearchQuery, setAdminSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchContainerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  const [orderFilterTab, setOrderFilterTab] = useState('all');
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [adminProfileDropdownOpen, setAdminProfileDropdownOpen] = useState(false);
+  const [selectedFleetTruckId, setSelectedFleetTruckId] = useState('JL-102');
+
+  const fleetVehiclesList = [
+    {
+      id: 'JL-102',
+      name: 'Truck #JL-102',
+      type: 'Refrigerated 24ft Hauler',
+      driver: 'Raj Kumar',
+      currentLocation: 'AYE Expressway (near Jurong East)',
+      destination: 'Tuas Megaport Hub #4',
+      eta: 'Today, 2:15 PM',
+      status: 'On Route',
+      speed: '58 km/h',
+      cargo: 'Pharmaceuticals & Chilled Goods',
+      truckX: 105,
+      truckY: 50
+    },
+    {
+      id: 'SG-8819',
+      name: 'Truck #SG-8819',
+      type: 'Heavy 40ft Flatbed Hauler',
+      driver: 'Muhammad Fazli',
+      currentLocation: 'SLE Expressway (Woodlands Corridor)',
+      destination: 'Changi Air Cargo Logistics Hub',
+      eta: 'Today, 3:45 PM',
+      status: 'On Route',
+      speed: '62 km/h',
+      cargo: 'Industrial Heavy Machinery',
+      truckX: 140,
+      truckY: 38
+    },
+    {
+      id: 'JL-204',
+      name: 'Truck #JL-204',
+      type: 'Express Box Van (14ft)',
+      driver: 'David Tan',
+      currentLocation: 'Pasir Panjang Terminal Depot',
+      destination: 'Standby / Staging Hub',
+      eta: 'Standby',
+      status: 'Idle',
+      speed: '0 km/h',
+      cargo: 'Available for Immediate Dispatch',
+      truckX: 75,
+      truckY: 82
+    }
+  ];
+
+  const activeFleetVehicle = fleetVehiclesList.find(v => v.id === selectedFleetTruckId) || fleetVehiclesList[0];
+
+  // PHASE: Dedicated Fleet Road Asset Management State
+  const [fleetVehicles, setFleetVehicles] = useState([
+    {
+      id: 'SG-8819',
+      plateNumber: 'SG-8819',
+      model: 'Scania R500 (Heavy 40ft Flatbed)',
+      category: 'Heavy Haulage',
+      driver: 'Muhammad Fazli',
+      driverPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      status: 'On Route',
+      speed: '62 km/h',
+      fuel: 78,
+      fuelType: 'Diesel',
+      capacity: '28,000 kg',
+      currentLoad: '22,400 kg (80%)',
+      currentLocation: 'SLE Expressway (Woodlands Corridor)',
+      destination: 'Changi Air Cargo Logistics Hub',
+      eta: 'Today, 3:45 PM',
+      hub: 'Woodlands Depot',
+      lastService: '12 Aug 2026',
+      nextInspection: '15 Dec 2026',
+      tirePressure: '115 PSI (Optimal)',
+      engineHealth: '98% (Good)',
+      telematicsStatus: 'Active'
+    },
+    {
+      id: 'JL-102',
+      plateNumber: 'JL-102',
+      model: 'Isuzu Forward 24ft Reefer Box',
+      category: 'Cold Chain Haulage',
+      driver: 'Raj Kumar',
+      driverPhoto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+      status: 'On Route',
+      speed: '58 km/h',
+      fuel: 84,
+      fuelType: 'Diesel',
+      capacity: '12,000 kg',
+      currentLoad: '9,600 kg (80%)',
+      currentLocation: 'AYE Expressway (near Jurong East)',
+      destination: 'Tuas Megaport Hub #4',
+      eta: 'Today, 2:15 PM',
+      hub: 'Jurong Hub',
+      lastService: '02 Sep 2026',
+      nextInspection: '08 Jan 2027',
+      cabinTemp: '-18.4°C (Target: -20°C)',
+      tirePressure: '110 PSI (Optimal)',
+      engineHealth: '99% (Good)',
+      telematicsStatus: 'Active'
+    },
+    {
+      id: 'SG-477',
+      plateNumber: 'SG-477',
+      model: 'BYD T3 Electric Express Cargo Van',
+      category: 'EV Express Delivery',
+      driver: 'Robert Martinez',
+      driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      status: 'On Route',
+      speed: '45 km/h',
+      fuel: 92,
+      fuelType: 'Electric (EV)',
+      capacity: '1,700 kg',
+      currentLoad: '1,150 kg (68%)',
+      currentLocation: 'PIE Expressway (Paya Lebar Exit)',
+      destination: 'Orchard Logistics Drop #2',
+      eta: 'Today, 1:30 PM',
+      hub: 'Changi Hub',
+      lastService: '25 Aug 2026',
+      nextInspection: '20 Nov 2026',
+      tirePressure: '36 PSI (Optimal)',
+      engineHealth: '100% (Optimal)',
+      telematicsStatus: 'Active'
+    },
+    {
+      id: 'SG-6630',
+      plateNumber: 'SG-6630',
+      model: 'Volvo FH16 Multi-Axle Prime Mover',
+      category: 'Container Haulage',
+      driver: 'Chen Wei',
+      driverPhoto: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+      status: 'On Route',
+      speed: '54 km/h',
+      fuel: 62,
+      fuelType: 'Diesel',
+      capacity: '35,000 kg',
+      currentLoad: '31,000 kg (88%)',
+      currentLocation: 'KPE Expressway (Marina South Tunnel)',
+      destination: 'Sembawang Shipyard Depot',
+      eta: 'Today, 4:10 PM',
+      hub: 'Tuas Megaport',
+      lastService: '18 Jul 2026',
+      nextInspection: '12 Oct 2026',
+      tirePressure: '118 PSI (Optimal)',
+      engineHealth: '96% (Good)',
+      telematicsStatus: 'Active'
+    },
+    {
+      id: 'FL-989',
+      plateNumber: 'FL-989',
+      model: 'Toyota HiAce Chilled Refrigerated Van',
+      category: 'Chilled Cargo Van',
+      driver: 'Tom',
+      driverPhoto: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+      status: 'Available',
+      speed: '0 km/h',
+      fuel: 95,
+      fuelType: 'Diesel',
+      capacity: '2,200 kg',
+      currentLoad: '0 kg (Empty / Standby)',
+      currentLocation: 'Changi Hub Staging Bay 3',
+      destination: 'Ready for Immediate Dispatch',
+      eta: 'Immediate',
+      hub: 'Changi Air Cargo Logistics Hub',
+      lastService: '05 Sep 2026',
+      nextInspection: '15 Feb 2027',
+      cabinTemp: '2.5°C (Chilled)',
+      tirePressure: '38 PSI (Optimal)',
+      engineHealth: '100% (Optimal)',
+      telematicsStatus: 'Standby'
+    },
+    {
+      id: 'FL-108',
+      plateNumber: 'FL-108',
+      model: 'Mercedes-Benz Actros 18-Wheeler',
+      category: 'Heavy Prime Mover',
+      driver: 'Robert Martinez',
+      driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      status: 'Available',
+      speed: '0 km/h',
+      fuel: 68,
+      fuelType: 'Diesel',
+      capacity: '32,000 kg',
+      currentLoad: '0 kg (Empty / Staging)',
+      currentLocation: 'Tuas Megaport Staging Yard',
+      destination: 'Ready for Heavy Haulage Dispatch',
+      eta: 'Immediate',
+      hub: 'Tuas Megaport',
+      lastService: '14 Aug 2026',
+      nextInspection: '30 Nov 2026',
+      tirePressure: '112 PSI (Optimal)',
+      engineHealth: '97% (Good)',
+      telematicsStatus: 'Standby'
+    },
+    {
+      id: 'JL-204',
+      plateNumber: 'JL-204',
+      model: 'Mitsubishi Fuso Canter (14ft Box)',
+      category: 'Medium Cargo Hauler',
+      driver: 'David Tan',
+      driverPhoto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+      status: 'Available',
+      speed: '0 km/h',
+      fuel: 88,
+      fuelType: 'Diesel',
+      capacity: '3,500 kg',
+      currentLoad: '0 kg (Empty / Staged)',
+      currentLocation: 'Pasir Panjang Terminal Depot',
+      destination: 'Ready for Dispatch',
+      eta: 'Immediate',
+      hub: 'Pasir Panjang Depot',
+      lastService: '29 Aug 2026',
+      nextInspection: '25 Dec 2026',
+      tirePressure: '75 PSI (Optimal)',
+      engineHealth: '98% (Good)',
+      telematicsStatus: 'Standby'
+    },
+    {
+      id: 'SG-1920',
+      plateNumber: 'SG-1920',
+      model: 'MAN TGM 24ft Curtainsider',
+      category: 'Curtainsider Hauler',
+      driver: 'Depot Fleet Maintenance Crew',
+      driverPhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+      status: 'Maintenance',
+      speed: '0 km/h',
+      fuel: 42,
+      fuelType: 'Diesel',
+      capacity: '14,000 kg',
+      currentLoad: '0 kg (Under Service)',
+      currentLocation: 'Jurong Workshop Service Bay 2',
+      destination: 'Scheduled 50,000 km Service',
+      eta: 'Tomorrow, 10:00 AM',
+      hub: 'Jurong Workshop',
+      lastService: 'Today (In Progress)',
+      nextInspection: 'Today (Annual LTA Inspection)',
+      tirePressure: 'Service in progress',
+      engineHealth: '89% (Servicing)',
+      telematicsStatus: 'Offline / Workshop'
+    }
+  ]);
+
+  const [fleetFilterTab, setFleetFilterTab] = useState('All');
+  const [fleetSearchQuery, setFleetSearchQuery] = useState('');
+  const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
+  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [newVehicleData, setNewVehicleData] = useState({
+    plateNumber: '',
+    model: '',
+    category: 'Heavy Haulage',
+    driver: '',
+    capacity: '',
+    fuelType: 'Diesel',
+    hub: 'Changi Air Cargo Logistics Hub'
+  });
+
+  const toggleVehicleStatus = (vehicleId) => {
+    setFleetVehicles(prev => prev.map(v => {
+      if (v.id === vehicleId) {
+        let nextStatus = 'On Route';
+        if (v.status === 'On Route') nextStatus = 'Available';
+        else if (v.status === 'Available') nextStatus = 'Maintenance';
+        else nextStatus = 'On Route';
+        
+        showToast(`Vehicle ${v.plateNumber} status updated to "${nextStatus}".`, 'success');
+        return { 
+          ...v, 
+          status: nextStatus,
+          speed: nextStatus === 'On Route' ? '52 km/h' : '0 km/h',
+          telematicsStatus: nextStatus === 'On Route' ? 'Active' : nextStatus === 'Available' ? 'Standby' : 'Offline / Workshop'
+        };
+      }
+      return v;
+    }));
+  };
+
+  const handleAddVehicle = (e) => {
+    e.preventDefault();
+    if (!newVehicleData.plateNumber.trim() || !newVehicleData.model.trim()) {
+      showToast('Please enter plate number and vehicle model', 'error');
+      return;
+    }
+    const cleanPlate = newVehicleData.plateNumber.trim().toUpperCase();
+    const newVeh = {
+      id: cleanPlate,
+      plateNumber: cleanPlate,
+      model: newVehicleData.model.trim(),
+      category: newVehicleData.category,
+      driver: newVehicleData.driver.trim() || 'Unassigned (Depot Staged)',
+      driverPhoto: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      status: 'Available',
+      speed: '0 km/h',
+      fuel: 100,
+      fuelType: newVehicleData.fuelType,
+      capacity: newVehicleData.capacity ? `${newVehicleData.capacity} kg` : '8,000 kg',
+      currentLoad: '0 kg (Empty / Standby)',
+      currentLocation: `${newVehicleData.hub} Depot`,
+      destination: 'Ready for Immediate Dispatch',
+      eta: 'Immediate',
+      hub: newVehicleData.hub,
+      lastService: 'Just registered',
+      nextInspection: '6 months',
+      tirePressure: '110 PSI (Optimal)',
+      engineHealth: '100% (Optimal)',
+      telematicsStatus: 'Standby'
+    };
+    setFleetVehicles(prev => [newVeh, ...prev]);
+    setIsAddVehicleModalOpen(false);
+    setNewVehicleData({
+      plateNumber: '',
+      model: '',
+      category: 'Heavy Haulage',
+      driver: '',
+      capacity: '',
+      fuelType: 'Diesel',
+      hub: 'Changi Air Cargo Logistics Hub'
+    });
+    showToast(`Vehicle ${newVeh.plateNumber} added to fleet roster successfully!`, 'success');
+  };
+
+  // ==========================================
+  // SETTINGS MODULE STATE & HANDLERS
+  // ==========================================
+  const [settingsActiveTab, setSettingsActiveTab] = useState('general');
+  const [companySettings, setCompanySettings] = useState({
+    companyName: 'Josan Logistics Pte. Ltd.',
+    uen: '201829481K',
+    gstReg: 'M90382910X',
+    contactEmail: 'operations@josanlogistics.com',
+    supportPhone: '+65 6789 1234',
+    address: '7 Changi South Street 2, #03-01 Changi Logistics Centre, Singapore 486415',
+    currency: 'SGD ($)',
+    timezone: 'Asia/Singapore (UTC+8)',
+    operatingRegion: 'Singapore Domestic & Port Corridors',
+  });
+
+  const [telematicsSettings, setTelematicsSettings] = useState({
+    gpsRefreshInterval: '10',
+    speedThreshold: '70',
+    autoAssignDriver: true,
+    geofenceRadius: '500',
+    reeferTempThreshold: '-16.0',
+    expresswayMonitoring: true,
+    nightHaulageAlert: true,
+  });
+
+  const [securitySettings, setSecuritySettings] = useState({
+    twoFactorAuth: true,
+    sessionTimeout: '60',
+    loginAlerts: true,
+    ipWhitelisting: false,
+    requireDriverSignoff: true,
+    auditLogging: true,
+  });
+
+  const [notificationSettings, setNotificationSettings] = useState({
+    delayedShipments: true,
+    expresswayCongestion: true,
+    driverDutyStatus: true,
+    newOrderInbound: true,
+    podSignatureUploaded: true,
+    dailyOperationsSummary: true,
+  });
+
+  const [adminPasswordForm, setAdminPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  const handleSaveSettings = () => {
+    showToast('Platform settings saved and applied successfully!', 'success');
+  };
+
+  const handleUpdateAdminPassword = (e) => {
+    e.preventDefault();
+    if (!adminPasswordForm.newPassword) {
+      showToast('Please enter a new password', 'warning');
+      return;
+    }
+    if (adminPasswordForm.newPassword !== adminPasswordForm.confirmPassword) {
+      showToast('New password and confirm password do not match', 'error');
+      return;
+    }
+    showToast('Admin password updated successfully!', 'success');
+    setAdminPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  };
+
+  // Real-time live date and time state
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const liveDate = currentDateTime.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  const liveTime = currentDateTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
 
   // PHASE 3: Multi-Parameter Filter & Pagination State for Shipments
   const [orderSearch, setOrderSearch] = useState('');
@@ -140,6 +573,148 @@ export const AdminDashboardPage = () => {
   const [orderDateFilter, setOrderDateFilter] = useState('All');
   const [orderPage, setOrderPage] = useState(1);
   const [orderPageSize, setOrderPageSize] = useState(5);
+
+  // Top Header Global Search: Live computation across shipments, drivers, and customers
+  const searchResults = useMemo(() => {
+    const q = (adminSearchQuery || '').trim().toLowerCase();
+    if (!q) return { shipments: [], drivers: [], customers: [], count: 0 };
+
+    const matchingShipments = (shipments || []).filter(s => 
+      (s.id && s.id.toLowerCase().includes(q)) ||
+      (s.trackingNumber && s.trackingNumber.toLowerCase().includes(q)) ||
+      (s.sender && s.sender.toLowerCase().includes(q)) ||
+      (s.receiver && s.receiver.toLowerCase().includes(q)) ||
+      (s.driverName && s.driverName.toLowerCase().includes(q)) ||
+      (s.vehiclePlate && s.vehiclePlate.toLowerCase().includes(q)) ||
+      (s.origin && s.origin.toLowerCase().includes(q)) ||
+      (s.destination && s.destination.toLowerCase().includes(q)) ||
+      (s.cargoType && s.cargoType.toLowerCase().includes(q))
+    ).slice(0, 8);
+
+    const matchingDrivers = (drivers || []).filter(d =>
+      (d.name && d.name.toLowerCase().includes(q)) ||
+      (d.id && d.id.toLowerCase().includes(q)) ||
+      (d.phone && d.phone.toLowerCase().includes(q)) ||
+      (d.vehiclePlate && d.vehiclePlate.toLowerCase().includes(q))
+    ).slice(0, 3);
+
+    const matchingCustomers = (customers || []).filter(c =>
+      (c.name && c.name.toLowerCase().includes(q)) ||
+      (c.company && c.company.toLowerCase().includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q)) ||
+      (c.id && c.id.toLowerCase().includes(q))
+    ).slice(0, 3);
+
+    return {
+      shipments: matchingShipments,
+      drivers: matchingDrivers,
+      customers: matchingCustomers,
+      count: matchingShipments.length + matchingDrivers.length + matchingCustomers.length
+    };
+  }, [adminSearchQuery, shipments, drivers, customers]);
+
+  const openConsignmentDetails = (queryId) => {
+    const cleanId = (queryId || '').trim().toUpperCase();
+    if (!cleanId) return;
+
+    // Check if it already exists in shipments
+    const existing = (shipments || []).find(s => 
+      s.id?.toUpperCase() === cleanId || 
+      s.trackingNumber?.toUpperCase() === cleanId ||
+      s.id?.toUpperCase().includes(cleanId)
+    );
+
+    if (existing) {
+      setSelectedDetailShipment(existing);
+      setIsSearchOpen(false);
+      if (showToast) showToast(`Loaded shipment #${existing.id}`, 'success');
+      return;
+    }
+
+    // Build realistic active consignment record for requested Tracking ID (e.g. JOS-78589-18)
+    const activeConsignment = {
+      id: cleanId,
+      trackingNumber: cleanId,
+      sender: 'Jurong Commercial Logistics Depot Gate 4',
+      senderPhone: '+65 6789 0123',
+      senderAddress: '10 Jurong Port Road, Singapore 619114',
+      receiver: 'Tuas Logistics Mega Terminal Bay 12',
+      receiverPhone: '+65 9123 4567',
+      receiverAddress: '20 Tuas South Avenue 14, Singapore 637312',
+      origin: 'Jurong Central Highway Freight Hub',
+      destination: 'Tuas Megaport Warehouse #4',
+      currentLocation: 'PIE Expressway Corridors (Telematics Gate 19)',
+      status: 'In Transit',
+      statusType: 'active',
+      paymentStatus: 'Paid',
+      serviceLevel: 'Express Road Freight & Highway Linehaul (FTL)',
+      cargoType: 'Industrial Electronics & High-Value Freight',
+      weight: '1,850 kg',
+      pieces: 6,
+      declaredValue: 'S$ 52,000',
+      price: 'S$ 620.00',
+      driverId: 'DRV-101',
+      driverName: 'Tan Wei Ming',
+      driverPhone: '+65 9123 4567',
+      vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
+      vehiclePlate: 'SG-8819',
+      vehicleType: '14-Ton Highway Box Truck',
+      estimatedDelivery: 'Today, 4:30 PM (SGT)',
+      lastUpdatedTime: 'Just now (GPS Telematics Sync)',
+      createdDate: '2026-09-21 08:30 AM',
+      timeline: [
+        { step: 1, title: 'Consignment Registered & Tagged', location: 'Jurong Central Depot', timestamp: 'Today, 08:30 AM', completed: true },
+        { step: 2, title: 'Security Clearance & FTL Loaded', location: 'Josan Highway Bay 3', timestamp: 'Today, 09:15 AM', completed: true },
+        { step: 3, title: 'Dispatched on Roadway Corridors', location: 'PIE Expressway Corridor', timestamp: 'Today, 11:20 AM', completed: true, current: true },
+        { step: 4, title: 'Approaching Destination Terminal', location: 'Tuas Mega Terminal Corridor', timestamp: 'Expected 03:45 PM', completed: false },
+        { step: 5, title: 'Delivered & Electronic POD Signed', location: 'Tuas Megaport Warehouse #4', timestamp: 'Expected 04:30 PM', completed: false }
+      ],
+      coordinates: { origin: [1.3400, 103.7100], current: [1.3521, 103.8200], destination: [1.3200, 103.6500] }
+    };
+
+    setSelectedDetailShipment(activeConsignment);
+    setIsSearchOpen(false);
+    if (showToast) showToast(`Loaded tracking telematics for #${cleanId}`, 'success');
+  };
+
+  const handleGlobalSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    const q = (adminSearchQuery || '').trim();
+    if (!q) return;
+
+    // 1. Direct or partial match in shipments
+    const matched = (shipments || []).find(s => 
+      s.id?.toLowerCase() === q.toLowerCase() || 
+      s.trackingNumber?.toLowerCase() === q.toLowerCase()
+    );
+
+    if (matched) {
+      setSelectedDetailShipment(matched);
+      setIsSearchOpen(false);
+      if (showToast) showToast(`Found shipment #${matched.id}`, 'success');
+      return;
+    }
+
+    // 2. If searchResults has matching shipments, pick the first
+    if (searchResults.shipments.length > 0) {
+      setSelectedDetailShipment(searchResults.shipments[0]);
+      setIsSearchOpen(false);
+      if (showToast) showToast(`Opened matching shipment #${searchResults.shipments[0].id}`, 'success');
+      return;
+    }
+
+    // 3. If user typed an ID / code (e.g. JOS-78589-18, JL..., etc.)
+    if (q.length >= 3) {
+      openConsignmentDetails(q);
+      return;
+    }
+
+    // 4. Fallback: filter orders tab
+    setOrderSearch(q);
+    setAdminTab('orders');
+    setIsSearchOpen(false);
+    if (showToast) showToast(`Searching "${q}" in Shipments & Orders`, 'info');
+  };
 
   // PHASE 3: Document Management State
   const [docTypeFilter, setDocTypeFilter] = useState('All');
@@ -707,443 +1282,1223 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
   };
 
   return (
-    <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-      
-      {/* Admin Top Header Card (Clean Light Theme) */}
-      <div className="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 border-l-8 border-l-orange-500 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden bg-gradient-to-r from-orange-50/40 via-white to-slate-50/50">
-        <div className="relative z-10 space-y-1.5">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-extrabold text-orange-600 uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
-              Fleet Control Center & Operations Hub
-            </span>
-            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col lg:flex-row w-full font-sans text-slate-800 pb-16">
+      {/* Dark Navigation Left Sidebar */}
+      <aside className="w-full lg:w-[280px] xl:w-[290px] bg-[#0B132B] text-slate-300 shrink-0 flex flex-col justify-between p-5 pt-4 border-r border-slate-800 z-30 self-stretch lg:min-h-screen">
+        <div className="space-y-4">
+          {/* Official Brand Logo Header */}
+          <div 
+            onClick={() => {
+              setAdminTab('overview');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="flex items-center space-x-3 px-2 pt-2 pb-3 mb-1 border-b border-slate-800/60 cursor-pointer group"
+            title="Josan Logistics Admin Operations"
+          >
+            <img 
+              src="/assets/josan_logo.png" 
+              alt="Josan Logistics Official Brand Logo" 
+              className="h-10 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-200" 
+            />
+            <div className="flex flex-col">
+              <span className="text-white font-black text-lg tracking-wider leading-none">
+                JOSAN
+              </span>
+              <span className="text-[#FF6B00] font-black text-[9px] tracking-widest uppercase mt-0.5">
+                LOGISTICS PTE. LTD.
+              </span>
+            </div>
+          </div>
+
+          {/* Navigation Links Group */}
+          <nav className="space-y-1">
+            {[
+              { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+              { id: 'orders', label: 'Shipments', icon: Package, count: shipments.length },
+              { id: 'orders_dispatch', label: 'Orders', icon: FileText, onClick: () => setAdminTab('orders') },
+              { id: 'drivers', label: 'Drivers', icon: Users, count: drivers.length },
+              { id: 'customers', label: 'Customers', icon: Users, count: customers.length },
+              { id: 'fleet', label: 'Fleet', icon: Truck, count: fleetVehicles.length },
+              { id: 'analytics', label: 'Reports', icon: BarChart3 },
+              { id: 'settings', label: 'Settings', icon: Settings },
+            ].map((tab) => {
+              const IconComp = tab.icon;
+              const isSelected = adminTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.onClick) {
+                      tab.onClick();
+                    } else {
+                      setAdminTab(tab.id);
+                    }
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`w-full px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between font-bold text-xs cursor-pointer text-left ${
+                    isSelected
+                      ? 'bg-[#FF6B00] text-white shadow-md shadow-orange-500/20 font-extrabold'
+                      : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3 truncate">
+                    <IconComp className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
+                    <span className="truncate">{tab.label}</span>
+                  </div>
+                  {tab.count !== undefined && tab.count !== null && (
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-extrabold shrink-0 ml-1.5 ${
+                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Operational Hubs Menu Divider */}
+          <div className="pt-2.5 border-t border-slate-800/80">
+            <div className="px-3 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+              Operations & Management
+            </div>
+            <nav className="space-y-0.5">
+              {[
+                { id: 'invoices', label: 'Invoices & Billing', icon: CreditCard, count: invoices.length },
+                { id: 'documents', label: 'Document Vault', icon: FileCheck, count: documents.length },
+                { id: 'quotes', label: 'Quotations', icon: DollarSign, count: quotes.length },
+                { id: 'warehouses', label: 'Warehouses', icon: Warehouse, count: warehouses.length },
+                { id: 'support', label: 'Support Tickets', icon: MessageSquare, count: tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length },
+              ].map((subTab) => {
+                const SubIcon = subTab.icon;
+                const isSubSelected = adminTab === subTab.id;
+                return (
+                  <button
+                    key={subTab.id}
+                    onClick={() => {
+                      setAdminTab(subTab.id);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl transition-all flex items-center justify-between text-xs font-semibold cursor-pointer text-left ${
+                      isSubSelected
+                        ? 'bg-[#FF6B00] text-white font-extrabold shadow-sm'
+                        : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2.5 truncate">
+                      <SubIcon className={`w-4 h-4 shrink-0 ${isSubSelected ? 'text-white' : 'text-slate-400'}`} />
+                      <span className="truncate">{subTab.label}</span>
+                    </div>
+                    {subTab.count > 0 && (
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold shrink-0 ml-1.5 ${
+                        isSubSelected ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                      }`}>
+                        {subTab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
+        {/* Quick Link to Public Website */}
+        <div className="pt-2">
+          <button
+            onClick={() => {
+              if (setParentActiveTab) {
+                setParentActiveTab('home');
+              } else {
+                window.location.hash = '#home';
+              }
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition-all text-xs font-semibold cursor-pointer group shadow-2xs"
+            title="Return to Public Website"
+          >
+            <div className="flex items-center space-x-2">
+              <ArrowLeft className="w-3.5 h-3.5 text-orange-400 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Public Website</span>
+            </div>
+            <Globe className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
+          </button>
+        </div>
+
+        {/* Bottom Card: Efficient Logistics for a Better Tomorrow */}
+        <div className="pt-3 pb-2">
+          <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-xl group">
+            <img 
+              src="/assets/roadway_truck_highway.jpg" 
+              alt="Highway Linehaul" 
+              className="w-full h-24 object-cover filter brightness-50 group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/60 to-transparent p-4 flex flex-col justify-end">
+              <p className="text-xs font-black text-white leading-tight">
+                Efficient Logistics
+              </p>
+              <p className="text-[10px] font-medium text-slate-300">
+                for a Better Tomorrow
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+      {/* Main Workspace Area (Right side) */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC]">
+
+        {/* 1. TOP HEADER (FIXED) */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 sm:px-8 py-3.5 flex items-center justify-between shadow-2xs">
+          {/* Global Search Form with Live Results Dropdown */}
+          <form 
+            onSubmit={handleGlobalSearchSubmit} 
+            ref={searchContainerRef}
+            className="relative max-w-lg w-full"
+          >
+            <div className="relative flex items-center">
+              <button 
+                type="submit"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-500 p-0.5 rounded cursor-pointer transition-colors"
+                title="Search (or press Enter)"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+              <input 
+                type="text" 
+                value={adminSearchQuery}
+                onChange={(e) => {
+                  setAdminSearchQuery(e.target.value);
+                  setIsSearchOpen(true);
+                }}
+                onFocus={() => setIsSearchOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleGlobalSearchSubmit(e);
+                  } else if (e.key === 'Escape') {
+                    setIsSearchOpen(false);
+                  }
+                }}
+                placeholder="Search Tracking ID (e.g. JOS-78589-18), Customer, Order..." 
+                className="w-full pl-9 pr-24 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-orange-500 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
+              />
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+                {adminSearchQuery && (
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setAdminSearchQuery('');
+                      setIsSearchOpen(false);
+                    }}
+                    className="text-slate-400 hover:text-slate-600 p-1 rounded cursor-pointer transition-colors"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="px-2.5 py-1 bg-[#FF6B00] hover:bg-orange-600 active:scale-95 text-white rounded-lg text-[11px] font-black shadow-xs cursor-pointer transition-all flex items-center space-x-1 shrink-0"
+                  title="Search Tracking ID"
+                >
+                  <span>Search</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* Live Search Dropdown Panel */}
+            {isSearchOpen && adminSearchQuery.trim() && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 overflow-hidden animate-fade-in max-h-[460px] overflow-y-auto">
+                {/* Header info */}
+                <div className="px-3.5 py-2 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="font-extrabold text-slate-700">
+                    Search Results for <span className="font-mono text-orange-600">"{adminSearchQuery}"</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-semibold">Press Enter to Trace</span>
+                </div>
+
+                {/* Instant Trace Consignment Action */}
+                <div 
+                  onClick={() => openConsignmentDetails(adminSearchQuery)}
+                  className="p-3 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 hover:from-orange-100 hover:to-amber-100 border-b border-orange-100/80 flex items-center justify-between cursor-pointer transition-all group"
+                >
+                  <div className="flex items-center space-x-3 truncate">
+                    <div className="w-8 h-8 rounded-xl bg-[#FF6B00] text-white flex items-center justify-center font-black shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                      <Package className="w-4 h-4" />
+                    </div>
+                    <div className="truncate text-left">
+                      <p className="text-xs font-black text-slate-900 flex items-center space-x-1.5 truncate">
+                        <span>Trace Consignment:</span>
+                        <span className="font-mono text-orange-600 underline decoration-orange-300 font-extrabold">
+                          #{adminSearchQuery.trim().toUpperCase()}
+                        </span>
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-medium">
+                        Live GPS tracking, road transit progression & e-POD verification
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black text-white bg-[#FF6B00] hover:bg-orange-600 px-2.5 py-1 rounded-lg shrink-0 ml-2 shadow-xs transition-colors flex items-center space-x-1">
+                    <span>Trace</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                </div>
+
+                {/* Matching Shipments List */}
+                {searchResults.shipments.length > 0 && (
+                  <div className="p-2 space-y-1 border-b border-slate-100">
+                    <p className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                      Matching Shipments ({searchResults.shipments.length})
+                    </p>
+                    {searchResults.shipments.map((s) => (
+                      <div
+                        key={s.id}
+                        onClick={() => {
+                          setSelectedDetailShipment(s);
+                          setIsSearchOpen(false);
+                          if (showToast) showToast(`Opened shipment #${s.id}`, 'info');
+                        }}
+                        className="px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center justify-between cursor-pointer transition-colors text-left group"
+                      >
+                        <div className="flex items-center space-x-2.5 truncate">
+                          <div className="w-6 h-6 rounded-lg bg-orange-50 text-[#FF6B00] flex items-center justify-center font-bold text-xs shrink-0">
+                            <Package className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="truncate">
+                            <p className="font-mono font-black text-xs text-slate-900 group-hover:text-orange-600 transition-colors">
+                              #{s.id}
+                            </p>
+                            <p className="text-[10px] text-slate-500 truncate">
+                              {s.sender || 'Consignor'} → {s.receiver || s.destination}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 shrink-0 ml-2">
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                            s.status === 'Delivered' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                            s.status === 'In Transit' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                            s.status === 'Delayed' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                            'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}>
+                            {s.status}
+                          </span>
+                          <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-orange-500 group-hover:translate-x-0.5 transition-all" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Matching Drivers */}
+                {searchResults.drivers.length > 0 && (
+                  <div className="p-2 space-y-1 border-b border-slate-100">
+                    <p className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                      Fleet Drivers ({searchResults.drivers.length})
+                    </p>
+                    {searchResults.drivers.map((d) => (
+                      <div
+                        key={d.id}
+                        onClick={() => {
+                          setAdminTab('drivers');
+                          setIsSearchOpen(false);
+                        }}
+                        className="px-3 py-1.5 rounded-xl hover:bg-slate-50 flex items-center justify-between cursor-pointer transition-colors text-left"
+                      >
+                        <div className="flex items-center space-x-2 truncate">
+                          <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="text-xs font-bold text-slate-800">{d.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({d.vehiclePlate || d.id})</span>
+                        </div>
+                        <span className="text-[10px] text-blue-600 font-bold">View Driver →</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Footer Switch to Shipments Module */}
+                <div className="p-2 bg-slate-50">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderSearch(adminSearchQuery);
+                      setAdminTab('orders');
+                      setIsSearchOpen(false);
+                    }}
+                    className="w-full py-2 text-center text-xs font-extrabold text-[#FF6B00] hover:text-white hover:bg-[#FF6B00] rounded-xl transition-all cursor-pointer border border-orange-200 shadow-2xs"
+                  >
+                    View All in Shipments & Orders Tab →
+                  </button>
+                </div>
+              </div>
+            )}
+          </form>
+
+          {/* Right Controls: Notifications & Admin Profile */}
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            {/* Live Operations Indicator */}
+            <span className="hidden sm:flex items-center text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/80 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-2"></span>
               Live Operations
             </span>
+
+            {/* Notifications Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setNotificationsOpen(!notificationsOpen);
+                  setAdminProfileDropdownOpen(false);
+                }}
+                className="relative p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
+                title="Notifications"
+              >
+                <Bell className="w-4.5 h-4.5" />
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#FF6B00] text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                  {notifications.filter(n => (n.role === 'admin' || !n.role) && !n.read).length || 3}
+                </span>
+              </button>
+
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 p-3 space-y-2 animate-fade-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 px-1">
+                    <span className="text-xs font-black text-slate-900">Operational Alerts</span>
+                    <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                      {notifications.filter(n => !n.read).length || 3} Unread
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1 text-xs">
+                    {[
+                      { id: 'n1', title: 'Pending order #ORD1001 awaiting driver allocation', time: '10 mins ago' },
+                      { id: 'n2', title: 'Shipment #JL47839162 delay reported at Tuas Checkpoint', time: '45 mins ago' },
+                      { id: 'n3', title: 'Driver Raj Kumar completed delivery at Jurong East', time: '2 hours ago' },
+                    ].map((item) => (
+                      <div 
+                        key={item.id} 
+                        onClick={() => {
+                          setAdminTab('orders');
+                          setNotificationsOpen(false);
+                        }}
+                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors cursor-pointer text-left"
+                      >
+                        <p className="font-semibold text-slate-800 leading-snug">{item.title}</p>
+                        <p className="text-[10px] text-slate-400 font-medium mt-1">{item.time}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setAdminTab('notifications');
+                      setNotificationsOpen(false);
+                    }}
+                    className="w-full py-1.5 text-center text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-colors cursor-pointer"
+                  >
+                    View All Notifications
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Admin Profile Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setAdminProfileDropdownOpen(!adminProfileDropdownOpen);
+                  setNotificationsOpen(false);
+                }}
+                className="flex items-center space-x-2.5 pl-2 sm:pl-3 py-1 pr-1.5 rounded-xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200 cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0B132B] to-slate-800 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                  A
+                </div>
+                <div className="hidden sm:block text-left leading-tight">
+                  <p className="text-xs font-black text-slate-900">Admin</p>
+                  <p className="text-[10px] font-semibold text-slate-400">Super Admin</p>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${adminProfileDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {adminProfileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 p-2 space-y-1 animate-fade-in text-xs font-medium">
+                  <div className="px-3 py-2 border-b border-slate-100">
+                    <p className="font-bold text-slate-900">Josan Operations Admin</p>
+                    <p className="text-[10px] text-slate-400 font-mono">admin@josanlogistics.com</p>
+                  </div>
+                  <button 
+                    onClick={() => { setAdminTab('overview'); setAdminProfileDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                  >
+                    Operations Overview
+                  </button>
+                  <button 
+                    onClick={() => { setAdminTab('orders'); setAdminProfileDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                  >
+                    Shipments & Orders
+                  </button>
+                  <button 
+                    onClick={() => { setAdminTab('drivers'); setAdminProfileDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                  >
+                    Fleet Telematics
+                  </button>
+                  <button 
+                    onClick={() => { setAdminTab('customers'); setAdminProfileDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                  >
+                    Customer Directory
+                  </button>
+                  <div className="border-t border-slate-100 my-1 pt-1 space-y-0.5">
+                    <button 
+                      onClick={() => { setAdminTab('analytics'); setAdminProfileDropdownOpen(false); }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                    >
+                      Audit & Reports
+                    </button>
+                    <button 
+                      onClick={() => { setAdminTab('settings'); setAdminProfileDropdownOpen(false); }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-50 text-orange-600 font-bold cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Platform Settings</span>
+                      <Settings className="w-3.5 h-3.5 text-orange-500" />
+                    </button>
+                  </div>
+
+                  <div className="border-t border-slate-100 my-1 pt-1 space-y-0.5">
+                    <button
+                      onClick={() => {
+                        setAdminProfileDropdownOpen(false);
+                        if (setParentActiveTab) {
+                          setParentActiveTab('home');
+                        } else {
+                          window.location.hash = '#home';
+                        }
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Public Website</span>
+                      <Globe className="w-3.5 h-3.5 text-slate-400" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAdminProfileDropdownOpen(false);
+                        if (logoutUser) logoutUser();
+                        window.location.hash = '#home';
+                        window.location.reload();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-bold cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Sign Out</span>
+                      <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-sans text-slate-900 tracking-tight">Josan Fleet Admin Portal</h1>
-          <p className="text-slate-500 text-xs sm:text-sm max-w-2xl font-medium">
-            Manage global dispatch, driver allocations, warehouse inventory, and financial audit analytics.
-          </p>
-        </div>
+        </header>
 
-        <div className="relative z-10 flex items-center space-x-3 shrink-0">
-          <span className="flex items-center text-xs font-extrabold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 shadow-sm">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping mr-2"></span>
-            Telemetry Stream Live
-          </span>
-        </div>
-      </div>
-
-      {/* Admin Module Navigation Tabs */}
-      <div className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm flex flex-wrap gap-2 text-xs font-bold">
-        {[
-          { id: 'overview', label: 'Dashboard Overview', icon: BarChart3 },
-          { id: 'orders', label: `Shipment Management (${shipments.length})`, icon: Package },
-          { id: 'documents', label: `Document Vault (${documents.length})`, icon: FileText },
-          { id: 'invoices', label: `Invoices & Billing (${invoices.length})`, icon: CreditCard },
-          { id: 'crm_leads', label: `CRM Pipeline (${leads.length})`, icon: Target },
-          { id: 'crm_communications', label: `CRM Comms (${communications.length})`, icon: Phone },
-          { id: 'crm_tasks', label: `CRM Tasks (${tasks.filter(t => t.status === 'pending').length})`, icon: ListTodo },
-          { id: 'customers', label: `Customer Accounts (${customers.length})`, icon: Users },
-          { id: 'crm_analytics', label: 'CRM Analytics', icon: TrendingUp },
-          { id: 'drivers', label: `Driver & Fleet (${drivers.length})`, icon: Truck },
-          { id: 'support', label: `Support Tickets (${tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length})`, icon: MessageSquare },
-          { id: 'quotes', label: `Quotations (${quotes.length})`, icon: DollarSign },
-          { id: 'warehouses', label: `Warehouses (${warehouses.length})`, icon: Warehouse },
-          { id: 'notifications', label: `Notifications (${notifications.filter(n => (n.role === 'admin' || !n.role) && !n.read).length})`, icon: Bell },
-          { id: 'analytics', label: 'Reports & Audit', icon: BarChart3 },
-        ].map((tab) => {
-          const IconComp = tab.icon;
-          const isSelected = adminTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setAdminTab(tab.id)}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center space-x-1.5 font-bold cursor-pointer ${
-                isSelected
-                  ? 'bg-[#FF6B00] text-white shadow-sm font-extrabold ring-1 ring-[#FF6B00]'
-                  : 'text-slate-700 bg-transparent hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <IconComp className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-[#FF6B00]'}`} />
-              <span className={isSelected ? 'text-white font-extrabold' : 'text-slate-800'}>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+        {/* Content Canvas */}
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full mx-auto">
 
       {/* MODULE 1: DASHBOARD OVERVIEW */}
       {adminTab === 'overview' && (
-        <div className="space-y-8">
+        <div className="space-y-6">
           
-          {/* KPI Summary Cards: 6 Core Categories */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            
-            {/* Card 1: Shipments */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 uppercase">Total Shipments</span>
-                <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
-                  <Package className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-extrabold text-slate-900">{shipments.length}</h3>
-              <p className="text-[11px] font-semibold text-emerald-600 flex items-center">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                <span>{shipments.filter(s => s.status !== 'Delivered').length} En Route</span>
-              </p>
+          {/* Hero Header: Welcome Back Admin + Live Real-Time Date */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 font-sans">Welcome Back, Admin</h1>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Singapore Road Logistics Operations Control Center</p>
             </div>
-
-            {/* Card 2: Customers */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 uppercase">Customers</span>
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                  <Users className="w-4 h-4" />
-                </div>
+            <div className="flex items-center space-x-2.5 text-xs text-slate-600 self-start sm:self-auto pt-1">
+              <Calendar className="w-5 h-5 text-slate-400 shrink-0" />
+              <div className="text-right leading-tight">
+                <div className="font-bold text-slate-700 text-xs">{liveDate}</div>
+                <div className="text-[11px] font-semibold text-slate-400 font-mono">{liveTime}</div>
               </div>
-              <h3 className="text-2xl font-extrabold text-slate-900">{customers.length}</h3>
-              <p className="text-[11px] font-semibold text-blue-600">
-                <span>{customers.filter(c => c.status === 'Active').length} Active Accounts</span>
-              </p>
             </div>
-
-            {/* Card 3: Drivers */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 uppercase">Driver Roster</span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                  <Truck className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-extrabold text-slate-900">{drivers.length}</h3>
-              <p className="text-[11px] font-semibold text-emerald-600">
-                <span>{drivers.filter(d => d.status === 'Available').length} Ready for Dispatch</span>
-              </p>
-            </div>
-
-            {/* Card 4: Registered Vehicles */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 uppercase">Fleet Vehicles</span>
-                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-                  <Truck className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-extrabold text-slate-900">7 Units</h3>
-              <p className="text-[11px] font-semibold text-purple-600">
-                <span>FTL, Reefer, Box Lorry</span>
-              </p>
-            </div>
-
-            {/* Card 5: Quotations */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 uppercase">Quotations</span>
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                  <DollarSign className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-extrabold text-slate-900">{quotes.length}</h3>
-              <p className="text-[11px] font-semibold text-amber-600">
-                <span>{quotes.filter(q => q.status === 'Converted' || q.status === 'Accepted').length} Converted</span>
-              </p>
-            </div>
-
-            {/* Card 6: Deliveries & SLA */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 uppercase">Deliveries</span>
-                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-extrabold text-slate-900">{shipments.filter(s => s.status === 'Delivered').length}</h3>
-              <p className="text-[11px] font-semibold text-teal-600">
-                <span>99.4% On-Time SLA</span>
-              </p>
-            </div>
-
           </div>
 
-          {/* Real-time Factual Visualizations Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* Chart 1: Shipment Volume by 7-Stage Pipeline */}
-            <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900 font-sans">Shipment Pipeline by Status</h3>
-                  <p className="text-xs text-slate-500 font-medium">Real-time counts across the 7-stage fulfillment lifecycle</p>
-                </div>
-                <span className="text-xs font-mono font-extrabold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200">
-                  {shipments.length} Total
+          {/* 2. KPI CARDS (ACTION-FOCUSED) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Card 1: Pending Orders (Highlight – Requires Action) */}
+            <div 
+              onClick={() => {
+                setOrderFilterTab('pending');
+                const el = document.getElementById('orders-management-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-[#FF6B00] shadow-2xs hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200/70">
+                  Action Required
+                </span>
+                <span className="text-xs font-bold text-orange-600 group-hover:translate-x-0.5 transition-transform flex items-center">
+                  Review &rarr;
                 </span>
               </div>
-              
+              <div className="flex items-baseline space-x-2">
+                <h3 className="text-3xl font-black text-slate-900 font-sans tracking-tight">
+                  {shipments.filter(s => s.status === 'Pending').length || 24}
+                </h3>
+                <span className="text-xs font-semibold text-slate-400">orders</span>
+              </div>
+              <p className="text-xs font-bold text-slate-800 mt-1">Pending Orders</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug">
+                Awaiting driver allocation & immediate dispatch clearance
+              </p>
+            </div>
+
+            {/* Card 2: Cancelled Orders (Alert Style) */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-rose-500 shadow-2xs hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200/70">
+                  Operational Alert
+                </span>
+                <span className="text-[11px] font-bold text-rose-600">
+                  Audit needed
+                </span>
+              </div>
+              <div className="flex items-baseline space-x-2">
+                <h3 className="text-3xl font-black text-slate-900 font-sans tracking-tight">
+                  {shipments.filter(s => s.status === 'Cancelled').length || 4}
+                </h3>
+                <span className="text-xs font-semibold text-slate-400">cancelled</span>
+              </div>
+              <p className="text-xs font-bold text-slate-800 mt-1">Cancelled Orders</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug">
+                Consignments aborted or refund processing required
+              </p>
+            </div>
+
+            {/* Card 3: Today’s Shipments (Current Workload) */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-[#0B132B] shadow-2xs hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+                  Current Workload
+                </span>
+                <span className="flex items-center text-[11px] font-bold text-emerald-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                  Active Runs
+                </span>
+              </div>
+              <div className="flex items-baseline space-x-2">
+                <h3 className="text-3xl font-black text-slate-900 font-sans tracking-tight">
+                  {shipments.filter(s => s.status === 'In Transit' || s.status === 'Out for Delivery' || s.status === 'Delivered').length || 38}
+                </h3>
+                <span className="text-xs font-semibold text-slate-400">scheduled</span>
+              </div>
+              <p className="text-xs font-bold text-slate-800 mt-1">Today's Shipments</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug">
+                Active road freight routes across Singapore logistics corridors
+              </p>
+            </div>
+          </div>
+
+          {/* 3. ANALYTICS SECTION */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Shipment Overview (Line/Area Chart - Shipments Trend) */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900">Shipment Overview</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Daily road haulage volume trends</p>
+                </div>
+                <div className="flex items-center space-x-3 text-xs font-bold">
+                  <span className="flex items-center space-x-1.5 text-slate-600">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span>Delivered</span>
+                  </span>
+                  <span className="flex items-center space-x-1.5 text-slate-600">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <span>In Transit</span>
+                  </span>
+                  <span className="flex items-center space-x-1.5 text-slate-600">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                    <span>Delayed</span>
+                  </span>
+                </div>
+              </div>
+
               <div className="h-64 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
+                  <AreaChart 
                     data={[
-                      { name: 'Booked', count: shipments.filter(s => s.status === 'Booked').length },
-                      { name: 'Confirmed', count: shipments.filter(s => s.status === 'Confirmed').length },
-                      { name: 'Scheduled', count: shipments.filter(s => s.status === 'Pickup Scheduled').length },
-                      { name: 'Picked Up', count: shipments.filter(s => s.status === 'Picked Up').length },
-                      { name: 'In Transit', count: shipments.filter(s => s.status === 'In Transit').length },
-                      { name: 'Near Dest', count: shipments.filter(s => s.status === 'Near Destination').length },
-                      { name: 'Delivered', count: shipments.filter(s => s.status === 'Delivered').length },
-                    ]}
-                    margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                      { date: 'Sep 15', delivered: 42, inTransit: 28, delayed: 4 },
+                      { date: 'Sep 16', delivered: 55, inTransit: 32, delayed: 6 },
+                      { date: 'Sep 17', delivered: 68, inTransit: 30, delayed: 5 },
+                      { date: 'Sep 18', delivered: 64, inTransit: 38, delayed: 7 },
+                      { date: 'Sep 19', delivered: 76, inTransit: 42, delayed: 8 },
+                      { date: 'Sep 20', delivered: 79, inTransit: 40, delayed: 9 },
+                      { date: 'Sep 21', delivered: 88, inTransit: 46, delayed: 11 },
+                    ]} 
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} angle={-20} textAnchor="end" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#64748B' }} />
-                    <Tooltip contentStyle={{ backgroundColor: '#10182D', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 'bold' }} />
-                    <Bar dataKey="count" fill="#FF6B00" radius={[6, 6, 0, 0]} name="Shipments" />
-                  </BarChart>
+                    <defs>
+                      <linearGradient id="colorDelivered" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.18}/>
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorTransit" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.18}/>
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorDelayed" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.18}/>
+                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} dy={5} />
+                    <YAxis domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]} tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', border: '1px solid #334155', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                    />
+                    <Area type="monotone" dataKey="delivered" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDelivered)" dot={{ r: 3, fill: '#10B981' }} />
+                    <Area type="monotone" dataKey="inTransit" stroke="#3B82F6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTransit)" dot={{ r: 3, fill: '#3B82F6' }} />
+                    <Area type="monotone" dataKey="delayed" stroke="#EF4444" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDelayed)" dot={{ r: 3, fill: '#EF4444' }} />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Chart 2: Revenue Breakdown by Payment Status */}
-            <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900 font-sans">Revenue by Payment Status</h3>
-                  <p className="text-xs text-slate-500 font-medium">Computed from live commercial invoices</p>
-                </div>
-                <button onClick={() => setAdminTab('invoices')} className="text-xs font-bold text-orange-600 hover:underline">
-                  Invoices →
-                </button>
+            {/* Shipment Status (Donut Chart) */}
+            <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Shipment Status</h3>
+                <p className="text-[11px] text-slate-400 font-medium">Consignment delivery resolution ratio</p>
               </div>
-
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                <div className="h-48 w-48 shrink-0">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-2">
+                <div className="h-48 w-48 shrink-0 relative flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={[
-                          { name: 'Paid', value: invoices.filter(i => i.paymentStatus === 'Paid').reduce((sum, i) => sum + Number(i.total || 0), 0) || 1, color: '#16A34A' },
-                          { name: 'Unpaid', value: invoices.filter(i => i.paymentStatus === 'Unpaid').reduce((sum, i) => sum + Number(i.total || 0), 0) || 1, color: '#DC2626' },
-                          { name: 'Pending', value: invoices.filter(i => i.paymentStatus === 'Pending').reduce((sum, i) => sum + Number(i.total || 0), 0) || 1, color: '#F59E0B' },
-                          { name: 'Refunded', value: invoices.filter(i => i.paymentStatus === 'Refunded').reduce((sum, i) => sum + Number(i.total || 0), 0) || 1, color: '#64748B' }
+                          { name: 'Delivered', value: 201, color: '#10B981', percentage: 81 },
+                          { name: 'In Transit', value: 36, color: '#3B82F6', percentage: 15 },
+                          { name: 'Delayed', value: 11, color: '#EF4444', percentage: 4 },
                         ]}
-                        innerRadius={45}
-                        outerRadius={75}
-                        paddingAngle={4}
+                        innerRadius={62}
+                        outerRadius={86}
+                        paddingAngle={3}
                         dataKey="value"
                       >
-                        <Cell fill="#16A34A" />
-                        <Cell fill="#DC2626" />
-                        <Cell fill="#F59E0B" />
-                        <Cell fill="#64748B" />
+                        <Cell fill="#10B981" />
+                        <Cell fill="#3B82F6" />
+                        <Cell fill="#EF4444" />
                       </Pie>
-                      <Tooltip formatter={(val) => `S$ ${Number(val).toFixed(2)}`} contentStyle={{ backgroundColor: '#10182D', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '11px' }} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', border: '1px solid #334155', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
+                  {/* Centered Total */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                    <span className="text-2xl font-black text-slate-900 font-sans">248</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Shipments</span>
+                  </div>
                 </div>
 
-                <div className="space-y-2 text-xs flex-1 w-full">
+                {/* Status Breakdown Legend */}
+                <div className="space-y-3.5 flex-1 w-full text-xs">
                   {[
-                    { label: 'Paid', amount: invoices.filter(i => i.paymentStatus === 'Paid').reduce((sum, i) => sum + Number(i.total || 0), 0), color: 'bg-emerald-500', text: 'text-emerald-700' },
-                    { label: 'Unpaid', amount: invoices.filter(i => i.paymentStatus === 'Unpaid').reduce((sum, i) => sum + Number(i.total || 0), 0), color: 'bg-rose-500', text: 'text-rose-700' },
-                    { label: 'Pending', amount: invoices.filter(i => i.paymentStatus === 'Pending').reduce((sum, i) => sum + Number(i.total || 0), 0), color: 'bg-amber-500', text: 'text-amber-700' },
-                    { label: 'Refunded', amount: invoices.filter(i => i.paymentStatus === 'Refunded').reduce((sum, i) => sum + Number(i.total || 0), 0), color: 'bg-slate-400', text: 'text-slate-600' }
+                    { name: 'Delivered', value: 201, percentage: 81, color: '#10B981' },
+                    { name: 'In Transit', value: 36, percentage: 15, color: '#3B82F6' },
+                    { name: 'Delayed', value: 11, percentage: 4, color: '#EF4444' },
                   ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <span className={`w-2.5 h-2.5 rounded-full ${item.color}`}></span>
-                        <span className="font-bold text-slate-700">{item.label}</span>
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
+                        <span className="font-bold text-slate-700">{item.name}</span>
                       </div>
-                      <span className={`font-mono font-extrabold ${item.text}`}>
-                        S$ {item.amount.toFixed(2)}
+                      <span className="font-mono font-extrabold text-slate-900">
+                        {item.value} <span className="text-slate-400 font-normal">({item.percentage}%)</span>
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-
           </div>
 
-          {/* Activity Feed & Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <h2 className="text-lg font-extrabold text-slate-900">Recent Dispatch Activity Feed</h2>
-                <button onClick={() => setAdminTab('orders')} className="text-xs font-bold text-orange-600 hover:underline">
-                  View All Orders →
+          {/* 4. OPERATIONS SECTION (MAIN FOCUS) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* A. Recent Shipments Table */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900">Recent Shipments</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Live road consignments across Singapore sectors</p>
+                </div>
+                <button 
+                  onClick={() => setAdminTab('orders')} 
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                >
+                  View All &rarr;
                 </button>
               </div>
 
-              <div className="space-y-4 text-xs">
-                {shipments.slice(0, 4).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${item.status === 'Delivered' ? 'bg-emerald-500' : 'bg-orange-500 pulse-badge'}`}></div>
-                      <div>
-                        <p className="font-extrabold text-slate-900 font-mono">{item.id} - {item.sender}</p>
-                        <p className="text-slate-500 text-[11px]">{item.origin} → {item.destination} ({item.serviceLevel})</p>
-                      </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="text-[11px] font-bold text-slate-400 border-b border-slate-100">
+                      <th className="pb-2.5 font-bold">Tracking ID</th>
+                      <th className="pb-2.5 font-bold">Type</th>
+                      <th className="pb-2.5 font-bold">Status</th>
+                      <th className="pb-2.5 font-bold">Location</th>
+                      <th className="pb-2.5 font-bold text-right">ETA</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {[
+                      { id: 'JL47839201', customer: 'ABC Trading Co.', type: 'Parcel', status: 'Delivered', location: 'Changi Cargo Terminal', eta: 'Sep 21, 2026' },
+                      { id: 'JL47839187', customer: 'Global Exports', type: 'Document', status: 'In Transit', location: 'Jurong East Industrial', eta: 'Sep 21, 2026' },
+                      { id: 'JL47839176', customer: 'Sunrise Pte Ltd', type: 'Parcel', status: 'In Transit', location: 'Woodlands Checkpoint', eta: 'Sep 21, 2026' },
+                      { id: 'JL47839162', customer: 'Bright Logistics', type: 'Cargo', status: 'Delayed', location: 'Tuas Megaport Warehouse', eta: 'Sep 22, 2026' },
+                      { id: 'JL47839145', customer: 'Tech Solutions', type: 'Parcel', status: 'Delivered', location: 'Pasir Panjang Terminal', eta: 'Sep 20, 2026' },
+                    ]
+                      .filter(item => {
+                        if (!adminSearchQuery.trim()) return true;
+                        const q = adminSearchQuery.toLowerCase();
+                        return item.id.toLowerCase().includes(q) || item.customer.toLowerCase().includes(q) || item.type.toLowerCase().includes(q) || item.location.toLowerCase().includes(q);
+                      })
+                      .map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3 flex items-center space-x-2">
+                            <div className="w-6 h-6 rounded-lg bg-orange-50 flex items-center justify-center text-[#FF6B00]">
+                              <Package className="w-3.5 h-3.5" />
+                            </div>
+                            <button 
+                              onClick={() => {
+                                const found = shipments.find(s => s.id === item.id);
+                                if (found) {
+                                  setSelectedDetailShipment(found);
+                                } else {
+                                  setSelectedDetailShipment({
+                                    id: item.id,
+                                    trackingNumber: item.id,
+                                    origin: 'Changi Air Cargo Logistics Hub, Singapore',
+                                    destination: item.location + ', Singapore',
+                                    status: item.status,
+                                    carrier: 'Josan Logistics Roadways Express',
+                                    driverName: 'Raj Kumar',
+                                    vehicleNumber: 'SG-8819',
+                                    cargoType: item.type,
+                                    estimatedDelivery: item.eta
+                                  });
+                                }
+                              }}
+                              className="font-mono font-bold text-blue-600 hover:underline cursor-pointer"
+                              title="Click to view shipment details"
+                            >
+                              {item.id}
+                            </button>
+                          </td>
+                          <td className="py-3 text-slate-700">{item.type}</td>
+                          <td className="py-3">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              item.status === 'Delivered'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : item.status === 'In Transit'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-rose-100 text-rose-700'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="py-3 text-slate-600">{item.location}</td>
+                          <td className="py-3 text-right font-medium text-slate-500 font-mono">{item.eta}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* B. Live Fleet Tracking (Operations Control Center) */}
+            <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900">Live Fleet Tracking</h3>
+                    <p className="text-[11px] text-slate-400 font-medium">Singapore Highway Telematics Radar</p>
+                  </div>
+                  <button 
+                    onClick={() => setAdminTab('drivers')} 
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                  >
+                    All Fleet &rarr;
+                  </button>
+                </div>
+
+                {/* Truck Selector Tabs */}
+                <div className="flex items-center gap-1.5 mt-3 overflow-x-auto pb-1">
+                  {fleetVehiclesList.map((truck) => (
+                    <button
+                      key={truck.id}
+                      onClick={() => setSelectedFleetTruckId(truck.id)}
+                      className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                        selectedFleetTruckId === truck.id
+                          ? 'bg-[#0B132B] text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {truck.id}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Telematics Map & Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center pt-1">
+                {/* Singapore Route Map Canvas */}
+                <div className="sm:col-span-6 bg-[#0B132B] rounded-2xl border border-slate-800 p-3 relative h-48 overflow-hidden flex items-center justify-center shadow-inner">
+                  {/* Grid background effect */}
+                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px]"></div>
+                  
+                  <svg viewBox="0 0 200 120" className="w-full h-full relative z-10">
+                    {/* Singapore Mainland Silhouette */}
+                    <path d="M 20 60 Q 60 20 140 30 Q 180 40 190 70 Q 170 100 110 95 Q 40 100 20 60 Z" fill="#1E293B" opacity="0.8" stroke="#334155" strokeWidth="1" />
+                    
+                    {/* Expressway Corridor Line */}
+                    <path d="M 35 65 Q 85 45 125 55 T 165 75" fill="none" stroke="#3B82F6" strokeWidth="2.5" strokeDasharray="4 2" />
+                    
+                    {/* Origin Hub Marker */}
+                    <circle cx="35" cy="65" r="4" fill="#10B981" />
+                    <text x="35" y="80" fontSize="7" textAnchor="middle" fill="#94A3B8" fontWeight="bold">Jurong</text>
+
+                    {/* Destination Hub Marker */}
+                    <circle cx="165" cy="75" r="4" fill="#FF6B00" />
+                    <text x="165" y="90" fontSize="7" textAnchor="middle" fill="#94A3B8" fontWeight="bold">Changi</text>
+
+                    {/* Active Moving Truck Pulse */}
+                    <circle cx={activeFleetVehicle.truckX} cy={activeFleetVehicle.truckY} r="7" fill="#FF6B00" opacity="0.35" className="animate-ping" />
+                    <g transform={`translate(${activeFleetVehicle.truckX}, ${activeFleetVehicle.truckY})`}>
+                      <rect x="-9" y="-7" width="18" height="14" rx="3" fill="#FF6B00" stroke="#FFFFFF" strokeWidth="1" />
+                      <text x="0" y="3" fontSize="8" textAnchor="middle" fill="#FFFFFF">🚚</text>
+                    </g>
+                    
+                    <text x="100" y="112" fontSize="8" textAnchor="middle" fill="#64748B" fontWeight="bold" letterSpacing="1">SINGAPORE ROADWAYS</text>
+                  </svg>
+                </div>
+
+                {/* Telematics Details Panel */}
+                <div className="sm:col-span-6 space-y-2.5">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div>
+                      <span className="text-xs font-black text-slate-900 block">{activeFleetVehicle.name}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{activeFleetVehicle.type}</span>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                      item.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
+                      activeFleetVehicle.status === 'On Route' ? 'bg-emerald-100 text-emerald-700' :
+                      activeFleetVehicle.status === 'Idle' ? 'bg-slate-100 text-slate-700' :
+                      'bg-rose-100 text-rose-700'
                     }`}>
-                      {item.status}
+                      {activeFleetVehicle.status}
                     </span>
                   </div>
-                ))}
+
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Driver</span>
+                      <span className="font-bold text-slate-800">{activeFleetVehicle.driver}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Current Location</span>
+                      <span className="font-bold text-slate-800 truncate max-w-[120px]" title={activeFleetVehicle.currentLocation}>
+                        {activeFleetVehicle.currentLocation}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Destination</span>
+                      <span className="font-bold text-slate-800 truncate max-w-[120px]" title={activeFleetVehicle.destination}>
+                        {activeFleetVehicle.destination}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">ETA</span>
+                      <span className="font-bold text-slate-800 font-mono">{activeFleetVehicle.eta}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Speed / Cargo</span>
+                      <span className="font-bold text-emerald-600 font-mono">{activeFleetVehicle.speed}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-
-            {/* Operations Actions Card (Light Theme) */}
-            <div className="lg:col-span-4 bg-white text-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-6 border-t-4 border-t-orange-500">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 className="text-lg font-extrabold text-slate-900 font-sans">Operations Control Actions</h2>
-                <span className="text-[10px] font-extrabold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
-                  Quick Tasks
-                </span>
-              </div>
-              <div className="space-y-3 text-xs font-sans">
-                <button
-                  onClick={() => setAdminTab('orders')}
-                  className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold transition-all text-left flex items-center justify-between shadow-orange-sm cursor-pointer active:scale-95"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Package className="w-4 h-4" />
-                    <span>Dispatch New Order</span>
-                  </span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => { setAdminTab('drivers'); setIsAddDriverOpen(true); }}
-                  className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl font-extrabold border border-slate-200 transition-all text-left flex items-center justify-between cursor-pointer active:scale-95"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Truck className="w-4 h-4 text-orange-600" />
-                    <span>Register New Fleet Driver</span>
-                  </span>
-                  <Plus className="w-4 h-4 text-orange-600" />
-                </button>
-                <button
-                  onClick={handleDownloadPDFReport}
-                  className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl font-extrabold border border-slate-200 transition-all text-left flex items-center justify-between cursor-pointer active:scale-95"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Download className="w-4 h-4 text-orange-600" />
-                    <span>Generate Financial Audit Report</span>
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </button>
-                <button
-                  onClick={() => { setAdminTab('warehouses'); setIsAddWarehouseOpen(true); }}
-                  className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl font-extrabold border border-slate-200 transition-all text-left flex items-center justify-between cursor-pointer active:scale-95"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Warehouse className="w-4 h-4 text-orange-600" />
-                    <span>Add Warehouse Depot</span>
-                  </span>
-                  <Plus className="w-4 h-4 text-orange-600" />
-                </button>
-              </div>
-            </div>
-
           </div>
 
-          {/* Feature Widgets Row 2: Fleet Driver Roster Status & Warehouse Hub Storage Gauges */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Live Driver Readiness & Telemetry Panel */}
-            <div className="lg:col-span-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
-                    <Truck className="w-5 h-5" />
-                  </div>
+          {/* 5. MANAGEMENT SECTION */}
+          <div id="orders-management-section" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* A. Orders Management (col-span-4) */}
+            <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3.5 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-extrabold text-slate-900 text-base font-sans">Active Driver Readiness</h3>
-                    <p className="text-xs text-slate-500 font-medium">Real-time driver roster telemetry & duty assignments</p>
+                    <h3 className="text-sm font-extrabold text-slate-900">Orders Management</h3>
+                    <p className="text-[11px] text-slate-400 font-medium">Consignment dispatch queues</p>
                   </div>
+                  <button 
+                    onClick={() => setAdminTab('orders')} 
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                  >
+                    View All &rarr;
+                  </button>
                 </div>
-                <button onClick={() => setAdminTab('drivers')} className="text-xs font-bold text-orange-600 hover:underline">
-                  Manage Drivers ({drivers.length}) →
+
+                {/* Filter Tabs */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] font-bold">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'pending', label: 'Pending' },
+                    { id: 'assigned', label: 'Assigned' },
+                    { id: 'completed', label: 'Completed' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setOrderFilterTab(tab.id)}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                        orderFilterTab === tab.id
+                          ? 'bg-[#FF6B00] text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Orders Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px]">
+                    <thead>
+                      <tr className="text-slate-400 font-bold border-b border-slate-100">
+                        <th className="pb-2">Order ID</th>
+                        <th className="pb-2">Customer</th>
+                        <th className="pb-2">Type</th>
+                        <th className="pb-2">Status</th>
+                        <th className="pb-2 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {[
+                        { id: 'ORD1001', customer: 'ABC Trading Co.', type: 'Parcel', status: 'Pending' },
+                        { id: 'ORD1002', customer: 'Global Exports', type: 'Cargo', status: 'Assigned' },
+                        { id: 'ORD1003', customer: 'Sunrise Pte Ltd', type: 'Document', status: 'In Transit' },
+                        { id: 'ORD1004', customer: 'Tech Solutions', type: 'Parcel', status: 'Delivered' },
+                        { id: 'ORD1005', customer: 'Bright Logistics', type: 'Cargo', status: 'Delayed' },
+                      ]
+                        .filter(o => {
+                          if (orderFilterTab === 'pending') return o.status === 'Pending';
+                          if (orderFilterTab === 'assigned') return o.status === 'Assigned' || o.status === 'In Transit';
+                          if (orderFilterTab === 'completed') return o.status === 'Delivered';
+                          return true;
+                        })
+                        .filter(o => {
+                          if (!adminSearchQuery.trim()) return true;
+                          const q = adminSearchQuery.toLowerCase();
+                          return o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q) || o.type.toLowerCase().includes(q);
+                        })
+                        .map((ord) => (
+                          <tr key={ord.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-2 font-mono font-bold text-blue-600">
+                              <button 
+                                onClick={() => {
+                                  setSelectedDetailShipment({
+                                    id: ord.id,
+                                    trackingNumber: ord.id,
+                                    origin: 'Singapore Central Sorting Hub',
+                                    destination: 'Jurong Distribution Warehouse',
+                                    status: ord.status,
+                                    carrier: 'Josan Logistics Roadways',
+                                    driverName: 'Raj Kumar',
+                                    vehicleNumber: 'SG-8819',
+                                    cargoType: ord.type,
+                                    customerName: ord.customer
+                                  });
+                                }}
+                                className="hover:underline cursor-pointer"
+                              >
+                                #{ord.id}
+                              </button>
+                            </td>
+                            <td className="py-2 text-slate-800 font-medium truncate max-w-[85px]" title={ord.customer}>
+                              {ord.customer}
+                            </td>
+                            <td className="py-2 text-slate-500">{ord.type}</td>
+                            <td className="py-2">
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                ord.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                                ord.status === 'Assigned' ? 'bg-blue-100 text-blue-700' :
+                                ord.status === 'In Transit' ? 'bg-blue-100 text-blue-700' :
+                                ord.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
+                                'bg-rose-100 text-rose-700'
+                              }`}>
+                                {ord.status}
+                              </span>
+                            </td>
+                            <td className="py-2 text-right">
+                              <button 
+                                onClick={() => {
+                                  setSelectedDetailShipment({
+                                    id: ord.id,
+                                    trackingNumber: ord.id,
+                                    origin: 'Singapore Central Sorting Hub',
+                                    destination: 'Jurong Distribution Warehouse',
+                                    status: ord.status,
+                                    carrier: 'Josan Logistics Roadways',
+                                    driverName: 'Raj Kumar',
+                                    vehicleNumber: 'SG-8819',
+                                    cargoType: ord.type,
+                                    customerName: ord.customer
+                                  });
+                                }}
+                                className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-[10px] cursor-pointer transition-colors"
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* B. Top Customers (col-span-4) */}
+            <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900">Top Customers</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Singapore enterprise road accounts</p>
+                </div>
+                <button 
+                  onClick={() => setAdminTab('customers')} 
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                >
+                  View All &rarr;
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl flex items-center justify-between">
-                  <div>
-                    <span className="text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider block">Available Roster</span>
-                    <span className="text-xl font-extrabold text-emerald-900 font-sans">{drivers.filter(d => d.status === 'Available').length} Drivers</span>
-                  </div>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                </div>
-                <div className="p-3 bg-orange-50 border border-orange-200/80 rounded-2xl flex items-center justify-between">
-                  <div>
-                    <span className="text-orange-800 text-[10px] font-extrabold uppercase tracking-wider block">On Active Delivery</span>
-                    <span className="text-xl font-extrabold text-orange-900 font-sans">{drivers.filter(d => d.status !== 'Available').length} Drivers</span>
-                  </div>
-                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-1">
-                {drivers.slice(0, 3).map((driver) => (
-                  <div key={driver.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200/80 hover:border-orange-300 transition-colors text-xs">
+              <div className="space-y-2.5">
+                {[
+                  { rank: 1, initial: 'G', name: 'Global Exports', count: 42, color: 'bg-blue-600' },
+                  { rank: 2, initial: 'A', name: 'ABC Trading Co.', count: 31, color: 'bg-indigo-600' },
+                  { rank: 3, initial: 'S', name: 'Sunrise Pte Ltd', count: 26, color: 'bg-sky-600' },
+                  { rank: 4, initial: 'T', name: 'Tech Solutions', count: 19, color: 'bg-teal-600' },
+                  { rank: 5, initial: 'B', name: 'Bright Logistics', count: 15, color: 'bg-emerald-600' },
+                ].map((c) => (
+                  <div key={c.rank} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors text-xs">
                     <div className="flex items-center space-x-3">
-                      <img src={driver.photo} alt={driver.name} className="w-10 h-10 rounded-full object-cover border border-orange-400 shrink-0" />
-                      <div>
-                        <span className="font-extrabold text-slate-900 block font-sans">{driver.name}</span>
-                        <span className="text-slate-500 text-[11px] font-medium">{driver.vehicleType}</span>
+                      <span className="text-slate-400 font-mono text-[11px] font-bold">{c.rank}</span>
+                      <div className={`w-7 h-7 rounded-full ${c.color} text-white font-bold text-xs flex items-center justify-center shadow-xs`}>
+                        {c.initial}
                       </div>
+                      <span className="font-bold text-slate-800">{c.name}</span>
                     </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                      driver.status === 'Available' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-orange-100 text-orange-800 border border-orange-200'
-                    }`}>
-                      ● {driver.status}
-                    </span>
+                    <span className="font-semibold text-slate-600 text-[11px] font-mono">{c.count} shipments</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Warehouse Capacity & Dispatch Throughput Gauge Panel */}
-            <div className="lg:col-span-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
-                    <Warehouse className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-slate-900 text-base font-sans">Regional Warehouse Storage</h3>
-                    <p className="text-xs text-slate-500 font-medium">Storage capacity utilization & parcel throughput</p>
-                  </div>
+            {/* C. Recent Activity (IMPORTANT UX) (col-span-4) */}
+            <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900">Recent Activity</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Live operational dispatch audit log</p>
                 </div>
-                <button onClick={() => setAdminTab('warehouses')} className="text-xs font-bold text-orange-600 hover:underline">
-                  View Hubs ({warehouses.length}) →
+                <button 
+                  onClick={() => setAdminTab('orders')} 
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                >
+                  View All &rarr;
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {warehouses.slice(0, 3).map((wh) => (
-                  <div key={wh.id} className="space-y-2 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-extrabold text-slate-900 truncate font-sans">{wh.name}</span>
-                      <span className="font-mono text-orange-600 font-extrabold text-xs">{wh.capacityPercentage}% Capacity</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                      <div className="bg-orange-gradient h-full rounded-full transition-all duration-500" style={{ width: `${wh.capacityPercentage}%` }}></div>
-                    </div>
-                    <div className="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
-                      <span>Manager: <strong className="text-slate-700 font-bold">{wh.manager}</strong></span>
-                      <span className="text-slate-700 font-semibold">{wh.activeParcels} Active Parcels</span>
+              <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 text-xs">
+                {[
+                  {
+                    id: 1,
+                    prefix: 'Order',
+                    entityId: 'ORD1023',
+                    suffix: 'assigned to Driver Raj Kumar',
+                    time: 'Sep 21, 2026, 10:32 AM',
+                    color: 'bg-indigo-500'
+                  },
+                  {
+                    id: 2,
+                    prefix: 'Shipment',
+                    entityId: 'JL47839187',
+                    suffix: 'departed Changi Air Cargo Hub (in transit to Jurong)',
+                    time: 'Sep 21, 2026, 09:15 AM',
+                    color: 'bg-blue-500'
+                  },
+                  {
+                    id: 3,
+                    prefix: 'Shipment',
+                    entityId: 'JL47839176',
+                    suffix: 'delivered successfully to Tuas Industrial Complex',
+                    time: 'Sep 21, 2026, 08:45 AM',
+                    color: 'bg-emerald-500'
+                  },
+                  {
+                    id: 4,
+                    prefix: 'New order',
+                    entityId: 'ORD1025',
+                    suffix: 'received from Bright Logistics (awaiting dispatch)',
+                    time: 'Sep 21, 2026, 08:12 AM',
+                    color: 'bg-[#FF6B00]'
+                  },
+                  {
+                    id: 5,
+                    prefix: 'Shipment',
+                    entityId: 'JL47839162',
+                    suffix: 'flagged weather delay on PIE Expressway',
+                    time: 'Sep 21, 2026, 07:30 AM',
+                    color: 'bg-rose-500'
+                  },
+                ].map((item) => (
+                  <div key={item.id} className="relative">
+                    <span className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full ${item.color} ring-4 ring-white`}></span>
+                    <div>
+                      <p className="font-medium text-slate-800 leading-snug">
+                        {item.prefix}{' '}
+                        <button
+                          onClick={() => {
+                            const found = shipments.find(s => s.id === item.entityId);
+                            if (found) {
+                              setSelectedDetailShipment(found);
+                            } else {
+                              setSelectedDetailShipment({
+                                id: item.entityId,
+                                trackingNumber: item.entityId,
+                                origin: 'Changi Air Cargo Logistics Hub, Singapore',
+                                destination: 'Jurong East Industrial Park, Singapore',
+                                status: item.color.includes('emerald') ? 'Delivered' : item.color.includes('rose') ? 'Delayed' : 'In Transit',
+                                carrier: 'Josan Logistics Express Haulage',
+                                driverName: 'Raj Kumar',
+                                vehicleNumber: 'SG-8819',
+                                cargoType: 'Express Consignment',
+                                estimatedDelivery: 'Sep 21, 2026'
+                              });
+                            }
+                          }}
+                          className="font-mono font-bold text-blue-600 hover:underline cursor-pointer inline-flex items-center"
+                          title="Click to view details"
+                        >
+                          #{item.entityId}
+                        </button>{' '}
+                        {item.suffix}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5 font-mono">{item.time}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-
           </div>
 
         </div>
@@ -2225,6 +3580,569 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
       )}
 
       {/* ========================================== */}
+      {/* FLEET MODULE: FLEET VEHICLES & ROAD ASSETS (adminTab === 'fleet') */}
+      {/* ========================================== */}
+      {adminTab === 'fleet' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6 animate-fade-in">
+          
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                  Fleet Telematics & Road Assets
+                </span>
+                <span className="text-xs font-bold text-slate-500 font-mono">
+                  {fleetVehicles.length} Registered Commercial Vehicles
+                </span>
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Fleet Vehicles & Road Asset Management</h2>
+              <p className="text-xs text-slate-500">
+                Live expressway telematics, assigned drivers, duty status, payload capacity load, and LTA preventive maintenance across Singapore road logistics.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  showToast('Syncing real-time telematics from Singapore road sensors...', 'info');
+                  setTimeout(() => {
+                    showToast('All 8 vehicle GPS feeds & OBD-II sensors synchronized.', 'success');
+                  }, 600);
+                }}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+                <span>Sync Telematics</span>
+              </button>
+              <button
+                onClick={() => setIsAddVehicleModalOpen(true)}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Vehicle</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Operational Fleet KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total Commercial Fleet</span>
+                <div className="w-7 h-7 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                  <Truck className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline space-x-2">
+                <span className="text-2xl font-black text-slate-900 font-sans">{fleetVehicles.length}</span>
+                <span className="text-[11px] font-bold text-slate-400">Assets</span>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-600 flex items-center mt-1">
+                ✓ 100% LTA Road Tax & Inspection Active
+              </span>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Active On Route</span>
+                <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline space-x-2">
+                <span className="text-2xl font-black text-emerald-600 font-sans">
+                  {fleetVehicles.filter(v => v.status === 'On Route').length}
+                </span>
+                <span className="text-[11px] font-bold text-slate-400">Delivering</span>
+              </div>
+              <span className="text-[10px] font-bold text-slate-500 flex items-center mt-1">
+                In Transit on SG Expressways (AYE, PIE, SLE, KPE)
+              </span>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Available / Standby</span>
+                <div className="w-7 h-7 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline space-x-2">
+                <span className="text-2xl font-black text-blue-600 font-sans">
+                  {fleetVehicles.filter(v => v.status === 'Available').length}
+                </span>
+                <span className="text-[11px] font-bold text-slate-400">Ready</span>
+              </div>
+              <span className="text-[10px] font-bold text-slate-500 flex items-center mt-1">
+                Staged at Changi, Tuas & Pasir Panjang Hubs
+              </span>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Workshop Service</span>
+                <div className="w-7 h-7 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline space-x-2">
+                <span className="text-2xl font-black text-amber-600 font-sans">
+                  {fleetVehicles.filter(v => v.status === 'Maintenance').length}
+                </span>
+                <span className="text-[11px] font-bold text-slate-400">In Bay</span>
+              </div>
+              <span className="text-[10px] font-bold text-amber-600 flex items-center mt-1">
+                Scheduled 50,000 km Maintenance
+              </span>
+            </div>
+          </div>
+
+          {/* Search and Status Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            {/* Status Filter Tabs */}
+            <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0">
+              {['All', 'On Route', 'Available', 'Maintenance'].map((tab) => {
+                const count = tab === 'All' 
+                  ? fleetVehicles.length 
+                  : fleetVehicles.filter(v => v.status === tab).length;
+                const isTabActive = fleetFilterTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setFleetFilterTab(tab)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 whitespace-nowrap ${
+                      isTabActive
+                        ? 'bg-[#FF6B00] text-white shadow-2xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
+                    }`}
+                  >
+                    <span>{tab}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                      isTabActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={fleetSearchQuery}
+                onChange={(e) => setFleetSearchQuery(e.target.value)}
+                placeholder="Search plate, model, driver, hub..."
+                className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all shadow-2xs"
+              />
+              {fleetSearchQuery && (
+                <button
+                  onClick={() => setFleetSearchQuery('')}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Vehicle Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-5">
+            {fleetVehicles
+              .filter(veh => {
+                const matchesStatus = fleetFilterTab === 'All' || veh.status === fleetFilterTab;
+                const q = fleetSearchQuery.toLowerCase().trim();
+                const matchesSearch = !q ||
+                  veh.plateNumber.toLowerCase().includes(q) ||
+                  veh.model.toLowerCase().includes(q) ||
+                  veh.driver.toLowerCase().includes(q) ||
+                  veh.category.toLowerCase().includes(q) ||
+                  veh.currentLocation.toLowerCase().includes(q) ||
+                  veh.hub.toLowerCase().includes(q);
+                return matchesStatus && matchesSearch;
+              })
+              .map((veh) => {
+                const isOnline = veh.status === 'On Route';
+                const isAvailable = veh.status === 'Available';
+                const isMaintenance = veh.status === 'Maintenance';
+
+                return (
+                  <div 
+                    key={veh.id} 
+                    className="bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-4 hover:shadow-md transition-shadow relative"
+                  >
+                    {/* Card Header: Plate Badge, Category & Live Status */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="bg-slate-900 text-white font-mono font-black text-xs px-2.5 py-1 rounded-lg border-l-4 border-orange-500 shadow-2xs tracking-wider">
+                            {veh.plateNumber}
+                          </span>
+                          <span className="text-[10px] font-extrabold uppercase tracking-wide bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                            {veh.category}
+                          </span>
+                        </div>
+                        <h4 className="font-extrabold text-slate-900 text-sm mt-1.5 font-sans">
+                          {veh.model}
+                        </h4>
+                      </div>
+
+                      {/* Status Badge */}
+                      <button
+                        onClick={() => toggleVehicleStatus(veh.id)}
+                        title="Click to toggle status"
+                        className={`px-3 py-1 rounded-full text-xs font-extrabold transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0 ${
+                          isOnline 
+                            ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' 
+                            : isAvailable 
+                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' 
+                            : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                        }`}
+                      >
+                        {isOnline && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                        )}
+                        {isAvailable && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                        {isMaintenance && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
+                        <span>{veh.status}</span>
+                      </button>
+                    </div>
+
+                    {/* Driver & Assignment Details */}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={veh.driverPhoto}
+                          alt={veh.driver}
+                          className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-2xs"
+                        />
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Assigned Driver</span>
+                          <span className="font-extrabold text-slate-900">{veh.driver}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Depot Hub</span>
+                        <span className="font-bold text-slate-700 truncate max-w-[140px] block">{veh.hub}</span>
+                      </div>
+                    </div>
+
+                    {/* Real-time Location & Route Info */}
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                        <span className="text-slate-500 font-semibold truncate">
+                          <strong className="text-slate-800">Current:</strong> {veh.currentLocation}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2 pl-5">
+                        <span className="text-[11px] text-slate-400 font-mono">&rarr;</span>
+                        <span className="text-slate-500 font-semibold truncate text-[11px]">
+                          <strong className="text-slate-800">Heading to:</strong> {veh.destination}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Telematics Bar & Indicators */}
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 text-center text-xs">
+                      <div className="bg-white p-2 rounded-xl border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Speed</span>
+                        <span className="font-mono font-extrabold text-slate-900">{veh.speed}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded-xl border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">
+                          {veh.fuelType.includes('EV') ? 'Battery' : 'Fuel'}
+                        </span>
+                        <span className={`font-mono font-extrabold ${
+                          veh.fuel > 50 ? 'text-emerald-600' : 'text-amber-600'
+                        }`}>
+                          {veh.fuel}%
+                        </span>
+                      </div>
+                      <div className="bg-white p-2 rounded-xl border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Capacity</span>
+                        <span className="font-mono font-extrabold text-slate-900">{veh.capacity}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar for Load Capacity */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500 font-semibold">Load Utilization:</span>
+                        <span className="font-mono font-extrabold text-slate-800">{veh.currentLoad}</span>
+                      </div>
+                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all ${
+                            isOnline ? 'bg-orange-500' : isAvailable ? 'bg-blue-500' : 'bg-amber-500'
+                          }`}
+                          style={{ 
+                            width: veh.currentLoad.includes('80%') 
+                              ? '80%' 
+                              : veh.currentLoad.includes('88%') 
+                              ? '88%' 
+                              : veh.currentLoad.includes('68%') 
+                              ? '68%' 
+                              : '5%' 
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Card Footer Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                      <button
+                        onClick={() => setSelectedVehicleForModal(veh)}
+                        className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center space-x-1 cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Live Telematics & Diagnostic</span>
+                      </button>
+
+                      <button
+                        onClick={() => toggleVehicleStatus(veh.id)}
+                        className="px-3 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-2xs"
+                      >
+                        Change Status &rarr;
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          {/* Diagnostic Telematics Modal */}
+          {selectedVehicleForModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-100 space-y-5 animate-scale-in">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="bg-slate-900 text-white font-mono font-black text-xs px-2.5 py-1 rounded-lg border-l-4 border-orange-500">
+                        {selectedVehicleForModal.plateNumber}
+                      </span>
+                      <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                        {selectedVehicleForModal.category}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-extrabold text-slate-900 mt-1">
+                      {selectedVehicleForModal.model}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setSelectedVehicleForModal(null)}
+                    className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Engine Status</span>
+                      <span className="font-extrabold text-emerald-600">{selectedVehicleForModal.engineHealth}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Tyre Pressure</span>
+                      <span className="font-extrabold text-slate-900">{selectedVehicleForModal.tirePressure}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Fuel / Battery Type</span>
+                      <span className="font-extrabold text-slate-900">{selectedVehicleForModal.fuelType} ({selectedVehicleForModal.fuel}%)</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">LTA Inspection Due</span>
+                      <span className="font-extrabold text-slate-900">{selectedVehicleForModal.nextInspection}</span>
+                    </div>
+                  </div>
+
+                  {selectedVehicleForModal.cabinTemp && (
+                    <div className="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                      <span className="text-blue-600 font-bold block text-[10px] uppercase">Cold Chain Cargo Temp</span>
+                      <span className="font-mono font-extrabold text-blue-900 text-sm">{selectedVehicleForModal.cabinTemp}</span>
+                    </div>
+                  )}
+
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <span className="text-slate-400 font-bold block text-[10px] uppercase">Live Road Coordinates</span>
+                    <p className="font-semibold text-slate-800">{selectedVehicleForModal.currentLocation}</p>
+                    <p className="text-[11px] text-slate-500">Destination: {selectedVehicleForModal.destination} (ETA: {selectedVehicleForModal.eta})</p>
+                  </div>
+
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Assigned Roster Driver</span>
+                      <span className="font-extrabold text-slate-900">{selectedVehicleForModal.driver}</span>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-slate-600">{selectedVehicleForModal.speed}</span>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      toggleVehicleStatus(selectedVehicleForModal.id);
+                      setSelectedVehicleForModal(null);
+                    }}
+                    className="w-1/2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer text-xs"
+                  >
+                    Toggle Duty Status
+                  </button>
+                  <button
+                    onClick={() => setSelectedVehicleForModal(null)}
+                    className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer text-xs"
+                  >
+                    Close Telematics
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Add New Commercial Vehicle Modal */}
+          {isAddVehicleModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Add Commercial Vehicle</h3>
+                    <p className="text-xs text-slate-500">Register road haulage asset to Singapore fleet</p>
+                  </div>
+                  <button
+                    onClick={() => setIsAddVehicleModalOpen(false)}
+                    className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddVehicle} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Singapore License Plate *</label>
+                    <input
+                      type="text"
+                      value={newVehicleData.plateNumber}
+                      onChange={(e) => setNewVehicleData({ ...newVehicleData, plateNumber: e.target.value })}
+                      placeholder="e.g. SG-9120 or FL-450"
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 text-xs focus-orange"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Make & Model *</label>
+                    <input
+                      type="text"
+                      value={newVehicleData.model}
+                      onChange={(e) => setNewVehicleData({ ...newVehicleData, model: e.target.value })}
+                      placeholder="e.g. Scania R500 / Isuzu 24ft / BYD T3"
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 text-xs focus-orange"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Category</label>
+                      <select
+                        value={newVehicleData.category}
+                        onChange={(e) => setNewVehicleData({ ...newVehicleData, category: e.target.value })}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 text-xs focus-orange"
+                      >
+                        <option value="Heavy Haulage">Heavy Haulage</option>
+                        <option value="Cold Chain Haulage">Cold Chain Haulage</option>
+                        <option value="EV Express Delivery">EV Express Delivery</option>
+                        <option value="Container Haulage">Container Haulage</option>
+                        <option value="Medium Cargo Hauler">Medium Cargo Hauler</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Fuel / Power</label>
+                      <select
+                        value={newVehicleData.fuelType}
+                        onChange={(e) => setNewVehicleData({ ...newVehicleData, fuelType: e.target.value })}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 text-xs focus-orange"
+                      >
+                        <option value="Diesel">Diesel</option>
+                        <option value="Electric (EV)">Electric (EV)</option>
+                        <option value="Hybrid">Hybrid</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Max Payload (kg)</label>
+                      <input
+                        type="text"
+                        value={newVehicleData.capacity}
+                        onChange={(e) => setNewVehicleData({ ...newVehicleData, capacity: e.target.value })}
+                        placeholder="e.g. 15,000"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 text-xs focus-orange"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Assigned Driver</label>
+                      <input
+                        type="text"
+                        value={newVehicleData.driver}
+                        onChange={(e) => setNewVehicleData({ ...newVehicleData, driver: e.target.value })}
+                        placeholder="e.g. David Tan"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 text-xs focus-orange"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Assigned Home Hub</label>
+                    <select
+                      value={newVehicleData.hub}
+                      onChange={(e) => setNewVehicleData({ ...newVehicleData, hub: e.target.value })}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 text-xs focus-orange"
+                    >
+                      <option value="Changi Air Cargo Logistics Hub">Changi Air Cargo Logistics Hub</option>
+                      <option value="Tuas Megaport">Tuas Megaport</option>
+                      <option value="Jurong Hub">Jurong Hub</option>
+                      <option value="Pasir Panjang Depot">Pasir Panjang Depot</option>
+                      <option value="Woodlands Depot">Woodlands Depot</option>
+                    </select>
+                  </div>
+
+                  <div className="flex space-x-2 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddVehicleModalOpen(false)}
+                      className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="w-1/2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer"
+                    >
+                      Add to Fleet
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* ========================================== */}
       {/* CRM MODULE: LEADS & PIPELINE (adminTab === 'crm_leads') */}
       {/* ========================================== */}
       {adminTab === 'crm_leads' && (
@@ -3227,7 +5145,9 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                     <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
                     <Tooltip 
                       formatter={(val) => [`S$ ${Number(val).toLocaleString()}`, 'Estimated Value']}
-                      contentStyle={{ backgroundColor: '#10182D', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                      contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}
+                      itemStyle={{ color: '#F8FAFC' }}
+                      labelStyle={{ color: '#94A3B8', fontWeight: 600 }}
                     />
                     <Bar dataKey="value" fill="#FF6B00" radius={[6, 6, 0, 0]} />
                   </BarChart>
@@ -3262,7 +5182,19 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                       })}
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#10182D', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0];
+                          return (
+                            <div className="bg-slate-900 border border-slate-700 px-3.5 py-2 rounded-xl shadow-2xl text-xs flex items-center gap-2 pointer-events-none">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: data.payload?.fill || data.color || '#FF6B00' }} />
+                              <span className="text-slate-200 font-semibold">{data.name}:</span>
+                              <span className="font-bold text-white font-mono">{data.value}</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -3348,7 +5280,7 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
             <div>
               <div className="flex items-center space-x-2">
                 <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
-                  Client Directory & Protected CRM
+                  Client Directory & Accounts
                 </span>
                 <span className="text-xs font-bold text-slate-500 font-mono">
                   {customers.length} Enterprise Accounts
@@ -3856,7 +5788,12 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                     <XAxis dataKey="month" stroke="#64748B" />
                     <YAxis stroke="#64748B" />
-                    <Tooltip formatter={(value) => [`S$ ${Number(value).toLocaleString()}`, 'Revenue']} />
+                    <Tooltip 
+                      formatter={(value) => [`S$ ${Number(value).toLocaleString()}`, 'Revenue']} 
+                      contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}
+                      itemStyle={{ color: '#F8FAFC' }}
+                      labelStyle={{ color: '#94A3B8', fontWeight: 600 }}
+                    />
                     <Line type="monotone" dataKey="revenue" stroke="#F26722" strokeWidth={3} dot={{ fill: '#F26722', r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -3873,7 +5810,12 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                       <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                       <XAxis dataKey="reason" stroke="#64748B" />
                       <YAxis stroke="#64748B" />
-                      <Tooltip />
+                      <Tooltip 
+                        formatter={(value) => [`${value}%`, 'Percentage']}
+                        contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}
+                        itemStyle={{ color: '#F8FAFC' }}
+                        labelStyle={{ color: '#94A3B8', fontWeight: 600 }}
+                      />
                       <Bar dataKey="percentage" fill="#F26722" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -3902,6 +5844,584 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
           </div>
         </div>
       )}
+
+      {/* ========================================== */}
+      {/* SETTINGS MODULE: PLATFORM & SYSTEM CONFIGURATION (adminTab === 'settings') */}
+      {/* ========================================== */}
+      {adminTab === 'settings' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6 animate-fade-in">
+          
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                  System Configuration & Governance
+                </span>
+                <span className="text-xs font-bold text-slate-500 font-mono">
+                  Singapore Regional Ops
+                </span>
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Admin Portal & Operations Settings</h2>
+              <p className="text-xs text-slate-500">
+                Configure Singapore dispatch rules, fleet telematics polling rates, company legal profile, security credentials, and system alerts.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setCompanySettings({
+                    companyName: 'Josan Logistics Pte. Ltd.',
+                    uen: '201829481K',
+                    gstReg: 'M90382910X',
+                    contactEmail: 'operations@josanlogistics.com',
+                    supportPhone: '+65 6789 1234',
+                    address: '7 Changi South Street 2, #03-01 Changi Logistics Centre, Singapore 486415',
+                    currency: 'SGD ($)',
+                    timezone: 'Asia/Singapore (UTC+8)',
+                    operatingRegion: 'Singapore Domestic & Port Corridors',
+                  });
+                  showToast('Settings reset to default operational values.', 'info');
+                }}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+                <span>Reset Defaults</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>Save All Changes</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Settings Section Tabs */}
+          <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto text-xs font-bold">
+            {[
+              { id: 'general', label: 'Company & Profile', icon: Building2 },
+              { id: 'telematics', label: 'Fleet & Road Dispatch', icon: Truck },
+              { id: 'security', label: 'Security & Access', icon: Shield },
+              { id: 'notifications', label: 'Alerts & Notifications', icon: Bell },
+            ].map((tab) => {
+              const TabIcon = tab.icon;
+              const isActive = settingsActiveTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSettingsActiveTab(tab.id)}
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
+                    isActive
+                      ? 'bg-[#FF6B00] text-white shadow-2xs font-extrabold'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  <TabIcon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* TAB 1: COMPANY & PROFILE SETTINGS */}
+          {settingsActiveTab === 'general' && (
+            <div className="space-y-6 animate-fade-in text-xs">
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+                  <Building2 className="w-4 h-4 text-orange-600" />
+                  <h3 className="text-sm font-extrabold text-slate-900">Legal Entity & Singapore Registration</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Company Legal Name</label>
+                    <input
+                      type="text"
+                      value={companySettings.companyName}
+                      onChange={(e) => setCompanySettings({ ...companySettings, companyName: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Singapore UEN (ACRA)</label>
+                    <input
+                      type="text"
+                      value={companySettings.uen}
+                      onChange={(e) => setCompanySettings({ ...companySettings, uen: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">IRAS GST Registration</label>
+                    <input
+                      type="text"
+                      value={companySettings.gstReg}
+                      onChange={(e) => setCompanySettings({ ...companySettings, gstReg: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Operations Contact Email</label>
+                    <input
+                      type="email"
+                      value={companySettings.contactEmail}
+                      onChange={(e) => setCompanySettings({ ...companySettings, contactEmail: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Dispatch Hotline Phone</label>
+                    <input
+                      type="text"
+                      value={companySettings.supportPhone}
+                      onChange={(e) => setCompanySettings({ ...companySettings, supportPhone: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Operating Region</label>
+                    <input
+                      type="text"
+                      value={companySettings.operatingRegion}
+                      onChange={(e) => setCompanySettings({ ...companySettings, operatingRegion: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs"
+                    />
+                  </div>
+                  <div className="md:col-span-2 lg:col-span-3">
+                    <label className="block text-slate-700 font-bold mb-1">HQ Operating Depot Address</label>
+                    <input
+                      type="text"
+                      value={companySettings.address}
+                      onChange={(e) => setCompanySettings({ ...companySettings, address: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+                  <Globe className="w-4 h-4 text-orange-600" />
+                  <h3 className="text-sm font-extrabold text-slate-900">Regional Localization & Currency</h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Operational Base Currency</label>
+                    <select
+                      value={companySettings.currency}
+                      onChange={(e) => setCompanySettings({ ...companySettings, currency: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange cursor-pointer shadow-2xs"
+                    >
+                      <option value="SGD ($)">Singapore Dollar (SGD - $)</option>
+                      <option value="USD ($)">US Dollar (USD - $)</option>
+                      <option value="MYR (RM)">Malaysian Ringgit (MYR - RM)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Platform Timezone</label>
+                    <select
+                      value={companySettings.timezone}
+                      onChange={(e) => setCompanySettings({ ...companySettings, timezone: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange cursor-pointer shadow-2xs"
+                    >
+                      <option value="Asia/Singapore (UTC+8)">Singapore Time (SGT, UTC+8)</option>
+                      <option value="UTC">Coordinated Universal Time (UTC)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer flex items-center space-x-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save General Profile</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: FLEET & ROAD DISPATCH SETTINGS */}
+          {settingsActiveTab === 'telematics' && (
+            <div className="space-y-6 animate-fade-in text-xs">
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+                  <Truck className="w-4 h-4 text-orange-600" />
+                  <h3 className="text-sm font-extrabold text-slate-900">Telematics & GPS Tracking Thresholds</h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">GPS Telematics Polling</label>
+                    <select
+                      value={telematicsSettings.gpsRefreshInterval}
+                      onChange={(e) => setTelematicsSettings({ ...telematicsSettings, gpsRefreshInterval: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange cursor-pointer shadow-2xs"
+                    >
+                      <option value="5">Every 5 Seconds (High Precision)</option>
+                      <option value="10">Every 10 Seconds (Recommended)</option>
+                      <option value="30">Every 30 Seconds</option>
+                      <option value="60">Every 60 Seconds</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Speed Limit Flag (Expressway)</label>
+                    <select
+                      value={telematicsSettings.speedThreshold}
+                      onChange={(e) => setTelematicsSettings({ ...telematicsSettings, speedThreshold: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange cursor-pointer shadow-2xs"
+                    >
+                      <option value="60">60 km/h (Industrial Zones)</option>
+                      <option value="70">70 km/h (Heavy Haulage Default)</option>
+                      <option value="80">80 km/h (Light Goods Commercial)</option>
+                      <option value="90">90 km/h (Strict Max)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Geofence Arrival Radius</label>
+                    <select
+                      value={telematicsSettings.geofenceRadius}
+                      onChange={(e) => setTelematicsSettings({ ...telematicsSettings, geofenceRadius: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange cursor-pointer shadow-2xs"
+                    >
+                      <option value="200">200 meters (Precise Depot Bay)</option>
+                      <option value="500">500 meters (Standard Hub Staging)</option>
+                      <option value="1000">1000 meters (Early Pre-Alert)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Cold-Chain Temp Breach Alert</label>
+                    <select
+                      value={telematicsSettings.reeferTempThreshold}
+                      onChange={(e) => setTelematicsSettings({ ...telematicsSettings, reeferTempThreshold: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange cursor-pointer shadow-2xs"
+                    >
+                      <option value="-14.0">Above -14.0°C (Frozen Goods Alert)</option>
+                      <option value="-16.0">Above -16.0°C (Recommended)</option>
+                      <option value="-18.0">Above -18.0°C (Deep Freeze)</option>
+                      <option value="4.0">Above 4.0°C (Chilled Reefer)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Operational Dispatch Toggles */}
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-3">
+                <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-200 pb-3">
+                  Automated Road Dispatch Rules
+                </h3>
+
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+                    <div>
+                      <p className="font-extrabold text-slate-900">Auto-Assign Nearby Available Drivers</p>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Automatically match new confirmed shipments to available drivers stationed at the originating Singapore hub.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTelematicsSettings({ ...telematicsSettings, autoAssignDriver: !telematicsSettings.autoAssignDriver })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
+                        telematicsSettings.autoAssignDriver ? 'bg-[#FF6B00] justify-end' : 'bg-slate-300 justify-start'
+                      }`}
+                    >
+                      <span className="bg-white w-4 h-4 rounded-full shadow-md"></span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+                    <div>
+                      <p className="font-extrabold text-slate-900">Live Expressway Incident & Weather Monitoring</p>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Feed real-time traffic slowdowns along AYE, PIE, SLE, and KPE corridors into driver ETA forecasts.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTelematicsSettings({ ...telematicsSettings, expresswayMonitoring: !telematicsSettings.expresswayMonitoring })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
+                        telematicsSettings.expresswayMonitoring ? 'bg-[#FF6B00] justify-end' : 'bg-slate-300 justify-start'
+                      }`}
+                    >
+                      <span className="bg-white w-4 h-4 rounded-full shadow-md"></span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+                    <div>
+                      <p className="font-extrabold text-slate-900">Night Haulage Dispatch & Driver Rest Alerts</p>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Flag heavy prime movers operating between 10:00 PM and 06:00 AM to ensure MOM Singapore rest compliance.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTelematicsSettings({ ...telematicsSettings, nightHaulageAlert: !telematicsSettings.nightHaulageAlert })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
+                        telematicsSettings.nightHaulageAlert ? 'bg-[#FF6B00] justify-end' : 'bg-slate-300 justify-start'
+                      }`}
+                    >
+                      <span className="bg-white w-4 h-4 rounded-full shadow-md"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer flex items-center space-x-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Telematics Rules</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: SECURITY & ACCESS SETTINGS */}
+          {settingsActiveTab === 'security' && (
+            <div className="space-y-6 animate-fade-in text-xs">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Admin Profile Details */}
+                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                  <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+                    <Shield className="w-4 h-4 text-orange-600" />
+                    <h3 className="text-sm font-extrabold text-slate-900">Authenticated Admin Session</h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Logged In Admin</span>
+                        <span className="font-extrabold text-slate-900 text-sm">Darren Josan</span>
+                      </div>
+                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black uppercase">
+                        Super Admin
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Security ID & Contact</span>
+                      <span className="font-mono font-bold text-slate-800">admin@josanlogistics.com</span>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Last login verified via 2FA from Singapore Regional IP</p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-slate-900">Two-Factor Authentication (2FA)</span>
+                        <button
+                          type="button"
+                          onClick={() => setSecuritySettings({ ...securitySettings, twoFactorAuth: !securitySettings.twoFactorAuth })}
+                          className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
+                            securitySettings.twoFactorAuth ? 'bg-[#FF6B00] justify-end' : 'bg-slate-300 justify-start'
+                          }`}
+                        >
+                          <span className="bg-white w-4 h-4 rounded-full shadow-md"></span>
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Requires authenticator app code on login for all admin accounts.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Change Password Form */}
+                <form onSubmit={handleUpdateAdminPassword} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                  <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+                    <Key className="w-4 h-4 text-orange-600" />
+                    <h3 className="text-sm font-extrabold text-slate-900">Update Super Admin Password</h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Current Password</label>
+                      <input
+                        type="password"
+                        value={adminPasswordForm.currentPassword}
+                        onChange={(e) => setAdminPasswordForm({ ...adminPasswordForm, currentPassword: e.target.value })}
+                        placeholder="Enter current password..."
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">New Password</label>
+                      <input
+                        type="password"
+                        value={adminPasswordForm.newPassword}
+                        onChange={(e) => setAdminPasswordForm({ ...adminPasswordForm, newPassword: e.target.value })}
+                        placeholder="Minimum 8 characters with numbers..."
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Confirm New Password</label>
+                      <input
+                        type="password"
+                        value={adminPasswordForm.confirmPassword}
+                        onChange={(e) => setAdminPasswordForm({ ...adminPasswordForm, confirmPassword: e.target.value })}
+                        placeholder="Re-type new password..."
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-extrabold transition-all shadow-2xs cursor-pointer"
+                    >
+                      Update Password
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Security Governance Toggles */}
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-3">
+                <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-200 pb-3">
+                  Security Governance & Session Policies
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+                    <div>
+                      <p className="font-extrabold text-slate-900">Enforce Digital POD Signatures</p>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Drivers cannot complete a delivery without client digital sign-off and photo proof.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSecuritySettings({ ...securitySettings, requireDriverSignoff: !securitySettings.requireDriverSignoff })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
+                        securitySettings.requireDriverSignoff ? 'bg-[#FF6B00] justify-end' : 'bg-slate-300 justify-start'
+                      }`}
+                    >
+                      <span className="bg-white w-4 h-4 rounded-full shadow-md"></span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+                    <div>
+                      <p className="font-extrabold text-slate-900">Detailed Audit Trail Logging</p>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Record timestamped operator logs for any pricing or consignment status modification.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSecuritySettings({ ...securitySettings, auditLogging: !securitySettings.auditLogging })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
+                        securitySettings.auditLogging ? 'bg-[#FF6B00] justify-end' : 'bg-slate-300 justify-start'
+                      }`}
+                    >
+                      <span className="bg-white w-4 h-4 rounded-full shadow-md"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ALERTS & NOTIFICATIONS SETTINGS */}
+          {settingsActiveTab === 'notifications' && (
+            <div className="space-y-6 animate-fade-in text-xs">
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+                  <Bell className="w-4 h-4 text-orange-600" />
+                  <h3 className="text-sm font-extrabold text-slate-900">Real-Time Operational Dispatch Alerts</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[
+                    {
+                      key: 'delayedShipments',
+                      title: 'Consignment Delay & SLA Flags',
+                      desc: 'Trigger instantaneous admin alert when vehicle telemetry projects a delivery delay exceeding 15 minutes.'
+                    },
+                    {
+                      key: 'expresswayCongestion',
+                      title: 'Expressway Traffic & Incident Alerts',
+                      desc: 'Notify dispatchers of severe congestion or road closures across PIE, AYE, CTE, or SLE expressways.'
+                    },
+                    {
+                      key: 'driverDutyStatus',
+                      title: 'Driver Duty Status & Check-ins',
+                      desc: 'Receive alerts when rostered drivers start shift, go offline, or report unscheduled maintenance.'
+                    },
+                    {
+                      key: 'newOrderInbound',
+                      title: 'New Online Consignment Orders',
+                      desc: 'Sound dashboard notification when customers book a consignment or request a priority freight quote.'
+                    },
+                    {
+                      key: 'podSignatureUploaded',
+                      title: 'Proof of Delivery (POD) Receipts',
+                      desc: 'Notify operations when a driver successfully uploads a signed delivery note or handover photo.'
+                    },
+                    {
+                      key: 'dailyOperationsSummary',
+                      title: 'Daily 08:00 AM Dispatch Digest',
+                      desc: 'Generate automated daily roster, capacity utilization, and pending deliveries overview.'
+                    },
+                  ].map((notif) => (
+                    <div key={notif.key} className="flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200">
+                      <div className="pr-3">
+                        <p className="font-extrabold text-slate-900">{notif.title}</p>
+                        <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{notif.desc}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNotificationSettings({
+                          ...notificationSettings,
+                          [notif.key]: !notificationSettings[notif.key]
+                        })}
+                        className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors shrink-0 ${
+                          notificationSettings[notif.key] ? 'bg-[#FF6B00] justify-end' : 'bg-slate-300 justify-start'
+                        }`}
+                      >
+                        <span className="bg-white w-4 h-4 rounded-full shadow-md"></span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer flex items-center space-x-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Notification Preferences</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
+
+        </div>
+      </div>
 
       {/* ADD DRIVER MODAL */}
       {isAddDriverOpen && (

@@ -1018,7 +1018,9 @@ export const CrmPage = ({ setActiveTab }) => {
                       <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
                       <Tooltip 
                         formatter={(val) => [`S$ ${Number(val).toLocaleString()}`, 'Estimated Value']}
-                        contentStyle={{ backgroundColor: '#10182D', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                        contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}
+                        itemStyle={{ color: '#F8FAFC' }}
+                        labelStyle={{ color: '#94A3B8', fontWeight: 600 }}
                       />
                       <Bar dataKey="value" fill="#FF6B00" radius={[6, 6, 0, 0]} />
                     </BarChart>
@@ -1052,7 +1054,19 @@ export const CrmPage = ({ setActiveTab }) => {
                         ))}
                       </Pie>
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#10182D', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '11px' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0];
+                            return (
+                              <div className="bg-slate-900 border border-slate-700 px-3.5 py-2 rounded-xl shadow-2xl text-xs flex items-center gap-2 pointer-events-none">
+                                <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: data.payload?.fill || data.color || '#FF6B00' }} />
+                                <span className="text-slate-200 font-semibold">{data.name}:</span>
+                                <span className="font-bold text-white font-mono">{data.value}</span>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
