@@ -409,31 +409,37 @@ export const LogisticsProvider = ({ children }) => {
     const newRole = role || (currentRole === 'customer' ? 'driver' : 'customer');
     setCurrentRole(newRole);
     if (newRole === 'admin') {
-      setCurrentUser({
+      const adminUser = {
         name: 'Alexander Josan',
         email: 'alexander@josanlogistics.com',
         role: 'admin',
         company: 'Josan Logistics HQ'
-      });
-      if (setActiveTab) setActiveTab('admin-dashboard');
+      };
+      setCurrentUser(adminUser);
+      try { localStorage.setItem('josan_user', JSON.stringify(adminUser)); } catch (e) {}
+      if (setActiveTab) setActiveTab('admin-dashboard', true, adminUser);
       showToast('Switched to Admin Management Portal', 'info');
     } else if (newRole === 'driver') {
-      setCurrentUser({
+      const driverUser = {
         name: 'Robert Martinez (Driver)',
         email: 'robert.m@josanlogistics.com',
         role: 'driver',
         company: 'Josan Logistics Fleet'
-      });
-      if (setActiveTab) setActiveTab('driver-dashboard');
+      };
+      setCurrentUser(driverUser);
+      try { localStorage.setItem('josan_user', JSON.stringify(driverUser)); } catch (e) {}
+      if (setActiveTab) setActiveTab('driver-dashboard', true, driverUser);
       showToast('Switched to Driver Portal', 'info');
     } else {
-      setCurrentUser({
+      const custUser = {
         name: 'TechCorp Solutions (Customer)',
         email: 'shipping@techcorp.com',
         role: 'customer',
         company: 'TechCorp Solutions'
-      });
-      if (setActiveTab) setActiveTab('customer-dashboard');
+      };
+      setCurrentUser(custUser);
+      try { localStorage.setItem('josan_user', JSON.stringify(custUser)); } catch (e) {}
+      if (setActiveTab) setActiveTab('customer-dashboard', true, custUser);
       showToast('Switched to Customer Dashboard', 'info');
     }
   };
@@ -485,7 +491,9 @@ export const LogisticsProvider = ({ children }) => {
     };
     setCurrentUser(userObj);
     setCurrentRole(userRole);
-    setIsAuthModalOpen(false);
+    try {
+      localStorage.setItem('josan_user', JSON.stringify(userObj));
+    } catch (e) {}
 
     const wasForcedBookingModal = authModalHideClose;
     setIsAuthModalOpen(false);
@@ -494,22 +502,22 @@ export const LogisticsProvider = ({ children }) => {
     // Enforce Strict Portal Redirection
     if (setActiveTab) {
       if (authRedirectTab && userRole === 'customer') {
-        setActiveTab(authRedirectTab);
+        setActiveTab(authRedirectTab, true, userObj);
         setAuthRedirectTab(null);
       } else if (wasForcedBookingModal && userRole === 'customer') {
-        setActiveTab('book');
+        setActiveTab('book', true, userObj);
       } else if (userRole === 'admin') {
-        setActiveTab('admin-dashboard');
+        setActiveTab('admin-dashboard', true, userObj);
       } else if (userRole === 'driver') {
-        setActiveTab('driver-dashboard');
+        setActiveTab('driver-dashboard', true, userObj);
       } else {
-        setActiveTab('customer-dashboard');
+        setActiveTab('customer-dashboard', true, userObj);
       }
     }
 
     const portalName = userRole === 'admin' ? 'Admin Hub' : userRole === 'driver' ? 'Driver Portal' : 'Customer Portal';
     showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
-    return { success: true };
+    return { success: true, user: userObj };
   };
 
   const logoutUser = () => {

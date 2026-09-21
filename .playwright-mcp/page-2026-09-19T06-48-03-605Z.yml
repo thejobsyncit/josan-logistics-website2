@@ -1,0 +1,208 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7] [cursor=pointer]:
+        - img "Josan Logistics Logo" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: JOSAN
+          - generic [ref=e11]: LOGISTICS PTE. LTD.
+      - button [ref=e584] [cursor=pointer]
+  - main [ref=e43]:
+    - generic [ref=e586]:
+      - generic [ref=e588]:
+        - generic [ref=e589]: Instant Rate Estimator & Quotation
+        - heading "Get an Instant Freight Quote" [level=1] [ref=e593]
+        - paragraph [ref=e594]: Obtain instant transparent pricing for your road freight, FTL, LTL, and temperature-controlled cargo shipments across Singapore and regional cross-border corridors.
+      - generic [ref=e596]:
+        - generic [ref=e597]:
+          - generic [ref=e598]:
+            - heading "Shipment Specifications" [level=2] [ref=e599]
+            - paragraph [ref=e600]: Select your required transport service, cargo details, and route.
+          - generic [ref=e601]:
+            - generic [ref=e602]:
+              - generic [ref=e603]: 1. Select Freight Service Mode *
+              - generic [ref=e604]:
+                - button "FTL Truckload Exclusive dedicated lorry From $5.50/kg" [ref=e605] [cursor=pointer]:
+                  - generic [ref=e606]:
+                    - generic [ref=e607]: FTL Truckload
+                    - generic [ref=e608]: Exclusive dedicated lorry
+                  - generic [ref=e609]: From $5.50/kg
+                - button "LTL Consolidation Shared pallet freight From $3.80/kg" [ref=e610] [cursor=pointer]:
+                  - generic [ref=e611]:
+                    - generic [ref=e612]: LTL Consolidation
+                    - generic [ref=e613]: Shared pallet freight
+                  - generic [ref=e614]: From $3.80/kg
+                - button "Cold Chain Reefer -25°C to +25°C active From $6.50/kg" [ref=e615] [cursor=pointer]:
+                  - generic [ref=e616]:
+                    - generic [ref=e617]: Cold Chain Reefer
+                    - generic [ref=e618]: "-25°C to +25°C active"
+                  - generic [ref=e619]: From $6.50/kg
+                - button "Express Courier Same-day rapid dispatch From $8.00/kg" [ref=e620] [cursor=pointer]:
+                  - generic [ref=e621]:
+                    - generic [ref=e622]: Express Courier
+                    - generic [ref=e623]: Same-day rapid dispatch
+                  - generic [ref=e624]: From $8.00/kg
+                - button "Customs + Road Freight TradeNet documentation From $4.20/kg" [ref=e625] [cursor=pointer]:
+                  - generic [ref=e626]:
+                    - generic [ref=e627]: Customs + Road Freight
+                    - generic [ref=e628]: TradeNet documentation
+                  - generic [ref=e629]: From $4.20/kg
+            - generic [ref=e630]:
+              - generic [ref=e631]:
+                - generic [ref=e632]:
+                  - generic [ref=e633]: Cargo Weight (kg) *
+                  - generic [ref=e634]: 250 kg
+                - slider [ref=e635] [cursor=pointer]: "255"
+                - generic [ref=e636]:
+                  - generic [ref=e637]: 5 kg
+                  - generic [ref=e638]: 5,000 kg
+                  - generic [ref=e639]: 15,000 kg
+              - generic [ref=e640]:
+                - generic [ref=e641]: Cargo Classification
+                - combobox [ref=e642] [cursor=pointer]:
+                  - option "Beverages, Foods & Plants" [selected]
+                  - option "Chemicals & Healthcare"
+                  - option "Furnitures & Accessories"
+                  - option "Industrial Products"
+                  - option "Apparels and Accessories"
+                  - option "Building Materials"
+                  - option "Vehicles, Engines & Spare Parts"
+                  - option "Appliances and Material"
+                  - option "Leisure Items"
+                  - option "Paperboard & Prints"
+                  - option "Other / Custom Cargo"
+            - generic [ref=e643]:
+              - generic [ref=e644]:
+                - generic [ref=e645]: Pickup Zone / Terminal
+                - combobox [ref=e646] [cursor=pointer]:
+                  - option "Jurong / West Industrial District" [selected]
+                  - option "Changi / East Cargo Logistics Complex"
+                  - option "Woodlands / North Link Highway Depot"
+                  - option "Tuas Megaport Container Depot"
+                  - option "Central Business District (CBD)"
+                  - option "Johor Bahru Cross-Border Gateway"
+              - generic [ref=e647]:
+                - generic [ref=e648]: Delivery Zone / Terminal
+                - combobox [ref=e649] [cursor=pointer]:
+                  - option "Changi / East Cargo Logistics Complex" [selected]
+                  - option "Jurong / West Industrial District"
+                  - option "Woodlands / North Link Highway Depot"
+                  - option "Tuas Megaport Container Depot"
+                  - option "Central Business District (CBD)"
+                  - option "Johor Bahru Cross-Border Gateway"
+            - generic [ref=e650]:
+              - generic [ref=e651]: Additional Transport Options
+              - generic [ref=e652]:
+                - generic [ref=e653] [cursor=pointer]:
+                  - checkbox "Hydraulic Tailgate Required (+S$35)" [ref=e654]
+                  - generic [ref=e655]: Hydraulic Tailgate Required (+S$35)
+                - generic [ref=e656] [cursor=pointer]:
+                  - checkbox "Full Cargo All-Risk Insurance" [checked] [ref=e657]
+                  - generic [ref=e658]: Full Cargo All-Risk Insurance
+              - generic [ref=e659]:
+                - generic [ref=e660]:
+                  - generic [ref=e661]: Declared Cargo Value (S$)
+                  - spinbutton [ref=e662]: "15000"
+                - generic [ref=e663]:
+                  - generic [ref=e664]: Transit Speed
+                  - combobox [ref=e665] [cursor=pointer]:
+                    - option "Standard Highway Route (24h SLA)" [selected]
+                    - option "Priority Express Highway (Under 4h SLA +35%)"
+            - generic [ref=e666]:
+              - generic [ref=e667]: 2. Contact & Company Information
+              - generic [ref=e668]:
+                - generic [ref=e669]:
+                  - generic [ref=e670]: Contact Name *
+                  - textbox "Your full name" [ref=e671]: Enterprise Customer
+                - generic [ref=e672]:
+                  - generic [ref=e673]: Corporate Email *
+                  - textbox "name@company.com" [ref=e674]: customer@gmail.com
+                - generic [ref=e675]:
+                  - generic [ref=e676]: Company Name
+                  - textbox "e.g. Razer Asia-Pacific Pte Ltd" [ref=e677]: Global Client Corp
+                - generic [ref=e678]:
+                  - generic [ref=e679]: Phone Number *
+                  - textbox "+65 8765 4321" [ref=e680]: "+65"
+            - button "Generate Official Quotation Summary" [ref=e682] [cursor=pointer]
+        - generic [ref=e688]:
+          - generic [ref=e690]:
+            - text: Live Rate Computation
+            - heading "Quotation Breakdown" [level=3] [ref=e691]
+          - generic [ref=e695]:
+            - generic [ref=e696]: "From: Jurong / West Industrial District"
+            - generic [ref=e701]: "To: Changi / East Cargo Logistics Complex"
+          - generic [ref=e706]:
+            - generic [ref=e707]:
+              - generic [ref=e708]: "Base Freight (250kg × $5.5/kg):"
+              - generic [ref=e709]: S$ 1375.00
+            - generic [ref=e710]:
+              - generic [ref=e711]: "Cargo Protection (All-Risk):"
+              - generic [ref=e712]: S$ 60.00
+            - generic [ref=e713]:
+              - generic [ref=e714]: "Subtotal:"
+              - generic [ref=e715]: S$ 1435.00
+            - generic [ref=e716]:
+              - generic [ref=e717]: "Singapore GST (9%):"
+              - generic [ref=e718]: S$ 129.15
+            - generic [ref=e719]:
+              - generic [ref=e720]: "Estimated Total Rate:"
+              - generic [ref=e721]: S$ 1564.15
+          - generic [ref=e722]:
+            - button "Book This Shipment Now" [ref=e723] [cursor=pointer]
+            - paragraph [ref=e727]: Quotes are guaranteed for 14 days from time of generation. SLA tracked by Josan Logistics dispatch.
+  - contentinfo [ref=e488]:
+    - generic [ref=e489]:
+      - generic [ref=e490]:
+        - generic [ref=e491]:
+          - img "Josan Logistics Logo" [ref=e493] [cursor=pointer]
+          - paragraph [ref=e494]: Josan Logistics is a premier roadways freight and land haulage provider, offering full truckload (FTL), partial freight (LTL), express highway road couriers, and cross-border customs clearance.
+          - generic [ref=e495]:
+            - generic [ref=e496]: ISO 9001 Certified
+            - generic [ref=e501]: 120+ Hubs Worldwide
+        - generic [ref=e506]:
+          - heading "Quick Navigation" [level=4] [ref=e507]
+          - list [ref=e508]:
+            - listitem [ref=e509]:
+              - button "Home" [ref=e510] [cursor=pointer]
+            - listitem [ref=e514]:
+              - button "About Us" [ref=e515] [cursor=pointer]
+            - listitem [ref=e519]:
+              - button "Services" [ref=e520] [cursor=pointer]
+            - listitem [ref=e524]:
+              - button "Track Shipment" [ref=e525] [cursor=pointer]
+            - listitem [ref=e529]:
+              - button "Book Shipment" [ref=e530] [cursor=pointer]
+            - listitem [ref=e534]:
+              - button "Contact" [ref=e535] [cursor=pointer]
+        - generic [ref=e539]:
+          - heading "Our Solutions" [level=4] [ref=e540]
+          - list [ref=e541]:
+            - listitem [ref=e542] [cursor=pointer]: Roadways Freight (FTL / LTL)
+            - listitem [ref=e543] [cursor=pointer]: Heavy Haulage & Flatbed Trucking
+            - listitem [ref=e544] [cursor=pointer]: Express Highway Road Courier
+            - listitem [ref=e545] [cursor=pointer]: Temperature-Controlled Reefer Trucks
+            - listitem [ref=e546] [cursor=pointer]: Roadways Customs Clearance
+        - generic [ref=e547]:
+          - generic [ref=e549]:
+            - heading "Singapore HQ & Dispatch" [level=4] [ref=e550]
+            - generic [ref=e551]: 24/7 LIVE
+          - generic [ref=e555]:
+            - generic [ref=e556]:
+              - paragraph [ref=e557]: Singapore Dispatch Hotline
+              - link "+65 6789 0123" [ref=e561] [cursor=pointer]:
+                - /url: tel:+6567890123
+            - generic [ref=e562]: "Regional HQ: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438"
+            - link "contact@josanlogistics.com.sg" [ref=e571] [cursor=pointer]:
+              - /url: mailto:contact@josanlogistics.com.sg
+          - generic [ref=e572]:
+            - text: Subscribe for Freight Updates
+            - generic [ref=e573]:
+              - textbox "Enter corporate email..." [ref=e574]
+              - button "Join" [ref=e575] [cursor=pointer]
+      - generic [ref=e576]:
+        - paragraph [ref=e577]: © 2026 Josan Logistics Inc. All rights reserved.
+        - generic [ref=e578]:
+          - generic [ref=e579] [cursor=pointer]: Privacy Policy
+          - generic [ref=e580] [cursor=pointer]: Terms of Service
+          - generic [ref=e581] [cursor=pointer]: Security SLAs
+          - generic [ref=e582] [cursor=pointer]: Carrier Portal
