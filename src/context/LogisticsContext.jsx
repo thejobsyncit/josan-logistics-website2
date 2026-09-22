@@ -23,6 +23,8 @@ import {
   onCustomerActivity 
 } from '../services/socket';
 import { backendApi } from '../services/api';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { supabaseApi } from '../services/supabaseApi';
 
 const LogisticsContext = createContext();
 
@@ -254,6 +256,64 @@ export const LogisticsProvider = ({ children }) => {
     }
   });
 
+
+  // Initialize Supabase Data Fetching & Realtime Database Subscriptions
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    // Fetch initial data from Supabase DB
+    const loadSupabaseData = async () => {
+      const dbShipments = await supabaseApi.getShipments();
+      if (dbShipments && dbShipments.length > 0) {
+        setShipments(dbShipments);
+      }
+
+      const dbDrivers = await supabaseApi.getDrivers();
+      if (dbDrivers && dbDrivers.length > 0) {
+        setDrivers(dbDrivers);
+      }
+
+      const dbLeads = await supabaseApi.getLeads();
+      if (dbLeads && dbLeads.length > 0) {
+        setLeads(dbLeads);
+      }
+
+      const dbTickets = await supabaseApi.getTickets();
+      if (dbTickets && dbTickets.length > 0) {
+        setTickets(dbTickets);
+      }
+    };
+
+    loadSupabaseData();
+
+    // Supabase Realtime Channels for Live Database Changes
+    const channelShipments = supabase
+      .channel('realtime:shipments')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setShipments(prev => [payload.new, ...prev.filter(s => s.id !== payload.new.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          setShipments(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+        } else if (payload.eventType === 'DELETE') {
+          setShipments(prev => prev.filter(s => s.id !== payload.old.id));
+        }
+      })
+      .subscribe();
+
+    const channelDrivers = supabase
+      .channel('realtime:drivers')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'drivers' }, (payload) => {
+        if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+          setDrivers(prev => prev.map(d => (d.id === payload.new.id || d.driverId === payload.new.id) ? { ...d, ...payload.new } : d));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channelShipments);
+      supabase.removeChannel(channelDrivers);
+    };
+  }, []);
 
   // Socket.IO Real-time Connection State
   const [isSocketConnected, setIsSocketConnected] = useState(false);

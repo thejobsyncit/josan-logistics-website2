@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { X, Lock, Mail, ArrowRight, User, AlertCircle } from 'lucide-react';
+import { supabaseApi } from '../services/supabaseApi';
+import { isSupabaseConfigured } from '../services/supabase';
 
 export const AuthModal = ({ setActiveTab }) => {
   const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, setAuthModalHideClose, loginUser, authRedirectTab, setAuthRedirectTab } = useLogistics();
@@ -45,7 +47,7 @@ export const AuthModal = ({ setActiveTab }) => {
     return emailRegex.test(emailStr.trim());
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -57,6 +59,29 @@ export const AuthModal = ({ setActiveTab }) => {
     if (!isLogin && password !== confirmPassword) {
       setError('Passwords do not match');
       return;
+    }
+
+    // Connect Supabase Auth when configured
+    if (isSupabaseConfigured) {
+      if (isLogin) {
+        const sbRes = await supabaseApi.signIn({ email: email.trim(), password });
+        if (sbRes.error) {
+          setError(sbRes.error);
+          return;
+        }
+      } else {
+        const sbRes = await supabaseApi.signUp({
+          email: email.trim(),
+          password,
+          fullName,
+          phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
+          role,
+        });
+        if (sbRes.error) {
+          setError(sbRes.error);
+          return;
+        }
+      }
     }
 
     const defaultEmail = role === 'admin' 
