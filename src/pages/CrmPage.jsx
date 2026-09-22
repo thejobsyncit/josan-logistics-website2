@@ -48,12 +48,17 @@ import {
   FileText
 } from 'lucide-react';
 
+import CrmDriverFleetTab from '../components/CrmDriverFleetTab';
+import CrmCustomerPortalTab from '../components/CrmCustomerPortalTab';
+import { Truck, Globe } from 'lucide-react';
+
 export const CrmPage = ({ setActiveTab }) => {
   const { 
     leads, 
     communications, 
     tasks, 
     customers, 
+    drivers = [],
     addLead, 
     updateLeadStage, 
     updateLead, 
@@ -70,7 +75,7 @@ export const CrmPage = ({ setActiveTab }) => {
   } = useLogistics();
 
   // Active CRM Tab
-  const [crmSubTab, setCrmSubTab] = useState('pipeline'); // 'pipeline' | 'communications' | 'tasks' | 'analytics' | 'customers'
+  const [crmSubTab, setCrmSubTab] = useState('pipeline'); // 'pipeline' | 'communications' | 'tasks' | 'analytics' | 'customers' | 'drivers' | 'customer_portal'
 
   // Pipeline / Leads state
   const [leadSearch, setLeadSearch] = useState('');
@@ -335,10 +340,12 @@ export const CrmPage = ({ setActiveTab }) => {
         <div className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm flex flex-wrap gap-2 text-xs font-bold">
           {[
             { id: 'pipeline', label: `Pipeline Board (${leads.length})`, icon: Target },
-            { id: 'communications', label: `Communications Log (${communications.length})`, icon: Phone },
-            { id: 'tasks', label: `Follow-up Tasks (${tasks.filter(t => t.status === 'pending').length} Pending)`, icon: ListTodo },
-            { id: 'analytics', label: 'Pipeline Analytics & Reports', icon: TrendingUp },
-            { id: 'customers', label: `Corporate Accounts (${customers.length})`, icon: Users }
+            { id: 'drivers', label: `Driver App Telematics (${drivers?.length || 0})`, icon: Truck },
+            { id: 'customer_portal', label: `Customer Portal Hub (${customers.length})`, icon: Globe },
+            { id: 'communications', label: `Communications (${communications.length})`, icon: Phone },
+            { id: 'tasks', label: `Tasks (${tasks.filter(t => t.status === 'pending').length})`, icon: ListTodo },
+            { id: 'analytics', label: 'Analytics & Reports', icon: TrendingUp },
+            { id: 'customers', label: `Accounts (${customers.length})`, icon: Users }
           ].map((tab) => {
             const IconComp = tab.icon;
             const isActive = crmSubTab === tab.id;
@@ -1122,6 +1129,20 @@ export const CrmPage = ({ setActiveTab }) => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* SUBTAB: DRIVER APP TELEMATICS & DISPATCH */}
+        {crmSubTab === 'drivers' && (
+          <div className="animate-fade-in">
+            <CrmDriverFleetTab />
+          </div>
+        )}
+
+        {/* SUBTAB: CUSTOMER APP PORTAL HUB */}
+        {crmSubTab === 'customer_portal' && (
+          <div className="animate-fade-in">
+            <CrmCustomerPortalTab />
           </div>
         )}
 

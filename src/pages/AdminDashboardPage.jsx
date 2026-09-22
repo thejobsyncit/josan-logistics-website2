@@ -91,6 +91,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
     drivers, 
     warehouses, 
     analyticsData, 
+    isSocketConnected,
     quotes = [],
     notifications = [],
     customers = [],
@@ -1308,6 +1309,17 @@ Document Security Code: JOS-PDF-AUTH-2026-SG
                 LOGISTICS PTE. LTD.
               </span>
             </div>
+          </div>
+
+          {/* Live Socket.IO Status Badge */}
+          <div className="mb-3 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-[11px] shadow-inner">
+            <div className="flex items-center space-x-2">
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isSocketConnected ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-amber-500'}`} />
+              <span className="font-bold text-slate-200">
+                {isSocketConnected ? 'Live Telematics Active' : 'Backend Connecting...'}
+              </span>
+            </div>
+            <span className="text-[10px] font-mono text-slate-500 font-bold">:3000</span>
           </div>
 
           {/* Navigation Links Group */}

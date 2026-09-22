@@ -14,6 +14,15 @@ import {
   initialCommunications,
   initialTasks
 } from '../data/mockData';
+import { 
+  connectAdminSocket, 
+  onAdminSocketStatus, 
+  onLocationUpdate, 
+  onDriverStatusChange, 
+  onTripEvent,
+  onCustomerActivity 
+} from '../services/socket';
+import { backendApi } from '../services/api';
 
 const LogisticsContext = createContext();
 
@@ -244,6 +253,94 @@ export const LogisticsProvider = ({ children }) => {
       return 'admin';
     }
   });
+
+
+  // Socket.IO Real-time Connection State
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [socketId, setSocketId] = useState(null);
+
+  // Initialize Socket.IO connection for live GPS telematics & status broadcast
+  useEffect(() => {
+    const socket = connectAdminSocket();
+
+    const unsubStatus = onAdminSocketStatus((connected, id) => {
+      setIsSocketConnected(connected);
+      setSocketId(id);
+    });
+
+    const unsubLoc = onLocationUpdate((data) => {
+      if (!data) return;
+      const { tripId, driverId, latitude, longitude, heading, speedKph } = data;
+
+      // Update shipments matching tripId or driverId with live GPS coordinates
+      setShipments((prevShipments) =>
+        prevShipments.map((s) => {
+          if (s.id === tripId || s.driverId === driverId) {
+            return {
+              ...s,
+              currentLocation: `Live GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (${speedKph || 0} km/h)`,
+              lastUpdatedTime: 'Just now (Live Socket.IO)',
+              coordinates: {
+                ...s.coordinates,
+                current: [latitude, longitude],
+              },
+            };
+          }
+          return s;
+        })
+      );
+
+      // Update drivers list with live position
+      setDrivers((prevDrivers) =>
+        prevDrivers.map((d) => {
+          if (d.id === driverId || d.driverId === driverId) {
+            return {
+              ...d,
+              lastLocation: `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+              speedKph: speedKph || 0,
+              lastPing: new Date().toLocaleTimeString(),
+              coordinates: [latitude, longitude],
+            };
+          }
+          return d;
+        })
+      );
+    });
+
+    const unsubDriverStatus = onDriverStatusChange((data) => {
+      if (!data?.driverId) return;
+      setDrivers((prevDrivers) =>
+        prevDrivers.map((d) => {
+          if (d.id === data.driverId || d.driverId === data.driverId) {
+            return {
+              ...d,
+              status: data.type === 'offline' ? 'Offline' : data.status || 'Online',
+            };
+          }
+          return d;
+        })
+      );
+    });
+
+    const unsubCustActivity = onCustomerActivity((data) => {
+      if (!data) return;
+      addNotification({
+        role: 'admin',
+        userId: 'admin',
+        type: data.type === 'booking_created' ? 'shipment' : 'quote_request',
+        title: data.type === 'booking_created' ? '⚡ New Customer App Booking' : '📄 New Customer Quote Request',
+        message: data.message || `Customer ${data.customerName || 'App User'} performed action in Customer App.`,
+        timestamp: 'Just now'
+      });
+    });
+
+    return () => {
+      unsubStatus();
+      unsubLoc();
+      unsubDriverStatus();
+      unsubCustActivity();
+    };
+  }, []);
 
   // Driver Proximity & Admin Intimations state
   const [driverIntimations, setDriverIntimations] = useState(() => {
@@ -1707,6 +1804,65 @@ export const LogisticsProvider = ({ children }) => {
     return shipments.find(s => s.id.toUpperCase() === searchClean || s.id.toUpperCase().includes(searchClean));
   };
 
+  const assignDriverToShipment = (shipmentId, driverId) => {
+    const selectedDriver = (drivers || []).find(d => d.id === driverId || d.driverId === driverId);
+    if (!selectedDriver) return false;
+
+    setShipments(prev => prev.map(s => {
+      if (s.id === shipmentId) {
+        return {
+          ...s,
+          driverId: selectedDriver.id,
+          driverName: selectedDriver.name,
+          driverPhone: selectedDriver.phone,
+          vehicle: selectedDriver.vehicleType || s.vehicle,
+          vehiclePlate: selectedDriver.vehicleId || s.vehiclePlate,
+          status: 'Pickup Scheduled',
+          timeline: s.timeline ? s.timeline.map(t => t.step === 3 ? { ...t, completed: true, current: true } : t) : s.timeline
+        };
+      }
+      return s;
+    }));
+
+    setDrivers(prev => prev.map(d => {
+      if (d.id === driverId || d.driverId === driverId) {
+        return { ...d, status: 'On Delivery', activeTripId: shipmentId };
+      }
+      return d;
+    }));
+
+    try {
+      backendApi.assignDriverToTrip(shipmentId, driverId).catch(err => console.warn('Dispatch API:', err));
+    } catch (e) {}
+
+    showToast(`Driver ${selectedDriver.name} assigned & dispatched to shipment #${shipmentId}!`, 'success');
+    return true;
+  };
+
+  const syncCustomerAppAccount = (customerData) => {
+    const newCust = {
+      id: customerData.id || `CUST-${Date.now().toString().slice(-4)}`,
+      name: customerData.name || 'Corporate Account',
+      company: customerData.company || 'Customer App Account',
+      email: customerData.email,
+      phone: customerData.phone,
+      address: customerData.address || 'Singapore',
+      tier: customerData.tier || 'Standard Corporate',
+      totalSpent: 'S$ 0.00',
+      totalShipments: 0,
+      status: 'Active',
+      joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    };
+
+    setCustomers(prev => [newCust, ...prev.filter(c => c.email !== customerData.email)]);
+    try {
+      backendApi.syncCustomerAppAccount(newCust).catch(err => console.warn('Customer Sync API:', err));
+    } catch (e) {}
+
+    showToast(`Account ${newCust.name} synced with Customer App!`, 'success');
+    return newCust;
+  };
+
   return (
     <LogisticsContext.Provider value={{
       shipments,
@@ -1715,6 +1871,8 @@ export const LogisticsProvider = ({ children }) => {
       analyticsData,
       currentRole,
       currentUser,
+      isSocketConnected,
+      socketId,
       toast,
       activeTrackingId,
       isAuthModalOpen,
@@ -1746,6 +1904,8 @@ export const LogisticsProvider = ({ children }) => {
       updateShipmentStatus,
       flagWeatherDelay,
       assignDriver,
+      assignDriverToShipment,
+      syncCustomerAppAccount,
       addDriver,
       updateDriverPassword,
       updateDriverPhoto,
