@@ -270,7 +270,15 @@ export const LogisticsProvider = ({ children }) => {
 
       const dbDrivers = await supabaseApi.getDrivers();
       if (dbDrivers && dbDrivers.length > 0) {
-        setDrivers(dbDrivers);
+        setDrivers(prev => {
+          const dbIds = new Set(dbDrivers.map(d => d.id));
+          const localOnly = (prev || []).filter(d => d && d.id && !dbIds.has(d.id));
+          // If there are local drivers created offline/before sync, push them to Supabase
+          if (localOnly.length > 0) {
+            localOnly.forEach(d => supabaseApi.createDriver(d));
+          }
+          return [...dbDrivers, ...localOnly];
+        });
       }
 
       const dbLeads = await supabaseApi.getLeads();
@@ -303,8 +311,35 @@ export const LogisticsProvider = ({ children }) => {
     const channelDrivers = supabase
       .channel('realtime:drivers')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'drivers' }, (payload) => {
-        if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-          setDrivers(prev => prev.map(d => (d.id === payload.new.id || d.driverId === payload.new.id) ? { ...d, ...payload.new } : d));
+        if (payload.eventType === 'INSERT') {
+          const normalized = {
+            ...payload.new,
+            licenseNumber: payload.new.license_number || payload.new.licenseNumber,
+            vehicleType: payload.new.vehicle_type || payload.new.vehicleType,
+            vehicleId: payload.new.vehicle_id || payload.new.vehicleId,
+            vehiclePlate: payload.new.vehicle_plate || payload.new.vehiclePlate,
+            deliveriesCompleted: payload.new.deliveries_completed ?? payload.new.deliveriesCompleted ?? 0,
+            onTimeRate: payload.new.on_time_rate || payload.new.onTimeRate || '100%',
+            assignedHub: payload.new.assigned_hub || payload.new.assignedHub,
+            safetyScore: payload.new.safety_score || payload.new.safetyScore,
+            assignedVehicle: `${payload.new.vehicle_type || 'Vehicle'} (${payload.new.vehicle_plate || payload.new.vehicle_id || 'N/A'})`,
+          };
+          setDrivers(prev => [normalized, ...prev.filter(d => d.id !== normalized.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          setDrivers(prev => prev.map(d => (d.id === payload.new.id || d.driverId === payload.new.id) ? { 
+            ...d, 
+            ...payload.new,
+            licenseNumber: payload.new.license_number || d.licenseNumber,
+            vehicleType: payload.new.vehicle_type || d.vehicleType,
+            vehicleId: payload.new.vehicle_id || d.vehicleId,
+            vehiclePlate: payload.new.vehicle_plate || d.vehiclePlate,
+            deliveriesCompleted: payload.new.deliveries_completed ?? d.deliveriesCompleted,
+            onTimeRate: payload.new.on_time_rate || d.onTimeRate,
+            assignedHub: payload.new.assigned_hub || d.assignedHub,
+            safetyScore: payload.new.safety_score || d.safetyScore,
+          } : d));
+        } else if (payload.eventType === 'DELETE') {
+          setDrivers(prev => prev.filter(d => d.id !== payload.old.id));
         }
       })
       .subscribe();
@@ -1751,7 +1786,7 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Driver operations
-  const addDriver = (newDriver) => {
+  const addDriver = async (newDriver) => {
     const driverWithId = {
       ...newDriver,
       id: newDriver.id || `DRV-${Math.floor(100 + Math.random() * 900)}`,
@@ -1773,28 +1808,48 @@ export const LogisticsProvider = ({ children }) => {
       status: 'Available',
       photo: newDriver.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80'
     };
-    setDrivers(prev => [driverWithId, ...prev]);
+    setDrivers(prev => [driverWithId, ...prev.filter(d => d.id !== driverWithId.id)]);
     showToast(`Driver ${driverWithId.name} added to fleet roster with Admin Password`);
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.createDriver(driverWithId);
+    }
   };
 
-  const updateDriverPassword = (driverId, newPassword) => {
+  const updateDriverPassword = async (driverId, newPassword) => {
     setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, password: newPassword } : d));
     showToast(`Password updated for Driver ID #${driverId}`, 'success');
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.updateDriver(driverId, { password: newPassword });
+    }
   };
 
-  const updateDriverPhoto = (driverId, photoUrl) => {
+  const updateDriverPhoto = async (driverId, photoUrl) => {
     setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, photo: photoUrl } : d));
     showToast(`Profile photo updated for Driver ID #${driverId}`, 'success');
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.updateDriver(driverId, { photo: photoUrl });
+    }
   };
 
-  const removeDriver = (driverId) => {
+  const removeDriver = async (driverId) => {
     setDrivers(prev => prev.filter(d => d.id !== driverId));
     showToast('Driver removed from active fleet', 'warning');
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.deleteDriver(driverId);
+    }
   };
 
-  const toggleDriverStatus = (driverId, newStatus) => {
+  const toggleDriverStatus = async (driverId, newStatus) => {
     setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, status: newStatus } : d));
     showToast(`Driver status updated to ${newStatus}`);
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.updateDriver(driverId, { status: newStatus });
+    }
   };
 
   // Warehouse operations
