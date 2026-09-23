@@ -344,9 +344,31 @@ export const LogisticsProvider = ({ children }) => {
       })
       .subscribe();
 
+    const channelDriverLocations = supabase
+      .channel('realtime:driver_locations')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'driver_locations' }, (payload) => {
+        if (!payload.new) return;
+        const { driver_id, latitude, longitude } = payload.new;
+        setDrivers(prev => prev.map(d => {
+          if (d.id === driver_id || d.driverId === driver_id) {
+            return {
+              ...d,
+              currentLatitude: latitude,
+              currentLongitude: longitude,
+              coordinates: [latitude, longitude],
+              lastLocation: `GPS: ${Number(latitude).toFixed(4)}, ${Number(longitude).toFixed(4)}`,
+              lastPing: new Date().toLocaleTimeString()
+            };
+          }
+          return d;
+        }));
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channelShipments);
       supabase.removeChannel(channelDrivers);
+      supabase.removeChannel(channelDriverLocations);
     };
   }, []);
 
@@ -733,7 +755,7 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Shipment operations
-  const addShipment = (newShipmentData) => {
+  const addShipment = async (newShipmentData) => {
     const trackingId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-${newShipmentData.destinationCountryCode || 'SG'}`;
     const distKm = (1 + Math.random() * 2.5).toFixed(1);
     
@@ -748,7 +770,7 @@ export const LogisticsProvider = ({ children }) => {
       origin: newShipmentData.pickupCity || 'Changi Air Cargo Hub',
       destination: newShipmentData.deliveryCity || 'Jurong Port Logistics Hub',
       currentLocation: `${newShipmentData.pickupCity || 'Changi Hub'} Sorting Facility`,
-      status: 'Order Placed (Awaiting Driver Dispatch)',
+      status: 'ASSIGNED',
       statusType: 'active',
       paymentStatus: 'Paid',
       serviceLevel: newShipmentData.serviceLevel || 'Express Air Freight',
@@ -775,6 +797,10 @@ export const LogisticsProvider = ({ children }) => {
 
     setShipments(prev => [newShipment, ...prev]);
 
+    if (isSupabaseConfigured) {
+      await supabaseApi.createShipment(newShipment);
+    }
+
     // Create Proximity Intimation Notification for Drivers!
     const newIntimation = {
       id: `INT-${Date.now()}`,
@@ -799,7 +825,7 @@ export const LogisticsProvider = ({ children }) => {
     return newShipment;
   };
 
-  const deleteShipment = (shipmentId) => {
+  const deleteShipment = async (shipmentId) => {
     setShipments(prev => {
       const updated = prev.filter(s => s.id !== shipmentId);
       try {
@@ -807,6 +833,11 @@ export const LogisticsProvider = ({ children }) => {
       } catch (e) {}
       return updated;
     });
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.deleteShipment(shipmentId);
+    }
+
     showToast(`Order #${shipmentId} deleted successfully from records.`, 'info');
   };
 
@@ -825,16 +856,25 @@ export const LogisticsProvider = ({ children }) => {
     setSelectedInvoiceShipment(prev => prev && prev.id === shipmentId ? { ...prev, paymentStatus: 'Paid', paymentMethod: method } : prev);
   };
 
-  const updateShipmentStatus = (shipmentId, newStatus, newLocation = '') => {
+  const updateShipmentStatus = async (shipmentId, newStatus, newLocation = '') => {
     const stageMap = {
+      'ASSIGNED': 1,
       'Booked': 1,
+      'ACCEPTED': 2,
       'Confirmed': 2,
+      'GOING_TO_PICKUP': 3,
       'Pickup Scheduled': 3,
+      'ARRIVED_AT_PICKUP': 3,
+      'PICKUP_COMPLETED': 4,
       'Picked Up': 4,
+      'IN_TRANSIT': 5,
       'In Transit': 5,
+      'ARRIVED_AT_DELIVERY': 6,
       'Near Destination': 6,
       'Out for Delivery': 6,
+      'DELIVERY_COMPLETED': 7,
       'Delivered': 7,
+      'CANCELLED': 1,
       'Delayed': 5
     };
 
@@ -844,12 +884,12 @@ export const LogisticsProvider = ({ children }) => {
     setShipments(prev => prev.map(s => {
       if (s.id === shipmentId) {
         let updatedStatusType = 'active';
-        if (newStatus === 'Delivered') updatedStatusType = 'success';
-        if (newStatus === 'Delayed') updatedStatusType = 'warning';
+        if (newStatus === 'Delivered' || newStatus === 'DELIVERY_COMPLETED') updatedStatusType = 'success';
+        if (newStatus === 'Delayed' || newStatus === 'CANCELLED') updatedStatusType = 'warning';
 
         // Auto-generate OTP if reaching destination and none exists
         let activeOtp = s.deliveryOtp;
-        if ((newStatus === 'Near Destination' || newStatus === 'Out for Delivery') && !activeOtp) {
+        if ((newStatus === 'ARRIVED_AT_DELIVERY' || newStatus === 'Near Destination' || newStatus === 'Out for Delivery') && !activeOtp) {
           activeOtp = Math.floor(100000 + Math.random() * 900000).toString();
         }
 
@@ -894,15 +934,19 @@ export const LogisticsProvider = ({ children }) => {
           currentLocation: newLocation || s.currentLocation,
           lastUpdatedTime: `Just now (${timeNow} SGT)`,
           deliveryOtp: activeOtp,
-          otpVerified: newStatus === 'Delivered' ? true : s.otpVerified,
+          otpVerified: (newStatus === 'Delivered' || newStatus === 'DELIVERY_COMPLETED') ? true : s.otpVerified,
           timeline: updatedTimeline
         };
       }
       return s;
     }));
 
+    if (isSupabaseConfigured) {
+      await supabaseApi.updateShipmentStatus(shipmentId, newStatus, newLocation);
+    }
+
     // Trigger in-app notifications
-    if (newStatus === 'Confirmed') {
+    if (newStatus === 'Confirmed' || newStatus === 'ACCEPTED') {
       addNotification({
         role: 'customer',
         type: 'shipment',
@@ -910,7 +954,7 @@ export const LogisticsProvider = ({ children }) => {
         message: `Your booking has been reviewed and verified by Josan Central Operations.`,
         shipmentId
       });
-    } else if (newStatus === 'Pickup Scheduled') {
+    } else if (newStatus === 'Pickup Scheduled' || newStatus === 'GOING_TO_PICKUP') {
       addNotification({
         role: 'customer',
         type: 'shipment',
@@ -918,7 +962,7 @@ export const LogisticsProvider = ({ children }) => {
         message: `Pickup has been assigned to driver. Fleet arrival scheduled at loading terminal.`,
         shipmentId
       });
-    } else if (newStatus === 'Picked Up') {
+    } else if (newStatus === 'Picked Up' || newStatus === 'PICKUP_COMPLETED') {
       addNotification({
         role: 'customer',
         type: 'shipment',
@@ -926,7 +970,7 @@ export const LogisticsProvider = ({ children }) => {
         message: `Consignment picked up and weighed. Highway linehaul transit commencing.`,
         shipmentId
       });
-    } else if (newStatus === 'Near Destination' || newStatus === 'Out for Delivery') {
+    } else if (newStatus === 'ARRIVED_AT_DELIVERY' || newStatus === 'Near Destination' || newStatus === 'Out for Delivery') {
       const targetS = shipments.find(item => item.id === shipmentId);
       const otpCode = targetS?.deliveryOtp || '482910';
       addNotification({
@@ -936,7 +980,7 @@ export const LogisticsProvider = ({ children }) => {
         message: `Driver is near destination. Please present Delivery OTP: ${otpCode} upon arrival.`,
         shipmentId
       });
-    } else if (newStatus === 'Delivered') {
+    } else if (newStatus === 'Delivered' || newStatus === 'DELIVERY_COMPLETED') {
       addNotification({
         role: 'customer',
         type: 'pod_verified',
@@ -951,11 +995,11 @@ export const LogisticsProvider = ({ children }) => {
 
   // Driver Trip & Location Operations
   const startDriverTrip = (shipmentId) => {
-    updateShipmentStatus(shipmentId, 'In Transit', 'En Route via Highway Telematics Corridor');
+    updateShipmentStatus(shipmentId, 'IN_TRANSIT', 'En Route via Highway Telematics Corridor');
     showToast(`Trip started for #${shipmentId}! Real-time tracking active.`, 'success');
   };
 
-  const updateShipmentLocation = (shipmentId, newLocationText, coords) => {
+  const updateShipmentLocation = async (shipmentId, newLocationText, coords) => {
     const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setShipments(prev => prev.map(s => {
       if (s.id === shipmentId) {
@@ -968,11 +1012,19 @@ export const LogisticsProvider = ({ children }) => {
       }
       return s;
     }));
+
+    if (isSupabaseConfigured && coords && coords.length >= 2) {
+      const targetS = shipments.find(s => s.id === shipmentId);
+      if (targetS?.driverId) {
+        await supabaseApi.updateDriverLocation(targetS.driverId, coords[0], coords[1]);
+      }
+    }
+
     showToast(`Location updated to "${newLocationText}" for #${shipmentId}`);
   };
 
   const reachDestination = (shipmentId) => {
-    updateShipmentStatus(shipmentId, 'Near Destination', 'Arrived at Destination Receiving Gate');
+    updateShipmentStatus(shipmentId, 'ARRIVED_AT_DELIVERY', 'Arrived at Destination Receiving Gate');
     showToast(`Arrived near destination for #${shipmentId}! Delivery OTP issued.`, 'success');
   };
 
@@ -995,7 +1047,7 @@ export const LogisticsProvider = ({ children }) => {
     return { success: true, message: 'OTP verified successfully! Please capture recipient signature and photo to complete POD.' };
   };
 
-  const submitPod = (shipmentId, podData) => {
+  const submitPod = async (shipmentId, podData) => {
     const timeNow = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
     const completePod = {
@@ -1018,7 +1070,7 @@ export const LogisticsProvider = ({ children }) => {
 
         return {
           ...s,
-          status: 'Delivered',
+          status: 'DELIVERY_COMPLETED',
           statusType: 'success',
           currentLocation: `${s.destination} (Delivered)`,
           lastUpdatedTime: `${timeNow} (Digital POD Stamped)`,
@@ -1029,6 +1081,17 @@ export const LogisticsProvider = ({ children }) => {
       }
       return s;
     }));
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.submitProofOfDelivery({
+        shipmentId,
+        driverId: podData.driverId || 'DRV-101',
+        receiverName: podData.recipientName || 'Authorized Receiving Officer',
+        signatureUrl: podData.recipientSignature || '',
+        photoUrl: podData.photo || '',
+        notes: podData.remarks || 'Consignment delivered'
+      });
+    }
 
     addNotification({
       role: 'customer',
@@ -1682,7 +1745,7 @@ export const LogisticsProvider = ({ children }) => {
     showToast(`Weather delay flagged for #${shipmentId}! Automated SMS & Email notifications dispatched to recipient.`, 'warning');
   };
 
-  const assignDriver = (shipmentId, driverId) => {
+  const assignDriver = async (shipmentId, driverId) => {
     const driverObj = drivers.find(d => d.id === driverId);
     if (!driverObj) return;
 
@@ -1696,11 +1759,15 @@ export const LogisticsProvider = ({ children }) => {
           driverName: driverObj.name,
           driverPhone: driverObj.phone,
           vehicle: `${driverObj.vehicleType} (${driverObj.vehicleId || 'SG-8819'})`,
-          status: 'Driver Assigned (Direct Admin Order Assignment)'
+          status: 'ASSIGNED'
         };
       }
       return s;
     }));
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.assignDriver(shipmentId, driverObj.id, driverObj.name, driverObj.phone, `${driverObj.vehicleType} (${driverObj.vehicleId || 'SG-8819'})`);
+    }
 
     const adminIntimation = {
       id: `INT-ADM-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -1919,7 +1986,7 @@ export const LogisticsProvider = ({ children }) => {
     return shipments.find(s => s.id.toUpperCase() === searchClean || s.id.toUpperCase().includes(searchClean));
   };
 
-  const assignDriverToShipment = (shipmentId, driverId) => {
+  const assignDriverToShipment = async (shipmentId, driverId) => {
     const selectedDriver = (drivers || []).find(d => d.id === driverId || d.driverId === driverId);
     if (!selectedDriver) return false;
 
@@ -1932,7 +1999,7 @@ export const LogisticsProvider = ({ children }) => {
           driverPhone: selectedDriver.phone,
           vehicle: selectedDriver.vehicleType || s.vehicle,
           vehiclePlate: selectedDriver.vehicleId || s.vehiclePlate,
-          status: 'Pickup Scheduled',
+          status: 'ASSIGNED',
           timeline: s.timeline ? s.timeline.map(t => t.step === 3 ? { ...t, completed: true, current: true } : t) : s.timeline
         };
       }
@@ -1945,6 +2012,10 @@ export const LogisticsProvider = ({ children }) => {
       }
       return d;
     }));
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.assignDriver(shipmentId, selectedDriver.id, selectedDriver.name, selectedDriver.phone, selectedDriver.vehicleType || 'Box Truck');
+    }
 
     try {
       backendApi.assignDriverToTrip(shipmentId, driverId).catch(err => console.warn('Dispatch API:', err));
