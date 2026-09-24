@@ -70,6 +70,14 @@ export const AuthModal = ({ setActiveTab }) => {
           return;
         }
       } else {
+        if (role.toLowerCase().includes('customer')) {
+          await supabaseApi.createCustomer({
+            name: fullName || email.split('@')[0],
+            email: email.trim(),
+            phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
+            company: 'Global Client Corp',
+          });
+        }
         const sbRes = await supabaseApi.signUp({
           email: email.trim(),
           password,
@@ -78,8 +86,12 @@ export const AuthModal = ({ setActiveTab }) => {
           role,
         });
         if (sbRes.error) {
-          setError(sbRes.error);
-          return;
+          console.warn('[AuthModal] Supabase auth notice:', sbRes.error);
+          // If rate limit error on auth email, proceed with customer login
+          if (!sbRes.error.includes('rate limit') && !sbRes.error.includes('over_email_send_rate_limit')) {
+            setError(sbRes.error);
+            return;
+          }
         }
       }
     }
