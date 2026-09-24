@@ -101,11 +101,10 @@ export const Footer = ({ setActiveTab }) => {
           <div>
             <h4 className="text-white text-base font-bold mb-4 font-sans border-b border-slate-800 pb-2">Our Solutions</h4>
             <ul className="space-y-2.5 text-sm text-slate-400">
-              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Roadways Freight (FTL / LTL)</li>
-              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Heavy Haulage & Flatbed Trucking</li>
-              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Express Highway Road Courier</li>
-              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('services')}>Temperature-Controlled Reefer Trucks</li>
-              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('customs-clearance')}>Roadways Customs Clearance</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('road-freight')}>Road Freight & Transportation</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('air-freight')}>Air Freight Forwarding</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('fleet')}>Commercial Fleet & Trucks</li>
+              <li className="hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveTab('customs-clearance')}>Customs Clearance & Brokerage</li>
             </ul>
           </div>
 

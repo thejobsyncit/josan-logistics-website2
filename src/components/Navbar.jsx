@@ -4,6 +4,7 @@ import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
   Package, 
   Truck, 
+  Plane,
   Search, 
   UserCheck, 
   ShieldCheck, 
@@ -175,6 +176,18 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     setServicesDropdownOpen(false);
     setMobileMenuOpen(false);
 
+    if (sectionId === 'air-freight') {
+      setActiveTab('air-freight');
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (sectionId === 'road-transportation' || sectionId === 'road-freight') {
+      setActiveTab('road-freight');
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (sectionId === 'customs-clearance') {
       setActiveTab('customs-clearance');
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -264,23 +277,18 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
-  // Public Navigation Links (Always Clean & Standard across all public visitors)
+  // Public Navigation Links
   const navItems = [
     { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About Us' },
+    { id: 'about', label: 'About' },
     { id: 'services', label: 'Services', hasDropdown: true },
     { id: 'track', label: 'Track Shipment' },
-    { id: 'contact', label: 'Contact Us' }
+    { id: 'contact', label: 'Contact' }
   ];
 
   const servicesDropdownItems = [
-    { id: 'road-transportation', label: 'Road Transportation', desc: 'Overland highway linehaul & regional freight' },
-    { id: 'ftl-transportation', label: 'FTL', desc: 'Dedicated full truckload point-to-point delivery' },
-    { id: 'ltl-transportation', label: 'LTL', desc: 'Consolidated partial pallet freight & scheduled runs' },
-    { id: 'express-delivery', label: 'Express Delivery', desc: 'Under 4h rapid city & express courier dispatch' },
-    { id: 'specialized-cargo', label: 'Specialized Cargo', desc: 'Multi-temp cold chain (-25°C to +25°C) & reefer vans' },
-    { id: 'customs-clearance', label: 'Customs Clearance', desc: 'TradeNet documentation, brokerage & port release' },
-    { id: 'cargo-types', label: 'Cargo Types', desc: 'Explore supported commodities & industry classifications' }
+    { id: 'air-freight', label: 'Air Freight', icon: Plane },
+    { id: 'road-transportation', label: 'Road Transportation', icon: Truck }
   ];
 
   const shipmentsDropdownItems = [
@@ -347,23 +355,22 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
                     {/* Services Dropdown Menu */}
                     {servicesDropdownOpen && (
-                      <div className="absolute left-0 top-full pt-2 w-80 z-50 animate-fade-in">
-                        <div className="bg-[#10182D] rounded-2xl border border-slate-700/80 shadow-2xl p-2.5 space-y-1">
-                          {servicesDropdownItems.map((s) => (
-                            <button
-                              key={s.id}
-                              type="button"
-                              onClick={() => handleGoToServiceSection(s.id)}
-                              className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 transition-colors block group cursor-pointer"
-                            >
-                              <span className="block text-xs font-bold text-white group-hover:text-[#FF6B00] transition-colors">
-                                {s.label}
-                              </span>
-                              <span className="block text-[11px] font-medium text-slate-400 mt-0.5 leading-snug">
-                                {s.desc}
-                              </span>
-                            </button>
-                          ))}
+                      <div className="absolute left-0 top-full pt-2 w-52 z-50 animate-fade-in">
+                        <div className="bg-[#10182D] rounded-2xl border border-slate-700/80 shadow-2xl p-1.5 space-y-1">
+                          {servicesDropdownItems.map((s) => {
+                            const IconComp = s.icon;
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => handleGoToServiceSection(s.id)}
+                                className="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-slate-800/90 text-white hover:text-[#FF6B00] text-xs font-bold transition-colors flex items-center space-x-2.5 group cursor-pointer"
+                              >
+                                <IconComp className="w-4 h-4 text-slate-400 group-hover:text-[#FF6B00] transition-colors shrink-0" />
+                                <span>{s.label}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -419,6 +426,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               }
 
               const isActive = activeTab === item.id;
+
               return (
                 <button
                   key={item.id}
@@ -426,19 +434,25 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                     if (item.id === 'track' && !currentUser) {
                       if (setAuthRedirectTab) setAuthRedirectTab('track');
                       setIsAuthModalOpen(true);
-                      if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+                      if (showToast) showToast('Please sign in to track road and air shipments.', 'warning');
+                      return;
+                    }
+                    if (item.id === 'quote' && !currentUser) {
+                      if (setAuthRedirectTab) setAuthRedirectTab('quote');
+                      setIsAuthModalOpen(true);
+                      if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
                       return;
                     }
                     setActiveTab(item.id);
                     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}
-                  className={`py-2 text-sm 2xl:text-[15px] transition-all duration-150 whitespace-nowrap cursor-pointer ${
+                  className={`py-2 text-xs 2xl:text-sm transition-all duration-150 whitespace-nowrap cursor-pointer flex items-center space-x-1.5 ${
                     isActive
                       ? 'text-white font-bold border-b-2 border-[#FF6B00]'
                       : 'text-slate-300 hover:text-white font-medium'
                   }`}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
                 </button>
               );
             })}
@@ -690,7 +704,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               Home
             </button>
 
-            {/* About Us */}
+            {/* About */}
             <button
               onClick={() => {
                 setActiveTab('about');
@@ -701,7 +715,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 activeTab === 'about' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              About Us
+              About
             </button>
 
             {/* Services (Accordion) */}
@@ -736,7 +750,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   if (setAuthRedirectTab) setAuthRedirectTab('track');
                   setIsAuthModalOpen(true);
                   setMobileMenuOpen(false);
-                  if (showToast) showToast('Please sign in to track road shipments.', 'warning');
+                  if (showToast) showToast('Please sign in to track air and road shipments.', 'warning');
                   return;
                 }
                 setActiveTab('track');
@@ -761,7 +775,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 activeTab === 'contact' ? 'bg-orange-50 text-orange-600 font-extrabold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Contact Us
+              Contact
             </button>
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Calculator, 
   Truck, 
@@ -15,10 +15,14 @@ import {
   Phone, 
   Building2,
   Sparkles,
-  Lock
+  Lock,
+  Plane,
+  Box,
+  Scale,
+  Maximize2
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
-import { cargoCategories } from '../components/CargoTypeSelector';
+import { cargoCategories, airFreightCargoTypes } from '../components/CargoTypeSelector';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 
 export const QuotePage = ({ setActiveTab }) => {
@@ -69,12 +73,18 @@ export const QuotePage = ({ setActiveTab }) => {
     );
   }
 
-  // Form State
-  const [freightMode, setFreightMode] = useState('ftl');
+  // Form State - Air Freight as Primary Default
+  const [freightMode, setFreightMode] = useState('express-air');
+  const [transportCategory, setTransportCategory] = useState('air'); // 'air' | 'road'
   const [cargoWeight, setCargoWeight] = useState(250);
-  const [cargoCategory, setCargoCategory] = useState(cargoCategories[0]?.name || 'Industrial Products');
-  const [originZone, setOriginZone] = useState('Jurong / West Industrial District');
-  const [destinationZone, setDestinationZone] = useState('Changi / East Cargo Logistics Complex');
+  const [packageCount, setPackageCount] = useState(4);
+  const [lengthCm, setLengthCm] = useState(80);
+  const [widthCm, setWidthCm] = useState(60);
+  const [heightCm, setHeightCm] = useState(50);
+  const [pickupDeliveryOption, setPickupDeliveryOption] = useState('airport-to-airport');
+  const [cargoCategory, setCargoCategory] = useState('General Cargo');
+  const [originZone, setOriginZone] = useState('Singapore Changi Cargo Hub (SIN)');
+  const [destinationZone, setDestinationZone] = useState('Hong Kong International Cargo Terminal (HKG)');
   const [tailgateRequired, setTailgateRequired] = useState(false);
   const [insuranceRequired, setInsuranceRequired] = useState(true);
   const [declaredValue, setDeclaredValue] = useState(15000);
@@ -125,12 +135,15 @@ export const QuotePage = ({ setActiveTab }) => {
   // Rate Matrix
   const getRatePerKg = () => {
     switch (freightMode) {
+      case 'express-air': return 12.50;
+      case 'standard-air': return 7.80;
+      case 'temp-air': return 14.20;
+      case 'charter-air': return 9.50;
       case 'ftl': return 5.50;
       case 'ltl': return 3.80;
       case 'reefer': return 6.50;
-      case 'express': return 8.00;
       case 'customs': return 4.20;
-      default: return 5.00;
+      default: return 7.80;
     }
   };
 
@@ -138,16 +151,38 @@ export const QuotePage = ({ setActiveTab }) => {
     return deliverySpeed === 'express' ? 1.35 : 1.0;
   };
 
-  const parsedWeight = parseFloat(cargoWeight) || 0;
-  const baseFreightCost = (parsedWeight * getRatePerKg() * getSpeedMultiplier()).toFixed(2);
+  // Volumetric & Chargeable Weight Calculations
+  const parsedActualWeight = Math.max(0, parseFloat(cargoWeight) || 0);
+  const parsedPackages = Math.max(1, parseInt(packageCount) || 1);
+  const parsedL = Math.max(0, parseFloat(lengthCm) || 0);
+  const parsedW = Math.max(0, parseFloat(widthCm) || 0);
+  const parsedH = Math.max(0, parseFloat(heightCm) || 0);
+
+  // International Air IATA Volumetric standard: (L x W x H in cm * Packages) / 6000
+  const volumetricWeight = useMemo(() => {
+    return Number(((parsedL * parsedW * parsedH * parsedPackages) / 6000).toFixed(2));
+  }, [parsedL, parsedW, parsedH, parsedPackages]);
+
+  // In Air Freight, Chargeable Weight is max of gross weight or volumetric weight
+  const isAirMode = freightMode.includes('air');
+  const chargeableWeight = isAirMode 
+    ? Math.max(parsedActualWeight, volumetricWeight) 
+    : parsedActualWeight;
+
+  const baseFreightCost = (chargeableWeight * getRatePerKg() * getSpeedMultiplier()).toFixed(2);
   const tailgateCost = tailgateRequired ? 35.00 : 0.00;
   const insuranceCost = insuranceRequired ? Math.max(25, declaredValue * 0.004).toFixed(2) : '0.00';
   const customsFee = freightMode === 'customs' ? 120.00 : 0.00;
+  const pickupDeliveryFee = pickupDeliveryOption === 'door-to-door' ? 95.00 
+    : (pickupDeliveryOption === 'door-to-airport' || pickupDeliveryOption === 'airport-to-door') ? 50.00 
+    : 0.00;
+
   const subtotal = (
     parseFloat(baseFreightCost) + 
     tailgateCost + 
     parseFloat(insuranceCost) + 
-    customsFee
+    customsFee +
+    pickupDeliveryFee
   ).toFixed(2);
   const gst = (parseFloat(subtotal) * 0.09).toFixed(2);
   const grandTotal = (parseFloat(subtotal) + parseFloat(gst)).toFixed(2);
@@ -185,7 +220,7 @@ export const QuotePage = ({ setActiveTab }) => {
         estimatedValue: parseFloat(grandTotal) || 0,
         tags: [
           'Website Quote',
-          freightMode ? freightMode.toUpperCase() : 'FTL',
+          freightMode ? freightMode.toUpperCase() : 'AIR',
           cargoCategory
         ].filter(Boolean)
       });
@@ -194,7 +229,11 @@ export const QuotePage = ({ setActiveTab }) => {
     if (requestQuote) {
       const newQuote = requestQuote({
         freightMode,
-        cargoWeight,
+        cargoWeight: parsedActualWeight,
+        chargeableWeight,
+        packageCount: parsedPackages,
+        dimensions: `${parsedL}x${parsedW}x${parsedH} cm`,
+        pickupDeliveryOption,
         cargoCategory,
         originZone,
         destinationZone,
@@ -208,11 +247,11 @@ export const QuotePage = ({ setActiveTab }) => {
         contactPhone: fullContactPhone,
         specialInstructions
       });
-      const refId = newQuote?.id || `QTE-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+      const refId = newQuote?.id || `QTE-${Math.floor(10000 + Math.random() * 90000)}-AIR`;
       setGeneratedQuoteRef(refId);
       setQuoteSubmitted(true);
     } else {
-      const refId = `QTE-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+      const refId = `QTE-${Math.floor(10000 + Math.random() * 90000)}-AIR`;
       setGeneratedQuoteRef(refId);
       setQuoteSubmitted(true);
       if (showToast) {
@@ -243,17 +282,17 @@ export const QuotePage = ({ setActiveTab }) => {
     <div className="space-y-16 pb-24">
       {/* Header Banner */}
       <section className="bg-[#10182D] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
           <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-flex items-center space-x-1.5">
-            <Calculator className="w-3.5 h-3.5" />
-            <span>Instant Rate Estimator & Quotation</span>
+            <Plane className="w-3.5 h-3.5" />
+            <span>Air Freight Rate Calculator & Quotation</span>
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading text-white tracking-tight">
             Get an Instant Freight Quote
           </h1>
           <p className="text-white/90 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Obtain instant transparent pricing for your road freight, FTL, LTL, and temperature-controlled cargo shipments across Singapore and regional cross-border corridors.
+            Obtain immediate transparent pricing for international air cargo with volumetric weight analysis, standard air freight, cross-border road logistics, and customs documentation.
           </p>
         </div>
       </section>
@@ -266,159 +305,312 @@ export const QuotePage = ({ setActiveTab }) => {
           <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
             <div>
               <h2 className="text-xl font-extrabold text-slate-900">Shipment Specifications</h2>
-              <p className="text-xs text-slate-500 font-semibold">Select your required transport service, cargo details, and route.</p>
+              <p className="text-xs text-slate-500 font-semibold">Select your freight mode, cargo dimensions, weight, and delivery route.</p>
             </div>
 
             <form onSubmit={handleQuoteSubmit} className="space-y-6 text-xs">
               {/* Freight Mode Selector */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                  1. Select Freight Service Mode *
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {[
-                    { id: 'ftl', label: 'FTL Truckload', sub: 'Exclusive dedicated lorry', rate: '$5.50/kg' },
-                    { id: 'ltl', label: 'LTL Consolidation', sub: 'Shared pallet freight', rate: '$3.80/kg' },
-                    { id: 'reefer', label: 'Cold Chain Reefer', sub: '-25°C to +25°C active', rate: '$6.50/kg' },
-                    { id: 'express', label: 'Express Courier', sub: 'Same-day rapid dispatch', rate: '$8.00/kg' },
-                    { id: 'customs', label: 'Customs + Road Freight', sub: 'TradeNet documentation', rate: '$4.20/kg' }
-                  ].map((mode) => (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() => setFreightMode(mode.id)}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        freightMode === mode.id
-                          ? 'bg-orange-500 text-white border-orange-500 shadow-orange-sm'
-                          : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
-                      }`}
-                    >
-                      <div>
-                        <span className="font-extrabold text-xs block">{mode.label}</span>
-                        <span className={`text-[10px] block mt-0.5 ${freightMode === mode.id ? 'text-orange-100' : 'text-slate-500'}`}>
-                          {mode.sub}
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    1. Select Freight Service Type *
+                  </label>
+                  <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full">
+                    Air Freight Primary
+                  </span>
+                </div>
+                
+                {/* Air Freight Services (Primary) */}
+                <div className="mb-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    ✈️ Air Freight Services
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'express-air', label: 'Express Air', sub: 'Next Flight Out', rate: '$12.50/kg' },
+                      { id: 'standard-air', label: 'Standard Air', sub: 'Consolidation', rate: '$7.80/kg' },
+                      { id: 'temp-air', label: 'Pharma / Reefer Air', sub: 'Cold Chain Pallet', rate: '$14.20/kg' },
+                      { id: 'charter-air', label: 'Airport-to-Airport', sub: 'Scheduled Cargo', rate: '$9.50/kg' }
+                    ].map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => {
+                          setFreightMode(mode.id);
+                          setTransportCategory('air');
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          freightMode === mode.id
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'bg-white text-slate-800 border-slate-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <div>
+                          <span className="font-extrabold text-[11px] block">{mode.label}</span>
+                          <span className={`text-[9px] block mt-0.5 ${freightMode === mode.id ? 'text-blue-100' : 'text-slate-500'}`}>
+                            {mode.sub}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-mono font-bold mt-1.5 inline-block ${freightMode === mode.id ? 'text-white' : 'text-blue-600'}`}>
+                          From {mode.rate}
                         </span>
-                      </div>
-                      <span className={`text-[10px] font-mono font-bold mt-2 inline-block ${freightMode === mode.id ? 'text-white' : 'text-orange-600'}`}>
-                        From {mode.rate}
-                      </span>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Road & Customs Services (Secondary & Supporting) */}
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    🚚 Road Freight & Brokerage Services
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'ftl', label: 'Road FTL', sub: 'Dedicated lorry', rate: '$5.50/kg' },
+                      { id: 'ltl', label: 'Road LTL', sub: 'Consolidation', rate: '$3.80/kg' },
+                      { id: 'reefer', label: 'Reefer Truck', sub: 'Chilled & Frozen', rate: '$6.50/kg' },
+                      { id: 'customs', label: 'Customs Clearance', sub: 'TradeNet + Permit', rate: '$4.20/kg' }
+                    ].map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => {
+                          setFreightMode(mode.id);
+                          setTransportCategory('road');
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          freightMode === mode.id
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                            : 'bg-white text-slate-800 border-slate-200 hover:border-slate-400'
+                        }`}
+                      >
+                        <div>
+                          <span className="font-extrabold text-[11px] block">{mode.label}</span>
+                          <span className={`text-[9px] block mt-0.5 ${freightMode === mode.id ? 'text-slate-200' : 'text-slate-500'}`}>
+                            {mode.sub}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-mono font-bold mt-1.5 inline-block ${freightMode === mode.id ? 'text-orange-400' : 'text-slate-700'}`}>
+                          From {mode.rate}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Weight & Cargo Category */}
+              {/* Origin and Destination */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center space-x-1">
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Origin / Departure Hub *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={originZone}
+                    onChange={(e) => setOriginZone(e.target.value)}
+                    placeholder="e.g. Singapore Changi Cargo Hub (SIN)"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center space-x-1">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Destination / Arrival Hub *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={destinationZone}
+                    onChange={(e) => setDestinationZone(e.target.value)}
+                    placeholder="e.g. Hong Kong Cargo Terminal (HKG)"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Cargo Classification & Number of Packages */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Cargo Classification (IATA/General)
+                  </label>
+                  <select
+                    value={cargoCategory}
+                    onChange={(e) => setCargoCategory(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  >
+                    {airFreightCargoTypes.map(c => (
+                      <option key={c.id} value={c.name}>{c.name} — {c.desc}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-                    <span>Cargo Weight (kg) *</span>
-                    <span className="text-[10px] text-slate-400 font-medium">Enter custom weight</span>
+                    <span>Number of Packages / Cartons *</span>
                   </label>
                   <div className="relative">
                     <input
                       type="number"
                       min="1"
-                      max="100000"
-                      step="any"
+                      max="1000"
                       required
-                      value={cargoWeight}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === '') {
-                          setCargoWeight('');
-                        } else {
-                          const num = Math.max(0, parseFloat(val));
-                          setCargoWeight(isNaN(num) ? '' : num);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (['e', 'E', '+', '-'].includes(e.key)) {
-                          e.preventDefault();
-                        }
-                      }}
-                      placeholder="e.g. 250"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all pr-12"
+                      value={packageCount}
+                      onChange={(e) => setPackageCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:bg-white focus:ring-2 focus:ring-blue-500 pr-12"
                     />
                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">
-                      kg
+                      pkgs
                     </span>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Cargo Classification</label>
-                  <select
-                    value={cargoCategory}
-                    onChange={(e) => setCargoCategory(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange cursor-pointer"
-                  >
-                    {cargoCategories.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
+              {/* Weight & Dimensions (Crucial for Air Freight Volumetric Calculation) */}
+              <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-200/80 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Maximize2 className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-black uppercase text-blue-900 tracking-wide">
+                      Weight & Package Dimensions
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-blue-700 font-semibold bg-blue-100 px-2.5 py-0.5 rounded-full">
+                    IATA Ratio: 1:6000
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Gross Weight (kg) *
+                    </label>
+                    <input
+                      type="number"
+                      min="0.5"
+                      step="any"
+                      required
+                      value={cargoWeight}
+                      onChange={(e) => setCargoWeight(e.target.value)}
+                      placeholder="e.g. 250"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Length (cm)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={lengthCm}
+                      onChange={(e) => setLengthCm(e.target.value)}
+                      placeholder="80"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Width (cm)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={widthCm}
+                      onChange={(e) => setWidthCm(e.target.value)}
+                      placeholder="60"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Height (cm)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={heightCm}
+                      onChange={(e) => setHeightCm(e.target.value)}
+                      placeholder="50"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Highlighted Chargeable Weight Display */}
+                <div className="p-3 bg-white rounded-xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Scale className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <span className="font-bold text-slate-900 text-xs block">Chargeable Weight (Billable)</span>
+                      <span className="text-[10px] text-slate-500">
+                        Higher of Gross Weight ({parsedActualWeight} kg) or Volumetric Weight ({volumetricWeight} kg)
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono text-base font-extrabold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200 inline-block">
+                      {chargeableWeight.toFixed(2)} kg
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Origin and Destination Zones */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Pickup Zone / Terminal</label>
-                  <select
-                    value={originZone}
-                    onChange={(e) => setOriginZone(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange cursor-pointer"
-                  >
-                    <option value="Jurong / West Industrial District">Jurong / West Industrial District</option>
-                    <option value="Changi / East Cargo Logistics Complex">Changi / East Cargo Logistics Complex</option>
-                    <option value="Woodlands / North Link Highway Depot">Woodlands / North Link Highway Depot</option>
-                    <option value="Tuas Megaport Container Depot">Tuas Megaport Container Depot</option>
-                    <option value="Central Business District (CBD)">Central Business District (CBD)</option>
-                    <option value="Johor Bahru Cross-Border Gateway">Johor Bahru Cross-Border Gateway</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Delivery Zone / Terminal</label>
-                  <select
-                    value={destinationZone}
-                    onChange={(e) => setDestinationZone(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange cursor-pointer"
-                  >
-                    <option value="Changi / East Cargo Logistics Complex">Changi / East Cargo Logistics Complex</option>
-                    <option value="Jurong / West Industrial District">Jurong / West Industrial District</option>
-                    <option value="Woodlands / North Link Highway Depot">Woodlands / North Link Highway Depot</option>
-                    <option value="Tuas Megaport Container Depot">Tuas Megaport Container Depot</option>
-                    <option value="Central Business District (CBD)">Central Business District (CBD)</option>
-                    <option value="Johor Bahru Cross-Border Gateway">Johor Bahru Cross-Border Gateway</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Service Speed & Addons */}
+              {/* Pickup / Delivery Options & Addons */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                 <span className="block text-[11px] font-black uppercase text-slate-500 tracking-wider">
-                  Additional Transport Options
+                  Pickup & Delivery Handling
                 </span>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex items-center space-x-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={tailgateRequired}
-                      onChange={(e) => setTailgateRequired(e.target.checked)}
-                      className="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 accent-orange-500"
-                    />
-                    <span className="font-bold text-slate-800">Hydraulic Tailgate Required (+S$35)</span>
-                  </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'airport-to-airport', label: 'Airport-to-Airport', fee: 'Included' },
+                    { id: 'door-to-airport', label: 'Door-to-Airport', fee: '+S$50' },
+                    { id: 'airport-to-door', label: 'Airport-to-Door', fee: '+S$50' },
+                    { id: 'door-to-door', label: 'Door-to-Door', fee: '+S$95' }
+                  ].map(opt => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setPickupDeliveryOption(opt.id)}
+                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                        pickupDeliveryOption === opt.id
+                          ? 'bg-slate-900 text-white border-slate-900 font-bold'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <span className="text-[11px] block">{opt.label}</span>
+                      <span className="text-[9px] text-blue-500 font-semibold">{opt.fee}</span>
+                    </button>
+                  ))}
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <label className="flex items-center space-x-2.5 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={insuranceRequired}
                       onChange={(e) => setInsuranceRequired(e.target.checked)}
-                      className="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 accent-orange-500"
+                      className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-400 accent-blue-600"
                     />
-                    <span className="font-bold text-slate-800">Full Cargo All-Risk Insurance</span>
+                    <span className="font-bold text-slate-800">IATA Air Cargo All-Risk Insurance</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={tailgateRequired}
+                      onChange={(e) => setTailgateRequired(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-400 accent-blue-600"
+                    />
+                    <span className="font-bold text-slate-800">Hydraulic Tailgate for Ground Leg (+S$35)</span>
                   </label>
                 </div>
 
@@ -434,14 +626,14 @@ export const QuotePage = ({ setActiveTab }) => {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-600 mb-1">Transit Speed</label>
+                    <label className="block font-bold text-slate-600 mb-1">Flight Routing Speed</label>
                     <select
                       value={deliverySpeed}
                       onChange={(e) => setDeliverySpeed(e.target.value)}
                       className="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 cursor-pointer"
                     >
-                      <option value="standard">Standard Highway Route (24h SLA)</option>
-                      <option value="express">Priority Express Highway (Under 4h SLA +35%)</option>
+                      <option value="standard">Standard Scheduled Air Routing (24-48h SLA)</option>
+                      <option value="express">Priority Next Flight Out Express (&lt;24h SLA +35%)</option>
                     </select>
                   </div>
                 </div>
@@ -481,14 +673,14 @@ export const QuotePage = ({ setActiveTab }) => {
                       type="text"
                       value={contactCompany}
                       onChange={(e) => setContactCompany(e.target.value)}
-                      placeholder="e.g. Razer Asia-Pacific Pte Ltd"
+                      placeholder="e.g. Apex Global Trading Pte Ltd"
                       className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900"
                     />
                   </div>
                   <div>
                     <label className="block font-bold text-slate-600 mb-1 flex items-center justify-between">
                       <span>Phone Number *</span>
-                      <span className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">Digits only</span>
+                      <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Digits only</span>
                     </label>
                     <div className="flex items-center">
                       <select
@@ -531,10 +723,10 @@ export const QuotePage = ({ setActiveTab }) => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-sm shadow-orange-sm transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-extrabold text-sm shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Generate Official Quotation Summary</span>
+                  <span>Generate Official Freight Quotation</span>
                 </button>
               </div>
             </form>
@@ -545,12 +737,12 @@ export const QuotePage = ({ setActiveTab }) => {
             <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 sm:p-8 border border-slate-700 shadow-xl space-y-6">
               <div className="flex items-center justify-between border-b border-slate-700 pb-4">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-orange-400">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-blue-400">
                     Live Rate Computation
                   </span>
                   <h3 className="text-xl font-extrabold text-white">Quotation Breakdown</h3>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold">
                   <DollarSign className="w-5 h-5" />
                 </div>
               </div>
@@ -558,32 +750,58 @@ export const QuotePage = ({ setActiveTab }) => {
               {/* Route Summary */}
               <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-1.5 text-xs">
                 <div className="flex items-center space-x-2 text-slate-300 font-semibold">
-                  <MapPin className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                  <span className="truncate">From: {originZone}</span>
+                  <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span className="truncate">Origin: {originZone}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-slate-300 font-semibold">
                   <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="truncate">To: {destinationZone}</span>
+                  <span className="truncate">Destination: {destinationZone}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[11px] text-slate-400">
+                  <span>Routing: {pickupDeliveryOption.replace(/-/g, ' ').toUpperCase()}</span>
+                  <span>{packageCount} Packages</span>
                 </div>
               </div>
 
               {/* Itemized Line Items */}
               <div className="space-y-3 text-xs">
                 <div className="flex justify-between items-center text-slate-300">
-                  <span>Base Freight ({parseFloat(cargoWeight) || 0}kg × ${getRatePerKg()}/kg):</span>
+                  <span>Gross Weight:</span>
+                  <span className="font-mono text-slate-200">{parsedActualWeight} kg</span>
+                </div>
+
+                <div className="flex justify-between items-center text-slate-300">
+                  <span>Volumetric Weight:</span>
+                  <span className="font-mono text-slate-200">{volumetricWeight} kg</span>
+                </div>
+
+                <div className="flex justify-between items-center text-blue-300 font-bold bg-blue-900/30 px-2 py-1 rounded-lg">
+                  <span>Chargeable Weight:</span>
+                  <span className="font-mono">{chargeableWeight.toFixed(2)} kg</span>
+                </div>
+
+                <div className="flex justify-between items-center text-slate-300">
+                  <span>Base Freight ({chargeableWeight.toFixed(2)}kg × ${getRatePerKg()}/kg):</span>
                   <span className="font-mono font-bold text-white">S$ {baseFreightCost}</span>
                 </div>
 
+                {pickupDeliveryFee > 0 && (
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Pickup / Ground Delivery Leg:</span>
+                    <span className="font-mono font-bold text-white">S$ {pickupDeliveryFee.toFixed(2)}</span>
+                  </div>
+                )}
+
                 {tailgateRequired && (
                   <div className="flex justify-between items-center text-slate-300">
-                    <span>Hydraulic Tailgate Fee:</span>
+                    <span>Hydraulic Tailgate Ground Fee:</span>
                     <span className="font-mono font-bold text-white">S$ {tailgateCost.toFixed(2)}</span>
                   </div>
                 )}
 
                 {insuranceRequired && (
                   <div className="flex justify-between items-center text-slate-300">
-                    <span>Cargo Protection (All-Risk):</span>
+                    <span>Air Cargo All-Risk Insurance:</span>
                     <span className="font-mono font-bold text-white">S$ {insuranceCost}</span>
                   </div>
                 )}
@@ -607,7 +825,7 @@ export const QuotePage = ({ setActiveTab }) => {
 
                 <div className="flex justify-between items-center text-white pt-3 border-t border-slate-600 font-extrabold">
                   <span className="text-sm">Estimated Total Rate:</span>
-                  <span className="font-mono text-2xl text-orange-400 font-black">S$ {grandTotal}</span>
+                  <span className="font-mono text-2xl text-[#FF6B00] font-black">S$ {grandTotal}</span>
                 </div>
               </div>
 
@@ -622,7 +840,7 @@ export const QuotePage = ({ setActiveTab }) => {
                 </button>
 
                 <p className="text-[10px] text-slate-400 text-center font-medium">
-                  Quotes are guaranteed for 14 days from time of generation. SLA tracked by Josan Logistics dispatch.
+                  Air freight quotations guaranteed for 14 days. Final billable weight determined at airport terminal cargo acceptance scale.
                 </p>
               </div>
 
@@ -634,7 +852,7 @@ export const QuotePage = ({ setActiveTab }) => {
                     <span>Quote Request #{generatedQuoteRef} Dispatched!</span>
                   </div>
                   <p className="text-[11px] text-emerald-300/80">
-                    A formalized itemized quotation with distance, cargo, and vehicle breakdown has been recorded. Admin operations review is in progress.
+                    A formalized itemized quotation with chargeable weight, route breakdown, and service tier has been recorded. Logistics operations review is underway.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2 pt-1">
                     <button
@@ -648,7 +866,7 @@ export const QuotePage = ({ setActiveTab }) => {
                     <button
                       type="button"
                       onClick={handleProceedToBooking}
-                      className="flex-1 py-2 px-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs text-center transition-all cursor-pointer flex items-center justify-center space-x-1.5"
+                      className="flex-1 py-2 px-3 bg-[#FF6B00] hover:bg-[#E55C00] text-white rounded-xl font-bold text-xs text-center transition-all cursor-pointer flex items-center justify-center space-x-1.5"
                     >
                       <span>Proceed to Booking</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -658,9 +876,9 @@ export const QuotePage = ({ setActiveTab }) => {
               )}
             </div>
           </div>
-
         </div>
       </section>
     </div>
   );
 };
+
