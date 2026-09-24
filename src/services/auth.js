@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { customersService } from './customers';
 
 export const authService = {
   /**
@@ -30,10 +31,21 @@ export const authService = {
         name: fullName || email.split('@')[0],
         email,
         phone,
-        company,
+        company: company || 'Global Client Corp',
         role: formattedRole,
         status: 'Active',
       });
+
+      // Also sync into customers table if customer role
+      if (formattedRole.includes('CUSTOMER')) {
+        await customersService.createCustomer({
+          id: data.user.id,
+          name: fullName || email.split('@')[0],
+          email,
+          phone: phone || '+65 6789 0123',
+          company: company || 'Global Client Corp',
+        });
+      }
     }
 
     return { data };

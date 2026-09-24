@@ -290,6 +290,18 @@ export const LogisticsProvider = ({ children }) => {
       if (dbTickets && dbTickets.length > 0) {
         setTickets(dbTickets);
       }
+
+      const dbCustomers = await supabaseApi.getCustomers();
+      if (dbCustomers && dbCustomers.length > 0) {
+        setCustomers(prev => {
+          const dbIds = new Set(dbCustomers.map(c => c.id));
+          const localOnly = (prev || []).filter(c => c && c.id && !dbIds.has(c.id));
+          if (localOnly.length > 0) {
+            localOnly.forEach(c => supabaseApi.createCustomer(c));
+          }
+          return [...dbCustomers, ...localOnly];
+        });
+      }
     };
 
     loadSupabaseData();
@@ -708,6 +720,27 @@ export const LogisticsProvider = ({ children }) => {
     try {
       localStorage.setItem('josan_user', JSON.stringify(userObj));
     } catch (e) {}
+
+    if (userRole === 'customer') {
+      const newCustObj = {
+        id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
+        name: userObj.name,
+        email: userObj.email,
+        phone: userObj.phone,
+        company: userObj.company,
+        company_name: userObj.company
+      };
+      setCustomers(prev => {
+        const exists = (prev || []).some(c => c.email?.toLowerCase() === userObj.email?.toLowerCase());
+        if (!exists) {
+          return [newCustObj, ...(prev || [])];
+        }
+        return prev;
+      });
+      if (isSupabaseConfigured) {
+        supabaseApi.createCustomer(newCustObj);
+      }
+    }
 
     const wasForcedBookingModal = authModalHideClose;
     setIsAuthModalOpen(false);
@@ -1622,6 +1655,10 @@ export const LogisticsProvider = ({ children }) => {
     setCustomers(prev => [...prev, newCustomer]);
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage: 'Won', convertedCustomerId: newCustId } : l));
 
+    if (isSupabaseConfigured) {
+      supabaseApi.createCustomer(newCustomer);
+    }
+
     // Log a communication event for record
     const timeStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' SGT';
     const commId = `COMM-${Math.floor(100 + Math.random() * 900)}`;
@@ -2041,6 +2078,11 @@ export const LogisticsProvider = ({ children }) => {
     };
 
     setCustomers(prev => [newCust, ...prev.filter(c => c.email !== customerData.email)]);
+    
+    if (isSupabaseConfigured) {
+      supabaseApi.createCustomer(newCust);
+    }
+
     try {
       backendApi.syncCustomerAppAccount(newCust).catch(err => console.warn('Customer Sync API:', err));
     } catch (e) {}
