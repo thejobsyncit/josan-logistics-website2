@@ -64,9 +64,29 @@ const countryOptions = [
 ];
 
 const cargoTypeOptions = [
+  'General Cargo',
+  'Fragile',
+  'Perishable',
+  'Temperature-Controlled',
+  'Valuable',
+  'Dangerous Goods',
+  'Documents',
+  'Electronics',
+  'Healthcare/Pharmaceutical',
   'Road Freight / Express Haulage',
   'Bulk Shipment (FTL)',
   'Consolidated Road Freight (LTL)'
+];
+
+const handlingRequirementOptions = [
+  'Standard IATA Cargo Handling',
+  'Active Temperature Controlled (2°C - 8°C)',
+  'Deep Frozen (-20°C)',
+  'Fragile & Shock Sensitive',
+  'Dangerous Goods (IATA DGR Compliance)',
+  'High-Value Vault & Armed Escort',
+  'Keep Upright / No Stacking',
+  'Forklift / Heavy Lift Equipment Required'
 ];
 
 const documentDescriptionOptions = [
@@ -264,12 +284,16 @@ export const BookShipmentPage = ({ setActiveTab }) => {
         }
       ],
       shipmentReferences: [''],
+      shipmentMode: 'air', // 'air' (default/primary) | 'road'
+      handlingRequirements: 'Standard IATA Cargo Handling',
+      pickupLocation: '',
+      deliveryLocation: '',
       weight: 15,
       lengthCm: 40,
       widthCm: 30,
       heightCm: 25,
       pieces: 1,
-      cargoType: 'General Goods',
+      cargoType: 'General Cargo',
       serviceLevel: 'Express Air Freight',
       declaredValue: '15,000',
       includeInsurance: true
@@ -3171,14 +3195,67 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 </div>
 
                 {/* Additional Package Specs (Weight, Cargo Type, Speed SLA) */}
-                <div className="pt-4 border-t border-slate-100 space-y-6">
-                  <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider text-slate-500">
-                    Cargo Weight & Service SLA Specs
-                  </h3>
+                {/* Primary Mode Selector: AIR FREIGHT vs ROAD FREIGHT */}
+                <div className="pt-4 border-t border-slate-100 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-sky-700 font-bold uppercase text-[11px] tracking-wider bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200 inline-flex items-center gap-1">
+                        <Plane className="w-3 h-3 text-sky-600" />
+                        <span>Mode Hierarchy</span>
+                      </span>
+                      <h3 className="text-sm font-extrabold text-slate-900 mt-1">
+                        Select Shipment Transport Mode
+                      </h3>
+                    </div>
 
+                    <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({ 
+                            ...formData, 
+                            shipmentMode: 'air', 
+                            serviceLevel: 'Express Air Freight',
+                            cargoType: formData.cargoType?.includes('Road') ? 'General Cargo' : (formData.cargoType || 'General Cargo')
+                          });
+                        }}
+                        className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                          (formData.shipmentMode || 'air') === 'air'
+                            ? 'bg-sky-600 text-white shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <Plane className="w-3.5 h-3.5" />
+                        <span>✈️ Air Freight (Primary)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({ 
+                            ...formData, 
+                            shipmentMode: 'road', 
+                            serviceLevel: 'Road Freight Trucking',
+                            cargoType: 'Road Freight / Express Haulage'
+                          });
+                        }}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          formData.shipmentMode === 'road'
+                            ? 'bg-[#FF6B00] text-white shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <Truck className="w-3.5 h-3.5" />
+                        <span>🚚 Road Freight</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Primary Air Freight / Road Specs Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Weight (kg) *</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Actual Weight (kg) *
+                      </label>
                       <div className="relative flex items-center">
                         <input
                           type="number"
@@ -3197,7 +3274,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Number of Pieces</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Number of Packages / Pieces *
+                      </label>
                       <div className="relative flex items-center">
                         <input
                           type="number"
@@ -3207,6 +3286,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                           value={formData.pieces}
                           onChange={(e) => setFormData({ ...formData, pieces: Math.max(1, Number(e.target.value)) })}
                           className={`w-full p-3 text-sm bg-white border-2 rounded-xl text-slate-900 font-mono font-bold pr-8 transition-all ${getInputClass(formData.pieces, true)}`}
+                          required
                         />
                         {formData.pieces && formData.pieces > 0 && (
                           <span className="text-emerald-600 font-extrabold text-sm absolute right-3 pointer-events-none">✓</span>
@@ -3215,43 +3295,37 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     </div>
 
                     <div className="relative" ref={cargoDropdownRef}>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Cargo Category</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Cargo Type Classification *
+                      </label>
                       <button
                         type="button"
                         onClick={() => setIsCargoDropdownOpen(!isCargoDropdownOpen)}
                         className="w-full p-3 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-bold flex items-center justify-between shadow-xs cursor-pointer transition-all text-left"
                       >
-                        <span className="truncate">{formData.cargoType || 'Air Freight'}</span>
+                        <span className="truncate">{formData.cargoType || 'General Cargo'}</span>
                         <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isCargoDropdownOpen ? "rotate-180 text-orange-500" : ""}`} />
                       </button>
 
                       {/* Floating Menu - Strictly Opens Below */}
                       {isCargoDropdownOpen && (
-                        <div className="absolute top-full left-0 mt-1 z-50 w-full max-h-48 overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-2xl p-1.5 space-y-0.5 animate-fade-in">
+                        <div className="absolute top-full left-0 mt-1 z-50 w-full max-h-56 overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-2xl p-1.5 space-y-0.5 animate-fade-in">
                           {cargoTypeOptions.map((type) => (
                             <button
                               key={type}
                               type="button"
                               onClick={() => {
-                                let newServiceLevel = formData.serviceLevel;
-                                if (type.includes('Land')) {
-                                  newServiceLevel = 'Land Freight Trucking';
-                                } else if (type.includes('Ocean')) {
-                                  newServiceLevel = 'Ocean Container Cargo';
-                                } else if (type.includes('Air')) {
-                                  newServiceLevel = 'Express Air Freight';
-                                }
-                                setFormData({ ...formData, cargoType: type, serviceLevel: newServiceLevel });
+                                setFormData({ ...formData, cargoType: type });
                                 setIsCargoDropdownOpen(false);
                               }}
                               className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                                 formData.cargoType === type
-                                  ? "bg-orange-50 text-orange-600 font-extrabold"
+                                  ? "bg-sky-50 text-sky-700 font-extrabold"
                                   : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                               }`}
                             >
                               <span>{type}</span>
-                              {formData.cargoType === type && <CheckCircle2 className="w-3.5 h-3.5 text-orange-500 shrink-0 ml-2" />}
+                              {formData.cargoType === type && <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0 ml-2" />}
                             </button>
                           ))}
                         </div>
@@ -3259,28 +3333,123 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     </div>
                   </div>
 
+                  {/* Dimensions & Volumetric Air Calculation */}
+                  <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800">
+                        Package Dimensions (cm) &amp; Volumetric Air Calculation
+                      </span>
+                      <span className="text-[11px] font-mono font-bold text-sky-700">
+                        Volumetric Wt: {Math.max(1, Math.round(((formData.lengthCm || 40) * (formData.widthCm || 30) * (formData.heightCm || 25)) / 6000))} kg
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Length (cm)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="40"
+                          value={formData.lengthCm || 40}
+                          onChange={(e) => setFormData({ ...formData, lengthCm: Number(e.target.value) })}
+                          className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Width (cm)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="30"
+                          value={formData.widthCm || 30}
+                          onChange={(e) => setFormData({ ...formData, widthCm: Number(e.target.value) })}
+                          className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Height (cm)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="25"
+                          value={formData.heightCm || 25}
+                          onChange={(e) => setFormData({ ...formData, heightCm: Number(e.target.value) })}
+                          className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pickup & Delivery Specific Locations */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Pickup Location (Origin Airport / Facility / Dock)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Singapore Changi Air Cargo Terminal 1 (SIN)"
+                        value={formData.pickupLocation || ''}
+                        onChange={(e) => setFormData({ ...formData, pickupLocation: e.target.value })}
+                        className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Delivery Location (Destination Airport / Consignee Bay)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Frankfurt Cargo City South (FRA) / Door Delivery"
+                        value={formData.deliveryLocation || ''}
+                        onChange={(e) => setFormData({ ...formData, deliveryLocation: e.target.value })}
+                        className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Handling Requirements Selector */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Special Handling &amp; Security Requirements
+                    </label>
+                    <select
+                      value={formData.handlingRequirements || 'Standard IATA Cargo Handling'}
+                      onChange={(e) => setFormData({ ...formData, handlingRequirements: e.target.value })}
+                      className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange cursor-pointer"
+                    >
+                      {handlingRequirementOptions.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Speed SLA Modes */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-2">Select Preferred Speed SLA Mode</label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {[
-                        { title: 'Express Air Freight', desc: '1-2 Days SLA (Fastest)', rate: '$45 Base + $14/kg', category: 'Air Freight' },
-                        { title: 'Land Freight Trucking', desc: '3-5 Days SLA (Standard)', rate: '$25 Base + $8/kg', category: 'Land Freight / Trucking' },
-                        { title: 'Ocean Container Cargo', desc: '10-15 Days SLA (Economy)', rate: '$15 Base + $3/kg', category: 'Ocean Freight' }
+                        { title: 'Express Air Freight', desc: '1-2 Days SLA (Fastest Priority)', rate: '$45 Base + $14/kg', mode: 'air' },
+                        { title: 'Standard Air Cargo', desc: '2-4 Days SLA (Direct Scheduled)', rate: '$35 Base + $10/kg', mode: 'air' },
+                        { title: 'Road Freight Trucking', desc: '3-5 Days SLA (Overland Linehaul)', rate: '$25 Base + $8/kg', mode: 'road' }
                       ].map((level) => (
                         <button
                           key={level.title}
                           type="button"
-                          onClick={() => setFormData({ ...formData, serviceLevel: level.title, cargoType: level.category })}
+                          onClick={() => setFormData({ ...formData, serviceLevel: level.title, shipmentMode: level.mode })}
                           className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                             formData.serviceLevel === level.title
-                              ? 'border-orange-500 bg-orange-50/80 ring-2 ring-orange-400 shadow-sm'
+                              ? 'border-sky-500 bg-sky-50/80 ring-2 ring-sky-400 shadow-sm'
                               : 'border-slate-200 bg-white hover:border-slate-300'
                           }`}
                         >
-                          <p className="font-extrabold text-slate-900 text-xs">{level.title}</p>
+                          <p className="font-extrabold text-slate-900 text-xs flex items-center justify-between">
+                            <span>{level.title}</span>
+                            {level.mode === 'air' ? <Plane className="w-3.5 h-3.5 text-sky-600" /> : <Truck className="w-3.5 h-3.5 text-orange-500" />}
+                          </p>
                           <p className="text-[11px] text-slate-500 mt-0.5">{level.desc}</p>
-                          <span className="inline-block mt-2 font-mono font-bold text-xs text-orange-600">{level.rate}</span>
+                          <span className="inline-block mt-2 font-mono font-bold text-xs text-sky-700">{level.rate}</span>
                         </button>
                       ))}
                     </div>

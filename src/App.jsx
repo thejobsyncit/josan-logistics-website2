@@ -9,6 +9,8 @@ import { ShipmentDetailsView } from './components/ShipmentDetailsView';
 import { SingaporeGoogleMapBackground } from './components/SingaporeGoogleMapBackground';
 
 import { HomePage } from './pages/HomePage';
+import { AirFreightPage } from './pages/AirFreightPage';
+import { RoadFreightPage } from './pages/RoadFreightPage';
 import { AboutUsPage } from './pages/AboutUsPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { CustomsClearancePage } from './pages/CustomsClearancePage';
@@ -96,6 +98,9 @@ const ToastNotification = () => {
 const MainContent = () => {
   const validTabs = [
     'home', 
+    'air-freight',
+    'road-freight',
+    'road-transportation',
     'about', 
     'services', 
     'customs-clearance', 
@@ -347,6 +352,11 @@ const MainContent = () => {
     switch (activeTab) {
       case 'home':
         return <HomePage setActiveTab={changeActiveTab} />;
+      case 'air-freight':
+        return <AirFreightPage setActiveTab={changeActiveTab} />;
+      case 'road-freight':
+      case 'road-transportation':
+        return <RoadFreightPage setActiveTab={changeActiveTab} />;
       case 'about':
         return <AboutUsPage setActiveTab={changeActiveTab} />;
       case 'services':

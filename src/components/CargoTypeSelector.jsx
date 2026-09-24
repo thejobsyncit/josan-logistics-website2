@@ -174,6 +174,18 @@ export const cargoCategories = [
   }
 ];
 
+export const airFreightCargoTypes = [
+  { id: 'general-cargo', name: 'General Cargo', desc: 'Standard consolidated or palletized dry cargo' },
+  { id: 'fragile', name: 'Fragile Cargo', desc: 'Delicate glassware, precision instruments & sensitive equipment' },
+  { id: 'perishable', name: 'Perishable Cargo', desc: 'Fresh seafood, produce, flowers & short shelf-life goods' },
+  { id: 'temperature-controlled', name: 'Temperature-Controlled', desc: 'Active cold-chain (-20°C to +25°C) & reefer ULD containers' },
+  { id: 'valuable', name: 'Valuable Cargo', desc: 'High-value jewelry, bullion, luxury goods & secured transit' },
+  { id: 'dangerous-goods', name: 'Dangerous Goods', desc: 'IATA DGR compliant hazardous substances & chemicals' },
+  { id: 'documents', name: 'Documents', desc: 'Urgent legal contracts, tenders & diplomatic mail' },
+  { id: 'electronics', name: 'Electronics', desc: 'Semiconductors, high-tech components & consumer devices' },
+  { id: 'healthcare-pharma', name: 'Healthcare & Pharmaceutical', desc: 'GDP-certified medicine, vaccines & medical devices' }
+];
+
 export const CargoTypeSelector = ({ 
   value, 
   onChange, 
