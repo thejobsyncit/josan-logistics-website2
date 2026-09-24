@@ -44,6 +44,7 @@ export const authService = {
           email,
           phone: phone || '+65 6789 0123',
           company: company || 'Global Client Corp',
+          password: password,
         });
       }
     }

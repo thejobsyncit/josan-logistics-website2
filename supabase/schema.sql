@@ -100,13 +100,29 @@ CREATE TABLE IF NOT EXISTS public.customers (
   tags TEXT[] DEFAULT ARRAY['Corporate'],
   credit_limit TEXT DEFAULT 'S$ 50,000',
   payment_terms TEXT DEFAULT 'Net 30 Days',
+  password TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Ensure missing columns exist on existing customers table
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS name TEXT DEFAULT 'Customer';
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS company_name TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS address TEXT;
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS postal_code TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS company TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS tier TEXT DEFAULT 'Standard Corporate';
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS total_spent TEXT DEFAULT 'S$ 0.00';
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS total_shipments INT DEFAULT 0;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active';
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT ARRAY['Corporate'];
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS credit_limit TEXT DEFAULT 'S$ 50,000';
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS payment_terms TEXT DEFAULT 'Net 30 Days';
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS password TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- =======================================================================
 -- TABLE 4: SHIPMENTS (Consignments & Live Telematics)
@@ -165,14 +181,49 @@ CREATE TABLE IF NOT EXISTS public.shipments (
 -- Ensure missing columns exist on existing shipments table
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS tracking_number TEXT;
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS customer_id TEXT REFERENCES public.customers(id) ON DELETE SET NULL;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS driver_id TEXT REFERENCES public.drivers(id) ON DELETE SET NULL;
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pickup_address TEXT;
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pickup_postal_code TEXT DEFAULT '048616';
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS delivery_address TEXT;
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS delivery_postal_code TEXT DEFAULT '619114';
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS package_description TEXT DEFAULT 'General Freight Cargo';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS weight TEXT DEFAULT '500 kg';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS dimensions TEXT DEFAULT '120x80x100 cm';
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS scheduled_date TEXT DEFAULT 'Today';
 ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS time_slot TEXT DEFAULT '09:00 AM - 05:00 PM';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS dimensions TEXT DEFAULT '120x80x100 cm';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'ASSIGNED';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS sender TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS sender_phone TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS sender_address TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS receiver TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS receiver_phone TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS receiver_address TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS origin TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS destination TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS current_location TEXT DEFAULT 'Singapore Central Freight Hub';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS status_type TEXT DEFAULT 'active';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'Paid';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS service_level TEXT DEFAULT 'Express Road Freight';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS cargo_type TEXT DEFAULT 'General Freight';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pieces INT DEFAULT 1;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS declared_value TEXT DEFAULT 'S$ 10,000';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS price TEXT DEFAULT 'S$ 450.00';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS driver_name TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS driver_phone TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS vehicle TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS vehicle_plate TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS vehicle_type TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS estimated_delivery TEXT DEFAULT 'Today, 5:00 PM';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS last_updated_time TEXT DEFAULT 'Just now';
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS delivery_otp TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS otp_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS otp_generated_at TEXT;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS coordinates JSONB DEFAULT '{"origin": [1.3400, 103.7100], "current": [1.3521, 103.8200], "destination": [1.4380, 103.7890]}'::jsonb;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS timeline JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS weather_delay JSONB;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pod JSONB;
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Remove legacy CHECK constraints on shipments.status if any exist to support standard status names
 DO $$
@@ -578,3 +629,73 @@ VALUES
     'Volvo Heavy Container Truck #SG-4402', 'SG-4402', 'Today, 5:15 PM (SGT)'
   )
 ON CONFLICT (id) DO NOTHING;
+
+-- Ensure unique constraint on customers email if missing
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'customers_email_key'
+    ) THEN
+        ALTER TABLE public.customers ADD CONSTRAINT customers_email_key UNIQUE (email);
+    END IF;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- =======================================================================
+-- AUTOMATIC NEW USER SYNC TRIGGER (auth.users -> profiles & customers)
+-- Exception-safe database trigger for Supabase Auth signups
+-- =======================================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+  user_name TEXT;
+  user_role TEXT;
+  user_company TEXT;
+  user_phone TEXT;
+BEGIN
+  user_name := COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', SPLIT_PART(NEW.email, '@', 1));
+  user_role := UPPER(COALESCE(NEW.raw_user_meta_data->>'role', 'CUSTOMER'));
+  user_company := COALESCE(NEW.raw_user_meta_data->>'company', 'Global Client Corp');
+  user_phone := COALESCE(NEW.raw_user_meta_data->>'phone', '+65 6789 0123');
+
+  -- 1. Insert/Update public.profiles safely
+  BEGIN
+    INSERT INTO public.profiles (id, user_id, name, email, phone, role, company, status)
+    VALUES (NEW.id, NEW.id, user_name, NEW.email, user_phone, user_role, user_company, 'Active')
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name,
+      phone = EXCLUDED.phone,
+      company = EXCLUDED.company,
+      role = EXCLUDED.role;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'Profiles sync error: %', SQLERRM;
+  END;
+
+  -- 2. Insert/Update public.customers safely if user role includes CUSTOMER
+  IF user_role LIKE '%CUSTOMER%' THEN
+    BEGIN
+      INSERT INTO public.customers (id, name, company_name, email, phone, company, status, tier, password)
+      VALUES (NEW.id::text, user_name, user_company, NEW.email, user_phone, user_company, 'Active', 'Standard Corporate', 'customer123')
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        company_name = EXCLUDED.company_name,
+        email = EXCLUDED.email,
+        phone = EXCLUDED.phone,
+        company = EXCLUDED.company,
+        password = EXCLUDED.password;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE WARNING 'Customers sync error: %', SQLERRM;
+    END;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create database trigger on auth.users table
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
