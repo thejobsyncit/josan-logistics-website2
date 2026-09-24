@@ -213,18 +213,60 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
     }
   };
 
-  // 7-stage mapping
-  const trackingStages = [
+  const isAirShipment = shipment.mode === 'Air Freight' || 
+    Boolean(shipment.awbNumber) || 
+    shipment.id.startsWith('AWB') || 
+    (shipment.serviceLevel && shipment.serviceLevel.toLowerCase().includes('air'));
+
+  // 11 Air Freight Stages
+  const airTrackingStages = [
+    { key: 'Booking Confirmed', label: 'Booking Confirmed', desc: 'Air cargo space confirmed' },
+    { key: 'Cargo Pickup', label: 'Cargo Pickup', desc: 'Picked up from origin' },
+    { key: 'Warehouse Received', label: 'Warehouse Received', desc: 'Received at airfreight terminal' },
+    { key: 'Documentation', label: 'Documentation', desc: 'TradeNet & e-AWB verified' },
+    { key: 'Export Customs', label: 'Export Customs', desc: 'Cleared outbound inspection' },
+    { key: 'Airport Handling', label: 'Airport Handling', desc: 'ULD build & apron weigh-in' },
+    { key: 'Flight Departed', label: 'Flight Departed', desc: 'Freighter airborne en route' },
+    { key: 'Flight Arrived', label: 'Flight Arrived', desc: 'Touchdown at destination' },
+    { key: 'Import Customs', label: 'Import Customs', desc: 'Inbound customs cleared' },
+    { key: 'Out for Delivery', label: 'Out for Delivery', desc: 'Final leg delivery dispatch' },
+    { key: 'Delivered', label: 'Delivered', desc: 'Consignee received & signed' }
+  ];
+
+  // 7-stage mapping for Road Freight
+  const roadTrackingStages = [
     { key: 'Booked', label: 'Booked', desc: 'Consignment booked in system' },
     { key: 'Confirmed', label: 'Confirmed', desc: 'Booking confirmed by Operations' },
     { key: 'Pickup Scheduled', label: 'Pickup Scheduled', desc: 'Driver & vehicle assigned for pickup' },
-    { key: 'Picked Up', label: 'Picked Up', desc: 'Cargo loaded onto highway linehaul truck' },
-    { key: 'In Transit', label: 'In Transit', desc: 'Cruising via Expressway Logistics Corridor' },
+    { key: 'Picked Up', label: 'Picked Up', desc: 'Cargo loaded onto highway truck' },
+    { key: 'In Transit', label: 'In Transit', desc: 'Cruising via Expressway Corridor' },
     { key: 'Near Destination', label: 'Near Destination', desc: 'Approaching delivery hub / 2FA OTP issued' },
     { key: 'Delivered', label: 'Delivered', desc: 'Consignee received & POD verified' }
   ];
 
+  const trackingStages = isAirShipment ? airTrackingStages : roadTrackingStages;
+
   const getStageIndex = (status) => {
+    if (isAirShipment) {
+      switch (status) {
+        case 'Booking Confirmed':
+        case 'Booked': return 0;
+        case 'Cargo Pickup': return 1;
+        case 'Warehouse Received': return 2;
+        case 'Documentation': return 3;
+        case 'Export Customs': return 4;
+        case 'Airport Handling': return 5;
+        case 'Flight Departed':
+        case 'In Transit':
+        case 'Delayed': return 6;
+        case 'Flight Arrived': return 7;
+        case 'Import Customs': return 8;
+        case 'Out for Delivery':
+        case 'Near Destination': return 9;
+        case 'Delivered': return 10;
+        default: return 6;
+      }
+    }
     switch (status) {
       case 'Booked': return 0;
       case 'Confirmed': return 1;
@@ -250,15 +292,24 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
         <div className="bg-[#10182D] text-white p-5 sm:p-6 flex items-start justify-between relative border-b border-slate-700">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-orange px-2.5 py-0.5 rounded-full bg-orange/10 border border-orange/20">
-                Official Consignment Dossier
+              <span className={`text-xs font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                isAirShipment ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange/10 text-orange border border-orange/20'
+              }`}>
+                {isAirShipment ? '✈️ Air Waybill Dossier' : 'Official Consignment Dossier'}
               </span>
+              {shipment.awbNumber && (
+                <span className="text-xs text-blue-300 font-mono font-bold bg-blue-900/40 px-2 py-0.5 rounded border border-blue-500/30">
+                  AWB: {shipment.awbNumber}
+                </span>
+              )}
               <span className="text-xs text-slate-300 font-mono">Ref: {shipment.referenceNumber || shipment.id}</span>
               <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                 shipment.status === 'Delivered' 
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : shipment.status === 'Delayed'
                   ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  : isAirShipment
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                   : 'bg-orange/20 text-orange border border-orange/30'
               }`}>
                 ● {shipment.status}
@@ -268,7 +319,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
               Shipment #{shipment.id}
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 mt-1">
-              Service: <span className="text-white font-medium">{shipment.serviceLevel || 'Roadway Highway Linehaul (FTL)'}</span> &bull; Last Updated: <span className="text-orange">{shipment.lastUpdatedTime || 'Just now'}</span>
+              Service: <span className="text-white font-medium">{shipment.serviceLevel || (isAirShipment ? 'Express Air Freight' : 'Roadway Highway Linehaul (FTL)')}</span> &bull; Last Updated: <span className="text-orange">{shipment.lastUpdatedTime || 'Just now'}</span>
             </p>
           </div>
 

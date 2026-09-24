@@ -22,10 +22,97 @@ import {
   Maximize2,
   ArrowLeft,
   RotateCw,
-  Lock
+  Lock,
+  Plane
 } from 'lucide-react';
 
 const DEMO_SHIPMENTS_MAP = {
+  'AWB-880-49201844': {
+    id: 'AWB-880-49201844',
+    awbNumber: '880-49201844',
+    referenceNumber: 'AWB-880-49201844',
+    mode: 'Air Freight',
+    status: 'Flight Departed',
+    origin: 'Singapore Changi Airfreight Centre (SIN)',
+    destination: 'Frankfurt CargoCity South (FRA)',
+    currentLocation: 'In Flight — B777F Freighter (Cruising FL340, Bay of Bengal)',
+    flightNumber: 'SQ-7922 Cargo Freighter',
+    estimatedDelivery: 'Tomorrow, 08:30 AM (CET)',
+    lastUpdatedTime: '12 mins ago (ACARS Telemetry)',
+    serviceLevel: 'Express Air Freight (Next Flight Out)',
+    cargoType: 'Temperature-Controlled Pharmaceuticals (2°C - 8°C)',
+    driverName: 'Flight Crew: Capt. J. Lee / Ramp Lead K. Nair',
+    driver: 'Capt. J. Lee',
+    driverPhone: '+65 6542 1122',
+    vehicle: 'Boeing 777-200F Cargo Freighter (9V-SFP)',
+    vehiclePlate: '9V-SFP (B777F)',
+    vehicleType: 'Commercial Widebody Freighter',
+    sender: 'Novartis Biome Changi Park',
+    senderAddress: '8 Changi Business Park Ave 1, Singapore 486018',
+    receiver: 'Bayer AG Distribution Center Frankfurt',
+    receiverAddress: 'CargoCity Süd, Geb. 558, 60549 Frankfurt am Main, Germany',
+    weight: '3,850 kg',
+    chargeableWeight: '4,200 kg',
+    pieces: 14,
+    declaredValue: 'S$ 420,000',
+    price: 'S$ 32,760.00',
+    timeline: [
+      { step: 1, title: 'Booking Confirmed', location: 'Singapore Changi Desk', timestamp: 'Yesterday 09:00 AM', completed: true },
+      { step: 2, title: 'Cargo Pickup', location: 'Changi Business Park', timestamp: 'Yesterday 02:00 PM', completed: true },
+      { step: 3, title: 'Warehouse Received', location: 'SATS Airfreight Terminal 5', timestamp: 'Yesterday 05:30 PM', completed: true },
+      { step: 4, title: 'Documentation', location: 'TradeNet & e-AWB Validation', timestamp: 'Yesterday 07:15 PM', completed: true },
+      { step: 5, title: 'Export Customs', location: 'Singapore Customs Air Cargo', timestamp: 'Yesterday 09:45 PM', completed: true },
+      { step: 6, title: 'Airport Handling', location: 'Apron ULD Build & Weigh-in', timestamp: 'Today 01:30 AM', completed: true },
+      { step: 7, title: 'Flight Departed', location: 'SIN Runway 02L (SQ-7922)', timestamp: 'Today 04:15 AM', completed: true, current: true },
+      { step: 8, title: 'Flight Arrived', location: 'FRA Cargo Runway 25C', timestamp: 'Expected Today 06:00 PM', completed: false },
+      { step: 9, title: 'Import Customs', location: 'Zollamt Frankfurt Flughafen', timestamp: 'Expected Today 09:00 PM', completed: false },
+      { step: 10, title: 'Out for Delivery', location: 'Frankfurt Logistics Dispatch', timestamp: 'Expected Tomorrow 06:30 AM', completed: false },
+      { step: 11, title: 'Delivered', location: 'Bayer AG Receiving Dock', timestamp: 'Expected Tomorrow 08:30 AM', completed: false }
+    ]
+  },
+  'JOS-AIR-7720-SG': {
+    id: 'JOS-AIR-7720-SG',
+    awbNumber: '618-77209142',
+    referenceNumber: 'AWB-618-77209142',
+    mode: 'Air Freight',
+    status: 'Airport Handling',
+    origin: 'Singapore Changi Airfreight Centre (SIN)',
+    destination: 'Tokyo Narita Air Cargo Terminal (NRT)',
+    currentLocation: 'Changi Airfreight Terminal 2 — Pallet Inspection Bay',
+    flightNumber: 'NH-8422 Freighter',
+    estimatedDelivery: 'Tomorrow, 02:00 PM (JST)',
+    lastUpdatedTime: '4 mins ago (Ramp RFID Scan)',
+    serviceLevel: 'Airport-to-Airport Air Cargo Service',
+    cargoType: 'High-Value Semiconductor Wafers & Sensors',
+    driverName: 'Ramp Marshall: D. Tan / Loadmaster S. Chen',
+    driver: 'Loadmaster S. Chen',
+    driverPhone: '+65 6541 3300',
+    vehicle: 'Boeing 767-300BCF Freighter (JA604F)',
+    vehiclePlate: 'JA604F (B767F)',
+    vehicleType: 'Dedicated Cargo Freighter',
+    sender: 'Silicon Systems Singapore Pte Ltd',
+    senderAddress: '12 Science Park Drive, Singapore 118225',
+    receiver: 'Tokyo Electron Logistics Center Narita',
+    receiverAddress: 'Narita Airport Cargo Area Gate 3, Chiba, Japan',
+    weight: '1,420 kg',
+    chargeableWeight: '1,650 kg',
+    pieces: 6,
+    declaredValue: 'S$ 280,000',
+    price: 'S$ 12,870.00',
+    timeline: [
+      { step: 1, title: 'Booking Confirmed', location: 'Changi Logistics Office', timestamp: 'Today 06:00 AM', completed: true },
+      { step: 2, title: 'Cargo Pickup', location: 'Singapore Science Park', timestamp: 'Today 08:30 AM', completed: true },
+      { step: 3, title: 'Warehouse Received', location: 'DNATA Air Cargo CFS 2', timestamp: 'Today 10:15 AM', completed: true },
+      { step: 4, title: 'Documentation', location: 'e-AWB & Security Declaration', timestamp: 'Today 11:30 AM', completed: true },
+      { step: 5, title: 'Export Customs', location: 'Changi Air Cargo Inspection', timestamp: 'Today 01:00 PM', completed: true },
+      { step: 6, title: 'Airport Handling', location: 'Apron ULD Build & Weigh-in', timestamp: 'Today 02:30 PM', completed: true, current: true },
+      { step: 7, title: 'Flight Departed', location: 'SIN Runway 20R (NH-8422)', timestamp: 'Expected Today 05:45 PM', completed: false },
+      { step: 8, title: 'Flight Arrived', location: 'NRT Cargo Runway 16R', timestamp: 'Expected Tomorrow 01:30 AM', completed: false },
+      { step: 9, title: 'Import Customs', location: 'Tokyo Customs Air Terminal', timestamp: 'Expected Tomorrow 05:00 AM', completed: false },
+      { step: 10, title: 'Out for Delivery', location: 'Narita Distribution Dock', timestamp: 'Expected Tomorrow 10:00 AM', completed: false },
+      { step: 11, title: 'Delivered', location: 'Tokyo Electron Facility', timestamp: 'Expected Tomorrow 02:00 PM', completed: false }
+    ]
+  },
   'JOS-88190-SG': {
     id: 'JOS-88190-SG',
     referenceNumber: 'REF-8819-SG',
@@ -392,11 +479,61 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       };
     }
 
-    // 4. Default fallback for custom tracking numbers (Roadway Trucking)
+    // 4. Default fallback for custom tracking numbers
     const trackingCode = searchStr.toUpperCase();
+    const isAirTracking = trackingCode.startsWith('AWB') || trackingCode.includes('AIR') || trackingCode.includes('FLIGHT');
+
+    if (isAirTracking) {
+      const cleanAwb = trackingCode.replace(/^AWB-?/, '') || '880-49201844';
+      return {
+        id: trackingCode,
+        awbNumber: cleanAwb,
+        referenceNumber: `AWB-${cleanAwb}`,
+        mode: 'Air Freight',
+        status: 'Flight Departed',
+        origin: 'Singapore Changi Airfreight Centre (SIN)',
+        destination: 'Frankfurt CargoCity South (FRA)',
+        currentLocation: 'In Flight — Boeing 777F Freighter (Cruising FL340, Bay of Bengal)',
+        flightNumber: 'SQ-7922 Cargo Freighter',
+        estimatedDelivery: 'Tomorrow, 08:30 AM (CET)',
+        lastUpdatedTime: '12 mins ago (ACARS Telemetry)',
+        serviceLevel: 'Express Air Freight (Next Flight Out)',
+        cargoType: 'Temperature-Controlled Pharmaceuticals (2°C - 8°C)',
+        driverName: 'Flight Crew: Capt. J. Lee / Ramp Lead K. Nair',
+        driver: 'Capt. J. Lee',
+        driverPhone: '+65 6542 1122',
+        vehicle: 'Boeing 777-200F Cargo Freighter (9V-SFP)',
+        vehiclePlate: '9V-SFP (B777F)',
+        vehicleType: 'Commercial Widebody Freighter',
+        sender: 'Novartis Biome Changi Park',
+        senderAddress: '8 Changi Business Park Ave 1, Singapore 486018',
+        receiver: 'Bayer AG Distribution Center Frankfurt',
+        receiverAddress: 'CargoCity Süd, Geb. 558, 60549 Frankfurt am Main, Germany',
+        weight: '3,850 kg',
+        chargeableWeight: '4,200 kg',
+        pieces: 14,
+        declaredValue: 'S$ 420,000',
+        price: 'S$ 32,760.00',
+        timeline: [
+          { step: 1, title: 'Booking Confirmed', location: 'Singapore Changi Desk', timestamp: 'Yesterday 09:00 AM', completed: true },
+          { step: 2, title: 'Cargo Pickup', location: 'Changi Business Park', timestamp: 'Yesterday 02:00 PM', completed: true },
+          { step: 3, title: 'Warehouse Received', location: 'SATS Airfreight Terminal 5', timestamp: 'Yesterday 05:30 PM', completed: true },
+          { step: 4, title: 'Documentation', location: 'TradeNet & e-AWB Validation', timestamp: 'Yesterday 07:15 PM', completed: true },
+          { step: 5, title: 'Export Customs', location: 'Singapore Customs Air Cargo', timestamp: 'Yesterday 09:45 PM', completed: true },
+          { step: 6, title: 'Airport Handling', location: 'Apron ULD Build & Weigh-in', timestamp: 'Today 01:30 AM', completed: true },
+          { step: 7, title: 'Flight Departed', location: 'SIN Runway 02L (SQ-7922)', timestamp: 'Today 04:15 AM', completed: true, current: true },
+          { step: 8, title: 'Flight Arrived', location: 'FRA Cargo Runway 25C', timestamp: 'Expected Today 06:00 PM', completed: false },
+          { step: 9, title: 'Import Customs', location: 'Zollamt Frankfurt Flughafen', timestamp: 'Expected Today 09:00 PM', completed: false },
+          { step: 10, title: 'Out for Delivery', location: 'Frankfurt Logistics Dispatch', timestamp: 'Expected Tomorrow 06:30 AM', completed: false },
+          { step: 11, title: 'Delivered', location: 'Bayer AG Receiving Dock', timestamp: 'Expected Tomorrow 08:30 AM', completed: false }
+        ]
+      };
+    }
+
     return {
       id: trackingCode,
       referenceNumber: `REF-${trackingCode.replace(/[^0-9]/g, '').slice(-4) || '8819'}-RD`,
+      mode: 'Road Freight',
       origin: 'Jurong Central Highway Freight Hub',
       destination: 'Woodlands Roadways Terminal',
       status: 'In Transit',
@@ -558,8 +695,35 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             Track By:
           </h3>
 
-          {/* Radio Options with Brand Orange Indicator */}
-          <div className="flex items-center space-x-6 mb-5">
+          {/* Radio Options: Air Waybill (AWB) | Shipment ID | Reference No. */}
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-5">
+            <label className="flex items-center space-x-2.5 cursor-pointer select-none">
+              <div className="relative flex items-center justify-center">
+                <input
+                  type="radio"
+                  name="trackType"
+                  value="awb"
+                  checked={trackType === 'awb'}
+                  onChange={() => {
+                    setTrackType('awb');
+                    setCaptchaError('');
+                  }}
+                  className="sr-only"
+                />
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                  trackType === 'awb' ? 'border-blue-600 bg-white' : 'border-slate-300'
+                }`}>
+                  {trackType === 'awb' && <div className="w-2 h-2 rounded-full bg-blue-600"></div>}
+                </div>
+              </div>
+              <span className={`text-sm font-bold transition-colors flex items-center space-x-1 ${
+                trackType === 'awb' ? 'text-blue-600 font-extrabold' : 'text-slate-500'
+              }`}>
+                <Plane className="w-3.5 h-3.5" />
+                <span>Air Waybill (AWB)</span>
+              </span>
+            </label>
+
             <label className="flex items-center space-x-2.5 cursor-pointer select-none">
               <div className="relative flex items-center justify-center">
                 <input
@@ -608,7 +772,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               <span className={`text-sm font-bold transition-colors ${
                 trackType === 'reference' ? 'text-slate-900' : 'text-slate-500'
               }`}>
-                Reference / Waybill No.
+                Road LR / Ref No.
               </span>
             </label>
           </div>
@@ -628,7 +792,13 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                     setActiveTrackingId('');
                   }
                 }}
-                placeholder={trackType === 'shipment' ? 'Enter Shipment ID (e.g. JOS-88190-SG)' : 'Enter Reference / Waybill Number (e.g. REF-8819-SG)'}
+                placeholder={
+                  trackType === 'awb' 
+                    ? 'Enter Air Waybill Number (e.g. AWB-880-49201844)' 
+                    : trackType === 'shipment' 
+                    ? 'Enter Shipment ID (e.g. JOS-88190-SG)' 
+                    : 'Enter Reference / LR Number (e.g. REF-8819-SG)'
+                }
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200/90 rounded-xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-mono transition-all pr-10"
                 required
               />
@@ -649,24 +819,62 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               )}
             </div>
 
-            {/* Captcha Image Display */}
-            <div className="h-11 border border-slate-200 rounded-xl overflow-hidden bg-slate-50 shadow-2xs">
-              {renderCaptchaSvg(captchaCode)}
+            {/* Quick Demo Chips */}
+            <div className="pt-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                Quick Sample Tracking Feeds:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSelectDemo('AWB-880-49201844')}
+                  className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-mono text-[11px] font-bold rounded-lg border border-blue-200 transition-all flex items-center space-x-1 cursor-pointer"
+                >
+                  <Plane className="w-3 h-3 text-blue-600" />
+                  <span>AWB-880-49201844 (Air Freight)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectDemo('JOS-88190-SG')}
+                  className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-mono text-[11px] font-bold rounded-lg border border-slate-200 transition-all flex items-center space-x-1 cursor-pointer"
+                >
+                  <Truck className="w-3 h-3 text-orange-500" />
+                  <span>JOS-88190-SG (Road FTL)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectDemo('JOS-66301-SG')}
+                  className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-mono text-[11px] font-bold rounded-lg border border-slate-200 transition-all flex items-center space-x-1 cursor-pointer"
+                >
+                  <Truck className="w-3 h-3 text-emerald-600" />
+                  <span>JOS-66301-SG (Reefer)</span>
+                </button>
+              </div>
             </div>
 
-            {/* Captcha Input & Refresh Button */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={captchaInput}
-                onChange={(e) => {
-                  setCaptchaInput(e.target.value);
-                  setCaptchaError('');
-                }}
-                placeholder="Enter captcha"
-                className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200/90 rounded-xl text-sm font-bold uppercase tracking-widest text-slate-900 placeholder:normal-case placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-                required
-              />
+            {/* Captcha Section */}
+            <div className="flex items-center space-x-3 pt-1">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={captchaInput}
+                  onChange={(e) => {
+                    setCaptchaInput(e.target.value);
+                    setCaptchaError('');
+                  }}
+                  placeholder="Enter Captcha Code"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500 font-mono"
+                  required
+                />
+              </div>
+
+              {/* Captcha Image Display Box */}
+              <div className="relative select-none bg-gradient-to-r from-orange-50 via-slate-100 to-orange-50 border border-orange-200/80 rounded-xl px-4 py-2 flex items-center justify-center tracking-[0.25em] font-mono font-black text-slate-800 text-sm italic shadow-inner">
+                <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#f97316_1px,transparent_1px)] [background-size:6px_6px]"></div>
+                <span className="relative z-10">{captchaCode}</span>
+              </div>
+
+              {/* Refresh Captcha Button */}
               <button
                 type="button"
                 onClick={generateNewCaptcha}
@@ -697,16 +905,16 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
           <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h4 className="text-xs font-bold text-slate-900">
-                Can't Find Your Shipment ID?
+                Can't Find Your Shipment ID or Air Waybill?
               </h4>
               <p className="text-xs text-slate-500 font-medium mt-0.5 leading-relaxed">
-                Your Consignment Note (CN) or Lorry Receipt (LR) number was sent via SMS or Email at booking confirmation.
+                Your Air Waybill (AWB) or Lorry Receipt (LR) tracking number was dispatched via SMS and corporate email upon booking confirmation.
               </p>
             </div>
 
             <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold shrink-0 self-start sm:self-auto">
               <Phone className="w-3 h-3 text-orange-500" />
-              <span>24/7 Road Support Active</span>
+              <span>24/7 Operations Command</span>
             </span>
           </div>
 
@@ -717,7 +925,13 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
       {/* Shipment Details Section */}
       <div id="shipment-details" className="scroll-mt-24">
-      {currentShipment && (
+      {currentShipment && (() => {
+        const isAir = currentShipment.mode === 'Air Freight' || 
+          Boolean(currentShipment.awbNumber) || 
+          currentShipment.id.startsWith('AWB') || 
+          (currentShipment.serviceLevel && currentShipment.serviceLevel.toLowerCase().includes('air'));
+
+        return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Main Status & Interactive Timeline */}
@@ -728,10 +942,26 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               
               <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-100">
                 <div>
-                  <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Roadway Tracking / LR Number</p>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                      isAir 
+                        ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                        : 'bg-orange-100 text-orange-800 border border-orange-200'
+                    }`}>
+                      {isAir ? '✈️ AIR FREIGHT (PRIMARY)' : '🚚 ROAD TRANSPORTATION'}
+                    </span>
+                    {currentShipment.awbNumber && (
+                      <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                        AWB #{currentShipment.awbNumber}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                    {isAir ? 'Air Waybill (AWB) Tracking' : 'Roadway Tracking / LR Number'}
+                  </p>
                   <h2 className="text-2xl font-extrabold text-slate-900 font-mono">{currentShipment.id}</h2>
                   {currentShipment.referenceNumber && (
-                    <p className="text-xs text-slate-500 font-mono mt-0.5">Waybill Ref: {currentShipment.referenceNumber}</p>
+                    <p className="text-xs text-slate-500 font-mono mt-0.5">Tracking Ref: {currentShipment.referenceNumber}</p>
                   )}
                 </div>
 
@@ -741,79 +971,97 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                       : currentShipment.status === 'Delayed'
                       ? 'bg-amber-100 text-amber-800 border border-amber-300 animate-pulse'
+                      : isAir
+                      ? 'bg-blue-100 text-blue-800 border border-blue-300 pulse-badge'
                       : 'bg-orange-100 text-orange-800 border border-orange-300 pulse-badge'
                   }`}>
                     <span className={`w-2 h-2 rounded-full ${
-                      currentShipment.status === 'Delivered' ? 'bg-emerald-500' : currentShipment.status === 'Delayed' ? 'bg-amber-500' : 'bg-orange-500'
+                      currentShipment.status === 'Delivered' ? 'bg-emerald-500' : currentShipment.status === 'Delayed' ? 'bg-amber-500' : isAir ? 'bg-blue-600' : 'bg-orange-500'
                     }`}></span>
                     <span>{currentShipment.status}</span>
                   </span>
                 </div>
               </div>
 
-              {/* 9 Required Display Fields Grid: ID, Status, Pickup, Destination, Current Location, Driver, Vehicle, ETA, Last Updated */}
+              {/* 8-9 Display Fields Grid */}
               <div className="bg-[#F5F6F8] p-5 rounded-2xl border border-[#E2E8F0] space-y-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Shipment ID</p>
-                    <p className="font-mono font-bold text-[#10182D] text-xs sm:text-sm mt-0.5">{currentShipment.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Current Status</p>
-                    <p className="font-bold text-orange text-xs sm:text-sm mt-0.5">{currentShipment.status}</p>
-                  </div>
-                  <div>
-                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Pickup Location</p>
-                    <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
-                      <span className="truncate">{currentShipment.origin || 'Jurong Central Hub'}</span>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">
+                      {isAir ? 'Air Waybill (AWB)' : 'Shipment ID'}
+                    </p>
+                    <p className="font-mono font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 truncate">
+                      {currentShipment.awbNumber || currentShipment.id}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Destination</p>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Current Status</p>
+                    <p className={`font-bold text-xs sm:text-sm mt-0.5 ${isAir ? 'text-blue-600' : 'text-orange'}`}>
+                      {currentShipment.status}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">
+                      {isAir ? 'Departure Airport' : 'Pickup Location'}
+                    </p>
                     <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
-                      <span className="truncate">{currentShipment.destination || 'Woodlands Terminal'}</span>
+                      <span className="truncate">{currentShipment.origin || 'Singapore (SIN)'}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">
+                      {isAir ? 'Destination Airport' : 'Delivery Destination'}
+                    </p>
+                    <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <span className="truncate">{currentShipment.destination || 'Destination Hub'}</span>
                     </p>
                   </div>
                   <div>
                     <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Current Location</p>
-                    <p className="font-bold text-[#FF6B00] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
-                      <Navigation className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{currentShipment.currentLocation || 'Expressway Corridor'}</span>
+                    <p className={`font-bold text-xs sm:text-sm mt-0.5 flex items-center gap-1 ${isAir ? 'text-blue-600' : 'text-[#FF6B00]'}`}>
+                      {isAir ? <Plane className="w-3.5 h-3.5 shrink-0" /> : <Navigation className="w-3.5 h-3.5 shrink-0" />}
+                      <span className="truncate">{currentShipment.currentLocation || 'In Transit'}</span>
                     </p>
                   </div>
                   <div>
-                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Assigned Driver</p>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">
+                      {isAir ? 'Flight / Ramp Lead' : 'Assigned Driver'}
+                    </p>
                     <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
                       <User className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
-                      <span className="truncate">{currentShipment.driverName || currentShipment.driver || 'Tan Wei Ming'}</span>
+                      <span className="truncate">{currentShipment.driverName || currentShipment.driver || 'Operations Team'}</span>
                     </p>
                   </div>
                   <div>
-                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Vehicle Plate / Class</p>
+                    <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">
+                      {isAir ? 'Freighter / Aircraft' : 'Vehicle Plate / Class'}
+                    </p>
                     <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
-                      <Truck className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
-                      <span className="truncate">{currentShipment.vehiclePlate || 'SG-8819'}</span>
+                      {isAir ? <Plane className="w-3.5 h-3.5 text-[#64748B] shrink-0" /> : <Truck className="w-3.5 h-3.5 text-[#64748B] shrink-0" />}
+                      <span className="truncate">{currentShipment.flightNumber || currentShipment.vehiclePlate || 'Cargo Unit'}</span>
                     </p>
                   </div>
                   <div>
                     <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Estimated Delivery</p>
                     <p className="font-bold text-[#10182D] text-xs sm:text-sm mt-0.5 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
-                      <span>{currentShipment.estimatedDelivery || 'Today, Scheduled'}</span>
+                      <span>{currentShipment.estimatedDelivery || 'Scheduled'}</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Sub-bar: Last Updated Time & Telematics Architecture Notice */}
+                {/* Sub-bar */}
                 <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Last Updated: <strong className="text-slate-800">{currentShipment.lastUpdatedTime || 'Just now'}</strong></span>
+                    <span>Last Telematics Update: <strong className="text-slate-800">{currentShipment.lastUpdatedTime || 'Just now'}</strong></span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="italic text-slate-400">Structured for Regional GPS / IoT Telematics API</span>
+                    <span className="italic text-slate-400">
+                      {isAir ? 'IATA e-Freight & ACARS Telemetry Integration' : 'Structured for Regional GPS / IoT Telematics API'}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setSelectedDetailShipment(currentShipment)}
@@ -826,86 +1074,176 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 </div>
               </div>
 
-              {/* Standardized 7-Stage Timeline: Booked → Confirmed → Pickup Scheduled → Picked Up → In Transit → Near Destination → Delivered */}
+              {/* TIMELINE PROGRESSION: 11-Stage for Air Freight, 7-Stage for Road Freight */}
               <div className="pt-2">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-[#10182D] uppercase tracking-wider block">
-                    7-Stage Consignment Progression Timeline
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    Stage {(() => {
-                      const st = currentShipment.status;
-                      if (st === 'Delivered') return '7 of 7';
-                      if (st === 'Near Destination') return '6 of 7';
-                      if (st === 'In Transit' || st === 'Delayed') return '5 of 7';
-                      if (st === 'Picked Up') return '4 of 7';
-                      if (st === 'Pickup Scheduled') return '3 of 7';
-                      if (st === 'Confirmed') return '2 of 7';
-                      return '1 of 7';
-                    })()}
-                  </span>
-                </div>
-
-                {(() => {
-                  const status = currentShipment.status || '';
-                  const getStepNum = (s) => {
-                    switch (s) {
-                      case 'Booked': return 1;
-                      case 'Confirmed': return 2;
-                      case 'Pickup Scheduled': return 3;
-                      case 'Picked Up': return 4;
-                      case 'In Transit':
-                      case 'Delayed': return 5;
-                      case 'Near Destination': return 6;
-                      case 'Delivered': return 7;
-                      default: return 5;
-                    }
-                  };
-                  const activeStep = getStepNum(status);
-                  const stages7 = [
-                    { num: 1, label: 'Book Shipment' },
-                    { num: 2, label: 'Confirmed' },
-                    { num: 3, label: 'Pickup Scheduled' },
-                    { num: 4, label: 'Picked Up' },
-                    { num: 5, label: 'In Transit' },
-                    { num: 6, label: 'Near Destination' },
-                    { num: 7, label: 'Delivered' }
-                  ];
-
-                  return (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                      {stages7.map((st) => {
-                        const isDone = activeStep >= st.num;
-                        const isCurrent = activeStep === st.num;
-                        return (
-                          <div
-                            key={st.num}
-                            className={`p-2.5 rounded-xl border text-center transition-all ${
-                              isCurrent
-                                ? 'bg-[#FFF8F2] border-[#FF6B00] shadow-xs'
-                                : isDone
-                                ? 'bg-white border-[#16A34A]/40'
-                                : 'bg-[#F5F6F8] border-[#E2E8F0] opacity-60'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 mx-auto rounded-full text-[10px] font-bold flex items-center justify-center mb-1 ${
-                              isCurrent
-                                ? 'bg-[#FF6B00] text-white ring-2 ring-orange/20'
-                                : isDone
-                                ? 'bg-[#16A34A] text-white'
-                                : 'bg-[#CBD5E1] text-[#64748B]'
-                            }`}>
-                              {isDone && !isCurrent ? '✓' : st.num}
-                            </div>
-                            <span className={`text-[11px] font-bold block truncate ${isCurrent ? 'text-[#FF6B00]' : 'text-[#10182D]'}`}>
-                              {st.label}
-                            </span>
-                          </div>
-                        );
-                      })}
+                {isAir ? (
+                  /* 11-STAGE AIR FREIGHT PROGRESSION TIMELINE */
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-[#10182D] uppercase tracking-wider block flex items-center gap-1.5">
+                        <Plane className="w-3.5 h-3.5 text-blue-600" />
+                        <span>11-Stage International Air Freight Workflow</span>
+                      </span>
+                      <span className="text-[11px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full">
+                        Air Freight Stages
+                      </span>
                     </div>
-                  );
-                })()}
+
+                    {(() => {
+                      const status = currentShipment.status || '';
+                      const getAirStep = (s) => {
+                        switch (s) {
+                          case 'Booking Confirmed':
+                          case 'Booked': return 1;
+                          case 'Cargo Pickup': return 2;
+                          case 'Warehouse Received': return 3;
+                          case 'Documentation': return 4;
+                          case 'Export Customs': return 5;
+                          case 'Airport Handling': return 6;
+                          case 'Flight Departed':
+                          case 'In Transit':
+                          case 'Delayed': return 7;
+                          case 'Flight Arrived': return 8;
+                          case 'Import Customs': return 9;
+                          case 'Out for Delivery':
+                          case 'Near Destination': return 10;
+                          case 'Delivered': return 11;
+                          default: return 7;
+                        }
+                      };
+                      const activeStep = getAirStep(status);
+                      const airStages11 = [
+                        { num: 1, label: 'Booking Confirmed' },
+                        { num: 2, label: 'Cargo Pickup' },
+                        { num: 3, label: 'Warehouse Received' },
+                        { num: 4, label: 'Documentation' },
+                        { num: 5, label: 'Export Customs' },
+                        { num: 6, label: 'Airport Handling' },
+                        { num: 7, label: 'Flight Departed' },
+                        { num: 8, label: 'Flight Arrived' },
+                        { num: 9, label: 'Import Customs' },
+                        { num: 10, label: 'Out for Delivery' },
+                        { num: 11, label: 'Delivered' }
+                      ];
+
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                          {airStages11.map((st) => {
+                            const isDone = activeStep >= st.num;
+                            const isCurrent = activeStep === st.num;
+                            return (
+                              <div
+                                key={st.num}
+                                className={`p-2 rounded-xl border text-center transition-all ${
+                                  isCurrent
+                                    ? 'bg-blue-50 border-blue-600 shadow-xs'
+                                    : isDone
+                                    ? 'bg-white border-emerald-500/50'
+                                    : 'bg-[#F5F6F8] border-[#E2E8F0] opacity-60'
+                                }`}
+                              >
+                                <div className={`w-5 h-5 mx-auto rounded-full text-[10px] font-bold flex items-center justify-center mb-1 ${
+                                  isCurrent
+                                    ? 'bg-blue-600 text-white ring-2 ring-blue-300'
+                                    : isDone
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-[#CBD5E1] text-[#64748B]'
+                                }`}>
+                                  {isDone && !isCurrent ? '✓' : st.num}
+                                </div>
+                                <span className={`text-[10px] font-bold block truncate ${isCurrent ? 'text-blue-700' : 'text-[#10182D]'}`}>
+                                  {st.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  /* 7-STAGE ROAD PROGRESSION TIMELINE */
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-[#10182D] uppercase tracking-wider block">
+                        7-Stage Roadway Progression Timeline
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Stage {(() => {
+                          const st = currentShipment.status;
+                          if (st === 'Delivered') return '7 of 7';
+                          if (st === 'Near Destination') return '6 of 7';
+                          if (st === 'In Transit' || st === 'Delayed') return '5 of 7';
+                          if (st === 'Picked Up') return '4 of 7';
+                          if (st === 'Pickup Scheduled') return '3 of 7';
+                          if (st === 'Confirmed') return '2 of 7';
+                          return '1 of 7';
+                        })()}
+                      </span>
+                    </div>
+
+                    {(() => {
+                      const status = currentShipment.status || '';
+                      const getStepNum = (s) => {
+                        switch (s) {
+                          case 'Booked': return 1;
+                          case 'Confirmed': return 2;
+                          case 'Pickup Scheduled': return 3;
+                          case 'Picked Up': return 4;
+                          case 'In Transit':
+                          case 'Delayed': return 5;
+                          case 'Near Destination': return 6;
+                          case 'Delivered': return 7;
+                          default: return 5;
+                        }
+                      };
+                      const activeStep = getStepNum(status);
+                      const stages7 = [
+                        { num: 1, label: 'Book Shipment' },
+                        { num: 2, label: 'Confirmed' },
+                        { num: 3, label: 'Pickup Scheduled' },
+                        { num: 4, label: 'Picked Up' },
+                        { num: 5, label: 'In Transit' },
+                        { num: 6, label: 'Near Destination' },
+                        { num: 7, label: 'Delivered' }
+                      ];
+
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                          {stages7.map((st) => {
+                            const isDone = activeStep >= st.num;
+                            const isCurrent = activeStep === st.num;
+                            return (
+                              <div
+                                key={st.num}
+                                className={`p-2.5 rounded-xl border text-center transition-all ${
+                                  isCurrent
+                                    ? 'bg-[#FFF8F2] border-[#FF6B00] shadow-xs'
+                                    : isDone
+                                    ? 'bg-white border-[#16A34A]/40'
+                                    : 'bg-[#F5F6F8] border-[#E2E8F0] opacity-60'
+                                }`}
+                              >
+                                <div className={`w-5 h-5 mx-auto rounded-full text-[10px] font-bold flex items-center justify-center mb-1 ${
+                                  isCurrent
+                                    ? 'bg-[#FF6B00] text-white ring-2 ring-orange/20'
+                                    : isDone
+                                    ? 'bg-[#16A34A] text-white'
+                                    : 'bg-[#CBD5E1] text-[#64748B]'
+                                }`}>
+                                  {isDone && !isCurrent ? '✓' : st.num}
+                                </div>
+                                <span className={`text-[11px] font-bold block truncate ${isCurrent ? 'text-[#FF6B00]' : 'text-[#10182D]'}`}>
+                                  {st.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
 
               {/* AUTOMATED WEATHER & TELEMATICS RADAR ALERT BANNER */}
@@ -1099,7 +1437,8 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
           </div>
 
         </div>
-      )}
+        );
+      })()}
       </div>
 
       {/* FULL-SCREEN INTERACTIVE LIVE GPS SATELLITE TRACKING MODAL FOR CUSTOMERS */}
