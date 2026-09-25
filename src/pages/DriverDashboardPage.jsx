@@ -226,12 +226,22 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
   // Filter shipments assigned to this driver
   const assignedShipments = (shipments || []).filter(s => 
-    s.driverId === driverInfo.id || s.driverName === driverInfo.name
+    s.driverId === driverInfo.id || 
+    s.driverName === driverInfo.name ||
+    (s.driverEmail && s.driverEmail?.toLowerCase() === driverInfo.email?.toLowerCase()) ||
+    (currentUser?.email && s.driverEmail?.toLowerCase() === currentUser?.email?.toLowerCase())
   );
 
   const [activeJob, setActiveJob] = useState(
     assignedShipments.find(s => s.status !== 'Delivered') || assignedShipments[0] || shipments?.[0] || defaultJob
   );
+
+  useEffect(() => {
+    if (assignedShipments.length > 0) {
+      const current = assignedShipments.find(s => s.status !== 'Delivered' && s.status !== 'Completed') || assignedShipments[0];
+      if (current) setActiveJob(current);
+    }
+  }, [shipments, driverInfo.id, driverInfo.email]);
 
   // Delivery Update Form State
   const [proofPhotoUploaded, setProofPhotoUploaded] = useState(false);

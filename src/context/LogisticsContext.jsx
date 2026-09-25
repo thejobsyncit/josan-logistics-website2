@@ -116,6 +116,89 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [quotes]);
 
+  // Airway Service Requests State (AWB Preparation, Billing, Documentation, Transportation Support)
+  const [airwayRequests, setAirwayRequests] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_airway_requests');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      {
+        id: 'AIR-0001',
+        customerName: 'Marcus Lim',
+        company: 'Changi Aviation Logistics Pte Ltd',
+        email: 'ops@changiaviation.sg',
+        phone: '+65 6543 2100',
+        origin: 'SIN - Singapore Changi Airport (Air Cargo Complex)',
+        destination: 'BKK - Bangkok Suvarnabhumi Airport',
+        cargoDescription: 'Precision aircraft avionics replacement components & calibration units',
+        packagesCount: '4 wooden crates',
+        totalWeight: '320 kg',
+        dimensions: '120 x 80 x 75 cm per crate',
+        approximateValue: 'SGD 45,000',
+        services: ['AWB Preparation', 'AWB Billing', 'Shipment Documentation', 'Transportation Support'],
+        documents: [
+          { name: 'Commercial_Invoice_Avionics_001.pdf', type: 'Commercial Invoice', size: '245 KB' },
+          { name: 'Packing_List_Crates_1-4.pdf', type: 'Packing List', size: '110 KB' },
+          { name: 'Certificate_of_Origin_SG_Avionics.pdf', type: 'Certificate of Origin', size: '180 KB' }
+        ],
+        date: '2026-09-24',
+        status: 'Under Review',
+        adminNotes: 'IATA master AWB draft prepared with Singapore Airlines Cargo (SQ). Validated shipper export code.'
+      },
+      {
+        id: 'AIR-0002',
+        customerName: 'Elena Rostova',
+        company: 'BioPharma Asia Express',
+        email: 'supplychain@biopharma-asia.com',
+        phone: '+65 8234 5678',
+        origin: 'Tuas Biomedical Hub, Singapore',
+        destination: 'NRT - Tokyo Narita International Airport',
+        cargoDescription: 'Temperature-controlled diagnostic reagents & cold-chain test kits',
+        packagesCount: '12 insulated cartons',
+        totalWeight: '185 kg',
+        dimensions: '50 x 50 x 40 cm',
+        approximateValue: 'SGD 28,000',
+        services: ['AWB Preparation', 'Shipment Documentation'],
+        documents: [
+          { name: 'Biopharma_Commercial_Invoice.pdf', type: 'Commercial Invoice', size: '320 KB' },
+          { name: 'Cold_Chain_Certificate_Of_Origin.pdf', type: 'Certificate of Origin', size: '195 KB' }
+        ],
+        date: '2026-09-23',
+        status: 'Documentation',
+        adminNotes: 'TradeNet chemical export clearance permit attached.'
+      },
+      {
+        id: 'AIR-0003',
+        customerName: 'Darren Koh',
+        company: 'Razer Global Supply Solutions',
+        email: 'logistics.sg@razer.com',
+        phone: '+65 9123 4567',
+        origin: 'Raffles Logistics Bay, Singapore',
+        destination: 'ICN - Seoul Incheon Airport',
+        cargoDescription: 'High-end gaming microprocessor prototype samples',
+        packagesCount: '2 secure palletized boxes',
+        totalWeight: '95 kg',
+        dimensions: '80 x 60 x 50 cm',
+        approximateValue: 'SGD 62,000',
+        services: ['AWB Preparation', 'AWB Billing', 'Transportation Support'],
+        documents: [
+          { name: 'Razer_Commercial_Invoice_KR.pdf', type: 'Commercial Invoice', size: '185 KB' },
+          { name: 'Dangerous_Goods_Exemption_Declaration.pdf', type: 'Other Shipment Documents', size: '140 KB' }
+        ],
+        date: '2026-09-22',
+        status: 'Billing',
+        adminNotes: 'AWB billing invoice sent to customer finance department.'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_airway_requests', JSON.stringify(airwayRequests));
+    } catch (e) {}
+  }, [airwayRequests]);
+
   // Website Notification System State
   const [notifications, setNotifications] = useState(() => {
     try {
@@ -767,16 +850,20 @@ export const LogisticsProvider = ({ children }) => {
     return { success: true, user: userObj };
   };
 
-  const logoutUser = () => {
+  const logoutUser = (silent = false) => {
     setCurrentUser(null);
-    localStorage.removeItem('josan_user');
-    if (typeof window !== 'undefined') {
-      window.location.hash = '#home';
-      if (window.history && window.history.pushState) {
-        window.history.pushState({ tab: 'home' }, '', '#home');
+    try {
+      localStorage.removeItem('josan_user');
+    } catch (e) {}
+    if (!silent) {
+      if (typeof window !== 'undefined') {
+        window.location.hash = '#home';
+        if (window.history && window.history.pushState) {
+          window.history.pushState({ tab: 'home' }, '', '#home');
+        }
       }
+      showToast('Logged out successfully', 'info');
     }
-    showToast('Logged out successfully', 'info');
   };
 
   const updateUserProfile = (updatedDetails) => {
@@ -1379,6 +1466,60 @@ export const LogisticsProvider = ({ children }) => {
     return newShipment;
   };
 
+  // Airway Service Requests Operations
+  const addAirwayRequest = (requestData) => {
+    const existingNums = airwayRequests.map(r => {
+      const num = parseInt(r.id?.replace(/\D/g, ''), 10);
+      return isNaN(num) ? 0 : num;
+    });
+    const nextNum = (existingNums.length > 0 ? Math.max(...existingNums) : 0) + 1;
+    const formattedId = `AIR-${String(nextNum).padStart(4, '0')}`;
+
+    const newRequest = {
+      id: formattedId,
+      customerName: requestData.customerName || requestData.fullName || 'Commercial Shipper',
+      company: requestData.company || requestData.companyName || 'Corporate Client',
+      email: requestData.email,
+      phone: requestData.phone,
+      origin: requestData.origin,
+      destination: requestData.destination,
+      cargoDescription: requestData.cargoDescription,
+      packagesCount: requestData.packagesCount,
+      totalWeight: requestData.totalWeight,
+      dimensions: requestData.dimensions || 'Standard Cargo',
+      approximateValue: requestData.approximateValue || 'SGD 10,000',
+      services: requestData.services || ['AWB Preparation'],
+      documents: requestData.documents || [],
+      date: new Date().toISOString().split('T')[0],
+      status: 'New',
+      adminNotes: 'New customer airway service request received.'
+    };
+
+    setAirwayRequests(prev => [newRequest, ...prev]);
+
+    addNotification({
+      role: 'admin',
+      type: 'airway_request',
+      title: `✈️ New Airway Service Request (${formattedId})`,
+      message: `${newRequest.customerName} (${newRequest.company}) requested airway coordination for ${newRequest.origin} → ${newRequest.destination}.`,
+      timestamp: 'Just Now',
+      read: false
+    });
+
+    showToast(`Airway Service Request #${formattedId} submitted successfully!`, 'success');
+    return newRequest;
+  };
+
+  const updateAirwayRequestStatus = (id, newStatus) => {
+    setAirwayRequests(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    showToast(`Airway Request #${id} status updated to ${newStatus}`, 'success');
+  };
+
+  const updateAirwayRequestNotes = (id, notes) => {
+    setAirwayRequests(prev => prev.map(r => r.id === id ? { ...r, adminNotes: notes } : r));
+    showToast(`Admin note saved for Airway Request #${id}`, 'success');
+  };
+
   // ==========================================
   // PHASE 3: SUPPORT TICKETS OPERATIONS
   // ==========================================
@@ -1783,7 +1924,7 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const assignDriver = async (shipmentId, driverId) => {
-    const driverObj = drivers.find(d => d.id === driverId);
+    const driverObj = (drivers || []).find(d => d.id === driverId || d.driverId === driverId);
     if (!driverObj) return;
 
     const targetShipment = shipments.find(s => s.id === shipmentId);
@@ -1794,12 +1935,21 @@ export const LogisticsProvider = ({ children }) => {
           ...s,
           driverId: driverObj.id,
           driverName: driverObj.name,
+          driverEmail: driverObj.email,
           driverPhone: driverObj.phone,
-          vehicle: `${driverObj.vehicleType} (${driverObj.vehicleId || 'SG-8819'})`,
-          status: 'ASSIGNED'
+          vehicle: `${driverObj.vehicleType || 'Express Cargo Truck'} (${driverObj.vehicleId || 'SG-8819'})`,
+          vehiclePlate: driverObj.vehicleId || 'SG-8819',
+          status: 'Processing'
         };
       }
       return s;
+    }));
+
+    setDrivers(prev => prev.map(d => {
+      if (d.id === driverId || d.driverId === driverId) {
+        return { ...d, status: 'On Delivery', activeTripId: shipmentId };
+      }
+      return d;
     }));
 
     if (isSupabaseConfigured) {
@@ -1813,10 +1963,10 @@ export const LogisticsProvider = ({ children }) => {
       targetDriverId: driverId,
       title: `🚨 Direct Admin Order Assignment (#${shipmentId})`,
       message: `Fleet Operations Manager assigned Order #${shipmentId} directly to your roster!`,
-      pickup: targetShipment?.senderAddress || 'Changi Air Cargo Logistics Hub - 8 Changi South Street 1',
-      delivery: targetShipment?.receiverAddress || 'West Coast Hub Terminal - 12 Pasir Panjang Road',
-      cargoType: targetShipment?.cargoType || 'High-Tech Microchips',
-      weight: targetShipment?.weight || '20 kg',
+      pickup: targetShipment?.senderAddress || targetShipment?.origin || 'Changi Air Cargo Logistics Hub - 8 Changi South Street 1',
+      delivery: targetShipment?.receiverAddress || targetShipment?.destination || 'West Coast Hub Terminal - 12 Pasir Panjang Road',
+      cargoType: targetShipment?.cargoType || 'Commercial Freight',
+      weight: targetShipment?.weight || '250 kg',
       price: targetShipment?.price || '$315.00',
       timestamp: 'Just Now',
       status: 'Assigned'
@@ -1825,7 +1975,72 @@ export const LogisticsProvider = ({ children }) => {
     // Filter out any existing intimations for this shipmentId to avoid duplicate cards!
     setDriverIntimations(prev => [adminIntimation, ...prev.filter(i => i.shipmentId !== shipmentId)]);
 
-    showToast(`Assigned ${driverObj.name} to order ${shipmentId}! Intimation notification dispatched directly to driver's dashboard.`);
+    showToast(`Assigned driver ${driverObj.name} to shipment #${shipmentId}!`, 'success');
+  };
+
+  const assignDriverWithCredentials = async ({ shipmentId, driverData, isNewDriver = false }) => {
+    let finalDriver = null;
+    if (isNewDriver) {
+      finalDriver = await addDriver(driverData);
+    } else {
+      finalDriver = (drivers || []).find(d => d.id === driverData.id || d.email?.toLowerCase() === driverData.email?.toLowerCase()) || driverData;
+      if (driverData.password && driverData.password !== finalDriver.password) {
+        await updateDriverPassword(finalDriver.id, driverData.password);
+        finalDriver = { ...finalDriver, password: driverData.password };
+      }
+    }
+
+    if (!finalDriver) return null;
+
+    const targetShipment = shipments.find(s => s.id === shipmentId);
+
+    setShipments(prev => prev.map(s => {
+      if (s.id === shipmentId) {
+        return {
+          ...s,
+          driverId: finalDriver.id,
+          driverName: finalDriver.name,
+          driverEmail: finalDriver.email,
+          driverPhone: finalDriver.phone,
+          vehicle: `${finalDriver.vehicleType || 'Express Box Truck'} (${finalDriver.vehicleId || 'SG-8819'})`,
+          vehiclePlate: finalDriver.vehicleId || 'SG-8819',
+          status: 'Processing'
+        };
+      }
+      return s;
+    }));
+
+    setDrivers(prev => prev.map(d => {
+      if (d.id === finalDriver.id) {
+        return { ...d, status: 'On Delivery', activeTripId: shipmentId };
+      }
+      return d;
+    }));
+
+    const adminIntimation = {
+      id: `INT-ADM-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      shipmentId: shipmentId,
+      type: 'admin_assigned',
+      targetDriverId: finalDriver.id,
+      title: `🚨 Direct Admin Order Assignment (#${shipmentId})`,
+      message: `Fleet Operations Manager assigned Order #${shipmentId} directly to your roster!`,
+      pickup: targetShipment?.senderAddress || targetShipment?.origin || 'Changi Air Cargo Logistics Hub - 8 Changi South Street 1',
+      delivery: targetShipment?.receiverAddress || targetShipment?.destination || 'West Coast Hub Terminal - 12 Pasir Panjang Road',
+      cargoType: targetShipment?.cargoType || 'Commercial Freight',
+      weight: targetShipment?.weight || '250 kg',
+      price: targetShipment?.price || '$315.00',
+      timestamp: 'Just Now',
+      status: 'Assigned'
+    };
+
+    setDriverIntimations(prev => [adminIntimation, ...prev.filter(i => i.shipmentId !== shipmentId)]);
+
+    if (isSupabaseConfigured) {
+      await supabaseApi.assignDriver(shipmentId, finalDriver.id, finalDriver.name, finalDriver.phone, `${finalDriver.vehicleType || 'Express Box Truck'} (${finalDriver.vehicleId || 'SG-8819'})`);
+    }
+
+    showToast(`Driver ${finalDriver.name} successfully assigned to #${shipmentId}!`, 'success');
+    return finalDriver;
   };
 
   const acceptDriverIntimation = (intimationId, driverObj = {}) => {
@@ -1917,6 +2132,15 @@ export const LogisticsProvider = ({ children }) => {
 
     if (isSupabaseConfigured) {
       await supabaseApi.createDriver(driverWithId);
+    }
+    return driverWithId;
+  };
+
+  const updateDriver = async (driverId, updatedFields) => {
+    setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, ...updatedFields } : d));
+    showToast(`Driver details updated`, 'success');
+    if (isSupabaseConfigured) {
+      await supabaseApi.updateDriver(driverId, updatedFields);
     }
   };
 
@@ -2132,9 +2356,11 @@ export const LogisticsProvider = ({ children }) => {
       updateShipmentStatus,
       flagWeatherDelay,
       assignDriver,
+      assignDriverWithCredentials,
       assignDriverToShipment,
       syncCustomerAppAccount,
       addDriver,
+      updateDriver,
       updateDriverPassword,
       updateDriverPhoto,
       removeDriver,
@@ -2199,6 +2425,10 @@ export const LogisticsProvider = ({ children }) => {
       sendQuoteToCustomer,
       customerRespondQuote,
       convertQuoteToShipment,
+      airwayRequests,
+      addAirwayRequest,
+      updateAirwayRequestStatus,
+      updateAirwayRequestNotes,
       shipmentScope,
       setShipmentScope,
       resetShipmentScope,

@@ -10,14 +10,17 @@ import {
   ArrowRight, 
   CheckCircle2, 
   Clock, 
-  Calendar 
+  Calendar,
+  UserCheck,
+  UserPlus
 } from 'lucide-react';
 
 export const ShipmentsTab = ({
   shipments = [],
   onViewShipment,
   onUpdateStatus,
-  onCreateShipment
+  onCreateShipment,
+  onOpenAssignDriver
 }) => {
   const [search, setSearch] = useState('');
   const [serviceFilter, setServiceFilter] = useState('All');
@@ -139,11 +142,11 @@ export const ShipmentsTab = ({
               <th className="p-3">Shipment ID</th>
               <th className="p-3">Customer</th>
               <th className="p-3">Service</th>
-              <th className="p-3">Origin</th>
-              <th className="p-3">Destination</th>
+              <th className="p-3">Origin → Destination</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Assigned Driver</th>
               <th className="p-3">Update Status</th>
-              <th className="p-3 text-right">Action</th>
+              <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 font-medium">
@@ -158,6 +161,7 @@ export const ShipmentsTab = ({
                 const serviceLabel = s.service || (s.serviceType?.toLowerCase().includes('air') ? 'Airway Services' : 'Road Transportation');
                 const isAir = serviceLabel.includes('Airway') || serviceLabel.includes('Air');
                 const cust = s.customer || s.customerName || s.sender || 'Corporate Account';
+                const hasDriver = !!(s.driverName || s.driverId);
 
                 return (
                   <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
@@ -180,17 +184,60 @@ export const ShipmentsTab = ({
                         <span>{serviceLabel}</span>
                       </span>
                     </td>
-                    <td className="p-3 text-slate-600 max-w-[140px] truncate" title={s.origin}>
-                      {s.origin || 'Singapore Hub'}
-                    </td>
-                    <td className="p-3 text-slate-600 max-w-[140px] truncate" title={s.destination}>
-                      {s.destination || 'Singapore Destination'}
+                    <td className="p-3 text-slate-600 max-w-[180px]">
+                      <div className="truncate font-semibold text-slate-800" title={s.origin}>
+                        {s.origin || 'Singapore Hub'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 truncate" title={s.destination}>
+                        → {s.destination || 'Singapore Bay'}
+                      </div>
                     </td>
                     <td className="p-3">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getStatusBadge(s.status)}`}>
                         {s.status}
                       </span>
                     </td>
+
+                    {/* ASSIGNED DRIVER COLUMN */}
+                    <td className="p-3">
+                      {hasDriver ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-1.5 font-bold text-slate-900">
+                            <UserCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span className="truncate max-w-[120px]">{s.driverName}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            {s.vehiclePlate || 'SG-8819'} {s.driverPhone ? `• ${s.driverPhone}` : ''}
+                          </div>
+                          {onOpenAssignDriver && (
+                            <button
+                              onClick={() => onOpenAssignDriver(s)}
+                              className="text-[10px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer block"
+                            >
+                              Change Driver
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          {onOpenAssignDriver ? (
+                            <button
+                              onClick={() => onOpenAssignDriver(s)}
+                              className="px-2.5 py-1 bg-orange-50 hover:bg-[#FF6B00] text-orange-700 hover:text-white border border-orange-200 rounded-lg text-[10px] font-extrabold transition-all flex items-center space-x-1 cursor-pointer shadow-2xs"
+                              title="Assign driver with email & password"
+                            >
+                              <UserPlus className="w-3 h-3" />
+                              <span>Assign Driver</span>
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded-full">
+                              Unassigned
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+
                     <td className="p-3">
                       <select
                         value={s.status}
@@ -205,13 +252,25 @@ export const ShipmentsTab = ({
                         <option value="Completed">Completed</option>
                       </select>
                     </td>
+
                     <td className="p-3 text-right">
-                      <button
-                        onClick={() => onViewShipment(s)}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-[#FF6B00] hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                      >
-                        View Details
-                      </button>
+                      <div className="flex items-center justify-end space-x-1.5">
+                        {onOpenAssignDriver && (
+                          <button
+                            onClick={() => onOpenAssignDriver(s)}
+                            className="px-2.5 py-1.5 bg-orange-50 hover:bg-[#FF6B00] text-orange-600 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                            title="Assign or reassign driver"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onViewShipment(s)}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Details
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

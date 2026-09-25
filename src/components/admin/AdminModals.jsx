@@ -12,14 +12,17 @@ import {
   CheckCircle2, 
   Clock, 
   FileCheck, 
-  Download 
+  Download,
+  UserCheck,
+  Mail
 } from 'lucide-react';
 import { safeDownloadPdf } from '../../utils/pdfDownload';
 
 export const ShipmentDetailsModal = ({
   shipment,
   onClose,
-  onUpdateStatus
+  onUpdateStatus,
+  onOpenAssignDriver
 }) => {
   if (!shipment) return null;
 
@@ -170,6 +173,64 @@ export const ShipmentDetailsModal = ({
           </div>
         </div>
 
+        {/* Assigned Driver & Portal Credentials Card */}
+        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h4 className="font-extrabold text-slate-900 flex items-center space-x-1.5">
+              <UserCheck className="w-4 h-4 text-orange-500" />
+              <span>Assigned Driver & Dispatch Account</span>
+            </h4>
+            {onOpenAssignDriver && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenAssignDriver(shipment);
+                }}
+                className="text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer"
+              >
+                {shipment.driverName ? 'Reassign Driver' : '+ Assign Driver'}
+              </button>
+            )}
+          </div>
+          {shipment.driverName ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-semibold text-slate-700">
+              <div>
+                <span className="text-slate-400 text-[10px] font-bold uppercase block">Driver Name</span>
+                <span className="text-slate-900 font-extrabold">{shipment.driverName}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[10px] font-bold uppercase block">Portal Login Email</span>
+                <span className="text-slate-800 font-mono text-[11px] truncate block" title={shipment.driverEmail}>
+                  {shipment.driverEmail || 'Standard Fleet Account'}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[10px] font-bold uppercase block">Contact Phone</span>
+                <span className="font-mono">{shipment.driverPhone || '+65 9123 4567'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[10px] font-bold uppercase block">Vehicle Plate</span>
+                <span className="font-mono text-orange-600 font-bold">{shipment.vehiclePlate || 'SG-8819'}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="py-2 flex items-center justify-between text-slate-500">
+              <span>No driver has been assigned to this consignment yet.</span>
+              {onOpenAssignDriver && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenAssignDriver(shipment);
+                  }}
+                  className="px-3 py-1 bg-[#FF6B00] text-white rounded-lg font-bold text-[11px] cursor-pointer shadow-xs"
+                >
+                  Assign Driver Now
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Cargo & Goods Info */}
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
           <h4 className="font-extrabold text-slate-900 flex items-center space-x-1.5">
@@ -193,7 +254,21 @@ export const ShipmentDetailsModal = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+          <div>
+            {onOpenAssignDriver && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenAssignDriver(shipment);
+                }}
+                className="px-4 py-2.5 bg-orange-50 hover:bg-[#FF6B00] text-orange-600 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-orange-200"
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>{shipment.driverName ? 'Change Driver' : 'Assign Driver'}</span>
+              </button>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"

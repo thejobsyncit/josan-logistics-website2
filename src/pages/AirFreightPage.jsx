@@ -21,6 +21,11 @@ export const AirFreightPage = ({ setActiveTab }) => {
     showToast 
   } = useLogistics();
 
+  const handleAirwayRequestClick = () => {
+    setActiveTab('airway-request');
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+
   const handleQuoteClick = () => {
     if (!currentUser) {
       if (setAuthRedirectTab) setAuthRedirectTab('quote');
@@ -170,7 +175,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
             <div className="pt-2 flex flex-wrap items-center gap-4">
               <button
                 type="button"
-                onClick={handleQuoteClick}
+                onClick={handleAirwayRequestClick}
                 className="px-7 py-3.5 bg-gradient-to-r from-[#FF6B00] to-[#FF8500] hover:from-[#E55C00] hover:to-[#FF6B00] text-white rounded-xl font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all flex items-center space-x-2.5 cursor-pointer active:scale-95"
               >
                 <span>REQUEST AIRWAY SERVICE</span>
@@ -352,7 +357,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
                 <div className="pt-6">
                   <button
                     type="button"
-                    onClick={handleQuoteClick}
+                    onClick={handleAirwayRequestClick}
                     className="w-full py-2.5 px-4 bg-slate-50 hover:bg-[#FF6B00] text-slate-700 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 group-hover:border-transparent flex items-center justify-center space-x-1.5 cursor-pointer"
                   >
                     <span>Request {svc.title}</span>
@@ -519,7 +524,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
           <div className="flex flex-wrap items-center justify-center gap-4 relative z-10">
             <button
               type="button"
-              onClick={handleQuoteClick}
+              onClick={handleAirwayRequestClick}
               className="px-8 py-3.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-md transition-all cursor-pointer active:scale-95"
             >
               REQUEST AIRWAY SERVICE

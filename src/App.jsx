@@ -24,6 +24,7 @@ import { InternationalShipmentPage } from './pages/InternationalShipmentPage';
 import { CustomerDashboardPage } from './pages/CustomerDashboardPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { DriverDashboardPage } from './pages/DriverDashboardPage';
+import { AirwayRequestPage } from './pages/AirwayRequestPage';
 import { CrmPage } from './pages/CrmPage';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
 
@@ -109,6 +110,7 @@ const MainContent = () => {
     'fleet', 
     'quote', 
     'book', 
+    'airway-request',
     'domestic-shipment', 
     'international-shipment', 
     'customer-dashboard', 
@@ -141,7 +143,7 @@ const MainContent = () => {
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
   
-  const { currentRole, currentUser, loginUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentRole, currentUser, loginUser, logoutUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
 
   // Enforce strict protected role routes
   useEffect(() => {
@@ -150,6 +152,12 @@ const MainContent = () => {
       if (!currentUser || currentUser.role !== 'admin') {
         loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
       }
+      return;
+    }
+
+    // Automatically log out admin session when returning to public website pages
+    if (activeTab !== 'admin-dashboard' && currentUser?.role === 'admin') {
+      logoutUser(true);
       return;
     }
 
@@ -311,6 +319,11 @@ const MainContent = () => {
         return;
       }
 
+      if (rawHash === '#airway-request' || rawHash === '#/airway-request' || path === '/airway-request') {
+        setActiveTab('airway-request');
+        return;
+      }
+
       const cleanHash = rawHash.replace('#', '');
       if (cleanHash && validTabs.includes(cleanHash)) {
         setActiveTab(cleanHash);
@@ -373,6 +386,8 @@ const MainContent = () => {
         return <QuotePage setActiveTab={changeActiveTab} />;
       case 'book':
         return <BookShipmentPage setActiveTab={changeActiveTab} />;
+      case 'airway-request':
+        return <AirwayRequestPage setActiveTab={changeActiveTab} />;
       case 'domestic-shipment':
         return <DomesticShipmentPage setActiveTab={changeActiveTab} />;
       case 'international-shipment':

@@ -498,8 +498,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               <span>Book Shipment</span>
             </button>
 
-            {/* Customer Login / Dashboard Navigation Menu (Hidden on Admin Dashboard to prevent duplicate profile) */}
-            {activeTab === 'admin-dashboard' ? null : currentUser ? (
+            {/* Customer Login / Dashboard Navigation Menu (Hidden on Admin Dashboard, and Admin sessions do not display in public website navbar) */}
+            {activeTab === 'admin-dashboard' ? null : (currentUser && currentUser.role !== 'admin') ? (
               <div className="relative pl-1">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -781,7 +781,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
           {/* Mobile Customer Account / Login Area */}
           <div className="pt-3 border-t border-slate-100">
-            {currentUser ? (
+            {(currentUser && currentUser.role !== 'admin') ? (
               <div className="space-y-2">
                 <div className="flex items-center space-x-2.5 p-2 bg-slate-50 rounded-xl">
                   <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">

@@ -11,11 +11,13 @@ import { RoadTransportationTab } from '../components/admin/RoadTransportationTab
 import { DocumentationTab } from '../components/admin/DocumentationTab';
 import { CustomersTab } from '../components/admin/CustomersTab';
 import { TransportationPartnersTab } from '../components/admin/TransportationPartnersTab';
+import { DriversTab } from '../components/admin/DriversTab';
 import { ServiceRequestsTab } from '../components/admin/ServiceRequestsTab';
 import { ReportsTab } from '../components/admin/ReportsTab';
 import { NotificationsTab } from '../components/admin/NotificationsTab';
 import { SettingsTab } from '../components/admin/SettingsTab';
 import { ShipmentDetailsModal, CreateShipmentModal } from '../components/admin/AdminModals';
+import { AssignDriverModal } from '../components/admin/AssignDriverModal';
 
 export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   const { 
@@ -24,6 +26,14 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
     addShipment,
     deleteShipment,
     customers = [],
+    drivers = [],
+    addDriver,
+    updateDriver,
+    updateDriverPassword,
+    removeDriver,
+    toggleDriverStatus,
+    assignDriver,
+    assignDriverWithCredentials,
     documents = [],
     uploadShipmentDocument,
     deleteShipmentDocument,
@@ -33,7 +43,11 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
     markAllNotificationsAsRead,
     showToast,
     logoutUser,
-    currentUser
+    loginUser,
+    currentUser,
+    airwayRequests = [],
+    updateAirwayRequestStatus,
+    updateAirwayRequestNotes
   } = useLogistics();
 
   // Active admin tab state (defaults to 'overview')
@@ -43,6 +57,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   // Modals state
   const [selectedDetailShipment, setSelectedDetailShipment] = useState(null);
   const [isCreateShipmentOpen, setIsCreateShipmentOpen] = useState(false);
+  const [assignDriverModalShipment, setAssignDriverModalShipment] = useState(null);
 
   // Live Singapore Real-Time Clock
   const [liveDate, setLiveDate] = useState('');
@@ -404,19 +419,37 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
     }
   };
 
+  // Driver assignment handler
+  const handleAssignDriver = ({ shipmentId, driverData, isNewDriver }) => {
+    if (assignDriverWithCredentials) {
+      return assignDriverWithCredentials({ shipmentId, driverData, isNewDriver });
+    } else if (assignDriver) {
+      return assignDriver(shipmentId, driverData.id);
+    }
+  };
+
+  // Driver portal test login
+  const handleTestDriverLogin = (driver) => {
+    if (loginUser) {
+      loginUser(driver.email, driver.password || 'driver123', 'driver', setParentActiveTab);
+    }
+  };
+
   // Navigation from search results
   const handleSelectSearchResult = (type, item) => {
     if (type === 'shipment') {
       setSelectedDetailShipment(item);
     } else if (type === 'customer') {
       setAdminTab('customers');
+    } else if (type === 'driver') {
+      setAdminTab('drivers');
     } else if (type === 'document') {
       setAdminTab('documentation');
     }
   };
 
   // Counts for sidebar badges
-  const airwayCount = standardizedShipments.filter(s => s.service === 'Airway Services').length;
+  const airwayCount = airwayRequests.length;
   const roadCount = standardizedShipments.filter(s => s.service === 'Road Transportation').length;
   const pendingRequestsCount = serviceRequests.filter(r => r.status === 'Pending' || r.status === 'Under Review').length;
 
@@ -427,6 +460,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
     documents: managedDocuments.length,
     customers: customers.length,
     partners: transportationPartners.length,
+    drivers: drivers.length,
     requests: pendingRequestsCount,
     notifications: notifications.filter(n => !n.read).length
   };
@@ -435,7 +469,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   const normalizedTab = adminTab === 'orders' ? 'shipments'
     : adminTab === 'documents' ? 'documentation'
     : adminTab === 'quotes' ? 'service_requests'
-    : adminTab === 'fleet' || adminTab === 'drivers' ? 'transportation_partners'
+    : adminTab === 'fleet' ? 'transportation_partners'
     : adminTab === 'analytics' ? 'reports'
     : adminTab === 'warehouses' ? 'overview'
     : adminTab;
@@ -448,6 +482,9 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
         setAdminTab={setAdminTab}
         counts={sidebarCounts}
         onReturnToPublic={() => {
+          if (logoutUser) {
+            logoutUser(true);
+          }
           if (setParentActiveTab) {
             setParentActiveTab('home');
           } else {
@@ -474,6 +511,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
           }}
           shipments={standardizedShipments}
           customers={customers}
+          drivers={drivers}
           documents={managedDocuments}
         />
 
@@ -500,6 +538,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
               onViewShipment={(s) => setSelectedDetailShipment(s)}
               onUpdateStatus={handleUpdateShipmentStatus}
               onCreateShipment={() => setIsCreateShipmentOpen(true)}
+              onOpenAssignDriver={(s) => setAssignDriverModalShipment(s)}
             />
           )}
 
@@ -507,6 +546,9 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
           {normalizedTab === 'airway_services' && (
             <AirwayServicesTab
               shipments={standardizedShipments}
+              airwayRequests={airwayRequests}
+              onUpdateAirwayRequestStatus={updateAirwayRequestStatus}
+              onUpdateAirwayRequestNotes={updateAirwayRequestNotes}
               onViewShipment={(s) => setSelectedDetailShipment(s)}
               onUpdateStatus={handleUpdateShipmentStatus}
             />
@@ -519,6 +561,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
               transportationPartners={transportationPartners}
               onViewShipment={(s) => setSelectedDetailShipment(s)}
               onUpdateStatus={handleUpdateShipmentStatus}
+              onOpenAssignDriver={(s) => setAssignDriverModalShipment(s)}
             />
           )}
 
@@ -553,7 +596,23 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
             />
           )}
 
-          {/* TAB 8: SERVICE REQUESTS */}
+          {/* TAB 8: DRIVERS & FLEET */}
+          {normalizedTab === 'drivers' && (
+            <DriversTab
+              drivers={drivers}
+              shipments={standardizedShipments}
+              onAddDriver={addDriver}
+              onUpdateDriver={updateDriver}
+              onUpdateDriverPassword={updateDriverPassword}
+              onRemoveDriver={removeDriver}
+              onOpenAssignShipment={(s) => setAssignDriverModalShipment(s)}
+              onViewShipment={(s) => setSelectedDetailShipment(s)}
+              onTestDriverLogin={handleTestDriverLogin}
+              showToast={showToast}
+            />
+          )}
+
+          {/* TAB 9: SERVICE REQUESTS */}
           {normalizedTab === 'service_requests' && (
             <ServiceRequestsTab
               requests={serviceRequests}
@@ -562,7 +621,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
             />
           )}
 
-          {/* TAB 9: REPORTS */}
+          {/* TAB 10: REPORTS */}
           {normalizedTab === 'reports' && (
             <ReportsTab
               shipments={standardizedShipments}
@@ -571,7 +630,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
             />
           )}
 
-          {/* TAB 10: NOTIFICATIONS */}
+          {/* TAB 11: NOTIFICATIONS */}
           {normalizedTab === 'notifications' && (
             <NotificationsTab
               notifications={notifications}
@@ -580,7 +639,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
             />
           )}
 
-          {/* TAB 11: SETTINGS */}
+          {/* TAB 12: SETTINGS */}
           {normalizedTab === 'settings' && (
             <SettingsTab
               onSaveToast={(msg, type) => showToast && showToast(msg, type)}
@@ -595,6 +654,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
           shipment={selectedDetailShipment}
           onClose={() => setSelectedDetailShipment(null)}
           onUpdateStatus={handleUpdateShipmentStatus}
+          onOpenAssignDriver={(s) => setAssignDriverModalShipment(s)}
         />
       )}
 
@@ -604,6 +664,17 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
           onClose={() => setIsCreateShipmentOpen(false)}
           onCreateShipment={handleCreateShipment}
           partners={transportationPartners}
+        />
+      )}
+
+      {assignDriverModalShipment && (
+        <AssignDriverModal
+          isOpen={!!assignDriverModalShipment}
+          onClose={() => setAssignDriverModalShipment(null)}
+          shipment={assignDriverModalShipment}
+          drivers={drivers}
+          onAssignDriver={handleAssignDriver}
+          onSwitchToDriverPortal={handleTestDriverLogin}
         />
       )}
     </div>

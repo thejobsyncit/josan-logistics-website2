@@ -26,6 +26,7 @@ export const AdminHeader = ({
   onLogout,
   shipments = [],
   customers = [],
+  drivers = [],
   documents = []
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -58,6 +59,13 @@ export const AdminHeader = ({
     c.name?.toLowerCase().includes(q) ||
     c.company?.toLowerCase().includes(q) ||
     c.email?.toLowerCase().includes(q)
+  ).slice(0, 3) : [];
+
+  const matchingDrivers = q ? drivers.filter(d => 
+    d.name?.toLowerCase().includes(q) ||
+    d.email?.toLowerCase().includes(q) ||
+    d.phone?.toLowerCase().includes(q) ||
+    d.vehicleId?.toLowerCase().includes(q)
   ).slice(0, 3) : [];
 
   const matchingDocs = q ? documents.filter(d => 
@@ -162,6 +170,31 @@ export const AdminHeader = ({
                           <span className="text-[10px] text-slate-400 truncate">{c.company}</span>
                         </div>
                         <span className="text-[10px] text-blue-600 font-bold">View Profile →</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {matchingDrivers.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                      Fleet Drivers ({matchingDrivers.length})
+                    </p>
+                    {matchingDrivers.map(d => (
+                      <div
+                        key={d.id}
+                        onClick={() => {
+                          onSelectSearchResult('driver', d);
+                          setIsSearchOpen(false);
+                        }}
+                        className="p-2 rounded-xl hover:bg-slate-50 flex items-center justify-between cursor-pointer text-xs"
+                      >
+                        <div className="flex items-center space-x-2 truncate">
+                          <Truck className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                          <span className="font-bold text-slate-800">{d.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({d.email})</span>
+                        </div>
+                        <span className="text-[10px] text-orange-600 font-bold">Manage Driver →</span>
                       </div>
                     ))}
                   </div>

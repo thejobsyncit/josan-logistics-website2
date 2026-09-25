@@ -17,7 +17,8 @@ export const RoadTransportationTab = ({
   transportationPartners = [],
   onViewShipment,
   onUpdateStatus,
-  onAssignPartner
+  onAssignPartner,
+  onOpenAssignDriver
 }) => {
   const [search, setSearch] = useState('');
   const [partnerFilter, setPartnerFilter] = useState('All');
@@ -206,8 +207,16 @@ export const RoadTransportationTab = ({
                     <td className="p-3">
                       <div>
                         <p className="font-mono font-bold text-slate-900">{vehiclePlate} <span className="font-sans font-normal text-slate-400 text-[10px]">({vehicleType})</span></p>
-                        <p className="text-[10px] text-slate-600">{driverName}</p>
+                        <p className="text-[10px] text-slate-700 font-bold">{driverName}</p>
                         <p className="text-[9px] text-slate-400 font-mono">{driverPhone}</p>
+                        {onOpenAssignDriver && (
+                          <button
+                            onClick={() => onOpenAssignDriver(item)}
+                            className="text-[10px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer mt-0.5 inline-block"
+                          >
+                            {driverName && driverName !== 'Partner Driver' ? 'Change Driver' : '+ Assign Driver'}
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="p-3">
@@ -225,12 +234,23 @@ export const RoadTransportationTab = ({
                       </select>
                     </td>
                     <td className="p-3 text-right">
-                      <button
-                        onClick={() => onViewShipment(item)}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-[#FF6B00] hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                      >
-                        Details
-                      </button>
+                      <div className="flex items-center justify-end space-x-1.5">
+                        {onOpenAssignDriver && (
+                          <button
+                            onClick={() => onOpenAssignDriver(item)}
+                            className="px-2.5 py-1.5 bg-orange-50 hover:bg-[#FF6B00] text-orange-600 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                            title="Assign Driver"
+                          >
+                            Assign
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onViewShipment(item)}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-[#FF6B00] hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Details
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
