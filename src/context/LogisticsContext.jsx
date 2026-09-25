@@ -758,6 +758,8 @@ export const LogisticsProvider = ({ children }) => {
     const userRole = role || (email.includes('admin') ? 'admin' : email.includes('driver') ? 'driver' : 'customer');
     
     let matchedDriver = null;
+    let matchedCustomer = null;
+
     if (userRole === 'driver') {
       const cleanInput = (email || '').trim().toLowerCase();
       matchedDriver = drivers.find(d => 
@@ -778,22 +780,30 @@ export const LogisticsProvider = ({ children }) => {
       if (password && password !== 'admin123') {
         return { success: false, error: 'Incorrect Admin password. Default demo password is: admin123' };
       }
+    } else if (userRole === 'customer') {
+      const cleanEmail = (email || '').trim().toLowerCase();
+      matchedCustomer = (customers || []).find(c => c.email && c.email.trim().toLowerCase() === cleanEmail);
+      if (matchedCustomer && matchedCustomer.password && password) {
+        if (password !== matchedCustomer.password) {
+          return { success: false, error: 'Incorrect Customer Password. Please check your credentials.' };
+        }
+      }
     }
 
     const userObj = {
-      name: matchedDriver?.name || details.fullName || (userRole === 'admin' 
+      name: matchedDriver?.name || matchedCustomer?.name || details.fullName || (userRole === 'admin' 
         ? 'Fleet Admin Manager' 
         : userRole === 'driver' 
         ? 'Robert Martinez (Driver)' 
         : 'Enterprise Customer'),
       email: matchedDriver?.email || email,
       role: userRole,
-      company: matchedDriver?.assignedHub || (userRole === 'admin' 
+      company: matchedDriver?.assignedHub || matchedCustomer?.company || (userRole === 'admin' 
         ? 'Josan Logistics Operations' 
         : userRole === 'driver' 
         ? 'Josan Fleet Operations' 
         : 'Global Client Corp'),
-      phone: matchedDriver?.phone || details.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
+      phone: matchedDriver?.phone || matchedCustomer?.phone || details.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
       licenseNumber: matchedDriver?.licenseNumber || details.licenseNumber || (userRole === 'driver' ? 'SG-CLASS4-881' : ''),
       dob: matchedDriver?.dob || details.dob || (userRole === 'driver' ? '1990-05-12' : ''),
       photo: matchedDriver?.photo || details.photo || undefined
@@ -806,19 +816,21 @@ export const LogisticsProvider = ({ children }) => {
 
     if (userRole === 'customer') {
       const newCustObj = {
-        id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
+        id: matchedCustomer?.id || `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
         name: userObj.name,
         email: userObj.email,
         phone: userObj.phone,
         company: userObj.company,
-        company_name: userObj.company
+        company_name: userObj.company,
+        password: password || matchedCustomer?.password || null
       };
       setCustomers(prev => {
         const exists = (prev || []).some(c => c.email?.toLowerCase() === userObj.email?.toLowerCase());
         if (!exists) {
           return [newCustObj, ...(prev || [])];
+        } else {
+          return (prev || []).map(c => c.email?.toLowerCase() === userObj.email?.toLowerCase() ? { ...c, ...newCustObj } : c);
         }
-        return prev;
       });
       if (isSupabaseConfigured) {
         supabaseApi.createCustomer(newCustObj);
