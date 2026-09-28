@@ -13,7 +13,8 @@ import {
   Bell, 
   Settings, 
   ArrowLeft, 
-  Globe 
+  Globe,
+  BookOpen
 } from 'lucide-react';
 
 export const AdminSidebar = ({ 
@@ -28,6 +29,7 @@ export const AdminSidebar = ({
     { id: 'airway_services', label: 'Airway Requests', icon: Plane, count: counts.airway },
     { id: 'road_transportation', label: 'Road Transportation', icon: Truck, count: counts.road },
     { id: 'documentation', label: 'Documentation', icon: FileCheck, count: counts.documents },
+    { id: 'knowledge_base', label: 'AI Knowledge Base', icon: BookOpen },
     { id: 'customers', label: 'Customers', icon: Users, count: counts.customers },
     { id: 'transportation_partners', label: 'Transportation Partners', icon: Handshake, count: counts.partners },
     { id: 'drivers', label: 'Drivers & Fleet', icon: UserCheck, count: counts.drivers },
@@ -36,6 +38,7 @@ export const AdminSidebar = ({
     { id: 'notifications', label: 'Notifications', icon: Bell, count: counts.notifications },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
 
   return (
     <aside className="w-full lg:w-72 bg-[#0B132B] text-slate-300 p-4 sm:p-5 flex flex-col justify-between shrink-0 border-r border-slate-800 shadow-2xl z-20 min-h-screen">

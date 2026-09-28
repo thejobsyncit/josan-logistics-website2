@@ -16,6 +16,7 @@ import { ServiceRequestsTab } from '../components/admin/ServiceRequestsTab';
 import { ReportsTab } from '../components/admin/ReportsTab';
 import { NotificationsTab } from '../components/admin/NotificationsTab';
 import { SettingsTab } from '../components/admin/SettingsTab';
+import { KnowledgeBaseTab } from '../components/admin/KnowledgeBaseTab';
 import { ShipmentDetailsModal, CreateShipmentModal } from '../components/admin/AdminModals';
 import { AssignDriverModal } from '../components/admin/AssignDriverModal';
 
@@ -574,6 +575,11 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
               onDeleteDocument={handleDeleteDocument}
               onViewDocument={(d) => showToast(`Opening ${d.name}`, 'info')}
             />
+          )}
+
+          {/* TAB 5.5: AI KNOWLEDGE BASE (RAG) */}
+          {normalizedTab === 'knowledge_base' && (
+            <KnowledgeBaseTab />
           )}
 
           {/* TAB 6: CUSTOMERS */}

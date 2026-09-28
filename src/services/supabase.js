@@ -1,13 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Retrieve credentials from Vite env or fallback
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-supabase-project.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-supabase-anon-key';
+const getEnvVar = (key) => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+    return import.meta.env[key];
+  }
+  if (typeof process !== 'undefined' && process.env && process.env[key]) {
+    return process.env[key];
+  }
+  return '';
+};
+
+// Retrieve credentials from Vite env or process env or fallback
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') || 'https://xewecflkzxgnczukaana.supabase.co';
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || 'your-supabase-anon-key';
 
 export const isSupabaseConfigured = Boolean(
-  import.meta.env.VITE_SUPABASE_URL && 
-  import.meta.env.VITE_SUPABASE_ANON_KEY && 
-  !import.meta.env.VITE_SUPABASE_URL.includes('your-supabase-project')
+  supabaseUrl && 
+  supabaseAnonKey && 
+  !supabaseUrl.includes('your-supabase-project')
 );
 
 // Initialize Supabase client

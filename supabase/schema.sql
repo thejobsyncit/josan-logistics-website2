@@ -698,4 +698,127 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- =======================================================================
+-- TABLE 13: RAG CHATBOT & KNOWLEDGE BASE SCHEMA (pgvector)
+-- =======================================================================
+
+-- Enable pgvector extension for similarity vector search
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- 1. Master Documents Metadata Table
+CREATE TABLE IF NOT EXISTS public.documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  file_name TEXT NOT NULL,
+  file_url TEXT,
+  file_type TEXT DEFAULT 'pdf',
+  title TEXT NOT NULL,
+  description TEXT,
+  category TEXT DEFAULT 'General',
+  chunk_count INT DEFAULT 0,
+  status TEXT DEFAULT 'COMPLETED', -- UPLOADING, PROCESSING, COMPLETED, FAILED
+  error_message TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  uploaded_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Document Vector Chunks Table
+CREATE TABLE IF NOT EXISTS public.document_chunks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID REFERENCES public.documents(id) ON DELETE CASCADE NOT NULL,
+  chunk_index INT NOT NULL,
+  content TEXT NOT NULL,
+  token_count INT DEFAULT 0,
+  embedding vector(1536), -- 1536 dimensions for OpenAI / Ada-002 / Gemini compatible embeddings
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Vector Cosine Similarity Search Index (HNSW Index)
+CREATE INDEX IF NOT EXISTS document_chunks_embedding_idx 
+ON public.document_chunks 
+USING hnsw (embedding vector_cosine_ops);
+
+CREATE INDEX IF NOT EXISTS document_chunks_doc_id_idx 
+ON public.document_chunks(document_id);
+
+-- 3. Chat Sessions Table
+CREATE TABLE IF NOT EXISTS public.chat_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  title TEXT DEFAULT 'New Conversation',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Chat Messages Table
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES public.chat_sessions(id) ON DELETE CASCADE NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+  content TEXT NOT NULL,
+  sources JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. Vector Similarity Search Function (Supabase RPC)
+CREATE OR REPLACE FUNCTION public.match_document_chunks(
+  query_embedding vector(1536),
+  match_threshold float DEFAULT 0.3,
+  match_count int DEFAULT 5
+)
+RETURNS TABLE (
+  id UUID,
+  document_id UUID,
+  chunk_index INT,
+  content TEXT,
+  similarity float,
+  document_name TEXT,
+  document_title TEXT,
+  page_number INT,
+  metadata JSONB
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    dc.id,
+    dc.document_id,
+    dc.chunk_index,
+    dc.content,
+    (1 - (dc.embedding <=> query_embedding))::float AS similarity,
+    COALESCE(d.file_name, 'Knowledge Base') AS document_name,
+    COALESCE(d.title, d.file_name, 'Knowledge Base Document') AS document_title,
+    COALESCE((dc.metadata->>'page')::int, (dc.metadata->>'page_number')::int, 1) AS page_number,
+    dc.metadata
+  FROM public.document_chunks dc
+  JOIN public.documents d ON d.id = dc.document_id
+  WHERE (1 - (dc.embedding <=> query_embedding)) > match_threshold
+  ORDER BY dc.embedding <=> query_embedding ASC
+  LIMIT match_count;
+END;
+$$;
+
+-- 6. Enable Row Level Security Policies for RAG Tables
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.document_chunks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Security Policies (Allow Public Read for RAG Search; Authenticated/Public Insert)
+CREATE POLICY "Public read documents" ON public.documents FOR SELECT USING (true);
+CREATE POLICY "Public insert documents" ON public.documents FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public update/delete documents" ON public.documents FOR ALL USING (true);
+
+CREATE POLICY "Public read document_chunks" ON public.document_chunks FOR SELECT USING (true);
+CREATE POLICY "Public insert document_chunks" ON public.document_chunks FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public update/delete document_chunks" ON public.document_chunks FOR ALL USING (true);
+
+CREATE POLICY "Public chat_sessions" ON public.chat_sessions FOR ALL USING (true);
+CREATE POLICY "Public chat_messages" ON public.chat_messages FOR ALL USING (true);
+
+
 

@@ -7,6 +7,7 @@ import { InvoiceModal } from './components/InvoiceModal';
 import { ShipmentTypeModal } from './components/ShipmentTypeModal';
 import { ShipmentDetailsView } from './components/ShipmentDetailsView';
 import { SingaporeGoogleMapBackground } from './components/SingaporeGoogleMapBackground';
+import { Chatbot } from './components/chatbot/Chatbot';
 
 import { HomePage } from './pages/HomePage';
 import { AirFreightPage } from './pages/AirFreightPage';
@@ -425,6 +426,7 @@ const MainContent = () => {
       <ShipmentDetailsView />
       <InvoiceModal />
       <ToastNotification />
+      <Chatbot />
     </div>
   );
 };
