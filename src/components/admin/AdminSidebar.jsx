@@ -28,6 +28,7 @@ export const AdminSidebar = ({
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
+
   return (
     <aside className="w-full lg:w-72 bg-[#0B132B] text-slate-300 p-4 sm:p-5 flex flex-col justify-between shrink-0 border-r border-slate-800 shadow-2xl z-20 min-h-screen font-sans">
       <div className="space-y-5">
