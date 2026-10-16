@@ -31,7 +31,7 @@ export const RealTruckGraphic = () => (
         <path d="M88 19 L102 19 L112 29 L88 29 Z" fill="#38BDF8" fillOpacity="0.9" stroke="#0284C7" strokeWidth="1" /> {/* Windshield */}
         
         {/* Cabin Front Bumper Accent (Vibrant Orange) */}
-        <path d="M104 30 L118 30 L118 48 L104 48 Z" fill="#FF6B00" />
+        <path d="M104 30 L118 30 L118 48 L104 48 Z" fill="#2463EB" />
         
         {/* Headlight Bulb */}
         <circle cx="120" cy="38" r="3.5" fill="#FDE047" />
@@ -56,7 +56,7 @@ export const RealTruckGraphic = () => (
         <defs>
           <linearGradient id="truckBodyGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#FF7A1A" />
-            <stop offset="50%" stopColor="#FF6B00" />
+            <stop offset="50%" stopColor="#2463EB" />
             <stop offset="100%" stopColor="#C2410C" />
           </linearGradient>
         </defs>

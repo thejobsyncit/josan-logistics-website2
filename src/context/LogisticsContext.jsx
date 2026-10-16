@@ -12,8 +12,18 @@ import {
   initialTickets,
   initialLeads,
   initialCommunications,
-  initialTasks
+  initialTasks,
+  initialTransportationPartners
 } from '../data/mockData';
+import {
+  initialCargoPricing,
+  initialSystemUsers,
+  initialCrmRolePermissions,
+  initialWebsiteContent,
+  initialManagedServices,
+  initialAdminActivityLog,
+  calculateCargoPricingHelper
+} from '../data/adminCrmData';
 import { 
   connectAdminSocket, 
   onAdminSocketStatus, 
@@ -129,6 +139,11 @@ export const LogisticsProvider = ({ children }) => {
         company: 'Changi Aviation Logistics Pte Ltd',
         email: 'ops@changiaviation.sg',
         phone: '+65 6543 2100',
+        receiverName: 'Somchai Prasert',
+        receiverCompany: 'Bangkok Air Logistics Co., Ltd',
+        receiverEmail: 'import@bangkokairlogistics.co.th',
+        receiverPhone: '+66 2 134 8888',
+        incoterm: 'FOB',
         origin: 'SIN - Singapore Changi Airport (Air Cargo Complex)',
         destination: 'BKK - Bangkok Suvarnabhumi Airport',
         cargoDescription: 'Precision aircraft avionics replacement components & calibration units',
@@ -152,6 +167,11 @@ export const LogisticsProvider = ({ children }) => {
         company: 'BioPharma Asia Express',
         email: 'supplychain@biopharma-asia.com',
         phone: '+65 8234 5678',
+        receiverName: 'Kenji Takahashi',
+        receiverCompany: 'Narita Clinical Distribution KK',
+        receiverEmail: 'k.takahashi@naritaclinical.co.jp',
+        receiverPhone: '+81 3 5555 0142',
+        incoterm: 'FOB',
         origin: 'Tuas Biomedical Hub, Singapore',
         destination: 'NRT - Tokyo Narita International Airport',
         cargoDescription: 'Temperature-controlled diagnostic reagents & cold-chain test kits',
@@ -174,6 +194,11 @@ export const LogisticsProvider = ({ children }) => {
         company: 'Razer Global Supply Solutions',
         email: 'logistics.sg@razer.com',
         phone: '+65 9123 4567',
+        receiverName: 'Min-Jun Park',
+        receiverCompany: 'Seoul E-Sports Hardware Hub',
+        receiverEmail: 'park.mj@seoulelectronics.co.kr',
+        receiverPhone: '+82 2 3456 7890',
+        incoterm: 'FOB',
         origin: 'Raffles Logistics Bay, Singapore',
         destination: 'ICN - Seoul Incheon Airport',
         cargoDescription: 'High-end gaming microprocessor prototype samples',
@@ -279,6 +304,21 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [tickets]);
 
+  // Transportation Partners (Contracted Commercial Roadway Haulers)
+  const [transportationPartners, setTransportationPartners] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_transport_partners');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialTransportationPartners;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_transport_partners', JSON.stringify(transportationPartners));
+    } catch (e) {}
+  }, [transportationPartners]);
+
   // CRM Module: Leads & Pipeline
   const [leads, setLeads] = useState(() => {
     try {
@@ -329,6 +369,290 @@ export const LogisticsProvider = ({ children }) => {
 
   // Global Shipment Details Modal/View
   const [selectedDetailShipment, setSelectedDetailShipment] = useState(null);
+
+  // --- ADMIN PORTAL & CRM STATE MODULES ---
+
+  // 1. CRM Cargo & Pricing Module
+  const [cargoPricing, setCargoPricing] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_cargo_pricing');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialCargoPricing;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_cargo_pricing', JSON.stringify(cargoPricing));
+    } catch (e) {}
+  }, [cargoPricing]);
+
+  // 2. Admin System Activity Audit Log
+  const [adminActivityLog, setAdminActivityLog] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_admin_activity');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialAdminActivityLog;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_admin_activity', JSON.stringify(adminActivityLog));
+    } catch (e) {}
+  }, [adminActivityLog]);
+
+  const logAdminActivity = (action, details, user = 'Admin') => {
+    const newEntry = {
+      id: `act-${Date.now()}`,
+      action,
+      details,
+      timestamp: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' SGT, ' + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+      user: user || 'Alexander Josan'
+    };
+    setAdminActivityLog(prev => [newEntry, ...prev.slice(0, 49)]);
+  };
+
+  const addCargoPricing = (cargoData) => {
+    const newItem = {
+      ...cargoData,
+      id: cargoData.id || `cargo-${Date.now().toString(36)}`,
+      active: cargoData.active !== undefined ? cargoData.active : true,
+      basePricePerKg: Number(cargoData.basePricePerKg) || 0,
+      minimumCharge: Number(cargoData.minimumCharge) || 0,
+      weightSlabs: Array.isArray(cargoData.weightSlabs) ? cargoData.weightSlabs : []
+    };
+    setCargoPricing(prev => [newItem, ...prev]);
+    logAdminActivity('Cargo Type Added', `Added cargo pricing for ${newItem.name}`);
+    if (showToast) showToast(`Cargo type "${newItem.name}" added successfully`, 'success');
+    return newItem;
+  };
+
+  const updateCargoPricing = (cargoId, updates) => {
+    setCargoPricing(prev => prev.map(item => item.id === cargoId ? { ...item, ...updates } : item));
+    logAdminActivity('Cargo Type Updated', `Updated pricing configuration for #${cargoId}`);
+    if (showToast) showToast('Cargo pricing updated successfully', 'success');
+  };
+
+  const deleteCargoPricing = (cargoId) => {
+    const target = cargoPricing.find(c => c.id === cargoId);
+    setCargoPricing(prev => prev.filter(c => c.id !== cargoId));
+    logAdminActivity('Cargo Type Deleted', `Deleted cargo type: ${target?.name || cargoId}`);
+    if (showToast) showToast('Cargo type removed', 'info');
+  };
+
+  const toggleCargoPricingStatus = (cargoId) => {
+    setCargoPricing(prev => prev.map(item => {
+      if (item.id === cargoId) {
+        const nextActive = !item.active;
+        logAdminActivity('Cargo Status Toggled', `${item.name} set to ${nextActive ? 'Active' : 'Inactive'}`);
+        return { ...item, active: nextActive };
+      }
+      return item;
+    }));
+  };
+
+  const calculateCargoPrice = (cargoTypeIdOrName, weightKg = 0) => {
+    if (!cargoTypeIdOrName) return { pricePerKg: 0, estimatedCargoCharge: 0, appliedSlab: null, isMinChargeApplied: false, minimumCharge: 0 };
+    const query = String(cargoTypeIdOrName).toLowerCase().trim();
+    const item = cargoPricing.find(c =>
+      c.id.toLowerCase() === query ||
+      c.name.toLowerCase() === query ||
+      c.category?.toLowerCase() === query ||
+      query.includes(c.name.toLowerCase()) ||
+      c.name.toLowerCase().includes(query)
+    ) || cargoPricing[0];
+    return calculateCargoPricingHelper(item, weightKg);
+  };
+
+  // 3. Admin User Management State
+  const [systemUsers, setSystemUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_system_users');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialSystemUsers;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_system_users', JSON.stringify(systemUsers));
+    } catch (e) {}
+  }, [systemUsers]);
+
+  const addSystemUser = (userData) => {
+    const newUser = {
+      ...userData,
+      id: userData.id || `USR-${Math.floor(100 + Math.random() * 900)}`,
+      status: userData.status || 'Active',
+      lastLogin: 'Never logged in',
+      permissions: userData.permissions || ['dashboard']
+    };
+    setSystemUsers(prev => [newUser, ...prev]);
+    logAdminActivity('User Created', `Created user ${newUser.name} (${newUser.role})`);
+    if (showToast) showToast(`User "${newUser.name}" added successfully`, 'success');
+    return newUser;
+  };
+
+  const updateSystemUser = (userId, updates) => {
+    setSystemUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
+    logAdminActivity('User Updated', `Updated user record #${userId}`);
+    if (showToast) showToast('User details updated', 'success');
+  };
+
+  const deleteSystemUser = (userId) => {
+    const target = systemUsers.find(u => u.id === userId);
+    setSystemUsers(prev => prev.filter(u => u.id !== userId));
+    logAdminActivity('User Removed', `Deleted user ${target?.name || userId}`);
+    if (showToast) showToast('User removed from system', 'info');
+  };
+
+  const toggleSystemUserStatus = (userId) => {
+    setSystemUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        const nextStatus = u.status === 'Active' ? 'Inactive' : 'Active';
+        logAdminActivity('User Status Changed', `${u.name} status changed to ${nextStatus}`);
+        return { ...u, status: nextStatus };
+      }
+      return u;
+    }));
+  };
+
+  // 4. Admin Roles & Permissions State
+  const [crmRolePermissions, setCrmRolePermissions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_crm_permissions');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialCrmRolePermissions;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_crm_permissions', JSON.stringify(crmRolePermissions));
+    } catch (e) {}
+  }, [crmRolePermissions]);
+
+  const updateRolePermissions = (roleKey, moduleKey, isAllowed) => {
+    setCrmRolePermissions(prev => ({
+      ...prev,
+      [roleKey]: {
+        ...(prev[roleKey] || {}),
+        [moduleKey]: isAllowed
+      }
+    }));
+    logAdminActivity('Role Permission Updated', `Modified ${moduleKey} permission for role ${roleKey}`);
+    if (showToast) showToast(`Updated permission for role ${roleKey}`, 'success');
+  };
+
+  const updateUserPermissions = (userId, allowedModules) => {
+    setSystemUsers(prev => prev.map(u => u.id === userId ? { ...u, permissions: allowedModules } : u));
+    logAdminActivity('User Permissions Updated', `Updated permissions for user #${userId}`);
+    if (showToast) showToast('User module permissions saved', 'success');
+  };
+
+  // 5. Admin Public Website Content State
+  const [websiteContent, setWebsiteContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_website_content');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialWebsiteContent;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_website_content', JSON.stringify(websiteContent));
+    } catch (e) {}
+  }, [websiteContent]);
+
+  const updateWebsiteContent = (section, newValues) => {
+    setWebsiteContent(prev => ({
+      ...prev,
+      [section]: {
+        ...(prev[section] || {}),
+        ...newValues
+      }
+    }));
+    logAdminActivity('Website Content Updated', `Updated ${section} content on public website`);
+    if (showToast) showToast(`Website ${section} updated successfully`, 'success');
+  };
+
+  const addWebsiteFaq = (faqItem) => {
+    const newFaq = {
+      id: faqItem.id || `faq-${Date.now()}`,
+      q: faqItem.q,
+      a: faqItem.a
+    };
+    setWebsiteContent(prev => ({
+      ...prev,
+      faqs: [...(prev.faqs || []), newFaq]
+    }));
+    logAdminActivity('FAQ Added', `Added FAQ: "${newFaq.q.slice(0, 30)}..."`);
+    if (showToast) showToast('FAQ added to public website', 'success');
+  };
+
+  const updateWebsiteFaq = (faqId, updatedFaq) => {
+    setWebsiteContent(prev => ({
+      ...prev,
+      faqs: (prev.faqs || []).map(f => f.id === faqId ? { ...f, ...updatedFaq } : f)
+    }));
+    logAdminActivity('FAQ Updated', `Updated FAQ #${faqId}`);
+    if (showToast) showToast('FAQ updated successfully', 'success');
+  };
+
+  const deleteWebsiteFaq = (faqId) => {
+    setWebsiteContent(prev => ({
+      ...prev,
+      faqs: (prev.faqs || []).map(f => f.id !== faqId)
+    }));
+    logAdminActivity('FAQ Deleted', `Deleted FAQ #${faqId}`);
+    if (showToast) showToast('FAQ removed from public website', 'info');
+  };
+
+  // 6. Admin Services Management State
+  const [managedServices, setManagedServices] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_managed_services');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialManagedServices;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_managed_services', JSON.stringify(managedServices));
+    } catch (e) {}
+  }, [managedServices]);
+
+  const toggleManagedService = (serviceId) => {
+    setManagedServices(prev => {
+      const current = prev[serviceId];
+      if (!current) return prev;
+      const nextActive = !current.active;
+      logAdminActivity('Service Status Toggled', `${current.name} set to ${nextActive ? 'Active' : 'Inactive'}`);
+      return {
+        ...prev,
+        [serviceId]: {
+          ...current,
+          active: nextActive
+        }
+      };
+    });
+    if (showToast) showToast('Service availability updated', 'info');
+  };
+
+  const updateManagedService = (serviceId, updates) => {
+    setManagedServices(prev => ({
+      ...prev,
+      [serviceId]: {
+        ...(prev[serviceId] || {}),
+        ...updates
+      }
+    }));
+    logAdminActivity('Service Details Updated', `Updated details for service ${serviceId}`);
+    if (showToast) showToast('Service configuration updated', 'success');
+  };
 
   // User & Auth state
   const [currentRole, setCurrentRole] = useState(() => {
@@ -1493,6 +1817,11 @@ export const LogisticsProvider = ({ children }) => {
       company: requestData.company || requestData.companyName || 'Corporate Client',
       email: requestData.email,
       phone: requestData.phone,
+      receiverName: requestData.receiverName || 'Designated Consignee',
+      receiverCompany: requestData.receiverCompany || '',
+      receiverEmail: requestData.receiverEmail || '',
+      receiverPhone: requestData.receiverPhone || '',
+      incoterm: requestData.incoterm || 'FOB',
       origin: requestData.origin,
       destination: requestData.destination,
       cargoDescription: requestData.cargoDescription,
@@ -2327,6 +2656,180 @@ export const LogisticsProvider = ({ children }) => {
     return newCust;
   };
 
+  // CRM Helper Operations
+  const addTransportationPartner = (partnerData) => {
+    const newPartner = {
+      ...partnerData,
+      id: partnerData.id || `PRT-${Date.now().toString().slice(-4)}`,
+      registeredVehicles: Number(partnerData.registeredVehicles) || 4,
+      designatedDrivers: Number(partnerData.designatedDrivers) || 4,
+      activeDispatches: Number(partnerData.activeDispatches) || 0,
+      agreementStatus: partnerData.agreementStatus || 'Active Partner'
+    };
+    setTransportationPartners(prev => [newPartner, ...prev]);
+    showToast(`Transportation partner "${newPartner.name}" added successfully!`, 'success');
+    return newPartner;
+  };
+
+  const updateTransportationPartner = (partnerId, updatedData) => {
+    setTransportationPartners(prev => prev.map(p => p.id === partnerId ? { ...p, ...updatedData } : p));
+    showToast(`Transportation partner #${partnerId} updated!`, 'success');
+  };
+
+  const deleteTransportationPartner = (partnerId) => {
+    setTransportationPartners(prev => prev.filter(p => p.id !== partnerId));
+    showToast(`Partner removed from roster`, 'info');
+  };
+
+  const assignPartnerToShipment = (shipmentId, partnerId, partnerName) => {
+    setShipments(prev => prev.map(s => {
+      if (s.id === shipmentId) {
+        return {
+          ...s,
+          transportationPartnerId: partnerId,
+          transportationPartner: partnerName,
+          status: s.status === 'New Booking' || s.status === 'Pending' ? 'Partner Assigned' : s.status,
+          adminNotes: `${s.adminNotes ? s.adminNotes + ' | ' : ''}Transportation Partner assigned: ${partnerName}`
+        };
+      }
+      return s;
+    }));
+    addNotification({
+      role: 'admin',
+      type: 'partner_assigned',
+      title: `🚛 Partner Assigned: #${shipmentId}`,
+      message: `Assigned partner "${partnerName}" for road shipment #${shipmentId}.`,
+      shipmentId
+    });
+    showToast(`Assigned ${partnerName} to shipment #${shipmentId}!`, 'success');
+  };
+
+  const addCustomer = (customerData) => {
+    const newCust = {
+      id: customerData.id || `CUST-${Date.now().toString().slice(-4)}`,
+      name: customerData.name || 'Commercial Client',
+      company: customerData.company || customerData.name,
+      email: customerData.email,
+      phone: customerData.phone,
+      address: customerData.address || 'Singapore',
+      tier: customerData.tier || 'Standard Corporate',
+      creditLimit: customerData.creditLimit || 'S$ 30,000',
+      paymentTerms: customerData.paymentTerms || 'Net 30 Days',
+      totalOrders: 0,
+      totalSpent: 0,
+      activeShipments: 0,
+      status: customerData.status || 'Active',
+      registeredDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      tags: customerData.tags || ['Corporate Client'],
+      notes: customerData.notes || ''
+    };
+    setCustomers(prev => [newCust, ...prev]);
+    showToast(`Customer account "${newCust.company}" added!`, 'success');
+    return newCust;
+  };
+
+  const updateCustomer = (customerId, updatedData) => {
+    setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, ...updatedData } : c));
+    showToast(`Customer #${customerId} updated!`, 'success');
+  };
+
+  const deleteCustomer = (customerId) => {
+    setCustomers(prev => prev.filter(c => c.id !== customerId));
+    showToast('Customer record archived', 'info');
+  };
+
+  const addInvoice = (invoiceData) => {
+    const invId = invoiceData.invoiceNumber || `INV-2026-${Date.now().toString().slice(-4)}`;
+    const newInv = {
+      id: invId,
+      invoiceNumber: invId,
+      shipmentId: invoiceData.shipmentId || invoiceData.requestId || 'REQ-GENERAL',
+      customerName: invoiceData.customerName || 'Commercial Client',
+      customerEmail: invoiceData.customerEmail || '',
+      customerPhone: invoiceData.customerPhone || '',
+      service: invoiceData.service || 'Airway Services / Road Transportation',
+      subtotal: Number(invoiceData.amount || invoiceData.subtotal || 0),
+      taxRate: 0.09,
+      taxAmount: Number(((Number(invoiceData.amount || invoiceData.subtotal || 0)) * 0.09).toFixed(2)),
+      total: Number(((Number(invoiceData.amount || invoiceData.subtotal || 0)) * 1.09).toFixed(2)),
+      paymentStatus: invoiceData.paymentStatus || 'Unpaid',
+      issueDate: invoiceData.issueDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      dueDate: invoiceData.dueDate || new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      notes: invoiceData.notes || 'Tax invoice for logistics services provided.'
+    };
+    setInvoices(prev => [newInv, ...prev]);
+    addNotification({
+      role: 'admin',
+      type: 'billing',
+      title: `🧾 Invoice Created: #${newInv.invoiceNumber}`,
+      message: `Invoice generated for ${newInv.customerName} (S$ ${newInv.total.toFixed(2)}).`,
+      shipmentId: newInv.shipmentId
+    });
+    showToast(`Invoice #${newInv.invoiceNumber} created!`, 'success');
+    return newInv;
+  };
+
+  const addDocument = (docData) => {
+    const docId = `DOC-${Date.now().toString().slice(-4)}`;
+    const newDoc = {
+      id: docId,
+      shipmentId: docData.shipmentId || docData.requestId || 'GENERAL',
+      customerName: docData.customerName || 'Commercial Shipper',
+      type: docData.type || 'Commercial Invoice',
+      name: docData.name || `Document_${docId}.pdf`,
+      fileSize: docData.fileSize || '180 KB',
+      uploadedBy: currentUser?.name || 'CRM Operations Staff',
+      uploadDate: `${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} SGT`,
+      status: docData.status || 'Verified',
+      docCategory: docData.docCategory || 'other',
+      notes: docData.notes || ''
+    };
+    setDocuments(prev => [newDoc, ...prev]);
+    showToast(`Document "${newDoc.name}" uploaded successfully!`, 'success');
+    return newDoc;
+  };
+
+  const updateDocumentStatus = (docId, newStatus) => {
+    setDocuments(prev => prev.map(d => d.id === docId ? { ...d, status: newStatus } : d));
+    showToast(`Document #${docId} marked as ${newStatus}`, 'success');
+  };
+
+  const createCrmQuotation = (quoteData) => {
+    const quoteId = quoteData.id || `QTE-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+    const amountVal = Number(quoteData.amount || 0);
+    const taxAmount = Number((amountVal * 0.09).toFixed(2));
+    const finalAmount = Number((amountVal + taxAmount).toFixed(2));
+
+    const newQuote = {
+      id: quoteId,
+      customerId: quoteData.customerId || 'USR-GUEST',
+      customerName: quoteData.customerName || 'Commercial Client',
+      customerEmail: quoteData.customerEmail || '',
+      customerPhone: quoteData.customerPhone || '',
+      company: quoteData.company || quoteData.customerName,
+      requestId: quoteData.requestId || '',
+      service: quoteData.service || 'Airway Services',
+      origin: quoteData.origin || 'Singapore',
+      destination: quoteData.destination || 'Designated Destination',
+      cargoCategory: quoteData.cargoCategory || 'General Commercial Freight',
+      cargoWeight: quoteData.cargoWeight || '150 kg',
+      status: quoteData.status || 'Draft',
+      createdAt: quoteData.createdAt || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      validUntil: quoteData.validUntil || new Date(Date.now() + 14 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      lineItems: {
+        baseTransportationCharge: amountVal,
+        taxRate: 0.09,
+        taxAmount,
+        finalAmount
+      },
+      amount: finalAmount,
+      notes: quoteData.notes || ''
+    };
+    setQuotes(prev => [newQuote, ...prev]);
+    showToast(`Quotation #${quoteId} created!`, 'success');
+    return newQuote;
+  };
+
   return (
     <LogisticsContext.Provider value={{
       shipments,
@@ -2441,12 +2944,62 @@ export const LogisticsProvider = ({ children }) => {
       addAirwayRequest,
       updateAirwayRequestStatus,
       updateAirwayRequestNotes,
+      transportationPartners,
+      setTransportationPartners,
+      addTransportationPartner,
+      updateTransportationPartner,
+      deleteTransportationPartner,
+      assignPartnerToShipment,
+      addCustomer,
+      updateCustomer,
+      deleteCustomer,
+      addInvoice,
+      addDocument,
+      updateDocumentStatus,
+      createCrmQuotation,
       shipmentScope,
       setShipmentScope,
       resetShipmentScope,
       isShipmentTypeModalOpen,
       setIsShipmentTypeModalOpen,
-      showToast
+      showToast,
+
+      // Cargo & Pricing Module (CRM)
+      cargoPricing,
+      setCargoPricing,
+      addCargoPricing,
+      updateCargoPricing,
+      deleteCargoPricing,
+      toggleCargoPricingStatus,
+      calculateCargoPrice,
+
+      // System Users & Roles (Admin)
+      systemUsers,
+      setSystemUsers,
+      addSystemUser,
+      updateSystemUser,
+      deleteSystemUser,
+      toggleSystemUserStatus,
+      crmRolePermissions,
+      setCrmRolePermissions,
+      updateRolePermissions,
+      updateUserPermissions,
+
+      // Website Content & Services (Admin)
+      websiteContent,
+      setWebsiteContent,
+      updateWebsiteContent,
+      addWebsiteFaq,
+      updateWebsiteFaq,
+      deleteWebsiteFaq,
+      managedServices,
+      setManagedServices,
+      toggleManagedService,
+      updateManagedService,
+
+      // System Activity Audit Log (Admin)
+      adminActivityLog,
+      logAdminActivity
     }}>
       {children}
     </LogisticsContext.Provider>

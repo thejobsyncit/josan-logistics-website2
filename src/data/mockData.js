@@ -528,7 +528,7 @@ export const analyticsData = {
     { service: 'Cold Chain Vaccine & Pharma', share: 10 }
   ],
   serviceDistribution: [
-    { name: 'Express Air Freight (SIN)', value: 40, color: '#FF6B00' },
+    { name: 'Express Air Freight (SIN)', value: 40, color: '#2463EB' },
     { name: 'Tuas Mega Port Sea Cargo', value: 30, color: '#1E3A8A' },
     { name: 'Jurong Land Haulage', value: 20, color: '#10B981' },
     { name: 'Pharma Cold Chain', value: 10, color: '#8B5CF6' },
@@ -1019,6 +1019,69 @@ export const initialTasks = [
     assignedTo: 'David Ng',
     status: 'done',
     priority: 'medium'
+  }
+];
+
+export const initialTransportationPartners = [
+  {
+    id: 'PRT-101',
+    name: 'Woodlands Linehaul Logistics Pte Ltd',
+    contactPerson: 'Tan Wei Ming (Partner Lead)',
+    phone: '+65 9123 4567',
+    email: 'dispatch@woodlandslinehaul.sg',
+    vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
+    operatingZones: 'Northern & Western Corridors (Woodlands, Jurong, Tuas)',
+    agreementStatus: 'Active Partner',
+    registeredVehicles: 6,
+    designatedDrivers: 8,
+    activeDispatches: 3,
+    address: '12 Woodlands Industrial Park E1, Singapore 757740',
+    notes: 'Primary linehaul partner for heavy electronics and container drayage.'
+  },
+  {
+    id: 'PRT-102',
+    name: 'Tuas Prime Haulage Pte Ltd',
+    contactPerson: 'Muhammad Rizal (Operations Lead)',
+    phone: '+65 8234 5678',
+    email: 'ops@tuasprimehaulage.com',
+    vehicleTypes: '24ft Lorries, 40ft Prime Movers',
+    operatingZones: 'Tuas Mega Port & Heavy Industrial Corridors',
+    agreementStatus: 'Active Partner',
+    registeredVehicles: 8,
+    designatedDrivers: 10,
+    activeDispatches: 4,
+    address: '48 Tuas South Avenue 1, Singapore 637299',
+    notes: 'Handles heavy machinery and industrial container line transfers.'
+  },
+  {
+    id: 'PRT-103',
+    name: 'Jurong Freight Express Partners',
+    contactPerson: 'Gurpreet Singh',
+    phone: '+65 9876 5432',
+    email: 'express@jurongfreight.sg',
+    vehicleTypes: '14ft Box Vans, Curtain-siders, Reefer Vans',
+    operatingZones: 'Central & Jurong Commercial Corridors',
+    agreementStatus: 'Active Partner',
+    registeredVehicles: 4,
+    designatedDrivers: 5,
+    activeDispatches: 2,
+    address: '15 Jurong Port Road, Singapore 619116',
+    notes: 'Specializes in temperature-controlled reefer hauls and GDP certified pharma.'
+  },
+  {
+    id: 'PRT-104',
+    name: 'Changi Feeder Transport Co.',
+    contactPerson: 'Marcus Lim',
+    phone: '+65 6543 2100',
+    email: 'contact@changifeeder.sg',
+    vehicleTypes: '14ft Air Cargo Feeder Box Vans',
+    operatingZones: 'Changi Air Cargo Logistics Complex & Airport Transfers',
+    agreementStatus: 'Active Partner',
+    registeredVehicles: 5,
+    designatedDrivers: 6,
+    activeDispatches: 3,
+    address: '9 Airline Road, Cargo Complex D, Singapore 819827',
+    notes: 'Dedicated ramp-to-hub express feeder transportation arrangement.'
   }
 ];
 

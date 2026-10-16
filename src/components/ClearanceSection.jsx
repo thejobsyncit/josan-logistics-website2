@@ -82,7 +82,7 @@ export const ClearanceSection = () => {
           className="w-full px-6 py-5 flex items-center justify-between bg-white hover:bg-slate-50/80 transition-colors text-left cursor-pointer group"
         >
           <div className="space-y-1">
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-[#2463EB] transition-colors">
               Clearance & Documentation
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 font-medium">
@@ -98,10 +98,10 @@ export const ClearanceSection = () => {
             </span>
 
             {/* Accordion Chevron Icon */}
-            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-orange-50 text-slate-500 group-hover:text-orange-600 flex items-center justify-center transition-all">
+            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-[#EAF2FF] text-slate-500 group-hover:text-[#2463EB] flex items-center justify-center transition-all">
               <ChevronDown 
                 className={`w-4 h-4 transition-transform duration-300 ${
-                  isExpanded ? 'rotate-180 text-orange-600' : ''
+                  isExpanded ? 'rotate-180 text-[#2463EB]' : ''
                 }`}
               />
             </div>
@@ -132,7 +132,7 @@ export const ClearanceSection = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="text-xs font-bold text-orange-600 hover:text-orange-700 hover:underline inline-flex items-center space-x-1 cursor-pointer transition-colors"
+                  className="text-xs font-bold text-[#2463EB] hover:text-[#0B1F5B] hover:underline inline-flex items-center space-x-1 cursor-pointer transition-colors"
                 >
                   <span>View Sample Clearance Certificate</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -181,7 +181,7 @@ export const ClearanceSection = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="font-bold text-orange-600 hover:text-orange-700 hover:underline inline-flex items-center space-x-1 cursor-pointer"
+                  className="font-bold text-[#2463EB] hover:text-[#0B1F5B] hover:underline inline-flex items-center space-x-1 cursor-pointer"
                 >
                   <span>View Sample Clearance Certificate</span>
                   <ExternalLink className="w-3.5 h-3.5" />

@@ -350,18 +350,17 @@ export const ServicesPage = ({ setActiveTab }) => {
     <div className="space-y-20 pb-24">
       
       {/* Header Banner */}
-      <section className="bg-[#10182D] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
+      <section className="bg-[#0B1F3A] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-[#1E3A5F] relative overflow-hidden">
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
-          <span className="text-amber-400 font-bold uppercase text-xs tracking-widest bg-slate-900/90 px-3.5 py-1.5 rounded-full border border-slate-700/80 inline-flex items-center space-x-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF6B00]" />
+          <span className="text-white font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-flex items-center space-x-1.5 backdrop-blur-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#B6C2D1]" />
             <span>Multimodal Freight &amp; Logistics Solutions</span>
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading text-white tracking-tight">
             Comprehensive Logistics Services
           </h1>
-          <p className="text-white/90 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            International air cargo solutions, dedicated overland trucking fleets, customs brokerage, and cold-chain distribution with real-time end-to-end telematics.
+          <p className="text-[#B6C2D1] font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            Airway service coordination, commercial road transportation arrangement through trusted partners, and shipment documentation support.
           </p>
 
           {/* 3 Clear Primary Service Option Pills */}
@@ -372,21 +371,21 @@ export const ServicesPage = ({ setActiveTab }) => {
                 setActiveTab('air-freight');
                 window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
               }}
-              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-black rounded-xl border border-sky-400 shadow-xs transition-all cursor-pointer flex items-center gap-2"
+              className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl border border-white/20 shadow-xs transition-all cursor-pointer flex items-center gap-2"
             >
-              <Plane className="w-4 h-4" />
+              <Plane className="w-4 h-4 text-[#B6C2D1]" />
               <span>AIRWAY SERVICES</span>
             </button>
             <a
               href="#road-transportation"
-              className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E55C00] text-white text-xs font-black rounded-xl border border-orange-400 shadow-xs transition-all cursor-pointer flex items-center gap-2"
+              className="px-5 py-2.5 bg-[#F26B21] hover:bg-[#D95A13] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-2"
             >
               <Truck className="w-4 h-4" />
               <span>COMMERCIAL ROAD TRANSPORTATION</span>
             </a>
             <a
               href="#customs-documentation-services"
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-750 text-white text-xs font-bold rounded-xl border border-slate-600 shadow-xs transition-all cursor-pointer flex items-center gap-2"
+              className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl border border-white/20 shadow-xs transition-all cursor-pointer flex items-center gap-2"
             >
               <FileCheck className="w-4 h-4 text-emerald-400" />
               <span>CUSTOMS &amp; SHIPMENT DOCUMENTATION SUPPORT</span>
@@ -429,7 +428,7 @@ export const ServicesPage = ({ setActiveTab }) => {
                   Air Freight
                 </h3>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Time-critical international air cargo flights, express consolidations, temperature-controlled pharma and airport-to-door transit.
+                  Airway logistics support, Air Waybill (AWB) preparation, billing, shipment documentation, and airport transportation coordination.
                 </p>
               </div>
             </div>
@@ -460,7 +459,7 @@ export const ServicesPage = ({ setActiveTab }) => {
                 </div>
                 <div className="absolute top-3 right-3">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-orange-900 bg-orange-100/90 px-2.5 py-1 rounded-full border border-orange-300">
-                    Fleet &amp; Haulage
+                    Partner Transport
                   </span>
                 </div>
               </div>
@@ -468,10 +467,10 @@ export const ServicesPage = ({ setActiveTab }) => {
               <div>
                 <span className="text-[11px] font-bold text-[#FF6B00] uppercase tracking-wider block">Service 02</span>
                 <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-[#FF6B00] transition-colors">
-                  Road Freight
+                  Commercial Road Transportation
                 </h3>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Dedicated road fleet including lorries, vans, and prime movers for express parcel delivery, bulk FTL linehaul and island-wide distribution.
+                  Commercial road transportation arranged through verified third-party transportation partners for commercial goods movement between business locations.
                 </p>
               </div>
             </div>
@@ -975,19 +974,17 @@ export const ServicesPage = ({ setActiveTab }) => {
         <div id="customs-clearance-spotlight" className="scroll-mt-28 -top-28 absolute" />
 
         {/* Spotlight Banner Card */}
-        <div className="bg-gradient-to-br from-[#0A101D] via-[#10182D] to-slate-900 rounded-3xl p-8 sm:p-12 border border-slate-800 shadow-2xl text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
+        <div className="bg-[#0B1F3A] rounded-3xl p-8 sm:p-12 border border-[#1E3A5F] shadow-2xl text-white relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
             <div className="lg:col-span-8 space-y-4 text-left">
-              <span className="text-emerald-400 font-bold uppercase text-xs tracking-widest bg-slate-800/90 px-3.5 py-1.5 rounded-full border border-emerald-500/30 inline-flex items-center gap-2">
+              <span className="text-white font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-flex items-center gap-2">
                 <FileCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Service 03 &bull; Documentation Assistance</span>
               </span>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight font-heading">
                 Customs &amp; Shipment Documentation Support
               </h2>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl font-medium">
+              <p className="text-[#B6C2D1] text-sm sm:text-base leading-relaxed max-w-2xl font-medium">
                 We support businesses with the preparation and organization of shipment and customs-related documentation required for commercial cargo movement.
               </p>
 
@@ -998,7 +995,7 @@ export const ServicesPage = ({ setActiveTab }) => {
                     setActiveTab('customs-clearance');
                     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}
-                  className="px-6 py-3.5 bg-[#FF6B00] hover:bg-[#E55C00] text-white rounded-xl text-xs font-black shadow-lg shadow-orange-900/30 transition-all flex items-center space-x-2 cursor-pointer active:scale-95"
+                  className="px-6 py-3.5 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-2 cursor-pointer active:scale-95"
                 >
                   <span>Request Documentation Support</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1010,10 +1007,10 @@ export const ServicesPage = ({ setActiveTab }) => {
                     setActiveTab('customs-clearance');
                     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}
-                  className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-extrabold border border-white/20 transition-all flex items-center space-x-2 cursor-pointer active:scale-95"
+                  className="px-6 py-3.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold border border-white/20 transition-all flex items-center space-x-2 cursor-pointer active:scale-95"
                 >
                   <span>Learn More</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 text-[#B6C2D1]" />
                 </button>
               </div>
             </div>

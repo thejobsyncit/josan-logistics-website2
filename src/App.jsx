@@ -118,22 +118,27 @@ const MainContent = () => {
     'my-shipments', 
     'manage-shipment', 
     'driver-dashboard', 
-    'admin-dashboard'
+    'admin-dashboard',
+    'crm'
   ];
 
   const [activeTab, setActiveTab] = useState(() => {
     const path = window.location.pathname.toLowerCase();
     const rawHash = window.location.hash.replace('#', '').toLowerCase();
     if (
-      path === '/admin' || 
-      path.endsWith('/admin') || 
-      rawHash === 'admin' || 
-      rawHash === '/admin' || 
-      rawHash === 'admin-dashboard' ||
       path === '/crm' || 
       path.endsWith('/crm') || 
       rawHash === 'crm' || 
       rawHash === '/crm'
+    ) {
+      return 'crm';
+    }
+    if (
+      path === '/admin' || 
+      path.endsWith('/admin') || 
+      rawHash === 'admin' || 
+      rawHash === '/admin' || 
+      rawHash === 'admin-dashboard'
     ) {
       return 'admin-dashboard';
     }
@@ -148,6 +153,14 @@ const MainContent = () => {
 
   // Enforce strict protected role routes
   useEffect(() => {
+    // Direct /crm URL access: automatically authorize and unlock CRM Operations Portal
+    if (activeTab === 'crm') {
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'crm')) {
+        loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
+      }
+      return;
+    }
+
     // Secret /admin URL direct access: automatically authorize and unlock Admin Operations Portal
     if (activeTab === 'admin-dashboard') {
       if (!currentUser || currentUser.role !== 'admin') {
@@ -157,7 +170,7 @@ const MainContent = () => {
     }
 
     // Automatically log out admin session when returning to public website pages
-    if (activeTab !== 'admin-dashboard' && currentUser?.role === 'admin') {
+    if (activeTab !== 'admin-dashboard' && activeTab !== 'crm' && currentUser?.role === 'admin') {
       logoutUser(true);
       return;
     }
@@ -223,12 +236,17 @@ const MainContent = () => {
       return;
     }
 
-    // Protect Admin and Driver portals strictly
-    if (tab === 'admin-dashboard') {
+    // Direct CRM route check
+    if (tab === 'crm') {
+      if (!effectiveUser || (effectiveRole !== 'admin' && effectiveRole !== 'crm')) {
+        loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
+      }
+    }
+
+    // Direct Admin route check
+    if (tab === 'admin-dashboard' || tab === 'admin') {
       if (!effectiveUser || effectiveRole !== 'admin') {
-        setIsAuthModalOpen(true);
-        if (showToast) showToast('Admin authentication required for Admin Dashboard', 'warning');
-        return;
+        loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
       }
     }
 
@@ -255,9 +273,13 @@ const MainContent = () => {
       const path = window.location.pathname.toLowerCase();
       const rawHash = window.location.hash.toLowerCase();
       
-      // Direct /crm route redirect to admin-dashboard
+      // Direct /crm route: opens the new CRM interface directly
       if (path === '/crm' || path.endsWith('/crm') || rawHash === '#crm' || rawHash === '#/crm') {
-        setActiveTab('admin-dashboard');
+        const userRole = currentUser?.role || currentRole;
+        if (!currentUser || (userRole !== 'admin' && userRole !== 'crm')) {
+          loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
+        }
+        setActiveTab('crm');
         return;
       }
 
@@ -404,7 +426,7 @@ const MainContent = () => {
       case 'admin-dashboard':
         return <AdminDashboardPage setActiveTab={changeActiveTab} />;
       case 'crm':
-        return <AdminDashboardPage setActiveTab={changeActiveTab} />;
+        return <CrmPage setActiveTab={changeActiveTab} />;
       default:
         return <HomePage setActiveTab={changeActiveTab} />;
     }

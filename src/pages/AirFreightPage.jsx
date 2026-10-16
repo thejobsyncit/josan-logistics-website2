@@ -140,7 +140,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
   ];
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen text-slate-800 space-y-16 sm:space-y-20 pb-20">
+    <div className="bg-[#FFFFFF] min-h-screen text-slate-800 space-y-16 sm:space-y-20 pb-20">
       
       {/* 1. HERO SECTION */}
       <section className="relative bg-[#0A101D] text-white pt-12 pb-16 sm:pt-14 sm:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -152,23 +152,20 @@ export const AirFreightPage = ({ setActiveTab }) => {
             className="w-full h-full object-cover object-[70%_center] sm:object-[78%_center] lg:object-[82%_center]"
           />
         </div>
-        {/* Directional gradient on left end only to keep cargo aircraft completely visible */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A101D] via-[#0A101D]/85 via-35% to-transparent pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A101D]/85 via-transparent to-[#0A101D]/20 pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto relative z-10 space-y-7">
           <div className="max-w-xl lg:max-w-2xl space-y-4 text-left">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold uppercase tracking-wider">
-              <Plane className="w-3.5 h-3.5 text-[#FF6B00]" />
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-black/40 border border-white/20 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+              <Plane className="w-3.5 h-3.5 text-white" />
               <span>AIRWAY SERVICES</span>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-[44px] xl:text-5xl font-black font-heading text-white tracking-tight leading-[1.15]">
+            <h1 className="text-3xl sm:text-4xl lg:text-[44px] xl:text-5xl font-black font-heading text-white tracking-tight leading-[1.15] drop-shadow-md">
               AWB, BILLING &amp; <br />
-              <span className="text-[#FF6B00]">Shipment Documentation</span>
+              <span className="text-white">Shipment Documentation</span>
             </h1>
 
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-medium">
+            <p className="text-white/95 text-sm sm:text-base leading-relaxed font-medium drop-shadow-md">
               Josan Logistics provides airway logistics support including Air Waybill preparation, billing, shipment documentation and transportation coordination for commercial goods.
             </p>
 
@@ -176,7 +173,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
               <button
                 type="button"
                 onClick={handleAirwayRequestClick}
-                className="px-7 py-3.5 bg-gradient-to-r from-[#FF6B00] to-[#FF8500] hover:from-[#E55C00] hover:to-[#FF6B00] text-white rounded-xl font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all flex items-center space-x-2.5 cursor-pointer active:scale-95"
+                className="px-7 py-3.5 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-xl font-bold text-xs sm:text-sm tracking-wider uppercase shadow-sm transition-colors flex items-center space-x-2.5 cursor-pointer active:scale-95"
               >
                 <span>REQUEST AIRWAY SERVICE</span>
                 <ArrowRight className="w-4 h-4" />
@@ -185,15 +182,15 @@ export const AirFreightPage = ({ setActiveTab }) => {
               <button
                 type="button"
                 onClick={handleBookClick}
-                className="px-6 py-3.5 bg-slate-800/90 hover:bg-slate-700/90 text-white rounded-xl font-bold text-xs sm:text-sm border border-slate-700 hover:border-slate-600 transition-all cursor-pointer flex items-center space-x-2"
+                className="px-6 py-3.5 bg-transparent hover:bg-white/10 text-white rounded-xl font-bold text-xs sm:text-sm border border-white/20 transition-all cursor-pointer flex items-center space-x-2"
               >
-                <Package className="w-4 h-4 text-orange-400" />
+                <Package className="w-4 h-4 text-white" />
                 <span>BOOK SHIPMENT</span>
               </button>
             </div>
 
             {/* Key Trust Signals */}
-            <div className="pt-3 flex flex-wrap items-center gap-5 text-xs text-slate-300 font-semibold border-t border-slate-800">
+            <div className="pt-3 flex flex-wrap items-center gap-5 text-xs text-white font-semibold border-t border-white/20 drop-shadow-sm">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>AWB Preparation</span>
@@ -295,7 +292,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
               className="w-full h-80 object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent p-6 flex flex-col justify-end text-left text-white">
-              <span className="text-xs font-mono font-bold text-orange-400">Airway Documentation</span>
+              <span className="text-xs font-mono font-bold text-[#FF6B00]">Airway Documentation</span>
               <p className="text-sm font-extrabold mt-1">Accurate AWB Preparation &amp; Cargo Records</p>
               <p className="text-[11px] text-slate-300 mt-0.5">Structured paperwork, billing details, and commercial shipment coordination.</p>
             </div>
@@ -323,7 +320,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
             return (
               <div 
                 key={svc.id} 
-                className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-card hover:border-orange-500/40 transition-all flex flex-col justify-between group"
+                className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-card hover:border-[#FF6B00]/40 transition-all flex flex-col justify-between group"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -375,7 +372,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
         <div className="max-w-7xl mx-auto space-y-10 text-left">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800 pb-6">
             <div>
-              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider block mb-1">
+              <span className="text-xs font-bold text-[#FF6B00] uppercase tracking-wider block mb-1">
                 Commodity Support
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-heading">
@@ -391,10 +388,10 @@ export const AirFreightPage = ({ setActiveTab }) => {
             {airFreightCargoTypes.map((cargo) => (
               <div 
                 key={cargo.id} 
-                className="bg-slate-800/80 hover:bg-slate-800 rounded-2xl p-5 border border-slate-700/80 hover:border-orange-500/50 transition-all text-left space-y-2"
+                className="bg-slate-800/80 hover:bg-slate-800 rounded-2xl p-5 border border-slate-700/80 hover:border-[#FF6B00]/50 transition-all text-left space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] font-bold text-orange-400 uppercase">
+                  <span className="font-mono text-[11px] font-bold text-[#FF6B00] uppercase">
                     Code: {cargo.id.toUpperCase()}
                   </span>
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -456,13 +453,13 @@ export const AirFreightPage = ({ setActiveTab }) => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Customs Clearance Connection Card */}
-          <div className="bg-gradient-to-br from-blue-900 to-[#0B132B] text-white p-7 sm:p-8 rounded-3xl border border-blue-800 shadow-card flex flex-col justify-between text-left space-y-6">
+          <div className="bg-[#0B1F3A] text-white p-7 sm:p-8 rounded-3xl border border-[#1E3A5F] shadow-card flex flex-col justify-between text-left space-y-6">
             <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600/30 text-blue-300 flex items-center justify-center font-bold">
-                <FileText className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center font-bold">
+                <FileText className="w-5 h-5 text-white" />
               </div>
               <h3 className="text-2xl font-extrabold text-white">Customs &amp; Shipment Documentation Support</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-[#B6C2D1] leading-relaxed font-normal">
                 Documentation support for shipments, helping organize the information and documents required for transportation and applicable customs processes.
               </p>
             </div>
@@ -473,22 +470,22 @@ export const AirFreightPage = ({ setActiveTab }) => {
                   setActiveTab('customs-clearance');
                   window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                 }}
-                className="px-5 py-3 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-2"
+                className="px-5 py-3 bg-transparent hover:bg-white/10 text-white border border-white/20 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-2"
               >
                 <span>Explore Documentation Guide</span>
-                <ArrowRight className="w-4 h-4 text-blue-600" />
+                <ArrowRight className="w-4 h-4 text-white" />
               </button>
             </div>
           </div>
 
           {/* Road Feeder Network Connection Card */}
-          <div className="bg-gradient-to-br from-slate-900 to-[#10182D] text-white p-7 sm:p-8 rounded-3xl border border-slate-700 shadow-card flex flex-col justify-between text-left space-y-6">
+          <div className="bg-[#0B1F3A] text-white p-7 sm:p-8 rounded-3xl border border-[#1E3A5F] shadow-card flex flex-col justify-between text-left space-y-6">
             <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold">
-                <Truck className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center font-bold">
+                <Truck className="w-5 h-5 text-white" />
               </div>
               <h3 className="text-2xl font-extrabold text-white">Commercial Road Transportation Support</h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-[#B6C2D1] leading-relaxed font-normal">
                 Reliable transportation support for moving commercial goods and products between business facilities through a network of transportation partners.
               </p>
             </div>
@@ -499,7 +496,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
                   setActiveTab('road-freight');
                   window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                 }}
-                className="px-5 py-3 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-2"
+                className="px-5 py-3 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center space-x-2"
               >
                 <span>View Road Transportation</span>
                 <ArrowRight className="w-4 h-4" />
@@ -511,12 +508,12 @@ export const AirFreightPage = ({ setActiveTab }) => {
 
       {/* 7. BOTTOM QUOTE CTA BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-[#FF6B00] to-orange-600 rounded-3xl p-8 sm:p-12 text-white text-center shadow-xl relative overflow-hidden space-y-6">
+        <div className="bg-[#0B1F3A] rounded-3xl p-8 sm:p-12 text-white text-center shadow-xl border border-[#1E3A5F] relative overflow-hidden space-y-6">
           <div className="max-w-2xl mx-auto space-y-3 relative z-10">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-heading">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-heading text-white">
               Ready to Coordinate Your Airway Services?
             </h2>
-            <p className="text-white/90 text-sm sm:text-base font-medium">
+            <p className="text-[#B6C2D1] text-sm sm:text-base font-normal">
               Obtain documentation support, prepare your Air Waybill details, and coordinate transportation support for your commercial goods.
             </p>
           </div>
@@ -525,14 +522,14 @@ export const AirFreightPage = ({ setActiveTab }) => {
             <button
               type="button"
               onClick={handleAirwayRequestClick}
-              className="px-8 py-3.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-md transition-all cursor-pointer active:scale-95"
+              className="px-8 py-3.5 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-xl font-bold text-xs sm:text-sm tracking-wider uppercase shadow-sm transition-colors cursor-pointer active:scale-95"
             >
               REQUEST AIRWAY SERVICE
             </button>
             <button
               type="button"
               onClick={handleBookClick}
-              className="px-8 py-3.5 bg-slate-900/40 hover:bg-slate-900/60 text-white rounded-xl font-bold text-xs sm:text-sm border border-white/40 transition-all cursor-pointer"
+              className="px-8 py-3.5 bg-transparent hover:bg-white/10 text-white rounded-xl font-bold text-xs sm:text-sm border border-white/20 transition-all cursor-pointer"
             >
               BOOK SHIPMENT
             </button>

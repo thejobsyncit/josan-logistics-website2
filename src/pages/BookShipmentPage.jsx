@@ -143,7 +143,8 @@ export const BookShipmentPage = ({ setActiveTab }) => {
     setAuthRedirectTab,
     shipmentScope, 
     setShipmentScope,
-    resetShipmentScope 
+    resetShipmentScope,
+    calculateCargoPrice
   } = useLogistics();
 
   const [bookingMode, setBookingMode] = useState('single'); // 'single' | 'bulk'
@@ -581,11 +582,21 @@ export const BookShipmentPage = ({ setActiveTab }) => {
   const calculatePricingDetails = () => {
     const serviceInfo = getServiceModeDetails(formData.serviceLevel);
     const baseFee = serviceInfo.baseFee;
-    const ratePerKg = serviceInfo.ratePerKg;
-    const weightCost = (Number(formData.weight) || 0) * ratePerKg;
-    const cargoSurcharge = getCargoTypeSurcharge(formData.cargoType);
+    let ratePerKg = serviceInfo.ratePerKg;
+    let weightCost = (Number(formData.weight) || 0) * ratePerKg;
+    let cargoSurcharge = getCargoTypeSurcharge(formData.cargoType);
+
+    // Dynamic CRM rate evaluation (Weight × Applicable Price/KG = Estimated Cargo Charge)
+    if (calculateCargoPrice) {
+      const dynamicRate = calculateCargoPrice(formData.cargoType, formData.weight);
+      if (dynamicRate && dynamicRate.pricePerKg > 0) {
+        ratePerKg = dynamicRate.pricePerKg;
+        weightCost = dynamicRate.estimatedCargoCharge;
+        cargoSurcharge = 0; // Integrated into dynamic rate calculation
+      }
+    }
+
     const piecesSurcharge = Math.max(0, (formData.pieces - 1)) * 15;
-    
     const transportCost = baseFee + weightCost + cargoSurcharge + piecesSurcharge;
     const insuranceFee = formData.includeInsurance ? 35 : 0;
     const subtotal = transportCost + insuranceFee;
@@ -934,7 +945,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
   };
 
   // Helper for dynamic input border styling (rose red when missing on error attempt, standard clean border otherwise)
-  const getInputClass = (val, isRequired = true, defaultStyle = 'border-slate-300 focus-orange') => {
+  const getInputClass = (val, isRequired = true, defaultStyle = 'border-slate-300 focus-blue') => {
     const isFilled = typeof val === 'string' ? val && val.trim().length > 0 : (typeof val === 'number' ? val > 0 : Boolean(val));
     if (isRequired && showValidationErrors && !isFilled) {
       return 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/20 animate-pulse';
@@ -1012,11 +1023,11 @@ export const BookShipmentPage = ({ setActiveTab }) => {
     return (
       <div className="min-h-[70vh] flex items-center justify-center py-16 px-4 bg-[#F5F6F8]">
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center space-y-5 animate-fade-in">
-          <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto text-[#FF6B00]">
+          <div className="w-16 h-16 rounded-2xl bg-[#EAF2FF] border border-[#DCE5F0] flex items-center justify-center mx-auto text-[#2463EB]">
             <Lock className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold font-outfit text-[#10182D]">Account Login Required</h2>
+            <h2 className="text-2xl font-bold font-outfit text-[#0B1F5B]">Account Login Required</h2>
             <p className="text-sm text-slate-500">
               Please sign in with your customer account or register to schedule and book road freight consignments.
             </p>
@@ -1055,7 +1066,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           {/* 1. Header Banner */}
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-1 max-w-2xl">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold border border-orange-200">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EAF2FF] text-[#2463EB] text-xs font-bold border border-[#DCE5F0]">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Josan Freight Booking Portal</span>
               </div>
@@ -1082,7 +1093,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
               <div>
-                <span className="text-[11px] font-black uppercase tracking-wider text-orange-600">
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#2463EB]">
                   Step-by-Step Workflow
                 </span>
                 <h2 className="text-xl font-extrabold text-slate-900 mt-0.5">
@@ -1096,8 +1107,8 @@ export const BookShipmentPage = ({ setActiveTab }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
               {/* Flow Step 1 */}
-              <div className="bg-slate-50/80 hover:bg-orange-50/40 p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 transition-all space-y-3 relative group">
-                <div className="w-10 h-10 rounded-xl bg-orange-500 text-white font-extrabold flex items-center justify-center text-sm shadow-md shadow-orange-500/20">
+              <div className="bg-slate-50/80 hover:bg-[#EAF2FF]/40 p-5 rounded-2xl border border-slate-200/80 hover:border-[#2463EB]/40 transition-all space-y-3 relative group">
+                <div className="w-10 h-10 rounded-xl bg-[#EAF2FF]0 text-white font-extrabold flex items-center justify-center text-sm shadow-md shadow-blue-500/20">
                   1
                 </div>
                 <div>
@@ -1106,13 +1117,13 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     Choose between Domestic intra-country transport or International cross-border freight forwarding.
                   </p>
                 </div>
-                <div className="text-[10px] font-bold text-orange-600 bg-orange-100/70 px-2 py-0.5 rounded-md w-fit">
+                <div className="text-[10px] font-bold text-[#2463EB] bg-[#EAF2FF]/70 px-2 py-0.5 rounded-md w-fit">
                   Current Stage
                 </div>
               </div>
 
               {/* Flow Step 2 */}
-              <div className="bg-slate-50/80 hover:bg-orange-50/40 p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 transition-all space-y-3 relative group">
+              <div className="bg-slate-50/80 hover:bg-[#EAF2FF]/40 p-5 rounded-2xl border border-slate-200/80 hover:border-[#2463EB]/40 transition-all space-y-3 relative group">
                 <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
                   2
                 </div>
@@ -1128,7 +1139,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
               </div>
 
               {/* Flow Step 3 */}
-              <div className="bg-slate-50/80 hover:bg-orange-50/40 p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 transition-all space-y-3 relative group">
+              <div className="bg-slate-50/80 hover:bg-[#EAF2FF]/40 p-5 rounded-2xl border border-slate-200/80 hover:border-[#2463EB]/40 transition-all space-y-3 relative group">
                 <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
                   3
                 </div>
@@ -1144,7 +1155,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
               </div>
 
               {/* Flow Step 4 */}
-              <div className="bg-slate-50/80 hover:bg-orange-50/40 p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 transition-all space-y-3 relative group">
+              <div className="bg-slate-50/80 hover:bg-[#EAF2FF]/40 p-5 rounded-2xl border border-slate-200/80 hover:border-[#2463EB]/40 transition-all space-y-3 relative group">
                 <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
                   4
                 </div>
@@ -1165,7 +1176,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Card 1: Domestic Services with Picture */}
-            <div className="bg-white rounded-3xl border-2 border-slate-200 hover:border-orange-500 shadow-card hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
+            <div className="bg-white rounded-3xl border-2 border-slate-200 hover:border-[#2463EB] shadow-card hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
               <div>
                 {/* 100% Clean Image Container - NO text on the image */}
                 <div className="h-56 sm:h-64 w-full overflow-hidden bg-slate-100">
@@ -1179,7 +1190,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 {/* Body Content with Title & Badges Below Image */}
                 <div className="p-6 sm:p-7 space-y-4">
                   <div>
-                    <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold mb-2">
+                    <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#EAF2FF] border border-[#DCE5F0] text-[#0B1F5B] text-xs font-bold mb-2">
                       <span>⚡ Local & Nationwide Intra-Country Direct</span>
                     </div>
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Domestic Services</h3>
@@ -1218,7 +1229,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     setShipmentScope('domestic');
                     showToast('🚚 Selected Domestic Services');
                   }}
-                  className="w-full py-4 px-6 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-sm rounded-2xl transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+                  className="w-full py-4 px-6 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white font-extrabold text-sm rounded-2xl transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
                 >
                   <Truck className="w-5 h-5" />
                   <span>Book Domestic Services</span>
@@ -1283,7 +1294,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   }}
                   className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm rounded-2xl transition-all shadow-lg shadow-slate-900/25 flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
                 >
-                  <Globe className="w-5 h-5 text-orange-400" />
+                  <Globe className="w-5 h-5 text-[#2463EB]" />
                   <span>Book International Services</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
@@ -1293,9 +1304,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           </div>
 
           {/* 4. User Custom Content Guidance Note */}
-          <div className="bg-orange-50/60 border border-orange-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
-            <div className="flex items-center space-x-3 text-orange-900">
-              <span className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm shrink-0">
+          <div className="bg-[#EAF2FF]/60 border border-[#DCE5F0]/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
+            <div className="flex items-center space-x-3 text-[#0B1F5B]">
+              <span className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center font-bold text-sm shrink-0">
                 💡
               </span>
               <div>
@@ -1310,7 +1321,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
               onClick={() => {
                 setShipmentScope('international');
               }}
-              className="font-bold text-orange-600 hover:text-orange-700 underline shrink-0 cursor-pointer"
+              className="font-bold text-[#2463EB] hover:text-[#0B1F5B] underline shrink-0 cursor-pointer"
             >
               Skip to International Form →
             </button>
@@ -1325,7 +1336,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           {/* Header Banner */}
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold mb-2 border border-orange-200">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EAF2FF] text-[#2463EB] text-xs font-bold mb-2 border border-[#DCE5F0]">
                 <Truck className="w-3.5 h-3.5" />
                 <span>Roadways & Domestic Logistics</span>
               </div>
@@ -1370,7 +1381,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
       <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-bold border border-orange-200">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EAF2FF] text-[#2463EB] text-xs font-bold border border-[#DCE5F0]">
               <Package className="w-3.5 h-3.5" />
               <span>International Freight Shipment</span>
             </div>
@@ -1394,9 +1405,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 setShipmentScope('domestic');
                 showToast('🚚 Switched to Domestic Services');
               }}
-              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-bold border border-orange-200 transition-colors cursor-pointer"
+              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#EAF2FF] hover:bg-[#EAF2FF] text-[#2463EB] text-xs font-bold border border-[#DCE5F0] transition-colors cursor-pointer"
             >
-              <Truck className="w-3 h-3 text-orange-500" />
+              <Truck className="w-3 h-3 text-[#2463EB]" />
               <span>Switch to Domestic Services</span>
             </button>
           </div>
@@ -1930,7 +1941,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         setShowValidationErrors(true);
                       }
                     }}
-                    className="w-full sm:w-auto px-8 py-3 bg-[#0B3B95] hover:bg-[#082a6e] text-white font-bold text-sm rounded-xl shadow-md shadow-blue-950/20 transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+                    className="w-full sm:w-auto px-8 py-3 bg-[#0B1F5B] hover:bg-[#0B1F5B] text-white font-bold text-sm rounded-xl shadow-md shadow-blue-950/20 transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
                   >
                     <span>Proceed</span>
                     <ArrowRight className="w-4 h-4" />
@@ -2051,11 +2062,11 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           {/* Confirmed Route Summary Banner with Edit Button */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-base shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center font-bold text-base shrink-0">
                 📍
               </div>
               <div className="text-xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-orange-600">Confirmed Route</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#2463EB]">Confirmed Route</span>
                 <p className="font-extrabold text-slate-900 text-sm mt-0.5">
                   {formData.senderCity || 'Origin'}, {formData.senderCountry} → {formData.receiverCity || 'Destination'}, {formData.receiverCountry}
                 </p>
@@ -2107,7 +2118,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 font-extrabold text-sm">
-                        <FileText className={`w-5 h-5 ${formData.shipmentCategory === 'documents' ? 'text-orange-400' : 'text-slate-600'}`} />
+                        <FileText className={`w-5 h-5 ${formData.shipmentCategory === 'documents' ? 'text-[#2463EB]' : 'text-slate-600'}`} />
                         <span>Documents</span>
                       </div>
                       {formData.shipmentCategory === 'documents' && (
@@ -2130,7 +2141,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 font-extrabold text-sm">
-                        <Package className={`w-5 h-5 ${formData.shipmentCategory === 'packages' ? 'text-orange-400' : 'text-slate-600'}`} />
+                        <Package className={`w-5 h-5 ${formData.shipmentCategory === 'packages' ? 'text-[#2463EB]' : 'text-slate-600'}`} />
                         <span>Packages</span>
                       </div>
                       {formData.shipmentCategory === 'packages' && (
@@ -2164,12 +2175,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         <button
                           type="button"
                           onClick={() => setIsDocDropdownOpen(!isDocDropdownOpen)}
-                          className="w-full p-3 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus-orange flex items-center justify-between shadow-xs transition-all text-left cursor-pointer"
+                          className="w-full p-3 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus-blue flex items-center justify-between shadow-xs transition-all text-left cursor-pointer"
                         >
                           <span className={formData.itemDescription ? "text-slate-900 font-extrabold truncate" : "text-slate-400 font-normal truncate"}>
                             {formData.itemDescription || "Such as legal, financial or business paperwork, etc."}
                           </span>
-                          <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isDocDropdownOpen ? "rotate-180 text-orange-500" : ""}`} />
+                          <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isDocDropdownOpen ? "rotate-180 text-[#2463EB]" : ""}`} />
                         </button>
 
                         {/* Floating Menu - Strictly Opens Below */}
@@ -2185,12 +2196,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                 }}
                                 className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                                   formData.itemDescription === opt
-                                    ? "bg-orange-50 text-orange-600 font-extrabold"
+                                    ? "bg-[#EAF2FF] text-[#2463EB] font-extrabold"
                                     : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                 }`}
                               >
                                 <span>{opt}</span>
-                                {formData.itemDescription === opt && <CheckCircle2 className="w-3.5 h-3.5 text-orange-500 shrink-0 ml-2" />}
+                                {formData.itemDescription === opt && <CheckCircle2 className="w-3.5 h-3.5 text-[#2463EB] shrink-0 ml-2" />}
                               </button>
                             ))}
                           </div>
@@ -2218,12 +2229,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         <button
                           type="button"
                           onClick={() => setIsPkgDropdownOpen(!isPkgDropdownOpen)}
-                          className="w-full p-3 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus-orange flex items-center justify-between shadow-xs transition-all text-left cursor-pointer"
+                          className="w-full p-3 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus-blue flex items-center justify-between shadow-xs transition-all text-left cursor-pointer"
                         >
                           <span className={formData.itemDescription ? "text-slate-900 font-extrabold truncate" : "text-slate-400 font-normal truncate"}>
                             {formData.itemDescription || "Such as electronics, garments, spare parts, commercial samples, etc."}
                           </span>
-                          <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isPkgDropdownOpen ? "rotate-180 text-orange-500" : ""}`} />
+                          <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isPkgDropdownOpen ? "rotate-180 text-[#2463EB]" : ""}`} />
                         </button>
 
                         {/* Floating Menu - Strictly Opens Below */}
@@ -2247,12 +2258,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                 }}
                                 className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                                   formData.itemDescription === opt
-                                    ? "bg-orange-50 text-orange-600 font-extrabold"
+                                    ? "bg-[#EAF2FF] text-[#2463EB] font-extrabold"
                                     : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                 }`}
                               >
                                 <span>{opt}</span>
-                                {formData.itemDescription === opt && <CheckCircle2 className="w-3.5 h-3.5 text-orange-500 shrink-0 ml-2" />}
+                                {formData.itemDescription === opt && <CheckCircle2 className="w-3.5 h-3.5 text-[#2463EB] shrink-0 ml-2" />}
                               </button>
                             ))}
                           </div>
@@ -2397,12 +2408,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                           <button
                             type="button"
                             onClick={() => setIsPurposeDropdownOpen(!isPurposeDropdownOpen)}
-                            className="w-full p-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg font-bold text-xs text-slate-900 focus-orange flex items-center justify-between shadow-xs transition-all cursor-pointer"
+                            className="w-full p-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg font-bold text-xs text-slate-900 focus-blue flex items-center justify-between shadow-xs transition-all cursor-pointer"
                           >
                             <span className={formData.shipmentPurpose ? "text-slate-900 font-extrabold truncate" : "text-slate-400 font-normal truncate"}>
                               {formData.shipmentPurpose || "Select One"}
                             </span>
-                            <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isPurposeDropdownOpen ? "rotate-180 text-orange-500" : ""}`} />
+                            <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isPurposeDropdownOpen ? "rotate-180 text-[#2463EB]" : ""}`} />
                           </button>
 
                           {/* Floating Menu - Strictly Opens Below */}
@@ -2437,12 +2448,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                   }}
                                   className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                                     formData.shipmentPurpose === opt
-                                      ? "bg-orange-50 text-orange-600 font-extrabold"
+                                      ? "bg-[#EAF2FF] text-[#2463EB] font-extrabold"
                                       : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                   }`}
                                 >
                                   <span>{opt}</span>
-                                  {formData.shipmentPurpose === opt && <CheckCircle2 className="w-3.5 h-3.5 text-orange-500 shrink-0 ml-2" />}
+                                  {formData.shipmentPurpose === opt && <CheckCircle2 className="w-3.5 h-3.5 text-[#2463EB] shrink-0 ml-2" />}
                                 </button>
                               ))}
                             </div>
@@ -2481,12 +2492,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                               })}
                               className={`p-3 rounded-xl border text-xs font-extrabold transition-all cursor-pointer flex items-center justify-between ${
                                 formData.cargoType === item.id
-                                  ? 'border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-400 shadow-xs'
+                                  ? 'border-[#2463EB] bg-[#EAF2FF] text-[#0B1F5B] ring-2 ring-[#2463EB]/25 shadow-xs'
                                   : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                               }`}
                             >
                               <span>{item.label}</span>
-                              {formData.cargoType === item.id && <CheckCircle2 className="w-4 h-4 text-orange-500" />}
+                              {formData.cargoType === item.id && <CheckCircle2 className="w-4 h-4 text-[#2463EB]" />}
                             </button>
                           ))}
                         </div>
@@ -2553,7 +2564,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       {/* If Upload Method Selected */}
                       {formData.itemDetailMethod === 'upload' ? (
                         <div className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-300 text-center space-y-3">
-                          <Upload className="w-8 h-8 text-orange-500 mx-auto" />
+                          <Upload className="w-8 h-8 text-[#2463EB] mx-auto" />
                           <h4 className="font-extrabold text-slate-900 text-sm">Upload Packing List or Itemized Invoice</h4>
                           <p className="text-xs text-slate-500 max-w-md mx-auto">
                             Drag & drop your CSV or Excel file here, or browse files from your device to automatically populate item descriptions.
@@ -2561,7 +2572,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                           <button
                             type="button"
                             onClick={() => showToast('File upload feature ready. Selected packing list uploaded.', 'info')}
-                            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs rounded-xl shadow-xs cursor-pointer"
+                            className="px-4 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white font-extrabold text-xs rounded-xl shadow-xs cursor-pointer"
                           >
                             Browse File
                           </button>
@@ -2582,12 +2593,12 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                 <button
                                   type="button"
                                   onClick={() => setIsTaxDropdownOpen(!isTaxDropdownOpen)}
-                                  className="w-full p-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg font-bold text-xs text-slate-900 focus-orange flex items-center justify-between shadow-xs transition-all cursor-pointer"
+                                  className="w-full p-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg font-bold text-xs text-slate-900 focus-blue flex items-center justify-between shadow-xs transition-all cursor-pointer"
                                 >
                                   <span className={formData.taxPaymentOption ? "text-slate-900 font-extrabold truncate" : "text-slate-500 font-normal truncate"}>
                                     {formData.taxPaymentOption || "Select One"}
                                   </span>
-                                  <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isTaxDropdownOpen ? "rotate-180 text-orange-500" : ""}`} />
+                                  <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isTaxDropdownOpen ? "rotate-180 text-[#2463EB]" : ""}`} />
                                 </button>
 
                                 {/* Dropdown Menu - Opens Strictly Below matching Image 2 */}
@@ -2642,7 +2653,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                   id="estimatedDutiesCheck"
                                   checked={formData.showEstimatedDuties || false}
                                   onChange={(e) => setFormData({ ...formData, showEstimatedDuties: e.target.checked })}
-                                  className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
+                                  className="w-4 h-4 text-[#2463EB] rounded focus-blue cursor-pointer"
                                 />
                                 <label htmlFor="estimatedDutiesCheck" className="font-extrabold text-slate-900 text-xs cursor-pointer flex items-center space-x-1">
                                   <span>I would like to see estimated duties and taxes</span>
@@ -2695,7 +2706,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                            setActiveItemIndexForModal(idx);
                                            setIsCreateDescModalOpen(true);
                                          }}
-                                         className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs rounded-lg transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer shrink-0 border border-orange-600"
+                                         className="px-3.5 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white font-extrabold text-xs rounded-lg transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer shrink-0 border border-[#2463EB]"
                                        >
                                          <span>Create Description</span>
                                          <Pencil className="w-3.5 h-3.5 text-white" />
@@ -2736,7 +2747,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                            setActiveItemIndexForModal(idx);
                                            setIsLookupCodeModalOpen(true);
                                          }}
-                                         className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs rounded-lg transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer shrink-0 border border-orange-600"
+                                         className="px-3.5 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white font-extrabold text-xs rounded-lg transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer shrink-0 border border-[#2463EB]"
                                        >
                                          <span>Lookup Code</span>
                                          <Search className="w-3.5 h-3.5 text-white" />
@@ -2897,7 +2908,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                          id={`taxPaid_${idx}`}
                                          checked={item.taxPaid || false}
                                          onChange={(e) => handleUniqueItemChange(idx, 'taxPaid', e.target.checked)}
-                                         className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
+                                         className="w-4 h-4 text-[#2463EB] rounded focus-blue cursor-pointer"
                                        />
                                        <label htmlFor={`taxPaid_${idx}`} className="font-semibold text-slate-700 cursor-pointer text-xs">
                                          Tax Paid
@@ -2910,7 +2921,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                          id={`addLineRef_${idx}`}
                                          checked={item.addLineItemReference || false}
                                          onChange={(e) => handleUniqueItemChange(idx, 'addLineItemReference', e.target.checked)}
-                                         className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
+                                         className="w-4 h-4 text-[#2463EB] rounded focus-blue cursor-pointer"
                                        />
                                        <label htmlFor={`addLineRef_${idx}`} className="font-semibold text-slate-700 cursor-pointer text-xs">
                                          Add line item reference
@@ -3013,7 +3024,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         id="insureShipmentCheck"
                         checked={formData.includeInsurance}
                         onChange={(e) => setFormData({ ...formData, includeInsurance: e.target.checked })}
-                        className="w-4 h-4 text-orange-500 rounded focus-orange cursor-pointer"
+                        className="w-4 h-4 text-[#2463EB] rounded focus-blue cursor-pointer"
                       />
                       <label htmlFor="insureShipmentCheck" className="font-bold text-slate-800 cursor-pointer">
                         I would like to insure my shipment
@@ -3140,7 +3151,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                 <span className="text-emerald-600 font-extrabold text-sm absolute right-2 top-2 pointer-events-none">✓</span>
                               )}
                             </div>
-                            <div className="w-8 h-8 rounded bg-orange-500 border border-orange-600 flex items-center justify-center text-white font-bold text-xs shrink-0 cursor-pointer">
+                            <div className="w-8 h-8 rounded bg-[#EAF2FF]0 border border-[#2463EB] flex items-center justify-center text-white font-bold text-xs shrink-0 cursor-pointer">
                               📅
                             </div>
                           </div>
@@ -3183,7 +3194,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                                 <span className="text-emerald-600 font-extrabold text-sm absolute right-2 top-2 pointer-events-none">✓</span>
                               )}
                             </div>
-                            <div className="w-8 h-8 rounded bg-orange-500 border border-orange-600 flex items-center justify-center text-white font-bold text-xs shrink-0 cursor-pointer">
+                            <div className="w-8 h-8 rounded bg-[#EAF2FF]0 border border-[#2463EB] flex items-center justify-center text-white font-bold text-xs shrink-0 cursor-pointer">
                               📅
                             </div>
                           </div>
@@ -3240,7 +3251,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         }}
                         className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                           formData.shipmentMode === 'road'
-                            ? 'bg-[#FF6B00] text-white shadow-sm'
+                            ? 'bg-[#2463EB] text-white shadow-sm'
                             : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
@@ -3301,10 +3312,10 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       <button
                         type="button"
                         onClick={() => setIsCargoDropdownOpen(!isCargoDropdownOpen)}
-                        className="w-full p-3 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-bold flex items-center justify-between shadow-xs cursor-pointer transition-all text-left"
+                        className="w-full p-3 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-blue font-bold flex items-center justify-between shadow-xs cursor-pointer transition-all text-left"
                       >
                         <span className="truncate">{formData.cargoType || 'General Cargo'}</span>
-                        <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isCargoDropdownOpen ? "rotate-180 text-orange-500" : ""}`} />
+                        <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 ml-2 transition-transform duration-200 ${isCargoDropdownOpen ? "rotate-180 text-[#2463EB]" : ""}`} />
                       </button>
 
                       {/* Floating Menu - Strictly Opens Below */}
@@ -3392,7 +3403,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         placeholder="e.g. Singapore Changi Air Cargo Terminal 1 (SIN)"
                         value={formData.pickupLocation || ''}
                         onChange={(e) => setFormData({ ...formData, pickupLocation: e.target.value })}
-                        className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange"
+                        className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-blue"
                       />
                     </div>
                     <div>
@@ -3404,7 +3415,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         placeholder="e.g. Frankfurt Cargo City South (FRA) / Door Delivery"
                         value={formData.deliveryLocation || ''}
                         onChange={(e) => setFormData({ ...formData, deliveryLocation: e.target.value })}
-                        className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange"
+                        className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-blue"
                       />
                     </div>
                   </div>
@@ -3417,7 +3428,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     <select
                       value={formData.handlingRequirements || 'Standard IATA Cargo Handling'}
                       onChange={(e) => setFormData({ ...formData, handlingRequirements: e.target.value })}
-                      className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-orange cursor-pointer"
+                      className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus-blue cursor-pointer"
                     >
                       {handlingRequirementOptions.map((opt) => (
                         <option key={opt} value={opt}>{opt}</option>
@@ -3446,7 +3457,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         >
                           <p className="font-extrabold text-slate-900 text-xs flex items-center justify-between">
                             <span>{level.title}</span>
-                            {level.mode === 'air' ? <Plane className="w-3.5 h-3.5 text-sky-600" /> : <Truck className="w-3.5 h-3.5 text-orange-500" />}
+                            {level.mode === 'air' ? <Plane className="w-3.5 h-3.5 text-sky-600" /> : <Truck className="w-3.5 h-3.5 text-[#2463EB]" />}
                           </p>
                           <p className="text-[11px] text-slate-500 mt-0.5">{level.desc}</p>
                           <span className="inline-block mt-2 font-mono font-bold text-xs text-sky-700">{level.rate}</span>
@@ -3464,7 +3475,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 {/* Info Card 1: Is it a document? */}
                 <div className="bg-slate-50/80 rounded-2xl p-6 border border-slate-200 space-y-3 relative shadow-xs">
                   <h4 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                    <HelpCircle className="w-4 h-4 text-orange-500" />
+                    <HelpCircle className="w-4 h-4 text-[#2463EB]" />
                     <span>Is it a document?</span>
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -3818,7 +3829,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     name="additionalPartiesRadio"
                     checked={formData.hasAdditionalParties === true}
                     onChange={() => setFormData({ ...formData, hasAdditionalParties: true })}
-                    className="w-4 h-4 text-orange-500 focus-orange cursor-pointer"
+                    className="w-4 h-4 text-[#2463EB] focus-blue cursor-pointer"
                   />
                   <span>Yes</span>
                 </label>
@@ -3829,7 +3840,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     name="additionalPartiesRadio"
                     checked={formData.hasAdditionalParties !== true}
                     onChange={() => setFormData({ ...formData, hasAdditionalParties: false })}
-                    className="w-4 h-4 text-orange-500 focus-orange cursor-pointer"
+                    className="w-4 h-4 text-[#2463EB] focus-blue cursor-pointer"
                   />
                   <span>No</span>
                 </label>
@@ -3969,7 +3980,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     });
                     showToast(`Added Customs Document #${docCount}`);
                   }}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs rounded border border-orange-600 shadow-2xs transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white font-extrabold text-xs rounded border border-[#2463EB] shadow-2xs transition-colors cursor-pointer"
                 >
                   Add Another
                 </button>
@@ -4180,7 +4191,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                           updated[idx] = { ...updated[idx], packagingType: e.target.value };
                           setFormData({ ...formData, packagingRows: updated });
                         }}
-                        className="w-full p-2.5 bg-amber-50/70 border-2 border-rose-300 rounded text-xs font-extrabold text-slate-900 focus-orange cursor-pointer"
+                        className="w-full p-2.5 bg-amber-50/70 border-2 border-rose-300 rounded text-xs font-extrabold text-slate-900 focus-blue cursor-pointer"
                       >
                         <option value="My Own Package Custom Dimensions">📦 My Own Package (Custom Dimensions)</option>
                         <option value="Box 2 (Flat)">🟨 Box 2 (Flat) - 34 X 32 X 5.2 cm</option>
@@ -4351,7 +4362,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     setFormData({ ...formData, packagingRows: [...current, newPkg] });
                     showToast(`Added Package #${current.length + 1}`);
                   }}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-black text-xs rounded border border-orange-600 shadow-2xs transition-colors cursor-pointer flex items-center space-x-1"
+                  className="px-4 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white font-black text-xs rounded border border-[#2463EB] shadow-2xs transition-colors cursor-pointer flex items-center space-x-1"
                 >
                   <span>Add Another Package</span>
                   <span className="font-black text-sm">+</span>
@@ -4821,7 +4832,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
 
             {/* Date Selector Tabs (With Brand Orange Active Highlight) */}
             <div className="overflow-x-auto pb-2">
-              <div className="flex items-stretch border-b-2 border-orange-500 min-w-[650px]">
+              <div className="flex items-stretch border-b-2 border-[#2463EB] min-w-[650px]">
                 {[
                   { day: 'September 11', sub: 'Today' },
                   { day: 'September 12', sub: 'Tomorrow' },
@@ -4839,7 +4850,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                       onClick={() => setFormData({ ...formData, selectedDispatchDate: dateTab.day })}
                       className={`flex-1 py-3 px-3 text-center border-t border-l border-r rounded-t-lg transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-orange-500 border-orange-600 text-white font-extrabold shadow-md -mb-[2px] z-10'
+                          ? 'bg-[#EAF2FF]0 border-[#2463EB] text-white font-extrabold shadow-md -mb-[2px] z-10'
                           : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 font-bold'
                       }`}
                     >
@@ -4958,7 +4969,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                         <div>
                           <p className="text-lg font-black text-slate-900">{deliveryOption2.monthDay}</p>
                           <p className="text-xs font-bold text-slate-600">{deliveryOption2.dayOfWeek}</p>
-                          <span className="inline-block mt-2 px-2.5 py-0.5 bg-orange-100 text-orange-800 rounded font-black text-[10px] tracking-wider">
+                          <span className="inline-block mt-2 px-2.5 py-0.5 bg-[#EAF2FF] text-[#0B1F5B] rounded font-black text-[10px] tracking-wider">
                             {card2BadgeText}
                           </span>
                         </div>
@@ -5063,7 +5074,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
       {currentStep === 7 && (
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6 animate-fade-in text-left">
           <div className="flex items-center space-x-3 border-b border-slate-100 pb-4">
-            <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white font-extrabold flex items-center justify-center text-base shadow-orange-sm">
+            <div className="w-10 h-10 rounded-2xl bg-[#EAF2FF]0 text-white font-extrabold flex items-center justify-center text-base shadow-sm">
               4
             </div>
             <div>
@@ -5075,7 +5086,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           {/* Summary Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-200 text-xs">
             <div className="space-y-2">
-              <h4 className="font-extrabold text-slate-900 uppercase text-[11px] tracking-wider text-orange-600">From (Sender)</h4>
+              <h4 className="font-extrabold text-slate-900 uppercase text-[11px] tracking-wider text-[#2463EB]">From (Sender)</h4>
               <p className="font-bold text-slate-900 text-sm">{formData.senderName} ({formData.senderCompany})</p>
               <p className="text-slate-600">{formData.senderAddress1}, {formData.senderAddress2}</p>
               <p className="text-slate-600">{formData.senderCity}, {formData.senderState} {formData.senderPostalCode}, {formData.senderCountry}</p>
@@ -5084,7 +5095,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-extrabold text-slate-900 uppercase text-[11px] tracking-wider text-orange-600">To (Recipient)</h4>
+              <h4 className="font-extrabold text-slate-900 uppercase text-[11px] tracking-wider text-[#2463EB]">To (Recipient)</h4>
               <p className="font-bold text-slate-900 text-sm">{formData.receiverName} ({formData.receiverCompany || 'Individual'})</p>
               <p className="text-slate-600">{formData.receiverAddress1}, {formData.receiverAddress2}</p>
               <p className="text-slate-600">{formData.receiverCity}, {formData.receiverState} {formData.receiverPostalCode}, {formData.receiverCountry}</p>
@@ -5094,7 +5105,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
           </div>
 
           {/* Rate Breakdown */}
-          <div className="bg-orange-50 p-6 rounded-2xl border border-orange-200 space-y-3">
+          <div className="bg-[#EAF2FF] p-6 rounded-2xl border border-[#DCE5F0] space-y-3">
             <div className="flex items-center justify-between text-xs font-bold text-slate-700">
               <span>Service Speed SLA:</span>
               <span className="font-extrabold text-slate-900">{formData.serviceLevel}</span>
@@ -5103,9 +5114,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
               <span>Cargo Weight & Type:</span>
               <span className="font-extrabold text-slate-900">{formData.weight} kg ({formData.cargoType})</span>
             </div>
-            <div className="flex items-center justify-between border-t border-orange-200 pt-3 text-base font-extrabold text-slate-900">
+            <div className="flex items-center justify-between border-t border-[#DCE5F0] pt-3 text-base font-extrabold text-slate-900">
               <span>Total Estimated Freight Fee:</span>
-              <span className="text-2xl text-orange-600 font-mono">{calculateEstimatedPrice()}</span>
+              <span className="text-2xl text-[#2463EB] font-mono">{calculateEstimatedPrice()}</span>
             </div>
           </div>
 
@@ -5118,7 +5129,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 onClick={() => setPaymentMethod('card')}
                 className={`p-4 rounded-2xl border font-bold text-xs flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                   paymentMethod === 'card'
-                    ? 'border-orange-500 bg-orange-50 text-orange-600 ring-2 ring-orange-400'
+                    ? 'border-[#2463EB] bg-[#EAF2FF] text-[#2463EB] ring-2 ring-[#2463EB]/25'
                     : 'border-slate-200 bg-white text-slate-700'
                 }`}
               >
@@ -5131,7 +5142,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 onClick={() => setPaymentMethod('paynow')}
                 className={`p-4 rounded-2xl border font-bold text-xs flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                   paymentMethod === 'paynow'
-                    ? 'border-orange-500 bg-orange-50 text-orange-600 ring-2 ring-orange-400'
+                    ? 'border-[#2463EB] bg-[#EAF2FF] text-[#2463EB] ring-2 ring-[#2463EB]/25'
                     : 'border-slate-200 bg-white text-slate-700'
                 }`}
               >
@@ -5215,7 +5226,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
               <button
                 type="submit"
                 disabled={isProcessingPayment}
-                className="px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-extrabold text-sm shadow-orange-sm transition-all flex items-center space-x-2 cursor-pointer active:scale-95 disabled:opacity-50"
+                className="px-8 py-3.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-2xl font-extrabold text-sm shadow-sm transition-all flex items-center space-x-2 cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 {isProcessingPayment ? (
                   <>
@@ -5275,9 +5286,9 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     setIsCreateDescModalOpen(false);
                     showToast('Applied item description to shipment details!', 'info');
                   }}
-                  className="p-3 bg-slate-50 hover:bg-orange-50/80 border border-slate-200 hover:border-orange-300 rounded-xl cursor-pointer transition-all space-y-0.5 group"
+                  className="p-3 bg-slate-50 hover:bg-[#EAF2FF]/80 border border-slate-200 hover:border-[#2463EB]/40 rounded-xl cursor-pointer transition-all space-y-0.5 group"
                 >
-                  <p className="font-extrabold text-xs text-slate-900 group-hover:text-orange-700">{item.title}</p>
+                  <p className="font-extrabold text-xs text-slate-900 group-hover:text-[#0B1F5B]">{item.title}</p>
                   <p className="text-[11px] text-slate-500 font-medium">{item.desc}</p>
                 </div>
               ))}
@@ -5325,7 +5336,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 value={hsCodeSearch}
                 onChange={(e) => setHsCodeSearch(e.target.value)}
                 placeholder="Search by keyword (e.g., T-shirt, Leather, PCB, Steel)..."
-                className="w-full p-2.5 pl-9 bg-slate-50 border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus-orange"
+                className="w-full p-2.5 pl-9 bg-slate-50 border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus-blue"
               />
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
@@ -5350,16 +5361,16 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     setIsLookupCodeModalOpen(false);
                     showToast(`Selected HS Code ${item.code} for ${item.name}!`, 'info');
                   }}
-                  className="p-3 bg-slate-50 hover:bg-orange-50/80 border border-slate-200 hover:border-orange-300 rounded-xl cursor-pointer transition-all flex items-center justify-between group"
+                  className="p-3 bg-slate-50 hover:bg-[#EAF2FF]/80 border border-slate-200 hover:border-[#2463EB]/40 rounded-xl cursor-pointer transition-all flex items-center justify-between group"
                 >
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-mono font-black text-xs text-orange-600 bg-orange-100 px-2 py-0.5 rounded">{item.code}</span>
-                      <span className="font-extrabold text-xs text-slate-900 group-hover:text-orange-700">{item.name}</span>
+                      <span className="font-mono font-black text-xs text-[#2463EB] bg-[#EAF2FF] px-2 py-0.5 rounded">{item.code}</span>
+                      <span className="font-extrabold text-xs text-slate-900 group-hover:text-[#0B1F5B]">{item.name}</span>
                     </div>
                     <p className="text-[11px] text-slate-500 font-medium mt-1">{item.desc}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-500 shrink-0 ml-2" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#2463EB] shrink-0 ml-2" />
                 </div>
               ))}
             </div>

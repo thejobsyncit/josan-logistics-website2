@@ -64,7 +64,7 @@ export const ShipmentDetailsModal = ({
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center space-x-3">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white ${
-              isAir ? 'bg-blue-600' : 'bg-orange-500'
+              isAir ? 'bg-blue-600' : 'bg-[#EAF2FF]0'
             }`}>
               {isAir ? <Plane className="w-6 h-6" /> : <Truck className="w-6 h-6" />}
             </div>
@@ -72,7 +72,7 @@ export const ShipmentDetailsModal = ({
               <div className="flex items-center space-x-2">
                 <span className="font-mono font-black text-lg text-slate-900">#{shipment.id}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                  isAir ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
+                  isAir ? 'bg-blue-50 text-blue-700' : 'bg-[#EAF2FF] text-[#0B1F5B]'
                 }`}>
                   {isAir ? 'Airway Services' : 'Road Transportation'}
                 </span>
@@ -115,7 +115,7 @@ export const ShipmentDetailsModal = ({
                   onClick={() => onUpdateStatus(shipment.id, st)}
                   className={`py-1.5 px-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer text-center truncate ${
                     isCurrent
-                      ? 'bg-[#FF6B00] text-white shadow-xs'
+                      ? 'bg-[#2463EB] text-white shadow-xs'
                       : isPastOrCurrent
                       ? 'bg-slate-300 text-slate-800'
                       : 'text-slate-400 hover:text-slate-600'
@@ -133,7 +133,7 @@ export const ShipmentDetailsModal = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
             <h4 className="font-extrabold text-slate-900 flex items-center space-x-1.5 border-b border-slate-200 pb-2">
-              <MapPin className="w-3.5 h-3.5 text-orange-500" />
+              <MapPin className="w-3.5 h-3.5 text-[#2463EB]" />
               <span>Route & Locations</span>
             </h4>
             <div>
@@ -177,7 +177,7 @@ export const ShipmentDetailsModal = ({
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <h4 className="font-extrabold text-slate-900 flex items-center space-x-1.5">
-              <UserCheck className="w-4 h-4 text-orange-500" />
+              <UserCheck className="w-4 h-4 text-[#2463EB]" />
               <span>Assigned Driver & Dispatch Account</span>
             </h4>
             {onOpenAssignDriver && (
@@ -186,7 +186,7 @@ export const ShipmentDetailsModal = ({
                   onClose();
                   onOpenAssignDriver(shipment);
                 }}
-                className="text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer"
+                className="text-[11px] font-bold text-[#2463EB] hover:text-[#0B1F5B] hover:underline cursor-pointer"
               >
                 {shipment.driverName ? 'Reassign Driver' : '+ Assign Driver'}
               </button>
@@ -210,7 +210,7 @@ export const ShipmentDetailsModal = ({
               </div>
               <div>
                 <span className="text-slate-400 text-[10px] font-bold uppercase block">Vehicle Plate</span>
-                <span className="font-mono text-orange-600 font-bold">{shipment.vehiclePlate || 'SG-8819'}</span>
+                <span className="font-mono text-[#2463EB] font-bold">{shipment.vehiclePlate || 'SG-8819'}</span>
               </div>
             </div>
           ) : (
@@ -222,7 +222,7 @@ export const ShipmentDetailsModal = ({
                     onClose();
                     onOpenAssignDriver(shipment);
                   }}
-                  className="px-3 py-1 bg-[#FF6B00] text-white rounded-lg font-bold text-[11px] cursor-pointer shadow-xs"
+                  className="px-3 py-1 bg-[#2463EB] text-white rounded-lg font-bold text-[11px] cursor-pointer shadow-xs"
                 >
                   Assign Driver Now
                 </button>
@@ -262,7 +262,7 @@ export const ShipmentDetailsModal = ({
                   onClose();
                   onOpenAssignDriver(shipment);
                 }}
-                className="px-4 py-2.5 bg-orange-50 hover:bg-[#FF6B00] text-orange-600 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-orange-200"
+                className="px-4 py-2.5 bg-[#EAF2FF] hover:bg-[#2463EB] text-[#2463EB] hover:text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-[#DCE5F0]"
               >
                 <UserCheck className="w-4 h-4" />
                 <span>{shipment.driverName ? 'Change Driver' : 'Assign Driver'}</span>
@@ -339,7 +339,7 @@ export const CreateShipmentModal = ({
               <select
                 value={formData.service}
                 onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
               >
                 <option value="Road Transportation">Road Transportation</option>
                 <option value="Airway Services">Airway Services</option>
@@ -353,7 +353,7 @@ export const CreateShipmentModal = ({
                 onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
                 placeholder="e.g. Razer Asia-Pacific HQ"
                 required
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue"
               />
             </div>
           </div>
@@ -367,7 +367,7 @@ export const CreateShipmentModal = ({
                 onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
                 placeholder="e.g. Jurong Logistics Hub"
                 required
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-orange"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue"
               />
             </div>
             <div>
@@ -378,7 +378,7 @@ export const CreateShipmentModal = ({
                 onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
                 placeholder="e.g. Woodlands Industrial Estate"
                 required
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-orange"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue"
               />
             </div>
           </div>
@@ -390,7 +390,7 @@ export const CreateShipmentModal = ({
                 <select
                   value={formData.transportationPartner}
                   onChange={(e) => setFormData({ ...formData, transportationPartner: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-orange cursor-pointer"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue cursor-pointer"
                 >
                   <option value="Woodlands Linehaul Logistics Pte Ltd">Woodlands Linehaul Logistics</option>
                   <option value="Tuas Prime Haulage Pte Ltd">Tuas Prime Haulage</option>
@@ -405,7 +405,7 @@ export const CreateShipmentModal = ({
                   value={formData.vehiclePlate}
                   onChange={(e) => setFormData({ ...formData, vehiclePlate: e.target.value })}
                   placeholder="e.g. SG-8819"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 text-xs focus-orange"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 text-xs focus-blue"
                 />
               </div>
             </div>
@@ -418,7 +418,7 @@ export const CreateShipmentModal = ({
                   value={formData.carrierSupport}
                   onChange={(e) => setFormData({ ...formData, carrierSupport: e.target.value })}
                   placeholder="e.g. Singapore Airlines Cargo (SQ)"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-orange"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue"
                 />
               </div>
               <div>
@@ -428,7 +428,7 @@ export const CreateShipmentModal = ({
                   value={formData.awbNumber}
                   onChange={(e) => setFormData({ ...formData, awbNumber: e.target.value })}
                   placeholder="e.g. AWB-618-992102"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-xs focus-orange"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-xs focus-blue"
                 />
               </div>
             </div>
@@ -442,7 +442,7 @@ export const CreateShipmentModal = ({
                 value={formData.cargoType}
                 onChange={(e) => setFormData({ ...formData, cargoType: e.target.value })}
                 placeholder="e.g. Precision Machinery"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-orange"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue"
               />
             </div>
             <div>
@@ -452,7 +452,7 @@ export const CreateShipmentModal = ({
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="e.g. S$ 750.00"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-xs focus-orange"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-xs focus-blue"
               />
             </div>
           </div>
@@ -467,7 +467,7 @@ export const CreateShipmentModal = ({
             </button>
             <button
               type="submit"
-              className="w-1/2 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer"
+              className="w-1/2 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all cursor-pointer"
             >
               Create Shipment
             </button>

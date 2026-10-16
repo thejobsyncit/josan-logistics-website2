@@ -209,7 +209,7 @@ export const DriversTab = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+            <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
               Fleet Operations & Personnel
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
@@ -224,7 +224,7 @@ export const DriversTab = ({
 
         <button
           onClick={() => setIsRegisterModalOpen(true)}
-          className="px-5 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-2 cursor-pointer shrink-0"
+          className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 cursor-pointer shrink-0"
         >
           <UserPlus className="w-4 h-4" />
           <span>Register New Driver</span>
@@ -295,7 +295,7 @@ export const DriversTab = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search driver name, email, phone, plate, ID..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus-orange shadow-2xs"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus-blue shadow-2xs"
           />
         </div>
 
@@ -304,7 +304,7 @@ export const DriversTab = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Statuses</option>
             <option value="Available">Available</option>
@@ -318,7 +318,7 @@ export const DriversTab = ({
           <select
             value={hubFilter}
             onChange={(e) => setHubFilter(e.target.value)}
-            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Hubs</option>
             <option value="Changi Air Cargo Logistics Hub">Changi Logistics Hub</option>
@@ -389,7 +389,7 @@ export const DriversTab = ({
                             </span>
                             <button
                               onClick={() => handleCopyCredentials(driver)}
-                              className="text-[10px] font-bold text-orange-600 hover:text-orange-700 flex items-center space-x-0.5 cursor-pointer"
+                              className="text-[10px] font-bold text-[#2463EB] hover:text-[#0B1F5B] flex items-center space-x-0.5 cursor-pointer"
                               title="Copy email and password for driver login"
                             >
                               {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
@@ -422,7 +422,7 @@ export const DriversTab = ({
                             <Truck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             <span>{driver.vehicleType || '14ft Box Truck'}</span>
                           </p>
-                          <p className="font-mono font-bold text-orange-600 text-[11px]">
+                          <p className="font-mono font-bold text-[#2463EB] text-[11px]">
                             {driver.vehicleId || 'SG-8819'}
                           </p>
                           <p className="text-[10px] text-slate-400 font-mono">
@@ -460,7 +460,7 @@ export const DriversTab = ({
                           <div className="space-y-1">
                             <button
                               onClick={() => onViewShipment && onViewShipment(activeShipment)}
-                              className="font-mono font-bold text-blue-600 hover:text-orange-600 hover:underline flex items-center space-x-1 cursor-pointer"
+                              className="font-mono font-bold text-blue-600 hover:text-[#2463EB] hover:underline flex items-center space-x-1 cursor-pointer"
                             >
                               <Package className="w-3 h-3" />
                               <span>{activeShipment.id}</span>
@@ -472,7 +472,7 @@ export const DriversTab = ({
                         ) : (
                           <button
                             onClick={() => setAssignShipmentDriver(driver)}
-                            className="px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-lg text-[10px] font-extrabold transition-colors cursor-pointer"
+                            className="px-2.5 py-1 bg-[#EAF2FF] hover:bg-[#EAF2FF] text-[#0B1F5B] border border-[#DCE5F0] rounded-lg text-[10px] font-extrabold transition-colors cursor-pointer"
                           >
                             + Assign Shipment
                           </button>
@@ -485,7 +485,7 @@ export const DriversTab = ({
                           {onTestDriverLogin && (
                             <button
                               onClick={() => onTestDriverLogin(driver)}
-                              className="p-1.5 text-slate-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-slate-500 hover:text-[#2463EB] hover:bg-[#EAF2FF] rounded-lg transition-colors cursor-pointer"
                               title="Test login as this driver into Driver Portal"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -526,7 +526,7 @@ export const DriversTab = ({
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
+                <div className="w-10 h-10 rounded-2xl bg-[#EAF2FF]0 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
@@ -559,7 +559,7 @@ export const DriversTab = ({
                     placeholder="e.g. David Tan"
                     value={newDriver.name}
                     onChange={(e) => setNewDriver({ ...newDriver, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -571,7 +571,7 @@ export const DriversTab = ({
                     placeholder="+65 9123 4567"
                     value={newDriver.phone}
                     onChange={(e) => setNewDriver({ ...newDriver, phone: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -583,7 +583,7 @@ export const DriversTab = ({
                     placeholder="driver@josanlogistics.com"
                     value={newDriver.email}
                     onChange={(e) => setNewDriver({ ...newDriver, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -593,7 +593,7 @@ export const DriversTab = ({
                     <button
                       type="button"
                       onClick={handleGenerateRegPassword}
-                      className="text-[10px] font-bold text-orange-600 hover:text-orange-700 flex items-center space-x-0.5 cursor-pointer"
+                      className="text-[10px] font-bold text-[#2463EB] hover:text-[#0B1F5B] flex items-center space-x-0.5 cursor-pointer"
                     >
                       <KeyRound className="w-3 h-3" />
                       <span>Generate</span>
@@ -605,7 +605,7 @@ export const DriversTab = ({
                       required
                       value={newDriver.password}
                       onChange={(e) => setNewDriver({ ...newDriver, password: e.target.value })}
-                      className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                      className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                     />
                     <button
                       type="button"
@@ -622,7 +622,7 @@ export const DriversTab = ({
                   <select
                     value={newDriver.vehicleType}
                     onChange={(e) => setNewDriver({ ...newDriver, vehicleType: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs cursor-pointer"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs cursor-pointer"
                   >
                     <option value="14ft Box Truck">14ft Box Truck</option>
                     <option value="Josan EV Express Cargo Van">Josan EV Express Cargo Van</option>
@@ -639,7 +639,7 @@ export const DriversTab = ({
                     required
                     value={newDriver.vehicleId}
                     onChange={(e) => setNewDriver({ ...newDriver, vehicleId: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -649,7 +649,7 @@ export const DriversTab = ({
                     type="text"
                     value={newDriver.licenseNumber}
                     onChange={(e) => setNewDriver({ ...newDriver, licenseNumber: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -658,7 +658,7 @@ export const DriversTab = ({
                   <select
                     value={newDriver.assignedHub}
                     onChange={(e) => setNewDriver({ ...newDriver, assignedHub: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs cursor-pointer"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs cursor-pointer"
                   >
                     <option value="Changi Air Cargo Logistics Hub">Changi Logistics Hub</option>
                     <option value="Jurong Port Logistics Hub">Jurong Port Hub</option>
@@ -678,7 +678,7 @@ export const DriversTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm cursor-pointer"
+                  className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm cursor-pointer"
                 >
                   Save & Authorize Driver
                 </button>
@@ -695,7 +695,7 @@ export const DriversTab = ({
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2.5">
                 <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center">
-                  <Edit2 className="w-5 h-5 text-orange-400" />
+                  <Edit2 className="w-5 h-5 text-[#2463EB]" />
                 </div>
                 <div>
                   <h3 className="font-black text-lg text-slate-900">Edit Driver & Credentials</h3>
@@ -719,7 +719,7 @@ export const DriversTab = ({
                     required
                     value={editFormData.name}
                     onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -730,7 +730,7 @@ export const DriversTab = ({
                     required
                     value={editFormData.phone}
                     onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -741,7 +741,7 @@ export const DriversTab = ({
                     required
                     value={editFormData.email}
                     onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -752,7 +752,7 @@ export const DriversTab = ({
                       type={showEditPassword ? 'text' : 'password'}
                       value={editFormData.password}
                       onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
-                      className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                      className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                     />
                     <button
                       type="button"
@@ -770,7 +770,7 @@ export const DriversTab = ({
                     type="text"
                     value={editFormData.vehicleType}
                     onChange={(e) => setEditFormData({ ...editFormData, vehicleType: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -780,7 +780,7 @@ export const DriversTab = ({
                     type="text"
                     value={editFormData.vehicleId}
                     onChange={(e) => setEditFormData({ ...editFormData, vehicleId: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
 
@@ -789,7 +789,7 @@ export const DriversTab = ({
                   <select
                     value={editFormData.status}
                     onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs cursor-pointer"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs cursor-pointer"
                   >
                     <option value="Available">Available</option>
                     <option value="On Delivery">On Delivery</option>
@@ -803,7 +803,7 @@ export const DriversTab = ({
                     type="text"
                     value={editFormData.assignedHub}
                     onChange={(e) => setEditFormData({ ...editFormData, assignedHub: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-orange shadow-2xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
                   />
                 </div>
               </div>
@@ -818,7 +818,7 @@ export const DriversTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm cursor-pointer"
+                  className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm cursor-pointer"
                 >
                   Save Changes
                 </button>
@@ -834,7 +834,7 @@ export const DriversTab = ({
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
+                <div className="w-10 h-10 rounded-2xl bg-[#EAF2FF]0 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
                   <Package className="w-5 h-5" />
                 </div>
                 <div>
@@ -881,7 +881,7 @@ export const DriversTab = ({
                               }
                               setAssignShipmentDriver(null);
                             }}
-                            className="px-3 py-1.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl font-bold cursor-pointer shrink-0"
+                            className="px-3 py-1.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shrink-0"
                           >
                             {isThisDriver ? 'Re-assign' : 'Assign'}
                           </button>

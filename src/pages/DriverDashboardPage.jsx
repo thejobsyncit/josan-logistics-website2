@@ -265,7 +265,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     const ctx = canvas.getContext('2d');
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#10182D';
+    ctx.strokeStyle = '#0B1F5B';
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     ctx.beginPath();
@@ -423,25 +423,25 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
       
       {/* DRIVER PROFILE HEADER BANNER */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 border-t-4 border-orange-500 shadow-xl relative overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="bg-slate-900 text-white rounded-3xl p-8 border-t-4 border-[#2463EB] shadow-xl relative overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#EAF2FF]0/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex items-center space-x-5">
           <img 
             src={driverInfo.photo} 
             alt={driverInfo.name} 
-            className="w-20 h-20 rounded-2xl object-cover border-2 border-orange-500 shadow-orange-sm shrink-0" 
+            className="w-20 h-20 rounded-2xl object-cover border-2 border-[#2463EB] shadow-sm shrink-0" 
           />
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-orange-400 uppercase tracking-widest bg-slate-800 px-3 py-0.5 rounded-full border border-slate-700">
+              <span className="text-xs font-bold text-[#2463EB] uppercase tracking-widest bg-slate-800 px-3 py-0.5 rounded-full border border-slate-700">
                 Driver Telematics & Dispatch Portal
               </span>
               <span className="text-xs font-mono font-bold text-slate-400">ID: {driverInfo.id}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white">{driverInfo.name}</h1>
             <p className="text-xs sm:text-sm text-slate-300 flex items-center space-x-3">
-              <span>Vehicle: <strong className="text-orange-400">{driverInfo.vehicleType} ({driverInfo.vehicleId})</strong></span>
+              <span>Vehicle: <strong className="text-[#2463EB]">{driverInfo.vehicleType} ({driverInfo.vehicleId})</strong></span>
               <span>•</span>
               <span>Hub: <strong>{driverInfo.assignedHub}</strong></span>
             </p>
@@ -452,7 +452,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
         <div className="relative z-10 flex flex-wrap items-center gap-3">
           <button
             onClick={startEditingDriverProfile}
-            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-orange-sm"
+            className="px-4 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-2xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm"
           >
             <Edit2 className="w-4 h-4" />
             <span>Edit Profile</span>
@@ -469,7 +469,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     ? st === 'Available' 
                       ? 'bg-emerald-500 text-white shadow-md'
                       : st === 'On Delivery'
-                      ? 'bg-orange-500 text-white shadow-md'
+                      ? 'bg-[#EAF2FF]0 text-white shadow-md'
                       : 'bg-slate-700 text-slate-200'
                     : 'text-slate-400 hover:text-white'
                 }`}
@@ -485,13 +485,13 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl space-y-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-2xl bg-orange-100 border border-orange-200 text-orange-600 flex items-center justify-center font-bold shrink-0 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-[#EAF2FF] border border-[#DCE5F0] text-[#2463EB] flex items-center justify-center font-bold shrink-0 shadow-sm">
               <Compass className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-lg font-extrabold text-slate-900">Driver Feature Explorer & Control Portal</h2>
-                <span className="bg-orange-50 text-orange-600 border border-orange-200 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   4 Dedicated Modules
                 </span>
               </div>
@@ -507,11 +507,11 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               onClick={toggleVoiceGuidance}
               className={`px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 isVoiceGuidanceOn
-                  ? 'bg-orange-50 border-orange-300 text-orange-800 shadow-2xs'
+                  ? 'bg-[#EAF2FF] border-[#2463EB]/40 text-[#0B1F5B] shadow-2xs'
                   : 'bg-slate-50 border-slate-200 text-slate-600'
               }`}
             >
-              {isVoiceGuidanceOn ? <Volume2 className="w-4 h-4 text-orange-600 animate-pulse" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+              {isVoiceGuidanceOn ? <Volume2 className="w-4 h-4 text-[#2463EB] animate-pulse" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
               <span>{isVoiceGuidanceOn ? 'Voice Guidance ON' : 'Muted'}</span>
             </button>
 
@@ -542,7 +542,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               sublabel: 'Proximity & admin order alerts', 
               icon: Bell, 
               badge: `${(driverIntimations || []).length} Active Alerts`, 
-              badgeBg: 'bg-orange-50 text-orange-700 border-orange-200' 
+              badgeBg: 'bg-[#EAF2FF] text-[#0B1F5B] border-[#DCE5F0]' 
             },
             { 
               id: 'dashboard', 
@@ -558,7 +558,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               sublabel: 'Live GPS & timeline stepper', 
               icon: Compass, 
               badge: 'LIVE GPS', 
-              badgeBg: 'bg-orange-50 text-orange-600 border-orange-200' 
+              badgeBg: 'bg-[#EAF2FF] text-[#2463EB] border-[#DCE5F0]' 
             },
             { 
               id: 'update', 
@@ -577,16 +577,16 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 onClick={() => setDriverTab(tab.id)}
                 className={`p-4 rounded-2xl transition-all text-left flex items-start space-x-3 cursor-pointer ${
                   isActive
-                    ? 'bg-orange-gradient text-white shadow-orange-md font-extrabold ring-2 ring-orange-400/50 scale-[1.01]'
+                    ? 'bg-[#2463EB]-gradient text-white shadow-md font-extrabold ring-2 ring-[#2463EB]/25/50 scale-[1.01]'
                     : 'bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-800 font-bold'
                 }`}
               >
-                <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${isActive ? 'bg-white/20 text-white' : 'bg-white text-orange-500 border border-slate-200 shadow-2xs'}`}>
+                <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${isActive ? 'bg-white/20 text-white' : 'bg-white text-[#2463EB] border border-slate-200 shadow-2xs'}`}>
                   <IconComp className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className={`text-xs font-extrabold block truncate ${isActive ? 'text-white' : 'text-slate-900'}`}>{tab.label}</span>
-                  <p className={`text-[11px] mt-0.5 font-medium truncate ${isActive ? 'text-orange-100' : 'text-slate-500'}`}>{tab.sublabel}</p>
+                  <p className={`text-[11px] mt-0.5 font-medium truncate ${isActive ? 'text-[#EAF2FF]' : 'text-slate-500'}`}>{tab.sublabel}</p>
                   <span className={`inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border mt-2.5 ${
                     isActive ? 'bg-white/20 text-white border-white/30' : tab.badgeBg
                   }`}>
@@ -607,7 +607,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
             </span>
             <span className="text-slate-600">•</span>
             <span className="flex items-center space-x-1 text-slate-300">
-              <Compass className="w-3.5 h-3.5 text-orange-400" />
+              <Compass className="w-3.5 h-3.5 text-[#2463EB]" />
               <span>Expressway Telematics: <strong>PIE / TPE Traffic Smooth (65 KM/H)</strong></span>
             </span>
           </div>
@@ -618,7 +618,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               <span>EV Battery: 94% (Range 340 KM)</span>
             </span>
             <span className="text-slate-600">|</span>
-            <span className="text-orange-400 font-bold">Driver SLA: 99.6% On-Time</span>
+            <span className="text-[#2463EB] font-bold">Driver SLA: 99.6% On-Time</span>
           </div>
         </div>
       </div>
@@ -628,7 +628,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center space-x-2 text-orange-600 font-extrabold text-sm uppercase tracking-wider">
+              <div className="flex items-center space-x-2 text-[#2463EB] font-extrabold text-sm uppercase tracking-wider">
                 <User className="w-5 h-5" />
                 <span>Edit Driver Profile Details</span>
               </div>
@@ -642,8 +642,8 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
             <form onSubmit={handleSaveDriverProfile} className="space-y-4 text-xs">
               {/* Profile Photo Upload Field */}
-              <div className="bg-orange-50/80 p-3.5 rounded-2xl border border-orange-200 space-y-2">
-                <label className="block text-xs font-extrabold text-orange-950">
+              <div className="bg-[#EAF2FF]/80 p-3.5 rounded-2xl border border-[#DCE5F0] space-y-2">
+                <label className="block text-xs font-extrabold text-[#0B1F5B]">
                   Driver Profile Picture
                 </label>
                 <div className="flex items-center space-x-3">
@@ -651,12 +651,12 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     <img
                       src={editPhoto || currentUser?.photo || driverInfo.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
                       alt="Driver Profile Preview"
-                      className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-[#2463EB] shadow-sm"
                     />
                     <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
                   </div>
                   <div className="flex-1 space-y-1">
-                    <label className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[11px] font-extrabold shadow-orange-sm cursor-pointer transition-all inline-flex items-center space-x-1.5">
+                    <label className="px-3.5 py-1.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-[11px] font-extrabold shadow-sm cursor-pointer transition-all inline-flex items-center space-x-1.5">
                       <Camera className="w-3.5 h-3.5" />
                       <span>Browse & Upload Photo</span>
                       <input
@@ -675,7 +675,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Driver Full Name *</span>
-                  <span className="text-[10px] text-orange-600 font-bold uppercase">Alphabets Only</span>
+                  <span className="text-[10px] text-[#2463EB] font-bold uppercase">Alphabets Only</span>
                 </label>
                 <input
                   type="text"
@@ -684,7 +684,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     const alphaOnly = e.target.value.replace(/[^a-zA-Z\s]/g, '');
                     setEditName(alphaOnly);
                   }}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-blue"
                   required
                 />
                 <span className="text-[10px] text-slate-400 font-semibold block mt-1">Strictly letters only (Numbers & symbols blocked)</span>
@@ -694,7 +694,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
                     <span>Phone Contact *</span>
-                    <span className="text-[10px] text-orange-600 font-bold uppercase">Digits Only</span>
+                    <span className="text-[10px] text-[#2463EB] font-bold uppercase">Digits Only</span>
                   </label>
                   <div className="flex items-center">
                     <select
@@ -719,7 +719,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                         setEditPhoneDigits(numericOnly);
                       }}
                       placeholder={`e.g. ${'9'.repeat(getPhoneLength(editCountryCode))}`}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-r-xl text-slate-900 font-mono font-bold focus-orange text-xs"
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-r-xl text-slate-900 font-mono font-bold focus-blue text-xs"
                       required
                     />
                   </div>
@@ -731,7 +731,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     type="text"
                     value={editLicense}
                     onChange={(e) => setEditLicense(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-blue"
                     required
                   />
                 </div>
@@ -744,7 +744,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     type="date"
                     value={editDob}
                     onChange={(e) => setEditDob(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-blue"
                     required
                   />
                 </div>
@@ -755,7 +755,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     type="text"
                     value={editHub}
                     onChange={(e) => setEditHub(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-blue"
                     required
                   />
                 </div>
@@ -771,7 +771,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold flex items-center space-x-2 shadow-orange-sm cursor-pointer"
+                  className="px-6 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-bold flex items-center space-x-2 shadow-sm cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Driver Profile</span>
@@ -790,15 +790,15 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center space-x-3">
               <div className="relative">
-                <span className="w-4 h-4 bg-orange-500 rounded-full animate-ping absolute top-0 right-0"></span>
-                <div className="w-12 h-12 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 font-bold shadow-sm">
+                <span className="w-4 h-4 bg-[#EAF2FF]0 rounded-full animate-ping absolute top-0 right-0"></span>
+                <div className="w-12 h-12 rounded-2xl bg-[#EAF2FF] border border-[#DCE5F0] flex items-center justify-center text-[#2463EB] font-bold shadow-sm">
                   <Bell className="w-6 h-6" />
                 </div>
               </div>
               <div>
                 <div className="flex items-center space-x-2">
                   <h2 className="text-xl font-extrabold text-slate-900">Order Dispatch Intimations & Proximity Alerts</h2>
-                  <span className="bg-orange-500 text-white text-xs font-extrabold px-3 py-1 rounded-full animate-pulse">
+                  <span className="bg-[#EAF2FF]0 text-white text-xs font-extrabold px-3 py-1 rounded-full animate-pulse">
                     {(driverIntimations || []).length} Active Intimations
                   </span>
                 </div>
@@ -829,8 +829,8 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                   key={intimation.id}
                   className={`p-6 rounded-3xl border transition-all shadow-md space-y-4 relative ${
                     intimation.type === 'admin_assigned' 
-                      ? 'bg-orange-50/80 border-orange-300 ring-2 ring-orange-400/30' 
-                      : 'bg-slate-50/90 border-slate-200 hover:border-orange-300'
+                      ? 'bg-[#EAF2FF]/80 border-[#2463EB]/40 ring-2 ring-[#2463EB]/25/30' 
+                      : 'bg-slate-50/90 border-slate-200 hover:border-[#2463EB]/40'
                   }`}
                 >
                   {/* Intimation Header */}
@@ -938,11 +938,11 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase">Assigned Freight Jobs</p>
                 <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{assignedShipments.length} Active</h3>
-                <span className="text-[11px] font-bold text-orange-600 flex items-center mt-1">
+                <span className="text-[11px] font-bold text-[#2463EB] flex items-center mt-1">
                   <Truck className="w-3.5 h-3.5 mr-1 animate-pulse" /> 1 Currently In Route
                 </span>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-2xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center font-bold">
                 <Package className="w-6 h-6" />
               </div>
             </div>
@@ -965,7 +965,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <p className="text-xs font-bold text-slate-400 uppercase">Total Completed</p>
                 <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{driverInfo.deliveriesCompleted} Jobs</h3>
                 <span className="text-[11px] font-bold text-slate-500 flex items-center mt-1">
-                  <Award className="w-3.5 h-3.5 mr-1 text-orange-500" /> Lifetime Top Driver
+                  <Award className="w-3.5 h-3.5 mr-1 text-[#2463EB]" /> Lifetime Top Driver
                 </span>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
@@ -979,10 +979,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* Left: Current Active Job Highlight */}
-            <div className="lg:col-span-6 bg-slate-900 text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl border-t-4 border-orange-500 relative overflow-hidden">
+            <div className="lg:col-span-6 bg-slate-900 text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl border-t-4 border-[#2463EB] relative overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
-                  <span className="text-xs font-bold text-orange-400 uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                  <span className="text-xs font-bold text-[#2463EB] uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
                     Current Active Job
                   </span>
                   <h3 className="text-xl font-extrabold text-white mt-2">Shipment #{activeJob.id}</h3>
@@ -990,7 +990,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase ${
                   activeJob.status === 'Delivered'
                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                    : 'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                    : 'bg-[#EAF2FF]0/20 text-[#2463EB] border border-[#2463EB]/40'
                 }`}>
                   {activeJob.status}
                 </span>
@@ -1004,7 +1004,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                   </div>
                   <div className="flex justify-between font-semibold text-slate-300">
                     <span>Pickup Point:</span>
-                    <strong className="text-orange-400 font-bold">{activeJob.origin}</strong>
+                    <strong className="text-[#2463EB] font-bold">{activeJob.origin}</strong>
                   </div>
                   <div className="flex justify-between font-semibold text-slate-300">
                     <span>Destination Point:</span>
@@ -1019,7 +1019,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                   <button
                     onClick={() => setDriverTab('navigation')}
-                    className="w-full sm:w-1/2 py-3 px-4 bg-orange-gradient hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center justify-center space-x-2"
+                    className="w-full sm:w-1/2 py-3 px-4 bg-[#2463EB]-gradient hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold text-xs shadow-sm transition-all flex items-center justify-center space-x-2"
                   >
                     <Compass className="w-4 h-4" />
                     <span>Open Navigation Map</span>
@@ -1028,7 +1028,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     onClick={() => setDriverTab('update')}
                     className="w-full sm:w-1/2 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs border border-slate-700 transition-all flex items-center justify-center space-x-2"
                   >
-                    <CheckSquare className="w-4 h-4 text-orange-400" />
+                    <CheckSquare className="w-4 h-4 text-[#2463EB]" />
                     <span>Update Status / Proof</span>
                   </button>
                 </div>
@@ -1042,17 +1042,17 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                   <h3 className="text-lg font-extrabold text-slate-900">Available Deliveries Queue</h3>
                   <p className="text-xs text-slate-500">Pick up new freight jobs in your assigned dispatch region.</p>
                 </div>
-                <span className="text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                <span className="text-xs font-bold text-[#2463EB] bg-[#EAF2FF] px-3 py-1 rounded-full border border-[#DCE5F0]">
                   {availableJobs.length} Jobs Ready
                 </span>
               </div>
 
               <div className="space-y-3">
                 {availableJobs.map((job) => (
-                  <div key={job.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 hover:border-orange-300 transition-all space-y-3">
+                  <div key={job.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 hover:border-[#2463EB]/40 transition-all space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-mono text-xs font-extrabold text-orange-600">{job.id}</span>
+                        <span className="font-mono text-xs font-extrabold text-[#2463EB]">{job.id}</span>
                         <h4 className="font-extrabold text-slate-900 text-sm">{job.client}</h4>
                       </div>
                       <span className="text-base font-extrabold text-emerald-600 font-mono">{job.payout}</span>
@@ -1073,7 +1073,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                       onClick={() => handleAcceptAvailableJob(job)}
                       className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
                     >
-                      <Zap className="w-3.5 h-3.5 text-orange-400" />
+                      <Zap className="w-3.5 h-3.5 text-[#2463EB]" />
                       <span>Accept Freight Job ({job.payout})</span>
                     </button>
                   </div>
@@ -1100,10 +1100,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <p className="text-slate-500 text-[11px]">$0.45 per long-haul telematics mile</p>
               </div>
 
-              <div className="p-5 bg-orange-50 rounded-2xl border border-orange-200 space-y-2">
-                <span className="text-orange-800 font-bold uppercase block">On-Time SLA Bonus</span>
-                <p className="text-xl font-extrabold text-orange-600">$50.00 USD</p>
-                <p className="text-orange-700 text-[11px]">Awarded for 99%+ on-time rate</p>
+              <div className="p-5 bg-[#EAF2FF] rounded-2xl border border-[#DCE5F0] space-y-2">
+                <span className="text-[#0B1F5B] font-bold uppercase block">On-Time SLA Bonus</span>
+                <p className="text-xl font-extrabold text-[#2463EB]">$50.00 USD</p>
+                <p className="text-[#0B1F5B] text-[11px]">Awarded for 99%+ on-time rate</p>
               </div>
             </div>
           </div>
@@ -1120,7 +1120,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
-                <span className="text-xs font-bold text-orange-600 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                <span className="text-xs font-bold text-[#2463EB] uppercase tracking-widest bg-[#EAF2FF] px-3 py-1 rounded-full border border-[#DCE5F0]">
                   Real-Time GPS Telematics & AI Dispatch
                 </span>
                 <h2 className="text-xl font-extrabold text-slate-900 mt-2">Driver Navigation & Route Optimizer</h2>
@@ -1139,10 +1139,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
             <div className="bg-slate-50/70 p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
               <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
                 <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#EAF2FF]0 animate-pulse"></span>
                   <span>DELIVERY TIMELINE STEPPER</span>
                 </h3>
-                <span className="text-[11px] font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200 font-mono">
+                <span className="text-[11px] font-bold text-[#2463EB] bg-[#EAF2FF] px-3 py-1 rounded-full border border-[#DCE5F0] font-mono">
                   Active Order: #{activeJob?.id || 'JOS-88190-SG'} ({activeJob?.status || 'In Transit'})
                 </span>
               </div>
@@ -1166,9 +1166,9 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                       {/* Timeline Node Icon */}
                       <div className={`absolute -left-6 sm:-left-8 top-0.5 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all z-10 ${
                         isCurrent
-                          ? 'bg-orange-500 text-white ring-4 ring-orange-100 shadow-orange-sm'
+                          ? 'bg-[#EAF2FF]0 text-white ring-4 ring-[#EAF2FF] shadow-sm'
                           : isCompleted
-                          ? 'bg-orange-500 text-white'
+                          ? 'bg-[#EAF2FF]0 text-white'
                           : 'bg-slate-200 text-slate-500'
                       }`}>
                         {isCompleted ? (
@@ -1181,13 +1181,13 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                       {/* Step Card */}
                       <div className={`flex-1 p-4 rounded-xl border transition-all ${
                         isCurrent
-                          ? 'bg-orange-50/80 border-orange-200 shadow-sm'
+                          ? 'bg-[#EAF2FF]/80 border-[#DCE5F0] shadow-sm'
                           : isCompleted
                           ? 'bg-white border-slate-200/90 shadow-2xs'
                           : 'bg-slate-50/60 border-slate-200/70 opacity-60'
                       }`}>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <h4 className={`text-sm font-extrabold ${isCurrent ? 'text-orange-600' : 'text-slate-900'}`}>
+                          <h4 className={`text-sm font-extrabold ${isCurrent ? 'text-[#2463EB]' : 'text-slate-900'}`}>
                             {step.title}
                           </h4>
                           {step.timestamp && (
@@ -1202,7 +1202,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
 
                         {/* Interactive Driver Actions for Current Active Step */}
                         {isCurrent && (
-                          <div className="mt-3 pt-3 border-t border-orange-200/80 flex flex-wrap items-center gap-2">
+                          <div className="mt-3 pt-3 border-t border-[#DCE5F0]/80 flex flex-wrap items-center gap-2">
                             <button
                               type="button"
                               onClick={() => {
@@ -1221,7 +1221,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs ${
                                 quickSmsSent
                                   ? 'bg-emerald-600 text-white border border-emerald-600'
-                                  : 'bg-orange-500 hover:bg-orange-600 text-white border border-orange-500'
+                                  : 'bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white border border-[#2463EB]'
                               }`}
                             >
                               <MessageSquare className="w-3.5 h-3.5" />
@@ -1251,7 +1251,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               {/* Route Optimization AI Suggestions */}
               <div className="lg:col-span-5 bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
                 <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                  <Zap className="w-4 h-4 text-orange-500" />
+                  <Zap className="w-4 h-4 text-[#2463EB]" />
                   <span>AI Neural Route Optimization</span>
                 </h3>
 
@@ -1260,9 +1260,9 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     <p className="font-bold">✓ Primary Express Toll Bypass Selected</p>
                     <p className="text-[11px] text-emerald-700 mt-0.5">Saves 24 mins & avoids metro traffic bottleneck.</p>
                   </div>
-                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-orange-900">
+                  <div className="p-3 bg-[#EAF2FF] border border-[#DCE5F0] rounded-xl text-[#0B1F5B]">
                     <p className="font-bold">⚠ Weather Alert Rerouting</p>
-                    <p className="text-[11px] text-orange-700 mt-0.5">Minor rain on I-80. Speed capped at 65 mph for safety.</p>
+                    <p className="text-[11px] text-[#0B1F5B] mt-0.5">Minor rain on I-80. Speed capped at 65 mph for safety.</p>
                   </div>
                 </div>
               </div>
@@ -1281,11 +1281,11 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                       key={idx} 
                       onClick={() => handleStatusChange(activeJob.id, s.targetStatus)}
                       title={`Click to set status to ${s.targetStatus}`}
-                      className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer hover:border-orange-400 transition-all ${
+                      className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer hover:border-[#2463EB] transition-all ${
                         s.status === 'Completed'
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
                           : s.status === 'Active'
-                          ? 'bg-orange-50 border-orange-200 text-orange-900 font-bold shadow-sm'
+                          ? 'bg-[#EAF2FF] border-[#DCE5F0] text-[#0B1F5B] font-bold shadow-sm'
                           : 'bg-slate-50 border-slate-200 text-slate-500'
                       }`}
                     >
@@ -1294,7 +1294,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                           s.status === 'Completed'
                             ? 'bg-emerald-500 text-white'
                             : s.status === 'Active'
-                            ? 'bg-orange-500 text-white animate-pulse'
+                            ? 'bg-[#EAF2FF]0 text-white animate-pulse'
                             : 'bg-slate-200 text-slate-600'
                         }`}>
                           {s.step}
@@ -1314,7 +1314,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <div className="pt-2">
                   <button
                     onClick={() => setDriverTab('update')}
-                    className="w-full py-3 bg-orange-gradient hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-orange-sm transition-all flex items-center justify-center space-x-2"
+                    className="w-full py-3 bg-[#2463EB]-gradient hover:bg-[#1D4ED8] text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center space-x-2"
                   >
                     <span>Proceed To Delivery Update Screen</span>
                     <ArrowRight className="w-4 h-4" />
@@ -1338,7 +1338,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
-                <span className="text-xs font-bold text-orange uppercase tracking-widest bg-orange/10 px-3 py-1 rounded-full border border-orange/20">
+                <span className="text-xs font-bold text-[#2463EB] uppercase tracking-widest bg-[#2463EB]/10 px-3 py-1 rounded-full border border-[#2463EB]/20">
                   Web-Based Trip & Proof of Delivery (POD) Center
                 </span>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2">
@@ -1350,7 +1350,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-orange bg-orange/10 px-3 py-1.5 rounded-xl border border-orange/20">
+                <span className="font-mono text-xs font-bold text-[#2463EB] bg-[#2463EB]/10 px-3 py-1.5 rounded-xl border border-[#2463EB]/20">
                   Shipment #{activeJob.id}
                 </span>
                 <span className={`text-xs font-bold px-3 py-1 rounded-full ${
@@ -1369,11 +1369,11 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
             <div className="bg-[#F5F6F8] rounded-2xl p-5 border border-slate-200 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                  <Navigation className="w-4 h-4 text-orange" />
+                  <Navigation className="w-4 h-4 text-[#2463EB]" />
                   <span>1. Trip Controls & Waypoint Telematics</span>
                 </h3>
                 <span className="text-[11px] text-slate-500 font-mono">
-                  Waypoint: <strong className="text-[#10182D]">{activeJob.currentLocation || 'Staging Bay'}</strong>
+                  Waypoint: <strong className="text-[#0B1F5B]">{activeJob.currentLocation || 'Staging Bay'}</strong>
                 </span>
               </div>
 
@@ -1386,12 +1386,12 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                   className={`p-3.5 rounded-xl border text-left transition-all ${
                     activeJob.status === 'In Transit'
                       ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-bold'
-                      : 'bg-white hover:bg-orange/5 border-slate-200 hover:border-orange/40 text-slate-800'
+                      : 'bg-white hover:bg-[#2463EB]/5 border-slate-200 hover:border-[#2463EB]/40 text-slate-800'
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span>Start Highway Trip</span>
-                    <Truck className="w-4 h-4 text-orange" />
+                    <Truck className="w-4 h-4 text-[#2463EB]" />
                   </div>
                   <span className="text-[11px] text-slate-500 block mt-1">
                     {activeJob.status === 'In Transit' ? '✓ Trip En Route' : 'Set status to In Transit'}
@@ -1406,7 +1406,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                   className={`p-3.5 rounded-xl border text-left transition-all ${
                     activeJob.status === 'Near Destination'
                       ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold'
-                      : 'bg-white hover:bg-orange/5 border-slate-200 hover:border-orange/40 text-slate-800'
+                      : 'bg-white hover:bg-[#2463EB]/5 border-slate-200 hover:border-[#2463EB]/40 text-slate-800'
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs font-bold">
@@ -1424,7 +1424,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                   <select
                     value={currentWaypoint}
                     onChange={(e) => handleUpdateLocationSubmit(e.target.value)}
-                    className="w-full bg-slate-50 p-2 rounded-lg text-slate-800 font-semibold border border-slate-200 focus:outline-none focus:border-orange text-xs"
+                    className="w-full bg-slate-50 p-2 rounded-lg text-slate-800 font-semibold border border-slate-200 focus:outline-none focus:border-[#2463EB] text-xs"
                   >
                     <option value="PIE Expressway (Exit 19 Telematics Gate)">PIE Expressway (Exit 19 Gate)</option>
                     <option value="AYE Highway Logistics Corridor">AYE Highway Corridor</option>
@@ -1475,13 +1475,13 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                         setOtpError('');
                       }}
                       placeholder="Enter 6-digit OTP"
-                      className="w-full px-4 py-3 bg-white border border-amber-300 rounded-xl text-center text-lg font-mono font-black tracking-widest text-[#10182D] focus:outline-none focus:border-orange focus:ring-2 focus:ring-orange/20"
+                      className="w-full px-4 py-3 bg-white border border-amber-300 rounded-xl text-center text-lg font-mono font-black tracking-widest text-[#0B1F5B] focus:outline-none focus:border-[#2463EB] focus:ring-2 focus:ring-[#2463EB]/25/20"
                       required
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-6 py-3 bg-orange hover:bg-orange/90 text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#2463EB] hover:bg-[#2463EB]/90 text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
                   >
                     Verify Handover OTP
                   </button>
@@ -1508,7 +1508,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
             <form onSubmit={handleCompleteDeliveryWithPod} className="space-y-6">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
-                  <ShieldCheck className="w-4 h-4 text-orange" />
+                  <ShieldCheck className="w-4 h-4 text-[#2463EB]" />
                   <span>3. Digital Proof of Delivery (e-POD) Sign-Off</span>
                 </h3>
                 <span className="text-xs text-slate-400">All fields required for carrier compliance</span>
@@ -1525,7 +1525,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
                     placeholder="e.g. Tan Ah Seng (Receiving Supervisor)"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-orange"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold focus-blue"
                     required
                   />
                   <span className="text-[10px] text-slate-400">Consignee representative receiving physical custody</span>
@@ -1541,7 +1541,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     value={deliveryRemarks}
                     onChange={(e) => setDeliveryRemarks(e.target.value)}
                     placeholder="e.g. Pallets unloaded, security seals intact"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-medium focus-orange"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-medium focus-blue"
                   />
                   <span className="text-[10px] text-slate-400">Dock number, cargo condition, exception notes</span>
                 </div>
@@ -1553,7 +1553,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <label className="font-bold text-slate-700 flex items-center gap-1.5">
-                      <Camera className="w-4 h-4 text-orange" />
+                      <Camera className="w-4 h-4 text-[#2463EB]" />
                       <span>Cargo Delivery Proof Photo *</span>
                     </label>
                     {proofPhotoUploaded && (
@@ -1573,7 +1573,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     className={`h-48 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-2 cursor-pointer transition-all overflow-hidden relative ${
                       proofPhotoUploaded
                         ? 'border-emerald-500 bg-emerald-50/50 text-emerald-800'
-                        : 'border-slate-300 hover:border-orange bg-slate-50 text-slate-500'
+                        : 'border-slate-300 hover:border-[#2463EB] bg-slate-50 text-slate-500'
                     }`}
                   >
                     {proofPhotoUploaded && photoPreview ? (
@@ -1585,7 +1585,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                       </div>
                     ) : (
                       <div className="text-center space-y-1.5">
-                        <Upload className="w-8 h-8 text-orange mx-auto" />
+                        <Upload className="w-8 h-8 text-[#2463EB] mx-auto" />
                         <p className="font-bold text-xs text-slate-800">Tap to Upload or Capture Delivery Photo</p>
                         <p className="text-[10px] text-slate-400">Loading dock, pallets, or building exterior</p>
                       </div>
@@ -1597,7 +1597,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <label className="font-bold text-slate-700 flex items-center gap-1.5">
-                      <Edit2 className="w-4 h-4 text-orange" />
+                      <Edit2 className="w-4 h-4 text-[#2463EB]" />
                       <span>Recipient Digital Signature *</span>
                     </label>
                     {hasSignature && (
@@ -1651,9 +1651,9 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     <button
                       type="button"
                       onClick={() => setSelectedDetailShipment(activeJob)}
-                      className="px-5 py-3 bg-[#10182D] hover:bg-navy/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      className="px-5 py-3 bg-[#0B1F5B] hover:bg-navy/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Download className="w-4 h-4 text-orange" />
+                      <Download className="w-4 h-4 text-[#2463EB]" />
                       <span>Download e-POD PDF</span>
                     </button>
                   )}

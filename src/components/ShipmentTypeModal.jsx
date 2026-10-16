@@ -44,7 +44,7 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Soft Ambient Background Highlights */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+        <div className="absolute top-0 right-0 w-72 h-72 bg-[#EAF2FF]0/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20"></div>
 
         {/* Circular Close Button at Top Right */}
@@ -59,7 +59,7 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
 
         {/* Header: Logo, Title & Subtitle */}
         <div className="text-center space-y-2.5 relative z-10 pt-1 pb-6">
-          <div className="inline-flex items-center space-x-2 bg-[#10182D] border border-slate-700 px-3.5 py-1.5 rounded-full shadow-xs">
+          <div className="inline-flex items-center space-x-2 bg-[#0B1F5B] border border-slate-700 px-3.5 py-1.5 rounded-full shadow-xs">
             <img 
               src="/assets/josan_logo.png" 
               alt="Josan Logistics" 
@@ -84,20 +84,20 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
           {/* CARD 1: Domestic Shipment (Orange Theme) */}
           <div
             onClick={() => handleSelectType('domestic')}
-            className={`group rounded-[24px] p-6 sm:p-7 border-2 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden bg-white hover:bg-orange-50/40 hover:-translate-y-1 hover:shadow-xl ${
+            className={`group rounded-[24px] p-6 sm:p-7 border-2 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden bg-white hover:bg-[#EAF2FF]/40 hover:-translate-y-1 hover:shadow-xl ${
               shipmentScope === 'domestic'
-                ? 'border-orange-500 ring-4 ring-orange-500/10 shadow-lg'
-                : 'border-slate-200 hover:border-orange-400 shadow-sm'
+                ? 'border-[#2463EB] ring-4 ring-[#2463EB]/25/10 shadow-lg'
+                : 'border-slate-200 hover:border-[#2463EB] shadow-sm'
             }`}
           >
             <div>
               {/* Rounded Square Icon Badge */}
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-md shadow-orange-500/25 group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2463EB] to-amber-500 text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
                 <Truck className="w-7 h-7 stroke-[2.2]" />
               </div>
 
               {/* Title & Description */}
-              <h3 className="text-xl font-black text-slate-900 mt-5 tracking-tight group-hover:text-orange-600 transition-colors">
+              <h3 className="text-xl font-black text-slate-900 mt-5 tracking-tight group-hover:text-[#2463EB] transition-colors">
                 Domestic Services
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed font-normal mt-2">
@@ -106,8 +106,8 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
 
               {/* Pill Badge */}
               <div className="mt-5">
-                <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-[11px] font-semibold">
-                  <span className="text-orange-500">★</span>
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#EAF2FF] border border-[#DCE5F0] text-[#0B1F5B] text-[11px] font-semibold">
+                  <span className="text-[#2463EB]">★</span>
                   <span>Same-Day & Express Transit</span>
                 </div>
               </div>
@@ -115,7 +115,7 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
 
             {/* Bottom Action: Get Started */}
             <div className="pt-6 flex justify-end items-center">
-              <div className="inline-flex items-center space-x-1.5 text-orange-600 group-hover:text-orange-700 font-bold text-sm transition-colors">
+              <div className="inline-flex items-center space-x-1.5 text-[#2463EB] group-hover:text-[#0B1F5B] font-bold text-sm transition-colors">
                 <span>Get Started</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -156,7 +156,7 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
 
             {/* Bottom Action: Get Started */}
             <div className="pt-6 flex justify-end items-center">
-              <div className="inline-flex items-center space-x-1.5 text-slate-900 group-hover:text-orange-600 font-bold text-sm transition-colors">
+              <div className="inline-flex items-center space-x-1.5 text-slate-900 group-hover:text-[#2463EB] font-bold text-sm transition-colors">
                 <span>Get Started</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -175,7 +175,7 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
                 setIsShipmentTypeModalOpen(false);
                 if (setActiveTab) setActiveTab('contact');
               }}
-              className="text-orange-600 hover:text-orange-700 hover:underline font-bold transition-colors cursor-pointer"
+              className="text-[#2463EB] hover:text-[#0B1F5B] hover:underline font-bold transition-colors cursor-pointer"
             >
               Contact Sales
             </button>

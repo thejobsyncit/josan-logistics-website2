@@ -24,6 +24,7 @@ import {
   Package,
   Building2,
   User,
+  UserCheck,
   Mail,
   Phone,
   DollarSign,
@@ -129,7 +130,7 @@ export const AirwayServicesTab = ({
       case 'Billing':
         return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case 'Transportation Coordination':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
+        return 'bg-[#EAF2FF] text-[#0B1F5B] border-[#DCE5F0]';
       case 'Completed':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       default:
@@ -141,7 +142,7 @@ export const AirwayServicesTab = ({
     if (serviceName.includes('Preparation')) return 'bg-blue-50 text-blue-700 border-blue-200';
     if (serviceName.includes('Billing')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     if (serviceName.includes('Documentation')) return 'bg-purple-50 text-purple-700 border-purple-200';
-    if (serviceName.includes('Transportation')) return 'bg-orange-50 text-orange-700 border-orange-200';
+    if (serviceName.includes('Transportation')) return 'bg-[#EAF2FF] text-[#0B1F5B] border-[#DCE5F0]';
     return 'bg-slate-100 text-slate-700 border-slate-200';
   };
 
@@ -303,8 +304,8 @@ export const AirwayServicesTab = ({
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-100 hover:border-orange-200 transition-all">
-            <div className="flex items-center space-x-2 text-orange-700 font-extrabold text-xs">
+          <div className="p-4 rounded-2xl bg-[#EAF2FF]/60 border border-[#DCE5F0] hover:border-[#DCE5F0] transition-all">
+            <div className="flex items-center space-x-2 text-[#0B1F5B] font-extrabold text-xs">
               <Truck className="w-4 h-4 shrink-0" />
               <span>Transportation Support</span>
             </div>
@@ -328,7 +329,7 @@ export const AirwayServicesTab = ({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search Request ID, customer, company, cargo..."
-                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange shadow-2xs"
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue shadow-2xs"
               />
             </div>
 
@@ -339,7 +340,7 @@ export const AirwayServicesTab = ({
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="py-1.5 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 text-xs focus-orange cursor-pointer"
+                  className="py-1.5 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 text-xs focus-blue cursor-pointer"
                 >
                   <option value="All">All Statuses</option>
                   {STATUSES.map(s => (
@@ -353,7 +354,7 @@ export const AirwayServicesTab = ({
                 <select
                   value={serviceFilter}
                   onChange={(e) => setServiceFilter(e.target.value)}
-                  className="py-1.5 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 text-xs focus-orange cursor-pointer"
+                  className="py-1.5 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 text-xs focus-blue cursor-pointer"
                 >
                   <option value="All">All Services</option>
                   <option value="Preparation">AWB Preparation</option>
@@ -436,12 +437,20 @@ export const AirwayServicesTab = ({
                         {/* 3. Shipment Details */}
                         <td className="p-3.5 align-top max-w-[200px]">
                           <div className="space-y-1">
-                            <p className="font-bold text-slate-800 text-xs truncate" title={req.cargoDescription}>
-                              {req.cargoDescription || 'Air Consignment'}
-                            </p>
+                            <div className="flex items-center justify-between gap-1">
+                              <p className="font-bold text-slate-800 text-xs truncate" title={req.cargoDescription}>
+                                {req.cargoDescription || 'Air Consignment'}
+                              </p>
+                              <span className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                {req.incoterm || 'FOB'}
+                              </span>
+                            </div>
                             <div className="text-[10px] text-slate-500 space-y-0.5">
                               <p className="truncate"><span className="font-semibold text-slate-700">From:</span> {req.origin || 'Changi (SIN)'}</p>
                               <p className="truncate"><span className="font-semibold text-slate-700">To:</span> {req.destination || 'International'}</p>
+                              {req.receiverName && (
+                                <p className="truncate text-slate-600 font-semibold"><span className="text-slate-400 font-normal">Consignee:</span> {req.receiverName}</p>
+                              )}
                               <p className="font-mono text-slate-600">
                                 {req.packagesCount || '1 pkgs'} • {req.totalWeight || 'N/A'}
                               </p>
@@ -538,7 +547,7 @@ export const AirwayServicesTab = ({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search AWB Number, Customer, Carrier Support..."
-                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange shadow-2xs"
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue shadow-2xs"
               />
             </div>
             <span className="text-xs text-slate-500 font-bold">
@@ -617,7 +626,7 @@ export const AirwayServicesTab = ({
                           <select
                             value={item.status}
                             onChange={(e) => onUpdateStatus && onUpdateStatus(item.id, e.target.value)}
-                            className="py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer focus-orange"
+                            className="py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer focus-blue"
                           >
                             <option value="New">New</option>
                             <option value="Documentation">Documentation</option>
@@ -650,14 +659,14 @@ export const AirwayServicesTab = ({
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
           <div className="bg-white rounded-3xl max-w-3xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8">
             {/* Modal Header */}
-            <div className="bg-[#0B132B] text-white p-6 sm:p-7 flex items-start justify-between">
+            <div className="bg-[#0B1F5B] text-white p-6 sm:p-7 flex items-start justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 rounded-2xl bg-blue-600/30 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0">
                   <Plane className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-mono font-black text-xl text-[#FF6B00]">
+                    <span className="font-mono font-black text-xl text-[#2463EB]">
                       {selectedRequest.id}
                     </span>
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${getStatusBadge(selectedRequest.status)}`}>
@@ -708,13 +717,13 @@ export const AirwayServicesTab = ({
 
             {/* Modal Body */}
             <div className="p-6 sm:p-7 space-y-6 max-h-[60vh] overflow-y-auto">
-              {/* Customer & Shipment Details Grid */}
+              {/* Customer, Receiver & Shipment Details Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Customer Details */}
+                {/* 1. Customer Details (Shipper) */}
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                   <div className="flex items-center space-x-2 text-slate-800 font-extrabold text-xs">
                     <User className="w-4 h-4 text-blue-600" />
-                    <span>Customer Details</span>
+                    <span>Customer Details (Shipper)</span>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div>
@@ -723,7 +732,7 @@ export const AirwayServicesTab = ({
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase block">Company Name</span>
-                      <span className="font-semibold text-slate-800">{selectedRequest.company || '—'}</span>
+                      <span className="font-semibold text-slate-800">{selectedRequest.company || selectedRequest.companyName || '—'}</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
@@ -742,18 +751,66 @@ export const AirwayServicesTab = ({
                   </div>
                 </div>
 
-                {/* Shipment Details */}
+                {/* 2. Receiver Details (Consignee) */}
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                   <div className="flex items-center space-x-2 text-slate-800 font-extrabold text-xs">
-                    <Package className="w-4 h-4 text-blue-600" />
-                    <span>Shipment Specifications</span>
+                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Receiver Details (Consignee)</span>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Receiver Name</span>
+                      <span className="font-bold text-slate-900">{selectedRequest.receiverName || 'Designated Consignee'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Company Name</span>
+                      <span className="font-semibold text-slate-800">{selectedRequest.receiverCompany || '—'}</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Email Address</span>
+                        {selectedRequest.receiverEmail ? (
+                          <a href={`mailto:${selectedRequest.receiverEmail}`} className="text-blue-600 hover:underline font-medium break-all">
+                            {selectedRequest.receiverEmail}
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic">Not provided</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Mobile / Phone</span>
+                        {selectedRequest.receiverPhone ? (
+                          <a href={`tel:${selectedRequest.receiverPhone}`} className="text-slate-800 font-mono font-bold">
+                            {selectedRequest.receiverPhone}
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic">Not provided</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Shipment Specifications */}
+                <div className="md:col-span-2 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between text-slate-800 font-extrabold text-xs">
+                    <div className="flex items-center space-x-2">
+                      <Package className="w-4 h-4 text-blue-600" />
+                      <span>Shipment Specifications & Trade Terms</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Incoterm:</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {selectedRequest.incoterm || 'FOB'}
+                      </span>
+                    </div>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase block">Cargo / Description</span>
                       <span className="font-bold text-slate-900">{selectedRequest.cargoDescription || 'Air Consignment'}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <span className="text-[10px] text-slate-400 font-bold uppercase block">Origin</span>
                         <span className="font-semibold text-slate-800">{selectedRequest.origin}</span>
@@ -862,7 +919,7 @@ export const AirwayServicesTab = ({
                   value={editingNotes}
                   onChange={(e) => setEditingNotes(e.target.value)}
                   placeholder="Add administrative notes, IATA master AWB reference, carrier confirmation, or clearance updates..."
-                  className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus-orange"
+                  className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus-blue"
                 />
               </div>
             </div>

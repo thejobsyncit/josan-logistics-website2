@@ -158,13 +158,13 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
         {/* Modal Top Header */}
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-[#EAF2FF]0 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
               <UserCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h3 className="font-extrabold text-lg text-slate-900">Assign Shipment Driver</h3>
-                <span className="font-mono text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">
+                <span className="font-mono text-xs font-bold text-[#2463EB] bg-[#EAF2FF] px-2 py-0.5 rounded-full border border-[#DCE5F0]">
                   #{shipment.id}
                 </span>
               </div>
@@ -193,7 +193,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Delivery / Destination</span>
             <div className="flex items-center space-x-1 font-semibold text-slate-800 truncate mt-0.5">
-              <MapPin className="w-3 h-3 text-orange-500 shrink-0" />
+              <MapPin className="w-3 h-3 text-[#2463EB] shrink-0" />
               <span className="truncate">{shipment.destination || 'Jurong Receiving Hub'}</span>
             </div>
           </div>
@@ -231,7 +231,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
             <div className="p-5 rounded-2xl bg-slate-900 text-slate-200 border border-slate-800 space-y-4 shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center space-x-2">
-                  <ShieldCheck className="w-4 h-4 text-orange-400" />
+                  <ShieldCheck className="w-4 h-4 text-[#2463EB]" />
                   <span className="text-xs font-bold text-white uppercase tracking-wider">
                     Driver Portal Login Credentials
                   </span>
@@ -255,7 +255,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                   <span className="text-[10px] font-sans font-bold text-slate-400 block uppercase mb-1">
                     Login Password
                   </span>
-                  <span className="text-orange-300 font-bold select-all">
+                  <span className="text-[#2463EB]-300 font-bold select-all">
                     {assignmentSuccess.password || 'driver123'}
                   </span>
                 </div>
@@ -283,7 +283,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
               <div className="flex flex-col sm:flex-row gap-2 pt-2">
                 <button
                   onClick={handleCopyCredentials}
-                  className="flex-1 py-2.5 px-4 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-orange-600/30"
+                  className="flex-1 py-2.5 px-4 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-orange-600/30"
                 >
                   {copiedState ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
                   <span>{copiedState ? 'Credentials Copied!' : 'Copy Login Credentials'}</span>
@@ -298,7 +298,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                     title="Switch directly into the Driver Portal as this user to test"
                   >
                     <span>Test Login Portal</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-orange-400" />
+                    <ExternalLink className="w-3.5 h-3.5 text-[#2463EB]" />
                   </button>
                 )}
               </div>
@@ -330,7 +330,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <UserPlus className="w-3.5 h-3.5 text-orange-500" />
+                <UserPlus className="w-3.5 h-3.5 text-[#2463EB]" />
                 <span>Register & Assign New Driver</span>
               </button>
               <button
@@ -360,8 +360,8 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
             {/* TAB 1: REGISTER NEW DRIVER */}
             {activeTab === 'new' && (
               <form onSubmit={handleAssignNewDriver} className="space-y-4">
-                <div className="p-3 bg-orange-50/70 border border-orange-200/80 rounded-2xl text-[11px] text-orange-950 flex items-start space-x-2">
-                  <Sparkles className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+                <div className="p-3 bg-[#EAF2FF]/70 border border-[#DCE5F0]/80 rounded-2xl text-[11px] text-[#2463EB]-950 flex items-start space-x-2">
+                  <Sparkles className="w-4 h-4 text-[#2463EB] shrink-0 mt-0.5" />
                   <span>
                     Provide the driver's basic details and portal credentials. An active driver account will be instantly created with this email and password so they can log into their portal immediately.
                   </span>
@@ -380,7 +380,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                       placeholder="e.g. David Tan Wei Ming"
                       value={newDriverData.name}
                       onChange={(e) => setNewDriverData({ ...newDriverData, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-orange shadow-2xs"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-blue shadow-2xs"
                     />
                   </div>
 
@@ -397,7 +397,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                       placeholder="+65 9123 4567"
                       value={newDriverData.phone}
                       onChange={(e) => setNewDriverData({ ...newDriverData, phone: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-orange shadow-2xs"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-blue shadow-2xs"
                     />
                   </div>
 
@@ -414,7 +414,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                       placeholder="driver@josanlogistics.com"
                       value={newDriverData.email}
                       onChange={(e) => setNewDriverData({ ...newDriverData, email: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-orange shadow-2xs"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-blue shadow-2xs"
                     />
                   </div>
 
@@ -429,7 +429,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                       <button
                         type="button"
                         onClick={handleGeneratePassword}
-                        className="text-[10px] font-bold text-orange-600 hover:text-orange-700 flex items-center space-x-0.5 cursor-pointer"
+                        className="text-[10px] font-bold text-[#2463EB] hover:text-[#0B1F5B] flex items-center space-x-0.5 cursor-pointer"
                       >
                         <KeyRound className="w-3 h-3" />
                         <span>Generate</span>
@@ -442,7 +442,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                         placeholder="Enter password"
                         value={newDriverData.password}
                         onChange={(e) => setNewDriverData({ ...newDriverData, password: e.target.value })}
-                        className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus-orange shadow-2xs font-bold"
+                        className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus-blue shadow-2xs font-bold"
                       />
                       <button
                         type="button"
@@ -463,7 +463,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                     <select
                       value={newDriverData.vehicleType}
                       onChange={(e) => setNewDriverData({ ...newDriverData, vehicleType: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-orange shadow-2xs cursor-pointer"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-blue shadow-2xs cursor-pointer"
                     >
                       {vehicleOptions.map((v) => (
                         <option key={v} value={v}>{v}</option>
@@ -480,7 +480,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                       placeholder="e.g. SG-8819"
                       value={newDriverData.vehicleId}
                       onChange={(e) => setNewDriverData({ ...newDriverData, vehicleId: e.target.value.toUpperCase() })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus-orange shadow-2xs"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus-blue shadow-2xs"
                     />
                   </div>
 
@@ -492,7 +492,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                       placeholder="e.g. SG-CLASS4-9910"
                       value={newDriverData.licenseNumber}
                       onChange={(e) => setNewDriverData({ ...newDriverData, licenseNumber: e.target.value.toUpperCase() })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus-orange shadow-2xs"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus-blue shadow-2xs"
                     />
                   </div>
 
@@ -502,7 +502,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                     <select
                       value={newDriverData.assignedHub}
                       onChange={(e) => setNewDriverData({ ...newDriverData, assignedHub: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-orange shadow-2xs cursor-pointer"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-blue shadow-2xs cursor-pointer"
                     >
                       {hubOptions.map((h) => (
                         <option key={h} value={h}>{h}</option>
@@ -522,7 +522,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+                    className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Create & Assign Driver</span>
@@ -554,7 +554,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                           onClick={() => setSelectedExistingDriverId(drv.id)}
                           className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                             isSelected
-                              ? 'bg-orange-50/80 border-[#FF6B00] shadow-xs'
+                              ? 'bg-[#EAF2FF]/80 border-[#2463EB] shadow-xs'
                               : 'bg-white border-slate-200 hover:bg-slate-50'
                           }`}
                         >
@@ -610,7 +610,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                     type="button"
                     onClick={handleAssignExistingDriver}
                     disabled={drivers.length === 0}
-                    className="px-5 py-2.5 bg-[#FF6B00] hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+                    className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
                   >
                     <UserCheck className="w-4 h-4" />
                     <span>Assign Selected Driver</span>

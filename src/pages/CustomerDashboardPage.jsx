@@ -417,11 +417,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
       {/* Customer Header Card */}
       <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-orange-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-orange-sm">
+          <div className="w-16 h-16 rounded-2xl bg-[#2463EB]-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-sm">
             {displayUser.name ? displayUser.name.charAt(0) : 'R'}
           </div>
           <div>
-            <span className="text-xs font-bold text-orange-600 uppercase tracking-widest bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+            <span className="text-xs font-bold text-[#2463EB] uppercase tracking-widest bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
               Customer Account
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">{displayUser.name || 'Razer Asia-Pacific HQ'}</h1>
@@ -432,7 +432,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setActiveTab('book')}
-            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5"
+            className="px-5 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Book New Shipment</span>
@@ -454,7 +454,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => setActiveSubTab('profile')}
             className={`w-full p-3 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold transition-all cursor-pointer ${
               activeSubTab === 'profile'
-                ? 'bg-orange-500 text-white shadow-orange-sm'
+                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -467,7 +467,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => setActiveSubTab('orders')}
             className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
               activeSubTab === 'orders'
-                ? 'bg-orange-500 text-white shadow-orange-sm'
+                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -476,7 +476,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <span>My Shipments</span>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeSubTab === 'orders' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'
+              activeSubTab === 'orders' ? 'bg-white/20 text-white' : 'bg-[#EAF2FF] text-[#0B1F5B]'
             }`}>
               {(shipments || []).length}
             </span>
@@ -487,7 +487,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => setActiveSubTab('quotes')}
             className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
               activeSubTab === 'quotes'
-                ? 'bg-orange-500 text-white shadow-orange-sm'
+                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -496,7 +496,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <span>Quotations</span>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeSubTab === 'quotes' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'
+              activeSubTab === 'quotes' ? 'bg-white/20 text-white' : 'bg-[#EAF2FF] text-[#0B1F5B]'
             }`}>
               {(quotes || []).length}
             </span>
@@ -507,7 +507,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => setActiveSubTab('notifications')}
             className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
               activeSubTab === 'notifications'
-                ? 'bg-orange-500 text-white shadow-orange-sm'
+                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -527,9 +527,9 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => {
               if (setActiveTab) setActiveTab('track');
             }}
-            className="w-full p-3 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold text-slate-700 hover:bg-slate-50 hover:text-orange-600 transition-all cursor-pointer"
+            className="w-full p-3 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold text-slate-700 hover:bg-slate-50 hover:text-[#2463EB] transition-all cursor-pointer"
           >
-            <Search className="w-4 h-4 shrink-0 text-orange-500" />
+            <Search className="w-4 h-4 shrink-0 text-[#2463EB]" />
             <span>Track Shipment</span>
           </button>
 
@@ -538,7 +538,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => setActiveSubTab('billing')}
             className={`w-full p-3 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold transition-all cursor-pointer ${
               activeSubTab === 'billing'
-                ? 'bg-orange-500 text-white shadow-orange-sm'
+                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -551,7 +551,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => setActiveSubTab('documents')}
             className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
               activeSubTab === 'documents'
-                ? 'bg-orange-500 text-white shadow-orange-sm'
+                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -560,7 +560,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <span>Documents Vault</span>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeSubTab === 'documents' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'
+              activeSubTab === 'documents' ? 'bg-white/20 text-white' : 'bg-[#EAF2FF] text-[#0B1F5B]'
             }`}>
               {customerDocuments.length}
             </span>
@@ -571,7 +571,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             onClick={() => setActiveSubTab('addresses')}
             className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
               activeSubTab === 'addresses'
-                ? 'bg-orange-500 text-white shadow-orange-sm'
+                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -592,7 +592,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               onClick={() => setActiveSubTab('manage')}
               className={`w-full p-2.5 rounded-xl flex items-center space-x-2 text-[11px] font-bold transition-all cursor-pointer ${
                 activeSubTab === 'manage'
-                  ? 'bg-orange-100 text-orange-700 font-extrabold'
+                  ? 'bg-[#EAF2FF] text-[#0B1F5B] font-extrabold'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
               }`}
             >
@@ -604,7 +604,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               onClick={() => setActiveSubTab('support')}
               className={`w-full p-2.5 rounded-xl flex items-center justify-between text-[11px] font-bold transition-all cursor-pointer ${
                 activeSubTab === 'support'
-                  ? 'bg-orange-100 text-orange-700 font-extrabold'
+                  ? 'bg-[#EAF2FF] text-[#0B1F5B] font-extrabold'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
               }`}
             >
@@ -613,7 +613,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 <span>Support & Claims</span>
               </div>
               {customerTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-orange-500 text-white">
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-[#EAF2FF]0 text-white">
                   {customerTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length}
                 </span>
               )}
@@ -635,7 +635,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="pt-4 mt-3 border-t border-slate-100 px-3 pb-1 space-y-2">
             <div className="flex justify-between items-center text-[11px]">
               <span className="text-slate-500 font-semibold">In-Transit:</span>
-              <span className="font-mono font-bold text-orange-600">
+              <span className="font-mono font-bold text-[#2463EB]">
                 {(shipments || []).filter(s => s.status !== 'Delivered').length}
               </span>
             </div>
@@ -672,12 +672,12 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             {(shipments || []).map((s) => (
               <div 
                 key={s.id} 
-                className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-orange-300/80 transition-all p-5 sm:p-6 space-y-4"
+                className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-[#2463EB]/40/80 transition-all p-5 sm:p-6 space-y-4"
               >
                 {/* 1. Header Bar: ID, Status, Service Tag, Ref & Amount */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="font-mono text-sm sm:text-base font-extrabold text-[#10182D] tracking-tight bg-slate-100 px-3 py-1 rounded-lg border border-slate-200/60">
+                    <span className="font-mono text-sm sm:text-base font-extrabold text-[#0B1F5B] tracking-tight bg-slate-100 px-3 py-1 rounded-lg border border-slate-200/60">
                       {s.id}
                     </span>
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide ${
@@ -685,12 +685,12 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' 
                         : s.status === 'Near Destination'
                         ? 'bg-amber-50 text-amber-900 border border-amber-300'
-                        : 'bg-orange-50 text-orange-800 border border-orange-200'
+                        : 'bg-[#EAF2FF] text-[#0B1F5B] border border-[#DCE5F0]'
                     }`}>
-                      <span className={`w-2 h-2 rounded-full ${s.status === 'Delivered' ? 'bg-emerald-500' : 'bg-orange-500 animate-ping'}`}></span>
+                      <span className={`w-2 h-2 rounded-full ${s.status === 'Delivered' ? 'bg-emerald-500' : 'bg-[#EAF2FF]0 animate-ping'}`}></span>
                       <span>{s.status}</span>
                     </span>
-                    <span className="text-xs font-bold text-[#FF6B00] bg-orange-50/80 px-3 py-1 rounded-full border border-orange-200/60">
+                    <span className="text-xs font-bold text-[#2463EB] bg-[#EAF2FF]/80 px-3 py-1 rounded-full border border-[#DCE5F0]/60">
                       {s.serviceLevel || 'Express Linehaul'}
                     </span>
                     {s.referenceNumber && (
@@ -702,7 +702,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
                   <div className="text-left sm:text-right shrink-0">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Contract Total</span>
-                    <span className="font-mono text-base font-black text-[#10182D]">{s.price || 'S$ 350.00'}</span>
+                    <span className="font-mono text-base font-black text-[#0B1F5B]">{s.price || 'S$ 350.00'}</span>
                   </div>
                 </div>
 
@@ -721,7 +721,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="flex flex-col items-center px-1 sm:px-2 shrink-0">
                       <div className="flex items-center text-slate-300 space-x-1">
                         <div className="w-8 sm:w-14 border-t-2 border-dashed border-slate-300"></div>
-                        <Truck className="w-4 h-4 text-[#FF6B00]" />
+                        <Truck className="w-4 h-4 text-[#2463EB]" />
                         <div className="w-8 sm:w-14 border-t-2 border-dashed border-slate-300"></div>
                       </div>
                       <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5">Express Corridors</span>
@@ -730,7 +730,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="flex-1 min-w-0 text-right">
                       <div className="flex items-center justify-end space-x-1.5 mb-1">
                         <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Destination Hub</span>
-                        <span className="w-2 h-2 rounded-full bg-[#FF6B00] shrink-0"></span>
+                        <span className="w-2 h-2 rounded-full bg-[#2463EB] shrink-0"></span>
                       </div>
                       <p className="text-xs sm:text-sm font-bold text-slate-900 truncate" title={s.destination}>{s.destination}</p>
                     </div>
@@ -739,19 +739,19 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   {/* Consignee, Cargo & Weight Chips */}
                   <div className="lg:col-span-5 flex flex-wrap lg:justify-end items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-200 lg:pl-4 text-xs">
                     <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 text-slate-700 flex items-center space-x-1.5 shadow-2xs">
-                      <Building2 className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <Building2 className="w-3.5 h-3.5 text-[#2463EB] shrink-0" />
                       <span className="truncate max-w-[150px]" title={s.receiver}>
                         <span className="text-slate-400 font-medium">Consignee:</span> <strong className="text-slate-800 font-bold">{s.receiver}</strong>
                       </span>
                     </div>
                     <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 text-slate-700 flex items-center space-x-1.5 shadow-2xs">
-                      <Package className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <Package className="w-3.5 h-3.5 text-[#2463EB] shrink-0" />
                       <span className="truncate max-w-[140px]" title={s.cargoType || 'General Freight'}>
                         <span className="text-slate-400 font-medium">Cargo:</span> <strong className="text-slate-800 font-bold">{s.cargoType || 'General Freight'}</strong>
                       </span>
                     </div>
                     <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 text-slate-700 flex items-center space-x-1.5 shadow-2xs">
-                      <Layers className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <Layers className="w-3.5 h-3.5 text-[#2463EB] shrink-0" />
                       <span>
                         <span className="text-slate-400 font-medium">Weight:</span> <strong className="text-slate-800 font-bold font-mono">{s.weight}</strong>
                       </span>
@@ -763,7 +763,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* Driver Tile */}
                   <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80 flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-orange-100/90 text-[#FF6B00] flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-9 h-9 rounded-xl bg-[#EAF2FF]/90 text-[#2463EB] flex items-center justify-center shrink-0 shadow-2xs">
                       <User className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -797,7 +797,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                         <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Live Telematics</span>
                         <span className="text-[10px] text-slate-400 font-mono">{s.lastUpdatedTime || 'Just now'}</span>
                       </div>
-                      <p className="text-xs font-bold text-[#FF6B00] truncate mt-0.5" title={s.currentLocation}>
+                      <p className="text-xs font-bold text-[#2463EB] truncate mt-0.5" title={s.currentLocation}>
                         {s.currentLocation || 'Expressway Corridor'}
                       </p>
                       <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
@@ -810,7 +810,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
                 {/* 4. Near Destination Delivery 2FA OTP Banner */}
                 {(s.status === 'Near Destination' || s.otpActive) && (
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300/90 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+                  <div className="bg-gradient-to-r from-amber-50 to-[#EAF2FF] border border-amber-300/90 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
                     <div className="flex items-center gap-3 text-amber-950 font-bold">
                       <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
                         <Lock className="w-4 h-4" />
@@ -864,7 +864,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap shadow-xs active:scale-95 ${
                         expandedMapId === s.id
                           ? 'bg-slate-900 text-white'
-                          : 'bg-[#FF6B00] hover:bg-[#E55C00] text-white shadow-orange-sm'
+                          : 'bg-[#2463EB] hover:bg-[#1D4ED8] text-white shadow-sm'
                       }`}
                     >
                       <Search className="w-3.5 h-3.5" />
@@ -873,9 +873,9 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
                     <button
                       onClick={() => setSelectedDetailShipment(s)}
-                      className="px-3.5 py-2 bg-[#10182D] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                      className="px-3.5 py-2 bg-[#0B1F5B] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
                     >
-                      <FileText className="w-3.5 h-3.5 text-orange-400" />
+                      <FileText className="w-3.5 h-3.5 text-[#2463EB]" />
                       <span>Full Dossier & POD</span>
                     </button>
 
@@ -917,11 +917,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                       <div>
                         <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center space-x-2">
-                          <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping"></span>
+                          <span className="w-2 h-2 rounded-full bg-[#EAF2FF]0 animate-ping"></span>
                           <span>DELIVERY TIMELINE STEPPER</span>
                         </h3>
                         <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                          Order Tracking Reference: <strong className="font-mono text-orange-600">#{s.id}</strong>
+                          Order Tracking Reference: <strong className="font-mono text-[#2463EB]">#{s.id}</strong>
                         </p>
                       </div>
                       <button
@@ -972,9 +972,9 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                           <div key={idx} className="relative flex items-start space-x-4 group">
                             <div className={`absolute -left-6 sm:-left-8 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
                               isCurrent
-                                ? 'bg-orange-500 text-white ring-4 ring-orange-100 shadow-orange-sm'
+                                ? 'bg-[#EAF2FF]0 text-white ring-4 ring-[#EAF2FF] shadow-sm'
                                 : isCompleted
-                                ? 'bg-orange-500 text-white'
+                                ? 'bg-[#EAF2FF]0 text-white'
                                 : 'bg-slate-100 text-slate-400 border border-slate-300 font-mono text-[11px]'
                             }`}>
                               {isCompleted || isCurrent ? <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> : idx + 1}
@@ -982,13 +982,13 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
                             <div className={`flex-1 p-4 rounded-2xl border transition-all ${
                               isCurrent
-                                ? 'bg-orange-50/80 border-orange-200 shadow-xs'
+                                ? 'bg-[#EAF2FF]/80 border-[#DCE5F0] shadow-xs'
                                 : isCompleted
                                 ? 'bg-white border-slate-200'
                                 : 'bg-slate-50/60 border-slate-100'
                             }`}>
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                <h4 className={`text-xs sm:text-sm font-extrabold ${isCurrent ? 'text-orange-600' : 'text-slate-900'}`}>
+                                <h4 className={`text-xs sm:text-sm font-extrabold ${isCurrent ? 'text-[#2463EB]' : 'text-slate-900'}`}>
                                   {step.title}
                                 </h4>
                                 <span className="text-[11px] font-semibold text-slate-400 font-mono">{step.timestamp}</span>
@@ -1017,7 +1017,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-orange" />
+                <DollarSign className="w-5 h-5 text-[#2463EB]" />
                 <span>Quotations & Freight Rate Proposals</span>
               </h2>
               <p className="text-xs text-slate-500 font-semibold mt-0.5">
@@ -1028,7 +1028,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               onClick={() => {
                 if (setActiveTab) setActiveTab('quote');
               }}
-              className="px-4 py-2 bg-orange hover:bg-orange/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              className="px-4 py-2 bg-[#2463EB] hover:bg-[#2463EB]/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Request New Quote</span>
@@ -1059,7 +1059,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 };
 
                 return (
-                  <div key={q.id} className="p-5 rounded-2xl border border-slate-200 bg-white hover:border-orange/30 transition-all shadow-xs space-y-4">
+                  <div key={q.id} className="p-5 rounded-2xl border border-slate-200 bg-white hover:border-[#2463EB]/30 transition-all shadow-xs space-y-4">
                     {/* Header & Status */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                       <div>
@@ -1071,7 +1071,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                               : isAccepted
                               ? 'bg-blue-100 text-blue-800 border border-blue-200'
                               : isSent
-                              ? 'bg-orange-100 text-orange-800 border border-orange-200 animate-pulse'
+                              ? 'bg-[#EAF2FF] text-[#0B1F5B] border border-[#DCE5F0] animate-pulse'
                               : isRejected
                               ? 'bg-rose-100 text-rose-800 border border-rose-200'
                               : 'bg-slate-100 text-slate-700'
@@ -1086,54 +1086,54 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
                       <div className="text-left sm:text-right">
                         <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Contract Amount</span>
-                        <span className="text-xl font-bold font-mono text-orange">
+                        <span className="text-xl font-bold font-mono text-[#2463EB]">
                           S$ {lineItems.finalAmount ? lineItems.finalAmount.toFixed(2) : '664.90'}
                         </span>
                       </div>
                     </div>
 
                     {/* Origin & Destination */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[#FFF8F2] p-3.5 rounded-xl border border-orange/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[#EAF2FF] p-3.5 rounded-xl border border-[#2463EB]/20">
                       <div>
                         <span className="text-slate-400 block text-[10px] uppercase font-bold">Origin / Loading Point</span>
-                        <strong className="text-[#10182D] text-sm">{q.origin}</strong>
+                        <strong className="text-[#0B1F5B] text-sm">{q.origin}</strong>
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px] uppercase font-bold">Destination / Unloading Point</span>
-                        <strong className="text-[#10182D] text-sm">{q.destination}</strong>
+                        <strong className="text-[#0B1F5B] text-sm">{q.destination}</strong>
                       </div>
                     </div>
 
                     {/* Line Items Breakdown Table (Requirement 6) */}
                     <div className="bg-[#F5F6F8] rounded-xl p-4 border border-slate-200 text-xs space-y-2">
-                      <span className="font-bold text-[#10182D] uppercase text-[11px] block tracking-wide">
+                      <span className="font-bold text-[#0B1F5B] uppercase text-[11px] block tracking-wide">
                         Itemized Pricing Breakdown
                       </span>
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-slate-600">
                         <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                           <span className="block text-slate-400 text-[10px]">Base Transport Charge</span>
-                          <strong className="text-[#10182D]">S$ {lineItems.baseCharge?.toFixed(2) || '0.00'}</strong>
+                          <strong className="text-[#0B1F5B]">S$ {lineItems.baseCharge?.toFixed(2) || '0.00'}</strong>
                         </div>
                         <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                           <span className="block text-slate-400 text-[10px]">Distance / Route Charge</span>
-                          <strong className="text-[#10182D]">S$ {lineItems.distanceCharge?.toFixed(2) || '0.00'}</strong>
+                          <strong className="text-[#0B1F5B]">S$ {lineItems.distanceCharge?.toFixed(2) || '0.00'}</strong>
                         </div>
                         <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                           <span className="block text-slate-400 text-[10px]">Cargo Handling & Security</span>
-                          <strong className="text-[#10182D]">S$ {lineItems.cargoCharge?.toFixed(2) || '0.00'}</strong>
+                          <strong className="text-[#0B1F5B]">S$ {lineItems.cargoCharge?.toFixed(2) || '0.00'}</strong>
                         </div>
                         <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                           <span className="block text-slate-400 text-[10px]">Vehicle Specification</span>
-                          <strong className="text-[#10182D]">S$ {lineItems.vehicleCharge?.toFixed(2) || '0.00'}</strong>
+                          <strong className="text-[#0B1F5B]">S$ {lineItems.vehicleCharge?.toFixed(2) || '0.00'}</strong>
                         </div>
                         <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                           <span className="block text-slate-400 text-[10px]">Additional Services / Accessorials</span>
-                          <strong className="text-[#10182D]">S$ {lineItems.additionalServices?.toFixed(2) || '0.00'}</strong>
+                          <strong className="text-[#0B1F5B]">S$ {lineItems.additionalServices?.toFixed(2) || '0.00'}</strong>
                         </div>
                         <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                           <span className="block text-slate-400 text-[10px]">Singapore GST (9%)</span>
-                          <strong className="text-[#10182D]">S$ {lineItems.taxAmount?.toFixed(2) || '0.00'}</strong>
+                          <strong className="text-[#0B1F5B]">S$ {lineItems.taxAmount?.toFixed(2) || '0.00'}</strong>
                         </div>
                       </div>
 
@@ -1160,7 +1160,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                           </span>
                         )}
                         {isSent && (
-                          <span className="text-orange font-semibold">
+                          <span className="text-[#2463EB] font-semibold">
                             Please review the pricing and accept or reject this quote.
                           </span>
                         )}
@@ -1193,7 +1193,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                                 setActiveSubTab('orders');
                               }
                             }}
-                            className="px-5 py-2.5 bg-orange hover:bg-orange/90 text-white rounded-xl text-xs font-black transition-all shadow-orange-sm cursor-pointer flex items-center gap-2 animate-bounce-subtle"
+                            className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#2463EB]/90 text-white rounded-xl text-xs font-black transition-all shadow-sm cursor-pointer flex items-center gap-2 animate-bounce-subtle"
                           >
                             <span>Proceed to Booking →</span>
                           </button>
@@ -1214,7 +1214,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <Bell className="w-5 h-5 text-orange" />
+                <Bell className="w-5 h-5 text-[#2463EB]" />
                 <span>Customer Notifications Center</span>
               </h2>
               <p className="text-xs text-slate-500 font-semibold mt-0.5">
@@ -1243,17 +1243,17 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   onClick={() => markNotificationAsRead(n.id)}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-4 ${
                     !n.read 
-                      ? 'bg-[#FFF8F2] border-orange/30 shadow-xs' 
+                      ? 'bg-[#EAF2FF] border-[#2463EB]/30 shadow-xs' 
                       : 'bg-white border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <h4 className={`text-sm font-bold ${!n.read ? 'text-[#10182D]' : 'text-slate-700'}`}>
+                      <h4 className={`text-sm font-bold ${!n.read ? 'text-[#0B1F5B]' : 'text-slate-700'}`}>
                         {n.title}
                       </h4>
                       {!n.read && (
-                        <span className="w-2 h-2 rounded-full bg-orange animate-pulse"></span>
+                        <span className="w-2 h-2 rounded-full bg-[#2463EB] animate-pulse"></span>
                       )}
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
@@ -1267,7 +1267,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                         setActiveTrackingId(n.shipmentId);
                         setActiveTab('track');
                       }}
-                      className="px-3 py-1 bg-white hover:bg-orange/10 text-orange border border-orange/30 rounded-lg text-xs font-bold shrink-0 transition-colors"
+                      className="px-3 py-1 bg-white hover:bg-[#2463EB]/10 text-[#2463EB] border border-[#2463EB]/30 rounded-lg text-xs font-bold shrink-0 transition-colors"
                     >
                       Track
                     </button>
@@ -1278,7 +1278,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                         e.stopPropagation();
                         setActiveSubTab('quotes');
                       }}
-                      className="px-3 py-1 bg-white hover:bg-orange/10 text-orange border border-orange/30 rounded-lg text-xs font-bold shrink-0 transition-colors"
+                      className="px-3 py-1 bg-white hover:bg-[#2463EB]/10 text-[#2463EB] border border-[#2463EB]/30 rounded-lg text-xs font-bold shrink-0 transition-colors"
                     >
                       View Quote
                     </button>
@@ -1306,7 +1306,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 value={ticketSubject}
                 onChange={(e) => setTicketSubject(e.target.value)}
                 placeholder="e.g. Expedite Customs Clearance"
-                className="w-full p-3 border border-slate-300 rounded-xl focus-orange"
+                className="w-full p-3 border border-slate-300 rounded-xl focus-blue"
                 required
               />
             </div>
@@ -1317,7 +1317,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 value={ticketMessage}
                 onChange={(e) => setTicketMessage(e.target.value)}
                 placeholder="Provide tracking ID or issue details..."
-                className="w-full p-3 border border-slate-300 rounded-xl focus-orange"
+                className="w-full p-3 border border-slate-300 rounded-xl focus-blue"
                 required
               ></textarea>
             </div>
@@ -1345,7 +1345,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <button
                 type="button"
                 onClick={() => setIsAddCardModalOpen(true)}
-                className="px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                className="px-4 py-2 bg-[#EAF2FF] hover:bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Payment Method</span>
@@ -1359,12 +1359,12 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   className={`p-5 rounded-2xl space-y-3 shadow-md border relative transition-all ${
                     card.isPrimary 
                       ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white border-slate-700' 
-                      : 'bg-white text-slate-900 border-slate-200 hover:border-orange-300'
+                      : 'bg-white text-slate-900 border-slate-200 hover:border-[#2463EB]/40'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     {card.isPrimary ? (
-                      <span className="text-[10px] font-extrabold uppercase bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 rounded-full">
+                      <span className="text-[10px] font-extrabold uppercase bg-[#EAF2FF]0/20 text-[#2463EB] border border-[#2463EB]/30 px-2.5 py-0.5 rounded-full">
                         ★ Primary Default
                       </span>
                     ) : (
@@ -1373,7 +1373,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                       </span>
                     )}
                     <div className="flex items-center space-x-1.5">
-                      <CreditCard className={`w-5 h-5 ${card.isPrimary ? 'text-slate-400' : 'text-orange-500'}`} />
+                      <CreditCard className={`w-5 h-5 ${card.isPrimary ? 'text-slate-400' : 'text-[#2463EB]'}`} />
                       {savedCards.length > 1 && (
                         <button
                           type="button"
@@ -1464,7 +1464,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                           ) : (
                             <button
                               onClick={() => setSelectedInvoiceShipment(s)}
-                              className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all inline-flex items-center space-x-1 cursor-pointer active:scale-95"
+                              className="px-3.5 py-1.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all inline-flex items-center space-x-1 cursor-pointer active:scale-95"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
                               <span>Pay Now</span>
@@ -1493,7 +1493,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             <button
               type="button"
               onClick={() => setIsEditingProfile(!isEditingProfile)}
-              className="px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+              className="px-4 py-2 bg-[#EAF2FF] hover:bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span>{isEditingProfile ? 'Cancel Editing' : 'Edit Profile'}</span>
@@ -1502,7 +1502,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
           {/* Profile Details Header Card */}
           <div className="flex items-center space-x-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div className="w-16 h-16 rounded-2xl bg-orange-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-orange-sm shrink-0">
+            <div className="w-16 h-16 rounded-2xl bg-[#2463EB]-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-sm shrink-0">
               {profileName ? profileName.charAt(0) : 'C'}
             </div>
             <div className="space-y-1">
@@ -1529,7 +1529,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   required
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue"
                 />
               </div>
 
@@ -1542,7 +1542,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   required
                   value={profileCompany}
                   onChange={(e) => setProfileCompany(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue"
                 />
               </div>
 
@@ -1555,14 +1555,14 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   required
                   value={profilePhone}
                   onChange={(e) => setProfilePhone(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange font-mono"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue font-mono"
                 />
               </div>
 
               <div className="pt-2 flex items-center space-x-3">
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+                  className="px-6 py-3 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Save Profile Details</span>
@@ -1629,7 +1629,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
                     placeholder="e.g. Jurong Hub Dock #4"
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue"
                   />
                 </div>
 
@@ -1638,7 +1638,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <select
                     value={newAddressType}
                     onChange={(e) => setNewAddressType(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange cursor-pointer"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue cursor-pointer"
                   >
                     <option value="pickup">Pickup Origin Location</option>
                     <option value="drop">Delivery Destination</option>
@@ -1652,7 +1652,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     value={newContact}
                     onChange={(e) => setNewContact(e.target.value)}
                     placeholder="e.g. Warehouse Supervisor"
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-slate-900 focus-blue"
                   />
                 </div>
               </div>
@@ -1665,14 +1665,14 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
                   placeholder="e.g. 10 Woodlands Industrial Park E5, Singapore 738322"
-                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-slate-900 focus-blue"
                 />
               </div>
 
               <div className="flex items-center space-x-2 pt-1">
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+                  className="px-5 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>{editingAddressId ? 'Update Address' : 'Save Address'}</span>
@@ -1694,13 +1694,13 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               {(addressList || []).map((addr) => (
                 <div
                   key={addr.id}
-                  className="p-5 bg-white rounded-2xl border border-slate-200 hover:border-orange-300 shadow-sm transition-all space-y-3 flex flex-col justify-between"
+                  className="p-5 bg-white rounded-2xl border border-slate-200 hover:border-[#2463EB]/40 shadow-sm transition-all space-y-3 flex flex-col justify-between"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                         addr.type === 'pickup'
-                          ? 'bg-orange-100 text-orange-800 border border-orange-200'
+                          ? 'bg-[#EAF2FF] text-[#0B1F5B] border border-[#DCE5F0]'
                           : 'bg-blue-100 text-blue-800 border border-blue-200'
                       }`}>
                         {addr.type === 'pickup' ? '📍 Pickup Point' : '🏁 Delivery Point'}
@@ -1743,7 +1743,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     onClick={() => {
                       if (setActiveTab) setActiveTab('book');
                     }}
-                    className="w-full py-2 bg-slate-50 hover:bg-orange-50 text-slate-700 hover:text-orange-600 rounded-xl text-xs font-bold transition-colors border border-slate-200 flex items-center justify-center space-x-1 cursor-pointer"
+                    className="w-full py-2 bg-slate-50 hover:bg-[#EAF2FF] text-slate-700 hover:text-[#2463EB] rounded-xl text-xs font-bold transition-colors border border-slate-200 flex items-center justify-center space-x-1 cursor-pointer"
                   >
                     <span>Use in New Booking</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -1762,7 +1762,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
                   Regulatory & Shipping Dossiers
                 </span>
                 <span className="text-xs font-bold text-slate-500 font-mono">
@@ -1777,7 +1777,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
             <button
               onClick={() => setIsUploadCustDocOpen(true)}
-              className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="px-4 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
             >
               <Upload className="w-4 h-4" />
               <span>Attach Consignment File</span>
@@ -1809,7 +1809,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <tr key={doc.id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-3">
                         <div className="flex items-center space-x-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-[#EAF2FF] border border-[#DCE5F0] text-[#2463EB] flex items-center justify-center shrink-0">
                             <FileText className="w-4 h-4" />
                           </div>
                           <div>
@@ -1823,7 +1823,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                           {doc.type}
                         </span>
                       </td>
-                      <td className="p-3 font-mono font-extrabold text-orange-600">
+                      <td className="p-3 font-mono font-extrabold text-[#2463EB]">
                         {doc.shipmentId}
                       </td>
                       <td className="p-3 text-slate-500">
@@ -1853,7 +1853,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                             URL.revokeObjectURL(url);
                             showToast(`Downloaded: ${doc.name}`, 'success');
                           }}
-                          className="px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold rounded-lg text-xs transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                          className="px-2.5 py-1 bg-[#EAF2FF] hover:bg-[#EAF2FF] text-[#0B1F5B] border border-[#DCE5F0] font-bold rounded-lg text-xs transition-colors inline-flex items-center space-x-1 cursor-pointer"
                         >
                           <Download className="w-3 h-3" />
                           <span>Download</span>
@@ -1876,7 +1876,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
                   Shipper Assistance
                 </span>
                 <span className="text-xs font-bold text-slate-500 font-mono">
@@ -1891,7 +1891,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
             <button
               onClick={() => setIsCreateTicketOpen(true)}
-              className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="px-4 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Create New Ticket</span>
@@ -1902,14 +1902,14 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="space-y-4">
             {customerTickets.length === 0 ? (
               <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                <LifeBuoy className="w-10 h-10 text-orange-500 mx-auto" />
+                <LifeBuoy className="w-10 h-10 text-[#2463EB] mx-auto" />
                 <h3 className="font-extrabold text-slate-900 text-base">No Support Tickets Logged</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
                   Need assistance with customs clearance, temperature-controlled transit, or invoice queries? Open a support ticket anytime.
                 </p>
                 <button
                   onClick={() => setIsCreateTicketOpen(true)}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
+                  className="px-4 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Open Inquiry Ticket</span>
@@ -1919,11 +1919,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               customerTickets.map((t) => (
                 <div
                   key={t.id}
-                  className="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-orange-300 transition-colors space-y-3"
+                  className="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-[#2463EB]/40 transition-colors space-y-3"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
                     <div className="flex items-center space-x-2.5">
-                      <span className="font-mono font-black text-orange-600 text-xs">{t.id}</span>
+                      <span className="font-mono font-black text-[#2463EB] text-xs">{t.id}</span>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-slate-200 text-slate-700">
                         {t.category || 'General Support'}
                       </span>
@@ -1935,7 +1935,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="flex items-center space-x-2">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                         t.status === 'Open'
-                          ? 'bg-orange-100 text-orange-800 border border-orange-300'
+                          ? 'bg-[#EAF2FF] text-[#0B1F5B] border border-[#2463EB]/40'
                           : t.status === 'In Progress'
                           ? 'bg-blue-100 text-blue-800 border border-blue-300'
                           : t.status === 'Waiting for Customer'
@@ -1948,7 +1948,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                       </span>
                       <button
                         onClick={() => setActiveCustomerTicket(t)}
-                        className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center space-x-1"
+                        className="px-3 py-1 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center space-x-1"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
                         <span>View Conversation ({t.messages ? t.messages.length : 1})</span>
@@ -1989,7 +1989,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <h3 className="text-base font-extrabold text-slate-900">
                     Send Message to Josan Logistics
                   </h3>
-                  <p className="text-[11px] text-slate-500 font-medium">Order Reference: <span className="font-mono font-bold text-orange-600">#{messageTargetOrder.id}</span></p>
+                  <p className="text-[11px] text-slate-500 font-medium">Order Reference: <span className="font-mono font-bold text-[#2463EB]">#{messageTargetOrder.id}</span></p>
                 </div>
               </div>
               <button
@@ -2003,8 +2003,8 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             <form onSubmit={handleSendMessageSubmit} className="space-y-4 text-xs">
               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
                 <div className="flex items-center justify-between font-bold text-slate-800">
-                  <span>Shipment Order: <strong className="font-mono text-orange-600">#{messageTargetOrder.id}</strong></span>
-                  <span className="text-[10px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded font-mono font-extrabold">{messageTargetOrder.status}</span>
+                  <span>Shipment Order: <strong className="font-mono text-[#2463EB]">#{messageTargetOrder.id}</strong></span>
+                  <span className="text-[10px] bg-[#EAF2FF] text-[#0B1F5B] px-2 py-0.5 rounded font-mono font-extrabold">{messageTargetOrder.status}</span>
                 </div>
                 <p className="text-[11px] text-slate-600">
                   Route: {messageTargetOrder.origin} → {messageTargetOrder.destination}
@@ -2017,7 +2017,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   type="text"
                   value={messageSubject}
                   onChange={(e) => setMessageSubject(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                   required
                 />
               </div>
@@ -2029,7 +2029,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   placeholder="Please state why you want to cancel this order or send instructions to Josan Logistics support team..."
-                  className="w-full p-3 border border-slate-300 rounded-xl focus-orange text-xs leading-relaxed text-slate-900 resize-none"
+                  className="w-full p-3 border border-slate-300 rounded-xl focus-blue text-xs leading-relaxed text-slate-900 resize-none"
                   required
                 />
               </div>
@@ -2068,7 +2068,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             {/* Modal Header */}
             <div className="bg-slate-900 text-white p-6 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[#EAF2FF]0/20 text-[#2463EB] border border-[#2463EB]/30 flex items-center justify-center font-bold">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
@@ -2108,7 +2108,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   value={newCardName}
                   onChange={(e) => setNewCardName(e.target.value)}
                   placeholder="e.g. Razer Corporate Operations"
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange text-xs"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue text-xs"
                   required
                 />
               </div>
@@ -2122,7 +2122,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <select
                     value={newCardType}
                     onChange={(e) => setNewCardType(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange text-xs cursor-pointer"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue text-xs cursor-pointer"
                   >
                     <option value="VISA">Visa Card</option>
                     <option value="MASTERCARD">Mastercard</option>
@@ -2138,7 +2138,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     value={newCardNickname}
                     onChange={(e) => setNewCardNickname(e.target.value)}
                     placeholder="e.g. Singapore Dispatch"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-orange text-xs"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue text-xs"
                   />
                 </div>
               </div>
@@ -2147,7 +2147,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <div>
                 <label className="block font-extrabold text-slate-700 uppercase tracking-wider text-[10px] mb-1 flex items-center justify-between">
                   <span>Card Number *</span>
-                  <span className="text-[10px] text-orange-600 font-mono">16 Digits</span>
+                  <span className="text-[10px] text-[#2463EB] font-mono">16 Digits</span>
                 </label>
                 <div className="relative flex items-center">
                   <input
@@ -2156,7 +2156,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     value={newCardNumber}
                     onChange={(e) => setNewCardNumber(formatCardNumber(e.target.value))}
                     placeholder="4532 8920 1102 4242"
-                    className="w-full p-3 pl-10 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-orange text-xs tracking-wider"
+                    className="w-full p-3 pl-10 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-blue text-xs tracking-wider"
                     required
                   />
                   <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5" />
@@ -2175,7 +2175,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     value={newCardExp}
                     onChange={(e) => setNewCardExp(formatExpDate(e.target.value))}
                     placeholder="MM/YY"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-orange text-xs text-center"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-blue text-xs text-center"
                     required
                   />
                 </div>
@@ -2190,7 +2190,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     value={newCardCvv}
                     onChange={(e) => setNewCardCvv(e.target.value.replace(/[^0-9]/g, ''))}
                     placeholder="•••"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-orange text-xs text-center"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-mono font-extrabold text-slate-900 focus-blue text-xs text-center"
                     required
                   />
                 </div>
@@ -2203,7 +2203,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     type="checkbox"
                     checked={newCardIsPrimary}
                     onChange={(e) => setNewCardIsPrimary(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500 border-slate-300 cursor-pointer"
+                    className="w-4 h-4 text-[#2463EB] rounded focus:ring-[#2463EB]/25 border-slate-300 cursor-pointer"
                   />
                   <span className="font-bold text-slate-800 text-xs">Set as primary default payment card for instant order billing</span>
                 </label>
@@ -2213,7 +2213,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <div className="pt-3 flex items-center space-x-3">
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95 text-xs"
+                  className="flex-1 py-3 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95 text-xs"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Authorize & Save Card</span>
@@ -2238,7 +2238,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-lg w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
-                <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] flex items-center justify-center font-bold">
                   <LifeBuoy className="w-5 h-5" />
                 </div>
                 <div>
@@ -2281,7 +2281,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 <select
                   value={newTicketForm.shipmentId}
                   onChange={(e) => setNewTicketForm({ ...newTicketForm, shipmentId: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-mono font-bold text-xs"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-mono font-bold text-xs"
                   required
                 >
                   <option value="">Select your shipment...</option>
@@ -2297,7 +2297,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <select
                     value={newTicketForm.category}
                     onChange={(e) => setNewTicketForm({ ...newTicketForm, category: e.target.value })}
-                    className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-bold text-xs"
+                    className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-bold text-xs"
                   >
                     <option value="Transit Status">Transit Status & ETA</option>
                     <option value="Customs & Clearance">Customs & Clearance</option>
@@ -2312,7 +2312,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <select
                     value={newTicketForm.priority}
                     onChange={(e) => setNewTicketForm({ ...newTicketForm, priority: e.target.value })}
-                    className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-bold text-xs"
+                    className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-bold text-xs"
                   >
                     <option value="Low">Low (Standard SLA)</option>
                     <option value="Medium">Medium (Priority)</option>
@@ -2328,7 +2328,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   value={newTicketForm.subject}
                   onChange={(e) => setNewTicketForm({ ...newTicketForm, subject: e.target.value })}
                   placeholder="e.g. Inquire about customs permit clearance timeline"
-                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-semibold text-xs"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-semibold text-xs"
                   required
                 />
               </div>
@@ -2340,7 +2340,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   value={newTicketForm.message}
                   onChange={(e) => setNewTicketForm({ ...newTicketForm, message: e.target.value })}
                   placeholder="Please state details regarding your shipment so our operations team can resolve it promptly..."
-                  className="w-full p-3 border border-slate-300 rounded-xl focus-orange text-xs text-slate-900 resize-none leading-relaxed"
+                  className="w-full p-3 border border-slate-300 rounded-xl focus-blue text-xs text-slate-900 resize-none leading-relaxed"
                   required
                 />
               </div>
@@ -2355,7 +2355,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold shadow-orange-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                  className="w-1/2 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
                 >
                   <Send className="w-4 h-4" />
                   <span>Submit Ticket</span>
@@ -2375,8 +2375,8 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="font-mono font-black text-orange-600 text-sm">{activeCustomerTicket.id}</span>
-                  <span className="px-2 py-0.5 bg-orange-100 text-orange-800 text-[10px] font-extrabold rounded-full">
+                  <span className="font-mono font-black text-[#2463EB] text-sm">{activeCustomerTicket.id}</span>
+                  <span className="px-2 py-0.5 bg-[#EAF2FF] text-[#0B1F5B] text-[10px] font-extrabold rounded-full">
                     {activeCustomerTicket.status}
                   </span>
                   <span className="text-xs text-slate-500 font-mono">
@@ -2406,7 +2406,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="flex items-center space-x-1.5 text-[10px] text-slate-400">
                       <span className="font-bold text-slate-600">{msg.senderName}</span>
                       <span className={`px-1.5 py-0.2 rounded font-black uppercase text-[9px] ${
-                        isCust ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
+                        isCust ? 'bg-[#EAF2FF] text-[#0B1F5B]' : 'bg-blue-100 text-blue-800'
                       }`}>
                         {isCust ? 'You (Customer)' : 'Josan Operations'}
                       </span>
@@ -2416,7 +2416,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div
                       className={`p-3 rounded-2xl max-w-md text-xs leading-relaxed ${
                         isCust
-                          ? 'bg-orange-500 text-white rounded-tr-xs shadow-2xs'
+                          ? 'bg-[#EAF2FF]0 text-white rounded-tr-xs shadow-2xs'
                           : 'bg-white text-slate-800 border border-slate-200 rounded-tl-xs shadow-2xs'
                       }`}
                     >
@@ -2457,11 +2457,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   value={customerReplyText}
                   onChange={(e) => setCustomerReplyText(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-orange text-xs"
+                  className="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-blue text-xs"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-extrabold text-xs shadow-orange-sm transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer"
+                  className="px-4 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold text-xs shadow-sm transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                   <span>Send</span>
@@ -2479,7 +2479,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-lg w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
-                <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] flex items-center justify-center font-bold">
                   <Upload className="w-5 h-5" />
                 </div>
                 <div>
@@ -2520,7 +2520,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 <select
                   value={newCustDocData.shipmentId}
                   onChange={(e) => setNewCustDocData({ ...newCustDocData, shipmentId: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-mono font-bold text-xs"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-mono font-bold text-xs"
                   required
                 >
                   <option value="">Select your shipment...</option>
@@ -2535,7 +2535,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 <select
                   value={newCustDocData.type}
                   onChange={(e) => setNewCustDocData({ ...newCustDocData, type: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-bold text-xs"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-bold text-xs"
                 >
                   <option value="Commercial Invoice">Commercial Invoice</option>
                   <option value="Packing List">Packing List</option>
@@ -2553,7 +2553,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   value={newCustDocData.name}
                   onChange={(e) => setNewCustDocData({ ...newCustDocData, name: e.target.value })}
                   placeholder="e.g. Packing_List_Export_JOS8821.pdf"
-                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-orange font-semibold text-xs"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-semibold text-xs"
                   required
                 />
               </div>
@@ -2568,7 +2568,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold shadow-orange-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                  className="w-1/2 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
                 >
                   <Upload className="w-4 h-4" />
                   <span>Upload Document</span>
@@ -2585,7 +2585,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-lg w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] flex items-center justify-center font-bold">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -2608,7 +2608,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold">Consignment ID:</span>
-                <span className="font-mono font-extrabold text-orange-600">{viewingCustDoc.shipmentId}</span>
+                <span className="font-mono font-extrabold text-[#2463EB]">{viewingCustDoc.shipmentId}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold">File Size:</span>
@@ -2644,7 +2644,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   URL.revokeObjectURL(url);
                   showToast(`Downloaded: ${viewingCustDoc.name}`, 'success');
                 }}
-                className="w-1/2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold shadow-orange-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                className="w-1/2 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
               >
                 <Download className="w-4 h-4" />
                 <span>Download File</span>

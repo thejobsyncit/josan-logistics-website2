@@ -75,7 +75,7 @@ export const RoadTransportationTab = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+            <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
               Commercial Goods Haulage
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
@@ -111,7 +111,7 @@ export const RoadTransportationTab = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search Shipment, Pickup/Delivery, Transportation Partner, Driver..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange shadow-2xs"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue shadow-2xs"
           />
         </div>
 
@@ -120,7 +120,7 @@ export const RoadTransportationTab = ({
           <select
             value={partnerFilter}
             onChange={(e) => setPartnerFilter(e.target.value)}
-            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Partners</option>
             <option value="Woodlands Linehaul Logistics Pte Ltd">Woodlands Linehaul Logistics</option>
@@ -165,7 +165,7 @@ export const RoadTransportationTab = ({
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3">
                       <div className="flex items-center space-x-2">
-                        <div className="w-7 h-7 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center shrink-0">
                           <Truck className="w-3.5 h-3.5" />
                         </div>
                         <div>
@@ -187,7 +187,7 @@ export const RoadTransportationTab = ({
                     </td>
                     <td className="p-3 text-slate-700">
                       <div className="flex items-start space-x-1.5 max-w-[150px]">
-                        <MapPin className="w-3 h-3 text-orange-500 shrink-0 mt-0.5" />
+                        <MapPin className="w-3 h-3 text-[#2463EB] shrink-0 mt-0.5" />
                         <span className="text-[11px] truncate" title={item.destination || item.receiverAddress}>
                           {item.destination || item.receiverAddress || 'Woodlands Checkpoint Depot'}
                         </span>
@@ -212,7 +212,7 @@ export const RoadTransportationTab = ({
                         {onOpenAssignDriver && (
                           <button
                             onClick={() => onOpenAssignDriver(item)}
-                            className="text-[10px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer mt-0.5 inline-block"
+                            className="text-[10px] font-bold text-[#2463EB] hover:text-[#0B1F5B] hover:underline cursor-pointer mt-0.5 inline-block"
                           >
                             {driverName && driverName !== 'Partner Driver' ? 'Change Driver' : '+ Assign Driver'}
                           </button>
@@ -223,7 +223,7 @@ export const RoadTransportationTab = ({
                       <select
                         value={item.status}
                         onChange={(e) => onUpdateStatus(item.id, e.target.value)}
-                        className="py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer focus-orange"
+                        className="py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer focus-blue"
                       >
                         <option value="New">New</option>
                         <option value="Documentation">Documentation</option>
@@ -238,7 +238,7 @@ export const RoadTransportationTab = ({
                         {onOpenAssignDriver && (
                           <button
                             onClick={() => onOpenAssignDriver(item)}
-                            className="px-2.5 py-1.5 bg-orange-50 hover:bg-[#FF6B00] text-orange-600 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                            className="px-2.5 py-1.5 bg-[#EAF2FF] hover:bg-[#2463EB] text-[#2463EB] hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
                             title="Assign Driver"
                           >
                             Assign
@@ -246,7 +246,7 @@ export const RoadTransportationTab = ({
                         )}
                         <button
                           onClick={() => onViewShipment(item)}
-                          className="px-3 py-1.5 bg-slate-100 hover:bg-[#FF6B00] hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-[#2463EB] hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
                         >
                           Details
                         </button>

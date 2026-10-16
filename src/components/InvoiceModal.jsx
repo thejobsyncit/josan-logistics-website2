@@ -68,7 +68,7 @@ export const InvoiceModal = () => {
           * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #0F172A; background: #ffffff; margin: 0; padding: 0; line-height: 1.5; font-size: 13px; }
           .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F26722; padding-bottom: 16px; margin-bottom: 20px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #2463EB; padding-bottom: 16px; margin-bottom: 20px; }
           .logo { height: 48px; width: auto; object-fit: contain; }
           .subtitle { font-size: 11px; color: #64748B; font-weight: 600; margin: 4px 0 2px 0; }
           .address { font-size: 11px; color: #64748B; margin: 0; }
@@ -76,30 +76,30 @@ export const InvoiceModal = () => {
           .inv-title { font-size: 22px; font-weight: 800; color: #0F172A; margin: 0 0 4px 0; }
           .inv-meta { font-size: 11px; color: #64748B; margin: 2px 0; }
           
-          .barcode-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+          .barcode-box { background: #F8FAFC; border: 1px solid #DCE5F0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
           .barcode-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; }
-          .barcode-id { font-family: monospace; font-size: 18px; font-weight: 800; color: #F26722; margin-top: 2px; }
+          .barcode-id { font-family: monospace; font-size: 18px; font-weight: 800; color: #2463EB; margin-top: 2px; }
           .barcode-lines { display: flex; align-items: center; gap: 2px; height: 32px; }
           .line { background: #0F172A; height: 100%; }
 
           .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-          .card { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; }
+          .card { background: #F8FAFC; border: 1px solid #DCE5F0; border-radius: 12px; padding: 14px; }
           .card-header { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; }
           .card-name { font-size: 14px; font-weight: 800; color: #0F172A; }
-          .card-desc { font-size: 12px; color: #475569; margin: 4px 0; }
+          .card-desc { font-size: 12px; color: #526581; margin: 4px 0; }
           .card-hub { font-size: 11px; color: #64748B; font-weight: 600; }
 
-          .section-title { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 0; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; }
-          th { background: #F1F5F9; font-weight: 700; color: #334155; padding: 10px 14px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+          .section-title { font-size: 11px; font-weight: 800; color: #526581; text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 0; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid #DCE5F0; border-radius: 10px; overflow: hidden; }
+          th { background: #F1F5F9; font-weight: 700; color: #334155; padding: 10px 14px; text-align: left; border-bottom: 1px solid #DCE5F0; }
           td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #F1F5F9; color: #334155; }
           tr:last-child td { border-bottom: none; }
-          .total-row { background: #FFF4EE !important; font-weight: 800; }
+          .total-row { background: #EAF2FF !important; font-weight: 800; }
           .total-row td { color: #0F172A; font-size: 14px; padding: 12px 14px; }
-          .total-amount { color: #F26722; font-weight: 800; font-family: monospace; font-size: 16px; }
+          .total-amount { color: #2463EB; font-weight: 800; font-family: monospace; font-size: 16px; }
           
-          .footer { margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748B; }
-          .footer-guarantee { font-weight: 600; color: #475569; }
+          .footer { margin-top: 30px; border-top: 1px solid #DCE5F0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748B; }
+          .footer-guarantee { font-weight: 600; color: #526581; }
         </style>
       </head>
       <body>
@@ -156,7 +156,7 @@ export const InvoiceModal = () => {
             </thead>
             <tbody>
               <tr>
-                <td style="font-weight: 700; color: #F26722;">${shipment.serviceLevel}</td>
+                <td style="font-weight: 700; color: #2463EB;">${shipment.serviceLevel}</td>
                 <td>${shipment.cargoType}</td>
                 <td style="font-family: monospace;">${shipment.weight} (${shipment.pieces || 1} Pcs)</td>
                 <td style="font-family: monospace;">${shipment.declaredValue || '$10,000'}</td>
@@ -248,15 +248,15 @@ export const InvoiceModal = () => {
       });
 
       // 1. Top Brand Accent Banner
-      doc.setFillColor(255, 107, 0); // #FF6B00
+      doc.setFillColor(255, 107, 0); // #2463EB
       doc.rect(0, 0, 210, 5, 'F');
 
       // 2. Company Brand & Metadata
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(20);
-      doc.setTextColor(16, 24, 45); // #10182D
+      doc.setTextColor(16, 24, 45); // #0B1F5B
       doc.text('JOSAN', 15, 20);
-      doc.setTextColor(255, 107, 0); // #FF6B00
+      doc.setTextColor(255, 107, 0); // #2463EB
       doc.text('LOGISTICS', 44, 20);
 
       doc.setFontSize(8.5);
@@ -450,7 +450,7 @@ export const InvoiceModal = () => {
       });
 
       // Total Row
-      doc.setFillColor(255, 244, 238); // #FFF4EE
+      doc.setFillColor(255, 244, 238); // #EAF2FF
       doc.rect(15, rowY, 180, 10, 'F');
 
       doc.setFont('helvetica', 'bold');
@@ -534,7 +534,7 @@ export const InvoiceModal = () => {
         {/* Action Controls Bar */}
         <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-orange-500" />
+            <FileText className="w-5 h-5 text-[#2463EB]" />
             <span className="font-bold text-sm">Official Freight Bill & Invoice</span>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-3">
@@ -543,7 +543,7 @@ export const InvoiceModal = () => {
               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
               title="Download official PDF invoice file"
             >
-              <Download className="w-3.5 h-3.5 text-orange-400" />
+              <Download className="w-3.5 h-3.5 text-[#2463EB]" />
               <span>Download PDF</span>
             </button>
 
@@ -558,7 +558,7 @@ export const InvoiceModal = () => {
 
             <button
               onClick={handlePrint}
-              className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 shadow-sm"
+              className="px-3 py-1.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 shadow-sm"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print Invoice</span>
@@ -577,10 +577,10 @@ export const InvoiceModal = () => {
         <div id="printable-invoice" className="p-8 space-y-6 bg-white text-slate-900">
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-orange-500 pb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-[#2463EB] pb-6">
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <div className="bg-[#10182D] p-2 rounded-xl inline-block shadow-xs">
+                <div className="bg-[#0B1F5B] p-2 rounded-xl inline-block shadow-xs">
                   <img src="/assets/josan_logo.png" alt="Josan Logistics Logo" className="h-9 w-auto object-contain" />
                 </div>
               </div>
@@ -603,7 +603,7 @@ export const InvoiceModal = () => {
                     {!showPaymentPanel && (
                       <button
                         onClick={() => setShowPaymentPanel(true)}
-                        className="px-3.5 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer active:scale-95"
+                        className="px-3.5 py-1 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-full text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer active:scale-95"
                       >
                         <CreditCard className="w-3.5 h-3.5" />
                         <span>Pay Now</span>
@@ -620,10 +620,10 @@ export const InvoiceModal = () => {
 
           {/* Payment Panel Section (If Unpaid & Pay Now clicked) */}
           {showPaymentPanel && !isPaid && (
-            <div className="bg-slate-900 text-white p-6 rounded-2xl border-2 border-orange-500 space-y-4 shadow-xl animate-fade-in my-4">
+            <div className="bg-slate-900 text-white p-6 rounded-2xl border-2 border-[#2463EB] space-y-4 shadow-xl animate-fade-in my-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center space-x-2">
-                  <Lock className="w-4 h-4 text-orange-400" />
+                  <Lock className="w-4 h-4 text-[#2463EB]" />
                   <h3 className="font-extrabold text-sm text-white">Invoice Quick Payment — #${shipment.id}</h3>
                 </div>
                 <button
@@ -642,11 +642,11 @@ export const InvoiceModal = () => {
                   onClick={() => setPaymentMethod('card')}
                   className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${
                     paymentMethod === 'card'
-                      ? 'bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500'
+                      ? 'bg-[#EAF2FF]0/20 border-[#2463EB] text-white ring-1 ring-[#2463EB]/25'
                       : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200'
                   }`}
                 >
-                  <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-orange-400' : ''}`} />
+                  <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-[#2463EB]' : ''}`} />
                   <span className="text-[11px] font-bold">Credit Card</span>
                 </button>
 
@@ -655,11 +655,11 @@ export const InvoiceModal = () => {
                   onClick={() => setPaymentMethod('paynow')}
                   className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${
                     paymentMethod === 'paynow'
-                      ? 'bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500'
+                      ? 'bg-[#EAF2FF]0/20 border-[#2463EB] text-white ring-1 ring-[#2463EB]/25'
                       : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200'
                   }`}
                 >
-                  <QrCode className={`w-5 h-5 ${paymentMethod === 'paynow' ? 'text-orange-400' : ''}`} />
+                  <QrCode className={`w-5 h-5 ${paymentMethod === 'paynow' ? 'text-[#2463EB]' : ''}`} />
                   <span className="text-[11px] font-bold">PayNow QR</span>
                 </button>
               </div>
@@ -682,7 +682,7 @@ export const InvoiceModal = () => {
                         value={cardNumber}
                         onChange={handleCardNumberChange}
                         placeholder="4532 8892 1042 8892"
-                        className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500 font-bold tracking-wider"
+                        className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#2463EB] font-bold tracking-wider"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -699,7 +699,7 @@ export const InvoiceModal = () => {
                           value={cardExpiry}
                           onChange={handleCardExpiryChange}
                           placeholder="MM/YY"
-                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500 font-bold tracking-wider"
+                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#2463EB] font-bold tracking-wider"
                         />
                       </div>
                       <div>
@@ -715,7 +715,7 @@ export const InvoiceModal = () => {
                           value={cardCvv}
                           onChange={handleCardCvvChange}
                           placeholder="•••"
-                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-orange-500 font-bold tracking-wider"
+                          className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#2463EB] font-bold tracking-wider"
                         />
                       </div>
                     </div>
@@ -725,31 +725,31 @@ export const InvoiceModal = () => {
                 {paymentMethod === 'paynow' && (
                   <div className="flex flex-col items-center justify-center text-center space-y-2 py-1">
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Scan SG PayNow QR</p>
-                    <div className="bg-white p-3 rounded-2xl border-2 border-orange-500 shadow-md">
+                    <div className="bg-white p-3 rounded-2xl border-2 border-[#2463EB] shadow-md">
                       <svg className="w-24 h-24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect width="100" height="100" fill="white"/>
                         <rect x="10" y="10" width="30" height="30" fill="#0f172a"/>
                         <rect x="15" y="15" width="20" height="20" fill="white"/>
-                        <rect x="20" y="20" width="10" height="10" fill="#f97316"/>
+                        <rect x="20" y="20" width="10" height="10" fill="#2463EB"/>
                         <rect x="60" y="10" width="30" height="30" fill="#0f172a"/>
                         <rect x="65" y="15" width="20" height="20" fill="white"/>
-                        <rect x="70" y="20" width="10" height="10" fill="#f97316"/>
+                        <rect x="70" y="20" width="10" height="10" fill="#2463EB"/>
                         <rect x="10" y="60" width="30" height="30" fill="#0f172a"/>
                         <rect x="15" y="65" width="20" height="20" fill="white"/>
-                        <rect x="20" y="70" width="10" height="10" fill="#f97316"/>
+                        <rect x="20" y="70" width="10" height="10" fill="#2463EB"/>
                         <rect x="45" y="10" width="10" height="10" fill="#0f172a"/>
-                        <rect x="45" y="25" width="10" height="15" fill="#f97316"/>
+                        <rect x="45" y="25" width="10" height="15" fill="#2463EB"/>
                         <rect x="10" y="45" width="15" height="10" fill="#0f172a"/>
                         <rect x="30" y="45" width="20" height="10" fill="#0f172a"/>
-                        <rect x="55" y="45" width="15" height="10" fill="#f97316"/>
+                        <rect x="55" y="45" width="15" height="10" fill="#2463EB"/>
                         <rect x="75" y="45" width="15" height="10" fill="#0f172a"/>
                         <rect x="45" y="60" width="10" height="20" fill="#0f172a"/>
                         <rect x="60" y="60" width="15" height="15" fill="#0f172a"/>
-                        <rect x="80" y="60" width="10" height="10" fill="#f97316"/>
+                        <rect x="80" y="60" width="10" height="10" fill="#2463EB"/>
                         <rect x="60" y="80" width="30" height="10" fill="#0f172a"/>
                       </svg>
                     </div>
-                    <p className="text-[11px] text-slate-300 font-semibold">PayNow UEN: <span className="font-mono text-orange-400">202012345M-JOS</span></p>
+                    <p className="text-[11px] text-slate-300 font-semibold">PayNow UEN: <span className="font-mono text-[#2463EB]">202012345M-JOS</span></p>
                     <p className="text-[10px] text-slate-400">DBS PayLah!, OCBC, UOB, GrabPay</p>
                   </div>
                 )}
@@ -764,8 +764,8 @@ export const InvoiceModal = () => {
                   isPaymentSuccess
                     ? 'bg-emerald-500 text-white shadow-emerald-500/30'
                     : isProcessingPayment
-                    ? 'bg-orange-600/90 text-white cursor-wait ring-2 ring-orange-400'
-                    : 'bg-orange-gradient hover:bg-orange-600 text-white shadow-orange-glow active:scale-95'
+                    ? 'bg-[#1D4ED8]/90 text-white cursor-wait ring-2 ring-[#2463EB]/25'
+                    : 'bg-[#2463EB]-gradient hover:bg-[#1D4ED8] text-white shadow-sm active:scale-95'
                 }`}
               >
                 {isPaymentSuccess ? (
@@ -792,7 +792,7 @@ export const InvoiceModal = () => {
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase font-bold text-slate-400">Tracking Bill of Lading</p>
-              <p className="text-lg font-mono font-bold text-orange-600">{shipment.id}</p>
+              <p className="text-lg font-mono font-bold text-[#2463EB]">{shipment.id}</p>
             </div>
             {/* Simulated Barcode */}
             <div className="flex items-center space-x-1 h-8 opacity-80">
@@ -834,7 +834,7 @@ export const InvoiceModal = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   <tr>
-                    <td className="p-3 font-semibold text-orange-600">{shipment.serviceLevel}</td>
+                    <td className="p-3 font-semibold text-[#2463EB]">{shipment.serviceLevel}</td>
                     <td className="p-3">{shipment.cargoType}</td>
                     <td className="p-3 font-mono">{shipment.weight} ({shipment.pieces || 1} Pcs)</td>
                     <td className="p-3 font-mono">{shipment.declaredValue || '$10,000'}</td>
@@ -872,9 +872,9 @@ export const InvoiceModal = () => {
                     <td className="p-3 text-slate-700">GST / Sales Tax (7%)</td>
                     <td className="p-3 text-right font-mono">${tax}</td>
                   </tr>
-                  <tr className="bg-orange-50 font-bold text-sm">
+                  <tr className="bg-[#EAF2FF] font-bold text-sm">
                     <td className="p-3 text-slate-900">TOTAL DUE / PAID</td>
-                    <td className="p-3 text-right font-mono text-orange-600">${totalPrice} USD</td>
+                    <td className="p-3 text-right font-mono text-[#2463EB]">${totalPrice} USD</td>
                   </tr>
                 </tbody>
               </table>
@@ -884,7 +884,7 @@ export const InvoiceModal = () => {
           {/* Footer Note */}
           <div className="pt-4 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between">
             <div className="flex items-center space-x-1.5">
-              <ShieldCheck className="w-4 h-4 text-orange-500" />
+              <ShieldCheck className="w-4 h-4 text-[#2463EB]" />
               <span>Full Cargo Loss Protection Guarantee by Josan Cover</span>
             </div>
             <p className="font-semibold text-slate-700">Thank you for choosing Josan Logistics!</p>

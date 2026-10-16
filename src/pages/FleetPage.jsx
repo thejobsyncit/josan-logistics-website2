@@ -217,40 +217,62 @@ export const FleetPage = ({ setActiveTab }) => {
 
   return (
     <div className="space-y-16 pb-24">
-      {/* Header Banner */}
-      <section className="bg-[#10182D] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
-          <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-flex items-center space-x-1.5">
-            <Truck className="w-3.5 h-3.5" />
+      {/* Header Banner with Organic Curve Transition */}
+      <section className="relative bg-[#0B1F3A] text-white pt-16 pb-26 sm:pt-20 sm:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Subtle Ambient Radial Lighting */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 left-1/4 w-96 h-96 bg-[#F26B21]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10 pb-2">
+          <span className="text-white font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-flex items-center space-x-1.5 backdrop-blur-xs">
+            <Truck className="w-3.5 h-3.5 text-[#B6C2D1]" />
             <span>Modern Road Transport Fleet</span>
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading text-white tracking-tight">
-            Our Vehicle & Transport Fleet
+            Our Vehicle &amp; Transport Fleet
           </h1>
-          <p className="text-white/90 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-[#B6C2D1] font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
             From nimble express city couriers to heavy 24-ton articulated prime movers and active multi-temp reefer trucks, our modern roadway fleet is fully GPS telematic-equipped for precision logistics across Singapore and regional corridors.
           </p>
 
           {/* Quick Stats Bar */}
           <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
             <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-              <span className="block text-2xl font-black text-orange-400 font-mono">100%</span>
-              <span className="text-xs text-slate-300 font-medium">GPS Telematics Active</span>
+              <span className="block text-2xl font-black text-white font-mono">100%</span>
+              <span className="text-xs text-[#B6C2D1] font-medium">GPS Telematics Active</span>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
               <span className="block text-2xl font-black text-white font-mono">8+</span>
-              <span className="text-xs text-slate-300 font-medium">Vehicle Classes</span>
+              <span className="text-xs text-[#B6C2D1] font-medium">Vehicle Classes</span>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
               <span className="block text-2xl font-black text-white font-mono">24,000 kg</span>
-              <span className="text-xs text-slate-300 font-medium">Max Payload Capacity</span>
+              <span className="text-xs text-[#B6C2D1] font-medium">Max Payload Capacity</span>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
               <span className="block text-2xl font-black text-emerald-400 font-mono">Euro-6</span>
-              <span className="text-xs text-slate-300 font-medium">Clean Emission Fleet</span>
+              <span className="text-xs text-[#B6C2D1] font-medium">Clean Emission Fleet</span>
             </div>
           </div>
+        </div>
+
+        {/* Layered Organic Wave Transition merging into the white background */}
+        <div className="absolute -bottom-px left-0 right-0 w-full overflow-hidden leading-none pointer-events-none z-10">
+          <svg 
+            className="relative block w-full h-10 sm:h-14 lg:h-20" 
+            viewBox="0 0 1440 100" 
+            fill="none" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M0,45 C380,95 720,90 1080,45 C1240,25 1360,20 1440,15 L1440,100 L0,100 Z" 
+              fill="rgba(255, 255, 255, 0.15)" 
+            />
+            <path 
+              d="M0,25 C320,85 720,95 1120,55 C1260,40 1370,25 1440,15 L1440,100 L0,100 Z" 
+              fill="#FFFFFF" 
+            />
+          </svg>
         </div>
       </section>
 
@@ -435,15 +457,15 @@ export const FleetPage = ({ setActiveTab }) => {
 
       {/* Fleet Standards & Compliance Showcase */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 rounded-3xl p-8 sm:p-12 text-white border border-slate-800 shadow-xl space-y-8">
+        <div className="bg-[#0B1F3A] rounded-3xl p-8 sm:p-12 text-white border border-[#1E3A5F] shadow-xl space-y-8">
           <div className="max-w-3xl space-y-3">
-            <span className="text-orange-400 font-bold uppercase text-xs tracking-widest bg-slate-800 px-3 py-1 rounded-full border border-slate-700 inline-block">
+            <span className="text-white font-bold uppercase text-xs tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/20 inline-block">
               Fleet Quality Assurance
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Rigorous Vehicle Maintenance & Compliance Standards
+              Rigorous Vehicle Maintenance &amp; Compliance Standards
             </h2>
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+            <p className="text-[#B6C2D1] text-xs sm:text-sm leading-relaxed">
               Every vehicle in the Josan Logistics fleet operates under strict ISO 9001 quality management, undergoes scheduled bi-weekly mechanical safety audits, and utilizes encrypted real-time telematics linked to our Fleet Control Hub.
             </p>
           </div>
@@ -452,22 +474,22 @@ export const FleetPage = ({ setActiveTab }) => {
             <div className="bg-white/5 border border-white/10 p-5 rounded-2xl space-y-2">
               <ShieldCheck className="w-7 h-7 text-emerald-400" />
               <h4 className="font-extrabold text-sm text-white">LTA Inspection Certified</h4>
-              <p className="text-xs text-slate-400">100% compliant with Singapore Land Transport Authority vehicle safety standards.</p>
+              <p className="text-xs text-[#B6C2D1]">100% compliant with Singapore Land Transport Authority vehicle safety standards.</p>
             </div>
             <div className="bg-white/5 border border-white/10 p-5 rounded-2xl space-y-2">
-              <Compass className="w-7 h-7 text-orange-400" />
+              <Compass className="w-7 h-7 text-[#B6C2D1]" />
               <h4 className="font-extrabold text-sm text-white">Live GPS Telematics</h4>
-              <p className="text-xs text-slate-400">Minute-by-minute location updates, geo-fenced alerts, and route speed governors.</p>
+              <p className="text-xs text-[#B6C2D1]">Minute-by-minute location updates, geo-fenced alerts, and route speed governors.</p>
             </div>
             <div className="bg-white/5 border border-white/10 p-5 rounded-2xl space-y-2">
               <Thermometer className="w-7 h-7 text-cyan-400" />
               <h4 className="font-extrabold text-sm text-white">Calibrated Dataloggers</h4>
-              <p className="text-xs text-slate-400">NIST-traceable IoT sensors with continuous thermal logging for cold chain freight.</p>
+              <p className="text-xs text-[#B6C2D1]">NIST-traceable IoT sensors with continuous thermal logging for cold chain freight.</p>
             </div>
             <div className="bg-white/5 border border-white/10 p-5 rounded-2xl space-y-2">
-              <Zap className="w-7 h-7 text-amber-400" />
+              <Zap className="w-7 h-7 text-[#B6C2D1]" />
               <h4 className="font-extrabold text-sm text-white">24/7 Roadside Assist</h4>
-              <p className="text-xs text-slate-400">Rapid response standby recovery units ensuring minimum downtime for your cargo.</p>
+              <p className="text-xs text-[#B6C2D1]">Rapid response standby recovery units ensuring minimum downtime for your cargo.</p>
             </div>
           </div>
         </div>

@@ -4,15 +4,28 @@
 
 @layer base {
   :root {
-    --brand-orange: #FF6B00;
-    --brand-orange-hover: #E55C00;
-    --brand-navy: #10182D;
-    --brand-white: #FFFFFF;
-    --brand-light: #FFF8F2;
-    --brand-soft: #F5F6F8;
-    --brand-text: #172033;
-    --brand-muted: #64748B;
-    --brand-border: #E2E8F0;
+    /* Required Core Design System Variables */
+    --navy: #0B1F3A;
+    --navy-light: #132A4A;
+    --orange: #F26B21;
+    --orange-hover: #D95A13;
+    --white: #FFFFFF;
+    --muted-on-dark: #B6C2D1;
+    --bg-light: #F5F7FA;
+    --text-dark: #1B2733;
+    --border-light: #E2E8F0;
+    --border-dark: #1E3A5F;
+
+    /* Backward compatibility aliases */
+    --brand-orange: var(--orange);
+    --brand-orange-hover: var(--orange-hover);
+    --brand-navy: var(--navy);
+    --brand-white: var(--white);
+    --brand-light: var(--bg-light);
+    --brand-soft: var(--bg-light);
+    --brand-text: var(--text-dark);
+    --brand-muted: var(--muted-on-dark);
+    --brand-border: var(--border-light);
     --brand-success: #16A34A;
     --brand-warning: #F59E0B;
     --brand-error: #DC2626;
@@ -23,8 +36,8 @@
   }
 
   body {
-    background-color: #F5F6F8;
-    color: #172033;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
     letter-spacing: -0.011em;
@@ -43,19 +56,24 @@
 
 /* Reusable Standardized Component Classes */
 @layer components {
-  /* Primary Button (Orange #FF6B00, 44-48px height, 8-10px radius, Inter 15-16px, weight 600) */
+  /* Primary Button (Flat Orange #F26B21, hover #D95A13, no harsh glow, primary CTAs only) */
   .btn-primary {
-    @apply h-11 sm:h-12 px-6 bg-[#FF6B00] hover:bg-[#E55C00] text-white font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer;
+    @apply h-11 sm:h-12 px-6 bg-[#F26B21] hover:bg-[#D95A13] text-white font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-colors duration-200 shadow-sm active:scale-[0.98] cursor-pointer;
   }
 
-  /* Secondary Button (Dark Navy #10182D, 44-48px height, 8-10px radius, weight 600) */
+  /* Secondary Button (Outline-only with thin white/light border, neutral enterprise feel) */
   .btn-secondary {
-    @apply h-11 sm:h-12 px-6 bg-[#10182D] hover:bg-[#1A243F] text-white font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer;
+    @apply h-11 sm:h-12 px-6 bg-transparent hover:bg-slate-100 text-[#0B1F3A] border border-slate-300 font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] cursor-pointer;
   }
 
-  /* Outline Button (White bg, Orange border, Orange text) */
+  /* Secondary Dark Button (Outline-only with thin white border for dark navy sections) */
+  .btn-secondary-dark {
+    @apply h-11 sm:h-12 px-6 bg-transparent hover:bg-white/10 text-white border border-white/20 font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] cursor-pointer;
+  }
+
+  /* Outline Button */
   .btn-outline {
-    @apply h-11 sm:h-12 px-6 bg-white hover:bg-[#FFF8F2] text-[#FF6B00] border-2 border-[#FF6B00] font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer;
+    @apply h-11 sm:h-12 px-6 bg-transparent hover:bg-slate-50 text-[#0B1F3A] border border-slate-300 font-semibold text-[15px] sm:text-base rounded-lg sm:rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer;
   }
 
   /* Premium Logistics Card */
@@ -63,9 +81,9 @@
     @apply bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-card hover:border-slate-300 transition-all duration-200;
   }
 
-  /* Standard Form Input (44-48px height, #E2E8F0 border, 8-10px radius, Inter 15-16px, white bg, orange focus) */
+  /* Standard Form Input */
   .input-standard {
-    @apply h-11 sm:h-12 w-full px-4 rounded-lg sm:rounded-xl border border-[#E2E8F0] bg-white text-[#172033] placeholder:text-[#64748B] text-[15px] sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all duration-200;
+    @apply h-11 sm:h-12 w-full px-4 rounded-lg sm:rounded-xl border border-[#E2E8F0] bg-white text-[#1B2733] placeholder:text-[#64748B] text-[15px] sm:text-base focus:outline-none focus:ring-2 focus:ring-[#0B1F3A] focus:border-[#0B1F3A] transition-all duration-200;
   }
 }
 
@@ -82,7 +100,7 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF6B00;
+  background: #94A3B8;
 }
 
 /* Hide native up/down number input spinners */
@@ -97,22 +115,9 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* Orange Focus State Utility */
-.focus-orange {
-  @apply focus:outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all duration-200;
-}
-
-/* Brand Gradients & Shadows */
-.bg-orange-gradient {
-  background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%) !important;
-}
-
-.shadow-orange-sm {
-  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.25);
-}
-
-.shadow-orange-md {
-  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+/* Navy Focus State Utility */
+.focus-navy {
+  @apply focus:outline-none focus:ring-2 focus:ring-[#0B1F3A] focus:border-[#0B1F3A] transition-all duration-200;
 }
 
 /* Subtle route animation */
