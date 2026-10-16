@@ -212,7 +212,7 @@ export const HomePage = ({ setActiveTab }) => {
             preload="auto"
             onLoadedMetadata={(e) => { e.currentTarget.playbackRate = 0.65; }}
             onPlay={(e) => { e.currentTarget.playbackRate = 0.65; }}
-            className="w-full h-full object-cover object-center transform scale-105"
+            className="w-full h-full object-cover object-[70%_center] sm:object-[75%_center] lg:object-[80%_center] transform scale-105"
           >
             <source src="/assets/freight_truck_highway.mp4" type="video/mp4" />
           </video>
@@ -220,21 +220,27 @@ export const HomePage = ({ setActiveTab }) => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           
-          {/* Frosted Glass Container for High Contrast and Maximum Readability */}
-          <div className="max-w-2xl lg:max-w-3xl p-6 sm:p-8 lg:p-10 rounded-3xl bg-slate-950/45 backdrop-blur-md border border-white/15 shadow-2xl space-y-6">
+          {/* Left-aligned text container without any box blocking the truck */}
+          <div className="max-w-xl lg:max-w-2xl space-y-6 text-left">
             <div 
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs sm:text-sm font-semibold text-white backdrop-blur-md shadow-xs bg-white/10 border-white/20"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs sm:text-sm font-semibold text-white backdrop-blur-md shadow-md bg-black/50 border-white/20"
             >
               <Sparkles className="w-4 h-4 text-[#F26B21]" />
               <span className="tracking-wider uppercase font-semibold text-xs text-white">LOGISTICS &amp; TRANSPORTATION SUPPORT</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[62px] font-black tracking-tight text-white leading-[1.08] drop-shadow-md">
+            <h1 
+              className="text-4xl sm:text-5xl lg:text-[54px] xl:text-[58px] font-black tracking-tight text-white leading-[1.1]"
+              style={{ textShadow: '0 2px 10px rgba(0,0,0,0.85), 0 4px 24px rgba(0,0,0,0.7)' }}
+            >
               <span className="block text-white">Reliable Logistics Solutions</span>
               <span className="block text-white">For Every Journey</span>
             </h1>
 
-            <p className="text-white/95 text-base sm:text-lg lg:text-xl leading-relaxed font-medium max-w-2xl drop-shadow-sm">
+            <p 
+              className="text-white text-base sm:text-lg lg:text-xl leading-relaxed font-medium max-w-xl"
+              style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9), 0 2px 14px rgba(0,0,0,0.75)' }}
+            >
               From Air Waybill preparation and shipment documentation to commercial road transportation, we provide reliable logistics support for businesses moving goods from one location to another.
             </p>
 
@@ -243,7 +249,7 @@ export const HomePage = ({ setActiveTab }) => {
               <button
                 type="button"
                 onClick={handleQuoteAction}
-                className="px-8 py-4 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-full font-bold text-sm sm:text-base tracking-wider uppercase transition-colors flex items-center space-x-2.5 cursor-pointer active:scale-95 group shadow-md"
+                className="px-8 py-4 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-full font-bold text-sm sm:text-base tracking-wider uppercase transition-colors flex items-center space-x-2.5 cursor-pointer active:scale-95 group shadow-lg"
               >
                 <span>Get a Freight Quote</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
