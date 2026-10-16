@@ -15,6 +15,7 @@ import {
   ShieldCheck, 
   Building2, 
   User, 
+  UserCheck,
   Mail, 
   Phone, 
   MapPin, 
@@ -155,6 +156,11 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
     companyName: currentUser?.company || '',
     email: currentUser?.email || '',
     phone: currentUser?.phone || '+65 ',
+    receiverName: '',
+    receiverCompany: '',
+    receiverEmail: '',
+    receiverPhone: '',
+    incoterm: 'FOB',
     origin: 'SIN - Singapore Changi Airport (Air Cargo Complex)',
     destination: '',
     cargoDescription: '',
@@ -304,6 +310,12 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required.';
     if (!formData.email.trim() || !formData.email.includes('@')) newErrors.email = 'Valid Email is required.';
     if (!formData.phone.trim() || formData.phone.length < 8) newErrors.phone = 'Valid Phone Number is required.';
+
+    // Receiver Details Validation
+    if (!formData.receiverName.trim()) newErrors.receiverName = 'Receiver name is required.';
+    if (!formData.receiverEmail.trim() || !formData.receiverEmail.includes('@')) newErrors.receiverEmail = 'Valid Receiver Email is required.';
+    if (!formData.receiverPhone.trim() || formData.receiverPhone.length < 7) newErrors.receiverPhone = 'Valid Receiver Mobile / Phone is required.';
+
     if (!formData.origin.trim()) newErrors.origin = 'Shipment origin is required.';
     if (!destinationOption) {
       newErrors.destination = 'Please select a destination airport / country.';
@@ -344,6 +356,11 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
       companyName: formData.companyName.trim() || 'Commercial Consignor',
       email: formData.email.trim().toLowerCase(),
       phone: formData.phone.trim(),
+      receiverName: formData.receiverName.trim(),
+      receiverCompany: formData.receiverCompany.trim() || 'Consignee Recipient',
+      receiverEmail: formData.receiverEmail.trim().toLowerCase(),
+      receiverPhone: formData.receiverPhone.trim(),
+      incoterm: formData.incoterm || 'FOB',
       origin: formData.origin.trim(),
       destination: formData.destination.trim(),
       cargoDescription: formData.cargoDescription.trim(),
@@ -389,7 +406,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
         <div>
           <button
             onClick={() => setActiveTab ? setActiveTab('air-freight') : (window.location.hash = '#air-freight')}
-            className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-orange-600 transition-colors cursor-pointer group"
+            className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-[#2463EB] transition-colors cursor-pointer group"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             <span>Back to Airway Services Overview</span>
@@ -421,7 +438,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <span className="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">
                       Airway Request ID
                     </span>
-                    <span className="text-lg sm:text-xl font-mono font-black text-orange-400">
+                    <span className="text-lg sm:text-xl font-mono font-black text-[#2463EB]">
                       {submittedRequest.id}
                     </span>
                   </div>
@@ -445,29 +462,37 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Customer / Company</span>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Customer / Shipper (Consignor)</span>
                   <p className="font-bold text-slate-800 text-sm mt-0.5">{submittedRequest.customerName}</p>
                   <p className="text-slate-500">{submittedRequest.company || submittedRequest.companyName}</p>
                   <p className="text-slate-400 font-mono mt-0.5">{submittedRequest.email} • {submittedRequest.phone}</p>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Airway Route</span>
-                  <p className="font-bold text-slate-800 mt-0.5">{submittedRequest.origin}</p>
-                  <p className="font-bold text-orange-600">↳ {submittedRequest.destination}</p>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Receiver / Consignee</span>
+                  <p className="font-bold text-slate-800 text-sm mt-0.5">{submittedRequest.receiverName || 'Consignee Recipient'}</p>
+                  <p className="text-slate-500">{submittedRequest.receiverCompany || 'Designated Company'}</p>
+                  <p className="text-slate-400 font-mono mt-0.5">{submittedRequest.receiverEmail} • {submittedRequest.receiverPhone}</p>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Cargo Specifications</span>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Airway Route & Trade Terms</span>
+                  <p className="font-bold text-slate-800 mt-0.5">{submittedRequest.origin}</p>
+                  <p className="font-bold text-[#2463EB]">↳ {submittedRequest.destination}</p>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Incoterm: {submittedRequest.incoterm || 'FOB'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Cargo Specifications & Value</span>
                   <p className="font-semibold text-slate-800 mt-0.5">{submittedRequest.cargoDescription}</p>
                   <p className="text-slate-500 font-mono">
                     {submittedRequest.packagesCount} • {submittedRequest.totalWeight} • {submittedRequest.dimensions}
                   </p>
-                </div>
-
-                <div>
-                  <span className="text-slate-400 text-[10px] font-bold uppercase block">Declared Cargo Value</span>
-                  <p className="font-mono font-bold text-slate-900 text-sm mt-0.5">{submittedRequest.approximateValue}</p>
+                  <p className="font-mono font-bold text-slate-900 text-xs mt-1">Est. Value: {submittedRequest.approximateValue}</p>
                 </div>
               </div>
 
@@ -530,7 +555,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
               <div className="flex items-center space-x-2 w-full sm:w-auto">
                 <button
                   onClick={() => setActiveTab ? setActiveTab('air-freight') : (window.location.hash = '#air-freight')}
-                  className="flex-1 sm:flex-none px-6 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all cursor-pointer"
+                  className="flex-1 sm:flex-none px-6 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
                 >
                   Return to Airway Services
                 </button>
@@ -573,9 +598,9 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
               {/* 1. CUSTOMER DETAILS */}
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                  <User className="w-4 h-4 text-orange-500" />
+                  <User className="w-4 h-4 text-[#2463EB]" />
                   <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wide">
-                    1. Customer Details
+                    1. Customer Details (Shipper / Consignor)
                   </h3>
                 </div>
 
@@ -592,7 +617,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. Marcus Lim"
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-bold text-slate-900 focus-orange shadow-2xs ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-bold text-slate-900 focus-blue shadow-2xs ${
                         errors.fullName ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                       }`}
                     />
@@ -607,7 +632,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. Changi Aviation Logistics Pte Ltd"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs"
                     />
                   </div>
 
@@ -623,7 +648,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. ops@changiaviation.sg"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-orange shadow-2xs ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
                         errors.email ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                       }`}
                     />
@@ -642,7 +667,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="+65 6543 2100"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-orange shadow-2xs ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
                         errors.phone ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                       }`}
                     />
@@ -651,12 +676,102 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                 </div>
               </div>
 
-              {/* 2. SHIPMENT DETAILS */}
+              {/* 2. RECEIVER DETAILS */}
               <div className="space-y-4 pt-2">
                 <div className="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                  <MapPin className="w-4 h-4 text-orange-500" />
+                  <UserCheck className="w-4 h-4 text-[#2463EB]" />
                   <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wide">
-                    2. Shipment Details
+                    2. Receiver Details (Consignee)
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Receiver Name */}
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700 flex items-center space-x-1">
+                      <span>Receiver Name</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Kenji Takahashi"
+                      value={formData.receiverName}
+                      onChange={(e) => {
+                        setFormData({ ...formData, receiverName: e.target.value });
+                        if (errors.receiverName) setErrors({ ...errors, receiverName: null });
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-bold text-slate-900 focus-blue shadow-2xs ${
+                        errors.receiverName ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
+                      }`}
+                    />
+                    {errors.receiverName && <p className="text-[10px] text-red-500 font-bold">{errors.receiverName}</p>}
+                  </div>
+
+                  {/* Receiver Company */}
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700">Company Name (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Narita Tech Logistics Co."
+                      value={formData.receiverCompany}
+                      onChange={(e) => setFormData({ ...formData, receiverCompany: e.target.value })}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs"
+                    />
+                  </div>
+
+                  {/* Receiver Email */}
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700 flex items-center space-x-1">
+                      <span>Receiver Email Address</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. receiving@naritatech.co.jp"
+                      value={formData.receiverEmail}
+                      onChange={(e) => {
+                        setFormData({ ...formData, receiverEmail: e.target.value });
+                        if (errors.receiverEmail) setErrors({ ...errors, receiverEmail: null });
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
+                        errors.receiverEmail ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
+                      }`}
+                    />
+                    {errors.receiverEmail && <p className="text-[10px] text-red-500 font-bold">{errors.receiverEmail}</p>}
+                  </div>
+
+                  {/* Receiver Mobile Number */}
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700 flex items-center space-x-1">
+                      <span>Receiver Mobile No</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. +81 90 1234 5678"
+                      value={formData.receiverPhone}
+                      onChange={(e) => {
+                        setFormData({ ...formData, receiverPhone: e.target.value });
+                        if (errors.receiverPhone) setErrors({ ...errors, receiverPhone: null });
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
+                        errors.receiverPhone ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
+                      }`}
+                    />
+                    {errors.receiverPhone && <p className="text-[10px] text-red-500 font-bold">{errors.receiverPhone}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. SHIPMENT DETAILS */}
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center space-x-2 border-b border-slate-100 pb-2">
+                  <MapPin className="w-4 h-4 text-[#2463EB]" />
+                  <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wide">
+                    3. Shipment Details
                   </h3>
                 </div>
 
@@ -673,7 +788,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. SIN - Singapore Changi Airport (Air Cargo Complex)"
                       value={formData.origin}
                       onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs ${
                         errors.origin ? 'border-red-400' : 'border-slate-200'
                       }`}
                     />
@@ -698,7 +813,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                         required
                         value={destinationOption}
                         onChange={handleDestinationChange}
-                        className={`w-full appearance-none px-3.5 py-2.5 bg-slate-50 border rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs cursor-pointer pr-10 ${
+                        className={`w-full appearance-none px-3.5 py-2.5 bg-slate-50 border rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs cursor-pointer pr-10 ${
                           errors.destination ? 'border-red-400 bg-red-50/20' : 'border-slate-200'
                         }`}
                       >
@@ -713,7 +828,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                           </optgroup>
                         ))}
                         <optgroup label="Other / Unlisted" className="font-bold text-slate-800 bg-slate-100">
-                          <option value="OTHER" className="font-bold text-orange-600 bg-white">
+                          <option value="OTHER" className="font-bold text-[#2463EB] bg-white">
                             + Other (Specify Custom Destination Airport / Country)
                           </option>
                         </optgroup>
@@ -730,7 +845,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                           placeholder="e.g. SYD - Sydney Kingsford Smith Airport, Australia"
                           value={customDestination}
                           onChange={handleCustomDestinationChange}
-                          className="w-full px-3.5 py-2.5 bg-white border border-orange-300 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs placeholder:text-slate-400"
+                          className="w-full px-3.5 py-2.5 bg-white border border-[#2463EB]/40 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs placeholder:text-slate-400"
                           autoFocus
                         />
                         <p className="text-[10px] text-slate-400">
@@ -739,6 +854,28 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       </div>
                     )}
                     {errors.destination && <p className="text-[10px] text-red-500 font-bold">{errors.destination}</p>}
+                  </div>
+
+                  {/* Incoterms (Terms of Trade - FOB Only) */}
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center space-x-1">
+                        <span>Incoterms (Terms of Trade)</span>
+                        <span className="text-red-500">*</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        FOB Only
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value="FOB - Free on Board"
+                      className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-900 shadow-2xs cursor-default select-none"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      Standard trade term for this airway service is strictly FOB (Free on Board).
+                    </p>
                   </div>
 
                   {/* Cargo/Product Description Dropdown */}
@@ -759,7 +896,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                         required
                         value={cargoOption}
                         onChange={handleCargoChange}
-                        className={`w-full appearance-none px-3.5 py-2.5 bg-slate-50 border rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs cursor-pointer pr-10 ${
+                        className={`w-full appearance-none px-3.5 py-2.5 bg-slate-50 border rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs cursor-pointer pr-10 ${
                           errors.cargoDescription ? 'border-red-400 bg-red-50/20' : 'border-slate-200'
                         }`}
                       >
@@ -774,7 +911,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                           </optgroup>
                         ))}
                         <optgroup label="Other / Custom Category" className="font-bold text-slate-800 bg-slate-100">
-                          <option value="OTHER" className="font-bold text-orange-600 bg-white">
+                          <option value="OTHER" className="font-bold text-[#2463EB] bg-white">
                             + Other (Specify Custom Cargo / Product Description)
                           </option>
                         </optgroup>
@@ -791,7 +928,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                           placeholder="e.g. Temperature-sensitive pharmaceuticals, specialized drone parts, etc."
                           value={customCargo}
                           onChange={handleCustomCargoChange}
-                          className="w-full px-3.5 py-2.5 bg-white border border-orange-300 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs placeholder:text-slate-400"
+                          className="w-full px-3.5 py-2.5 bg-white border border-[#2463EB]/40 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs placeholder:text-slate-400"
                           autoFocus
                         />
                         <p className="text-[10px] text-slate-400">
@@ -814,7 +951,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. 4 Crates, 2 Pallets, 15 Cartons"
                       value={formData.packagesCount}
                       onChange={(e) => setFormData({ ...formData, packagesCount: e.target.value })}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-orange shadow-2xs ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
                         errors.packagesCount ? 'border-red-400' : 'border-slate-200'
                       }`}
                     />
@@ -833,7 +970,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. 320 kg / 1.2 Tons"
                       value={formData.totalWeight}
                       onChange={(e) => setFormData({ ...formData, totalWeight: e.target.value })}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs ${
                         errors.totalWeight ? 'border-red-400' : 'border-slate-200'
                       }`}
                     />
@@ -848,7 +985,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. 120 x 80 x 75 cm per crate"
                       value={formData.dimensions}
                       onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus-orange shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus-blue shadow-2xs"
                     />
                   </div>
 
@@ -860,19 +997,19 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       placeholder="e.g. SGD 45,000"
                       value={formData.approximateValue}
                       onChange={(e) => setFormData({ ...formData, approximateValue: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 3. SERVICE REQUIRED (MULTIPLE SELECTIONS) */}
+              {/* 4. SERVICE REQUIRED (MULTIPLE SELECTIONS) */}
               <div className="space-y-4 pt-2">
                 <div className="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                  <CheckCircle2 className="w-4 h-4 text-orange-500" />
+                  <CheckCircle2 className="w-4 h-4 text-[#2463EB]" />
                   <div>
                     <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wide">
-                      3. Service Required
+                      4. Service Required
                     </h3>
                     <p className="text-[11px] text-slate-400 font-normal">Select all services needed for this consignment</p>
                   </div>
@@ -914,13 +1051,13 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                 </div>
               </div>
 
-              {/* 4. DOCUMENT UPLOAD */}
+              {/* 5. DOCUMENT UPLOAD */}
               <div className="space-y-4 pt-2">
                 <div className="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                  <Upload className="w-4 h-4 text-orange-500" />
+                  <Upload className="w-4 h-4 text-[#2463EB]" />
                   <div>
                     <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wide">
-                      4. Document Upload
+                      5. Document Upload
                     </h3>
                     <p className="text-[11px] text-slate-400 font-normal">
                       Upload available paperwork for review (optional for initial submission)
@@ -969,7 +1106,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                             </button>
                           </div>
                         ) : (
-                          <label className="p-3 bg-white hover:bg-slate-100/80 rounded-xl border border-dashed border-slate-300 hover:border-orange-400 transition-colors flex items-center justify-center space-x-2 cursor-pointer text-center">
+                          <label className="p-3 bg-white hover:bg-slate-100/80 rounded-xl border border-dashed border-slate-300 hover:border-[#2463EB] transition-colors flex items-center justify-center space-x-2 cursor-pointer text-center">
                             <FileUp className="w-4 h-4 text-slate-400" />
                             <span className="text-[11px] font-bold text-slate-600">Choose or Drop File</span>
                             <input
@@ -996,7 +1133,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#FF6B00] to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center justify-center space-x-2 active:scale-95 disabled:opacity-50"
+                  className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#2463EB] to-[#1D4ED8] hover:from-[#2463EB] hover:to-[#1E40AF] text-white rounded-xl font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-blue-500/25 transition-all cursor-pointer flex items-center justify-center space-x-2 active:scale-95 disabled:opacity-50"
                 >
                   <Plane className="w-4 h-4" />
                   <span>{isSubmitting ? 'Processing Request...' : 'Submit Airway Service Request'}</span>

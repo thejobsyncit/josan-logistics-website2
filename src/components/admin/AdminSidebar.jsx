@@ -1,19 +1,14 @@
 import React from 'react';
 import { 
   LayoutDashboard, 
-  Package, 
-  Plane, 
-  Truck, 
-  FileCheck, 
   Users, 
-  UserCheck,
-  Handshake, 
-  ClipboardList, 
-  BarChart3, 
+  ShieldCheck, 
+  Globe, 
+  Sliders, 
   Bell, 
+  BarChart3, 
   Settings, 
-  ArrowLeft, 
-  Globe 
+  ArrowLeft 
 } from 'lucide-react';
 
 export const AdminSidebar = ({ 
@@ -24,21 +19,17 @@ export const AdminSidebar = ({
 }) => {
   const navItems = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'shipments', label: 'Shipments', icon: Package, count: counts.shipments },
-    { id: 'airway_services', label: 'Airway Requests', icon: Plane, count: counts.airway },
-    { id: 'road_transportation', label: 'Road Transportation', icon: Truck, count: counts.road },
-    { id: 'documentation', label: 'Documentation', icon: FileCheck, count: counts.documents },
-    { id: 'customers', label: 'Customers', icon: Users, count: counts.customers },
-    { id: 'transportation_partners', label: 'Transportation Partners', icon: Handshake, count: counts.partners },
-    { id: 'drivers', label: 'Drivers & Fleet', icon: UserCheck, count: counts.drivers },
-    { id: 'service_requests', label: 'Service Requests', icon: ClipboardList, count: counts.requests },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'users', label: 'User Management', icon: Users, count: counts.users },
+    { id: 'roles', label: 'Roles & Permissions', icon: ShieldCheck },
+    { id: 'website_content', label: 'Website Content', icon: Globe },
+    { id: 'services_management', label: 'Services Management', icon: Sliders },
     { id: 'notifications', label: 'Notifications', icon: Bell, count: counts.notifications },
+    { id: 'system_reports', label: 'System Reports', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <aside className="w-full lg:w-72 bg-[#0B132B] text-slate-300 p-4 sm:p-5 flex flex-col justify-between shrink-0 border-r border-slate-800 shadow-2xl z-20 min-h-screen">
+    <aside className="w-full lg:w-72 bg-[#0B132B] text-slate-300 p-4 sm:p-5 flex flex-col justify-between shrink-0 border-r border-slate-800 shadow-2xl z-20 min-h-screen font-sans">
       <div className="space-y-5">
         {/* Brand Header */}
         <div 
@@ -58,7 +49,7 @@ export const AdminSidebar = ({
               LOGISTICS PTE. LTD.
             </span>
             <span className="text-[10px] text-slate-400 font-semibold tracking-wide mt-0.5">
-              Admin Portal
+              Admin & System Portal
             </span>
           </div>
         </div>
@@ -68,14 +59,18 @@ export const AdminSidebar = ({
           <div className="flex items-center space-x-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
             <span className="font-bold text-slate-200">
-              Operations Portal Online
+              System Admin Active
             </span>
           </div>
-          <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">SG Hub</span>
+          <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">SG HQ</span>
         </div>
 
         {/* Navigation Menu */}
         <nav className="space-y-1">
+          <div className="px-3 pb-2 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+            Administration & Governance
+          </div>
+
           {navItems.map((item) => {
             const IconComp = item.icon;
             const isSelected = adminTab === item.id;
@@ -109,7 +104,7 @@ export const AdminSidebar = ({
         </nav>
       </div>
 
-      {/* Footer Navigation: Link back to public site */}
+      {/* Footer Navigation */}
       <div className="space-y-3 pt-6 border-t border-slate-800/80 mt-6">
         <button
           onClick={onReturnToPublic}
@@ -123,16 +118,16 @@ export const AdminSidebar = ({
           <Globe className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300" />
         </button>
 
-        {/* Brand Card */}
+        {/* Portal Separation Card */}
         <div className="relative rounded-2xl overflow-hidden border border-slate-800/80 shadow-lg bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-3.5">
           <p className="text-[11px] font-black text-white leading-tight">
-            Efficient Logistics
+            System Administration
           </p>
           <p className="text-[10px] font-medium text-orange-400 mt-0.5">
-            Airway • Road • Documentation
+            Website • Users • Permissions
           </p>
           <p className="text-[9px] text-slate-400 mt-1">
-            Singapore Commercial Support
+            Logistics operations managed via /crm
           </p>
         </div>
       </div>

@@ -162,7 +162,7 @@ export const SingaporeGoogleMapBackground = ({
           <path
             d="M 80 220 Q 300 180, 520 200 Q 750 160, 950 110"
             fill="none"
-            stroke="#ff6b00"
+            stroke="#2463EB"
             strokeWidth="10"
             strokeLinecap="round"
           />
@@ -252,7 +252,7 @@ export const SingaporeGoogleMapBackground = ({
               <polygon points="35,-5 85,-18 85,10 35,5" fill="#fde047" fillOpacity="0.4" />
 
               {/* 3D Semi-Truck Container Body */}
-              <rect x="-45" y="-22" width="60" height="32" rx="4" fill="#ff6b00" stroke="#ffffff" strokeWidth="1.5" />
+              <rect x="-45" y="-22" width="60" height="32" rx="4" fill="#2463EB" stroke="#ffffff" strokeWidth="1.5" />
               <rect x="-42" y="-20" width="54" height="28" rx="2" fill="#ea580c" />
               <text x="-15" y="-3" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="900" fontFamily="sans-serif">JOSAN</text>
               <text x="-15" y="5" textAnchor="middle" fill="#ffedd5" fontSize="5" fontWeight="800" fontFamily="sans-serif">EXPRESS EV</text>
@@ -260,7 +260,7 @@ export const SingaporeGoogleMapBackground = ({
               {/* Truck Driver Cabin */}
               <path d="M15 -18 L32 -18 L42 -8 L42 10 L15 10 Z" fill="#0f172a" stroke="#ffffff" strokeWidth="1.5" />
               <path d="M18 -15 L30 -15 L37 -8 L18 -8 Z" fill="#38bdf8" />
-              <rect x="32" y="0" width="10" height="10" fill="#ff6b00" />
+              <rect x="32" y="0" width="10" height="10" fill="#2463EB" />
               <circle cx="40" cy="-2" r="3" fill="#fde047" />
 
               {/* 3D Wheel Tires */}
@@ -299,10 +299,10 @@ export const SingaporeGoogleMapBackground = ({
             }}
           >
             <div className="relative flex items-center justify-center">
-              <span className="absolute w-24 h-24 rounded-full bg-orange-500/40 animate-ping"></span>
+              <span className="absolute w-24 h-24 rounded-full bg-[#2463EB]/40 animate-ping"></span>
               <RealTruckGraphic />
             </div>
-            <span className="mt-1 bg-slate-900/95 text-orange-400 font-mono font-extrabold text-[11px] px-3.5 py-0.5 rounded-full border border-orange-500/80 shadow-2xl whitespace-nowrap">
+            <span className="mt-1 bg-slate-900/95 text-[#2463EB] font-mono font-extrabold text-[11px] px-3.5 py-0.5 rounded-full border border-[#2463EB]/80 shadow-2xl whitespace-nowrap">
               📍 {Math.round(safeProgress)}% EN ROUTE (PIE Expressway)
             </span>
           </div>
@@ -312,11 +312,11 @@ export const SingaporeGoogleMapBackground = ({
       {/* Floating Header Overlay (Passes Mouse Clicks Through with pointer-events-none) */}
       <div className="absolute top-4 left-4 right-16 z-40 pointer-events-none flex items-center justify-between bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-700 text-xs text-white shadow-2xl">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold shadow-orange-glow shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-[#2463EB] text-white flex items-center justify-center font-bold shadow-sm shrink-0">
             📍
           </div>
           <div>
-            <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">
+            <p className="text-[10px] text-[#2463EB] font-bold uppercase tracking-wider">
               Singapore Live GPS Telematics Route
             </p>
             <p className="font-extrabold text-slate-100">{safeOrigin} → {safeDestination}</p>
@@ -324,7 +324,7 @@ export const SingaporeGoogleMapBackground = ({
         </div>
         <div className="text-right hidden sm:block">
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Speed & Telemetry</p>
-          <p className="font-extrabold text-orange-400 font-mono">{safeSpeed} KM/H (PIE Expressway)</p>
+          <p className="font-extrabold text-[#2463EB] font-mono">{safeSpeed} KM/H (PIE Expressway)</p>
         </div>
       </div>
 
@@ -339,7 +339,7 @@ export const SingaporeGoogleMapBackground = ({
         </button>
         <button
           onClick={resetMap}
-          className="w-8 h-8 rounded-lg bg-white border border-slate-300 shadow-md flex items-center justify-center text-orange-600 text-xs font-bold hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+          className="w-8 h-8 rounded-lg bg-white border border-slate-300 shadow-md flex items-center justify-center text-[#2463EB] text-xs font-bold hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
           title="Center Map on Singapore"
         >
           🎯
@@ -370,7 +370,7 @@ export const SingaporeGoogleMapBackground = ({
         </div>
         <div>
           <span className="text-slate-400 text-[10px] block font-bold uppercase">Distance Remaining</span>
-          <span className="font-extrabold text-orange-400 font-mono">18.4 km (Expressway SLA)</span>
+          <span className="font-extrabold text-[#2463EB] font-mono">18.4 km (Expressway SLA)</span>
         </div>
         <div>
           <span className="text-slate-400 text-[10px] block font-bold uppercase">Battery & Efficiency</span>

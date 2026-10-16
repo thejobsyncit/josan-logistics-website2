@@ -13,7 +13,7 @@ export const NotificationsTab = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+            <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
               Operations Center
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
@@ -55,12 +55,12 @@ export const NotificationsTab = ({
               className={`p-4 rounded-2xl border transition-all flex items-start justify-between cursor-pointer ${
                 item.read 
                   ? 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/60' 
-                  : 'bg-orange-50/40 border-orange-200 hover:bg-orange-50/80 shadow-2xs'
+                  : 'bg-[#EAF2FF]/40 border-[#DCE5F0] hover:bg-[#EAF2FF]/80 shadow-2xs'
               }`}
             >
               <div className="flex items-start space-x-3">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                  item.read ? 'bg-slate-200 text-slate-600' : 'bg-[#FF6B00] text-white shadow-xs'
+                  item.read ? 'bg-slate-200 text-slate-600' : 'bg-[#2463EB] text-white shadow-xs'
                 }`}>
                   <Bell className="w-4 h-4" />
                 </div>
@@ -76,7 +76,7 @@ export const NotificationsTab = ({
               </div>
 
               {!item.read && (
-                <span className="w-2.5 h-2.5 rounded-full bg-[#FF6B00] shrink-0 mt-2" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2463EB] shrink-0 mt-2" />
               )}
             </div>
           ))

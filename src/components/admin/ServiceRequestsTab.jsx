@@ -101,7 +101,7 @@ export const ServiceRequestsTab = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search Request ID, customer, service, email, notes..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange shadow-2xs"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue shadow-2xs"
           />
         </div>
 
@@ -110,7 +110,7 @@ export const ServiceRequestsTab = ({
           <select
             value={serviceFilter}
             onChange={(e) => setServiceFilter(e.target.value)}
-            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Services</option>
             <option value="Airway Services">Airway Services</option>
@@ -124,7 +124,7 @@ export const ServiceRequestsTab = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Statuses</option>
             <option value="Pending">Pending</option>
@@ -172,7 +172,7 @@ export const ServiceRequestsTab = ({
                     <td className="p-3 font-mono font-bold text-slate-900">
                       <button
                         onClick={() => handleOpenReview(req)}
-                        className="text-blue-600 hover:text-orange-600 hover:underline cursor-pointer"
+                        className="text-blue-600 hover:text-[#2463EB] hover:underline cursor-pointer"
                       >
                         #{req.id}
                       </button>
@@ -218,7 +218,7 @@ export const ServiceRequestsTab = ({
                     <td className="p-3 text-right">
                       <button
                         onClick={() => handleOpenReview(req)}
-                        className="px-3 py-1 bg-slate-100 hover:bg-[#FF6B00] hover:text-white text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                        className="px-3 py-1 bg-slate-100 hover:bg-[#2463EB] hover:text-white text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
                       >
                         Review
                       </button>
@@ -237,7 +237,7 @@ export const ServiceRequestsTab = ({
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <span className="text-[10px] font-mono text-orange-600 font-extrabold">#{selectedRequest.id}</span>
+                <span className="text-[10px] font-mono text-[#2463EB] font-extrabold">#{selectedRequest.id}</span>
                 <h3 className="text-base font-extrabold text-slate-900">Service Request Details</h3>
               </div>
               <button
@@ -286,7 +286,7 @@ export const ServiceRequestsTab = ({
                       status: e.target.value
                     });
                   }}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange text-xs cursor-pointer"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus-blue text-xs cursor-pointer"
                 >
                   <option value="Pending">Pending</option>
                   <option value="Under Review">Under Review</option>
@@ -303,7 +303,7 @@ export const ServiceRequestsTab = ({
                   value={editingNote}
                   onChange={(e) => setEditingNote(e.target.value)}
                   placeholder="Internal notes regarding partner assignment, quote calculations, or customer requirements..."
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                 />
                 <div className="flex justify-end space-x-2 pt-2">
                   <button
@@ -315,7 +315,7 @@ export const ServiceRequestsTab = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm cursor-pointer"
+                    className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm cursor-pointer"
                   >
                     Save Notes
                   </button>

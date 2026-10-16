@@ -1,501 +1,107 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 
-// Modular Admin Components
+// Modular Admin Components (Website, System, Users & Administration)
 import { AdminSidebar } from '../components/admin/AdminSidebar';
 import { AdminHeader } from '../components/admin/AdminHeader';
 import { DashboardOverviewTab } from '../components/admin/DashboardOverviewTab';
-import { ShipmentsTab } from '../components/admin/ShipmentsTab';
-import { AirwayServicesTab } from '../components/admin/AirwayServicesTab';
-import { RoadTransportationTab } from '../components/admin/RoadTransportationTab';
-import { DocumentationTab } from '../components/admin/DocumentationTab';
-import { CustomersTab } from '../components/admin/CustomersTab';
-import { TransportationPartnersTab } from '../components/admin/TransportationPartnersTab';
-import { DriversTab } from '../components/admin/DriversTab';
-import { ServiceRequestsTab } from '../components/admin/ServiceRequestsTab';
-import { ReportsTab } from '../components/admin/ReportsTab';
+import { UserManagementTab } from '../components/admin/UserManagementTab';
+import { RolesPermissionsTab } from '../components/admin/RolesPermissionsTab';
+import { WebsiteContentTab } from '../components/admin/WebsiteContentTab';
+import { ServicesManagementTab } from '../components/admin/ServicesManagementTab';
 import { NotificationsTab } from '../components/admin/NotificationsTab';
+import { SystemReportsTab } from '../components/admin/SystemReportsTab';
 import { SettingsTab } from '../components/admin/SettingsTab';
-import { ShipmentDetailsModal, CreateShipmentModal } from '../components/admin/AdminModals';
-import { AssignDriverModal } from '../components/admin/AssignDriverModal';
 
 export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   const { 
-    shipments = [], 
-    updateShipmentStatus, 
-    addShipment,
-    deleteShipment,
-    customers = [],
-    drivers = [],
-    addDriver,
-    updateDriver,
-    updateDriverPassword,
-    removeDriver,
-    toggleDriverStatus,
-    assignDriver,
-    assignDriverWithCredentials,
-    documents = [],
-    uploadShipmentDocument,
-    deleteShipmentDocument,
-    quotes = [],
+    systemUsers = [],
+    addSystemUser,
+    updateSystemUser,
+    deleteSystemUser,
+    toggleSystemUserStatus,
+
+    crmRolePermissions = {},
+    updateRolePermissions,
+    updateUserPermissions,
+
+    websiteContent = {},
+    updateWebsiteContent,
+    addWebsiteFaq,
+    updateWebsiteFaq,
+    deleteWebsiteFaq,
+
+    managedServices = {},
+    toggleManagedService,
+    updateManagedService,
+
+    adminActivityLog = [],
+    airwayRequests = [],
+    shipments = [],
+
     notifications = [],
     markNotificationAsRead,
     markAllNotificationsAsRead,
+    clearNotifications,
+
     showToast,
     logoutUser,
-    loginUser,
-    currentUser,
-    airwayRequests = [],
-    updateAirwayRequestStatus,
-    updateAirwayRequestNotes
+    currentUser
   } = useLogistics();
 
   // Active admin tab state (defaults to 'overview')
+  // Exactly 8 Admin Modules:
+  // 1. Dashboard (overview)
+  // 2. User Management (users)
+  // 3. Roles & Permissions (roles)
+  // 4. Website Content (website_content)
+  // 5. Services Management (services_management)
+  // 6. Notifications (notifications)
+  // 7. System Reports (system_reports)
+  // 8. Settings (settings)
   const [adminTab, setAdminTab] = useState('overview');
   const [adminSearchQuery, setAdminSearchQuery] = useState('');
 
-  // Modals state
-  const [selectedDetailShipment, setSelectedDetailShipment] = useState(null);
-  const [isCreateShipmentOpen, setIsCreateShipmentOpen] = useState(false);
-  const [assignDriverModalShipment, setAssignDriverModalShipment] = useState(null);
-
-  // Live Singapore Real-Time Clock
-  const [liveDate, setLiveDate] = useState('');
-  const [liveTime, setLiveTime] = useState('');
-
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      setLiveDate(now.toLocaleDateString('en-GB', { 
-        weekday: 'short', 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric' 
-      }));
-      setLiveTime(now.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit',
-        hour12: true 
-      }) + ' SGT');
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Standardized Transportation Partners state (Contracted 3rd-party logistics companies)
-  const [transportationPartners, setTransportationPartners] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_transport_partners');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      {
-        id: 'PRT-101',
-        name: 'Woodlands Linehaul Logistics Pte Ltd',
-        contactPerson: 'Tan Wei Ming (Partner Lead)',
-        phone: '+65 9123 4567',
-        email: 'dispatch@woodlandslinehaul.sg',
-        vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
-        operatingZones: 'Northern & Western Corridors (Woodlands, Jurong, Tuas)',
-        agreementStatus: 'Active Partner',
-        registeredVehicles: 6,
-        designatedDrivers: 8,
-        activeDispatches: 3
-      },
-      {
-        id: 'PRT-102',
-        name: 'Tuas Prime Haulage Pte Ltd',
-        contactPerson: 'Muhammad Rizal (Operations Lead)',
-        phone: '+65 8234 5678',
-        email: 'ops@tuasprimehaulage.com',
-        vehicleTypes: '24ft Lorries, 40ft Prime Movers',
-        operatingZones: 'Tuas Mega Port & Heavy Industrial Corridors',
-        agreementStatus: 'Active Partner',
-        registeredVehicles: 8,
-        designatedDrivers: 10,
-        activeDispatches: 4
-      },
-      {
-        id: 'PRT-103',
-        name: 'Jurong Freight Express Partners',
-        contactPerson: 'Gurpreet Singh',
-        phone: '+65 9876 5432',
-        email: 'express@jurongfreight.sg',
-        vehicleTypes: '14ft Box Vans, Curtain-siders',
-        operatingZones: 'Central & Jurong Commercial Corridors',
-        agreementStatus: 'Active Partner',
-        registeredVehicles: 4,
-        designatedDrivers: 5,
-        activeDispatches: 2
-      },
-      {
-        id: 'PRT-104',
-        name: 'Changi Feeder Transport Co.',
-        contactPerson: 'Marcus Lim',
-        phone: '+65 6543 2100',
-        email: 'contact@changifeeder.sg',
-        vehicleTypes: '14ft Air Cargo Feeder Box Vans',
-        operatingZones: 'Changi Air Cargo Logistics Complex & Airport Transfers',
-        agreementStatus: 'Active Partner',
-        registeredVehicles: 5,
-        designatedDrivers: 6,
-        activeDispatches: 3
-      }
-    ];
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_transport_partners', JSON.stringify(transportationPartners));
-    } catch (e) {}
-  }, [transportationPartners]);
-
-  // Standardized Service Requests state (Inquiries & Customer booking requests)
-  const [serviceRequests, setServiceRequests] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_service_requests');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    // Seed from quotes or defaults
-    return [
-      {
-        id: 'REQ-89210',
-        customer: 'Marcus Vance',
-        customerName: 'Marcus Vance',
-        company: 'TechCorp Solutions SG',
-        service: 'Road Transportation',
-        email: 'marcus.vance@techcorp.sg',
-        phone: '+65 9123 4567',
-        date: '2026-09-21',
-        message: 'Requires 14-ton highway box truck with hydraulic tailgate for high-tech electronics transfer.',
-        status: 'Pending',
-        adminNotes: 'Assigned Woodlands Linehaul partner truck #SG-8819.'
-      },
-      {
-        id: 'REQ-74102',
-        customer: 'Sarah Lim',
-        customerName: 'Sarah Lim',
-        company: 'Apex BioPharma Research',
-        service: 'Documentation',
-        email: 'sarah.lim@biopharma.sg',
-        phone: '+65 8123 9876',
-        date: '2026-09-20',
-        message: 'Customs clearance permit and certificate of origin assistance required for laboratory reagents export.',
-        status: 'Under Review',
-        adminNotes: 'TradeNet declaration drafted. Awaiting commercial invoice validation.'
-      },
-      {
-        id: 'REQ-61845',
-        customer: 'Marcus Lim',
-        customerName: 'Marcus Lim',
-        company: 'Changi Aviation Cargo Handling',
-        service: 'Airway Services',
-        email: 'ops@changiair.sg',
-        phone: '+65 6543 2100',
-        date: '2026-09-19',
-        message: 'AWB preparation, terminal handling, and airport feeder transfer for scheduled SQ air cargo.',
-        status: 'Quoted',
-        adminNotes: 'Singapore Airlines Cargo booking confirmed on flight SQ-782.'
-      },
-      {
-        id: 'REQ-55120',
-        customer: 'Tan Wei Ming',
-        customerName: 'Tan Wei Ming',
-        company: 'Razer Asia-Pacific HQ',
-        service: 'Road Transportation',
-        email: 'logistics@razer.com',
-        phone: '+65 6789 0123',
-        date: '2026-09-18',
-        message: 'Commercial FTL road transport for high-tech components from Raffles to Jurong Logistics Hub.',
-        status: 'Approved',
-        adminNotes: 'Converted to active road shipment JOS-88190-SG.'
-      },
-      {
-        id: 'REQ-44910',
-        customer: 'Kavita Sharma',
-        customerName: 'Kavita Sharma',
-        company: 'Singapore Pharma Logistics Hub',
-        service: 'Documentation',
-        email: 'coldchain@sgpharma.com',
-        phone: '+65 6234 5678',
-        date: '2026-09-17',
-        message: 'Commercial invoice and packing list verification for pharmaceutical consignment.',
-        status: 'Completed',
-        adminNotes: 'All verification docs archived in Document Vault.'
-      }
-    ];
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_service_requests', JSON.stringify(serviceRequests));
-    } catch (e) {}
-  }, [serviceRequests]);
-
-  // Standardized document state with confirmed status workflow (Pending → Submitted → Under Review → Completed)
-  const [managedDocuments, setManagedDocuments] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_documents');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    if (documents.length > 0) return documents;
-    return [
-      {
-        id: 'DOC-88190-01',
-        shipmentId: 'JOS-88190-SG',
-        customerName: 'Razer Asia-Pacific HQ',
-        type: 'Commercial Invoice',
-        name: 'Commercial_Invoice_JOS-88190-SG.pdf',
-        fileSize: '184 KB',
-        uploadDate: '17 Sep 2026',
-        status: 'Completed'
-      },
-      {
-        id: 'DOC-88190-02',
-        shipmentId: 'JOS-88190-SG',
-        customerName: 'Razer Asia-Pacific HQ',
-        type: 'Packing List',
-        name: 'Packing_List_Pallet_Manifest_88190.pdf',
-        fileSize: '95 KB',
-        uploadDate: '17 Sep 2026',
-        status: 'Completed'
-      },
-      {
-        id: 'DOC-88190-03',
-        shipmentId: 'JOS-88190-SG',
-        customerName: 'Razer Asia-Pacific HQ',
-        type: 'AWB',
-        name: 'Air_Waybill_Consignment_Note_88190.pdf',
-        fileSize: '120 KB',
-        uploadDate: '17 Sep 2026',
-        status: 'Submitted'
-      },
-      {
-        id: 'DOC-88190-04',
-        shipmentId: 'JOS-88190-SG',
-        customerName: 'Razer Asia-Pacific HQ',
-        type: 'Customs-related Documents',
-        name: 'TradeNet_Clearance_Permit_SG9910.pdf',
-        fileSize: '210 KB',
-        uploadDate: '17 Sep 2026',
-        status: 'Completed'
-      },
-      {
-        id: 'DOC-88190-05',
-        shipmentId: 'JOS-88190-SG',
-        customerName: 'Razer Asia-Pacific HQ',
-        type: 'Insurance Documents',
-        name: 'AllRisk_Cargo_Insurance_Policy_88190.pdf',
-        fileSize: '315 KB',
-        uploadDate: '16 Sep 2026',
-        status: 'Under Review'
-      },
-      {
-        id: 'DOC-44021-01',
-        shipmentId: 'JOS-44021-SG',
-        customerName: 'Singapore Pharma Logistics Hub',
-        type: 'Certificate of Origin',
-        name: 'Certificate_of_Origin_SG44021.pdf',
-        fileSize: '178 KB',
-        uploadDate: '17 Sep 2026',
-        status: 'Pending'
-      }
-    ];
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_documents', JSON.stringify(managedDocuments));
-    } catch (e) {}
-  }, [managedDocuments]);
-
-  // Ensure shipments follow confirmed pipeline: New → Documentation → Processing → In Transit → Delivered → Completed
-  const standardizedShipments = useMemo(() => {
-    return (shipments || []).map(s => {
-      // Map legacy statuses to confirmed workflow
-      let currentStatus = s.status;
-      if (currentStatus === 'Booked') currentStatus = 'New';
-      if (currentStatus === 'Confirmed') currentStatus = 'Documentation';
-      if (currentStatus === 'Pickup Scheduled') currentStatus = 'Processing';
-      if (currentStatus === 'Picked Up') currentStatus = 'Processing';
-      if (currentStatus === 'Near Destination') currentStatus = 'In Transit';
-
-      const isAir = s.service === 'Airway Services' || 
-        s.serviceType?.toLowerCase().includes('air') || 
-        s.type === 'air' ||
-        s.mode === 'Air';
-
-      return {
-        ...s,
-        status: currentStatus,
-        service: isAir ? 'Airway Services' : 'Road Transportation',
-        awbNumber: s.awbNumber || (isAir ? `AWB-${s.id.replace(/\D/g, '').slice(-7) || '618-29401'}` : null),
-        carrierSupport: s.carrierSupport || (isAir ? 'Singapore Airlines Cargo (SQ)' : null),
-        transportationPartner: s.transportationPartner || (!isAir ? (s.carrier || 'Woodlands Linehaul Logistics Pte Ltd') : null)
-      };
-    });
-  }, [shipments]);
-
-  // Status update handler for shipments
-  const handleUpdateShipmentStatus = (shipmentId, newStatus) => {
-    if (updateShipmentStatus) {
-      updateShipmentStatus(shipmentId, newStatus);
-    }
-    if (selectedDetailShipment && selectedDetailShipment.id === shipmentId) {
-      setSelectedDetailShipment({
-        ...selectedDetailShipment,
-        status: newStatus
-      });
-    }
-    if (showToast) {
-      showToast(`Shipment #${shipmentId} status updated to ${newStatus}`, 'success');
+  // Handle return to customer website
+  const handleReturnToPublic = () => {
+    if (setParentActiveTab) {
+      setParentActiveTab('home');
+    } else {
+      window.location.href = '/#home';
     }
   };
 
-  // Add new shipment handler
-  const handleCreateShipment = (newShipmentData) => {
-    if (addShipment) {
-      addShipment(newShipmentData);
-    }
-    if (showToast) {
-      showToast(`Consignment #${newShipmentData.id} successfully created!`, 'success');
-    }
+  // Handle admin logout
+  const handleLogout = () => {
+    if (logoutUser) logoutUser(true);
+    handleReturnToPublic();
   };
 
-  // Document upload handler
-  const handleUploadDocument = (docData) => {
-    const updated = [docData, ...managedDocuments];
-    setManagedDocuments(updated);
-    if (uploadShipmentDocument) {
-      uploadShipmentDocument(docData);
-    }
-    if (showToast) {
-      showToast(`Document "${docData.name}" registered under ${docData.type}.`, 'success');
-    }
-  };
-
-  // Document status update handler
-  const handleUpdateDocStatus = (docId, newStatus) => {
-    setManagedDocuments(prev => prev.map(d => d.id === docId ? { ...d, status: newStatus } : d));
-    if (showToast) {
-      showToast(`Document status changed to ${newStatus}.`, 'success');
-    }
-  };
-
-  // Document delete handler
-  const handleDeleteDocument = (docId) => {
-    setManagedDocuments(prev => prev.filter(d => d.id !== docId));
-    if (deleteShipmentDocument) {
-      deleteShipmentDocument(docId);
-    }
-    if (showToast) {
-      showToast('Document removed from records.', 'info');
-    }
-  };
-
-  // Service Request status update handler
-  const handleUpdateRequestStatus = (reqId, newStatus) => {
-    setServiceRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: newStatus } : r));
-    if (showToast) {
-      showToast(`Service request #${reqId} marked as ${newStatus}.`, 'success');
-    }
-  };
-
-  // Service Request admin notes handler
-  const handleSaveAdminNote = (reqId, noteText) => {
-    setServiceRequests(prev => prev.map(r => r.id === reqId ? { ...r, adminNotes: noteText } : r));
-    if (showToast) {
-      showToast('Admin note saved to request record.', 'success');
-    }
-  };
-
-  // Transportation Partner add handler
-  const handleAddPartner = (partnerData) => {
-    setTransportationPartners(prev => [partnerData, ...prev]);
-    if (showToast) {
-      showToast(`Partner "${partnerData.name}" registered.`, 'success');
-    }
-  };
-
-  // Driver assignment handler
-  const handleAssignDriver = ({ shipmentId, driverData, isNewDriver }) => {
-    if (assignDriverWithCredentials) {
-      return assignDriverWithCredentials({ shipmentId, driverData, isNewDriver });
-    } else if (assignDriver) {
-      return assignDriver(shipmentId, driverData.id);
-    }
-  };
-
-  // Driver portal test login
-  const handleTestDriverLogin = (driver) => {
-    if (loginUser) {
-      loginUser(driver.email, driver.password || 'driver123', 'driver', setParentActiveTab);
-    }
-  };
-
-  // Navigation from search results
+  // Select item from search dropdown
   const handleSelectSearchResult = (type, item) => {
-    if (type === 'shipment') {
-      setSelectedDetailShipment(item);
-    } else if (type === 'customer') {
-      setAdminTab('customers');
-    } else if (type === 'driver') {
-      setAdminTab('drivers');
-    } else if (type === 'document') {
-      setAdminTab('documentation');
+    if (type === 'user') {
+      setAdminTab('users');
     }
   };
 
-  // Counts for sidebar badges
-  const airwayCount = airwayRequests.length;
-  const roadCount = standardizedShipments.filter(s => s.service === 'Road Transportation').length;
-  const pendingRequestsCount = serviceRequests.filter(r => r.status === 'Pending' || r.status === 'Under Review').length;
-
-  const sidebarCounts = {
-    shipments: standardizedShipments.length,
-    airway: airwayCount,
-    road: roadCount,
-    documents: managedDocuments.length,
-    customers: customers.length,
-    partners: transportationPartners.length,
-    drivers: drivers.length,
-    requests: pendingRequestsCount,
+  const badgeCounts = {
+    users: systemUsers.length,
     notifications: notifications.filter(n => !n.read).length
   };
 
-  // Normalize tab for legacy or direct access
-  const normalizedTab = adminTab === 'orders' ? 'shipments'
-    : adminTab === 'documents' ? 'documentation'
-    : adminTab === 'quotes' ? 'service_requests'
-    : adminTab === 'fleet' ? 'transportation_partners'
-    : adminTab === 'analytics' ? 'reports'
-    : adminTab === 'warehouses' ? 'overview'
-    : adminTab;
-
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col lg:flex-row font-sans">
-      {/* 1. ADMIN SIDEBAR: Exactly the confirmed 11 navigation items */}
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row w-full overflow-x-hidden font-sans">
+      {/* 1. SEPARATE ADMIN SIDEBAR */}
       <AdminSidebar
-        adminTab={normalizedTab}
+        adminTab={adminTab}
         setAdminTab={setAdminTab}
-        counts={sidebarCounts}
-        onReturnToPublic={() => {
-          if (logoutUser) {
-            logoutUser(true);
-          }
-          if (setParentActiveTab) {
-            setParentActiveTab('home');
-          } else {
-            window.location.hash = '#home';
-          }
-        }}
+        counts={badgeCounts}
+        onReturnToPublic={handleReturnToPublic}
       />
 
-      {/* 2. MAIN WORKSPACE */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC]">
-        {/* TOP HEADER: Operations overview & global search (NO tracking search) */}
+      {/* 2. ADMIN MAIN CONTENT WRAPPER */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* 3. SEPARATE ADMIN HEADER */}
         <AdminHeader
           searchQuery={adminSearchQuery}
           setSearchQuery={setAdminSearchQuery}
@@ -505,178 +111,94 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
           onOpenSettings={() => setAdminTab('settings')}
           onOpenOverview={() => setAdminTab('overview')}
           currentUser={currentUser}
-          onLogout={() => {
-            if (logoutUser) logoutUser();
-            if (setParentActiveTab) setParentActiveTab('home');
-          }}
-          shipments={standardizedShipments}
-          customers={customers}
-          drivers={drivers}
-          documents={managedDocuments}
+          onLogout={handleLogout}
+          systemUsers={systemUsers}
         />
 
-        {/* 3. TAB WORKSPACE CONTENT */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
-          {/* TAB 1: DASHBOARD OVERVIEW */}
-          {normalizedTab === 'overview' && (
+        {/* 4. WORKSPACE TAB CONTAINER */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+          {/* TAB 1: DASHBOARD */}
+          {adminTab === 'overview' && (
             <DashboardOverviewTab
-              shipments={standardizedShipments}
-              serviceRequests={serviceRequests}
-              documents={managedDocuments}
-              onNavigateTab={(tabKey) => setAdminTab(tabKey)}
-              onViewShipment={(s) => setSelectedDetailShipment(s)}
-              onViewRequest={(r) => setAdminTab('service_requests')}
-              liveDate={liveDate}
-              liveTime={liveTime}
-            />
-          )}
-
-          {/* TAB 2: SHIPMENTS */}
-          {normalizedTab === 'shipments' && (
-            <ShipmentsTab
-              shipments={standardizedShipments}
-              onViewShipment={(s) => setSelectedDetailShipment(s)}
-              onUpdateStatus={handleUpdateShipmentStatus}
-              onCreateShipment={() => setIsCreateShipmentOpen(true)}
-              onOpenAssignDriver={(s) => setAssignDriverModalShipment(s)}
-            />
-          )}
-
-          {/* TAB 3: AIRWAY SERVICES */}
-          {normalizedTab === 'airway_services' && (
-            <AirwayServicesTab
-              shipments={standardizedShipments}
+              systemUsers={systemUsers}
               airwayRequests={airwayRequests}
-              onUpdateAirwayRequestStatus={updateAirwayRequestStatus}
-              onUpdateAirwayRequestNotes={updateAirwayRequestNotes}
-              onViewShipment={(s) => setSelectedDetailShipment(s)}
-              onUpdateStatus={handleUpdateShipmentStatus}
+              shipments={shipments}
+              notifications={notifications}
+              managedServices={managedServices}
+              adminActivityLog={adminActivityLog}
+              onNavigateTab={setAdminTab}
             />
           )}
 
-          {/* TAB 4: ROAD TRANSPORTATION */}
-          {normalizedTab === 'road_transportation' && (
-            <RoadTransportationTab
-              shipments={standardizedShipments}
-              transportationPartners={transportationPartners}
-              onViewShipment={(s) => setSelectedDetailShipment(s)}
-              onUpdateStatus={handleUpdateShipmentStatus}
-              onOpenAssignDriver={(s) => setAssignDriverModalShipment(s)}
+          {/* TAB 2: USER MANAGEMENT */}
+          {adminTab === 'users' && (
+            <UserManagementTab
+              systemUsers={systemUsers}
+              onAddUser={addSystemUser}
+              onUpdateUser={updateSystemUser}
+              onDeleteUser={deleteSystemUser}
+              onToggleStatus={toggleSystemUserStatus}
             />
           )}
 
-          {/* TAB 5: DOCUMENTATION */}
-          {normalizedTab === 'documentation' && (
-            <DocumentationTab
-              documents={managedDocuments}
-              onUploadDocument={handleUploadDocument}
-              onUpdateDocStatus={handleUpdateDocStatus}
-              onDeleteDocument={handleDeleteDocument}
-              onViewDocument={(d) => showToast(`Opening ${d.name}`, 'info')}
+          {/* TAB 3: ROLES & PERMISSIONS */}
+          {adminTab === 'roles' && (
+            <RolesPermissionsTab
+              crmRolePermissions={crmRolePermissions}
+              onUpdateRolePermission={updateRolePermissions}
+              systemUsers={systemUsers}
+              onUpdateUserPermissions={updateUserPermissions}
             />
           )}
 
-          {/* TAB 6: CUSTOMERS */}
-          {normalizedTab === 'customers' && (
-            <CustomersTab
-              customers={customers}
-              shipments={standardizedShipments}
-              serviceRequests={serviceRequests}
-              documents={managedDocuments}
-              onViewShipment={(s) => setSelectedDetailShipment(s)}
-              onViewRequest={(r) => setAdminTab('service_requests')}
+          {/* TAB 4: WEBSITE CONTENT */}
+          {adminTab === 'website_content' && (
+            <WebsiteContentTab
+              websiteContent={websiteContent}
+              onUpdateContent={updateWebsiteContent}
+              onAddFaq={addWebsiteFaq}
+              onUpdateFaq={updateWebsiteFaq}
+              onDeleteFaq={deleteWebsiteFaq}
             />
           )}
 
-          {/* TAB 7: TRANSPORTATION PARTNERS */}
-          {normalizedTab === 'transportation_partners' && (
-            <TransportationPartnersTab
-              partners={transportationPartners}
-              onAddPartner={handleAddPartner}
+          {/* TAB 5: SERVICES MANAGEMENT */}
+          {adminTab === 'services_management' && (
+            <ServicesManagementTab
+              managedServices={managedServices}
+              onToggleService={toggleManagedService}
+              onUpdateService={updateManagedService}
             />
           )}
 
-          {/* TAB 8: DRIVERS & FLEET */}
-          {normalizedTab === 'drivers' && (
-            <DriversTab
-              drivers={drivers}
-              shipments={standardizedShipments}
-              onAddDriver={addDriver}
-              onUpdateDriver={updateDriver}
-              onUpdateDriverPassword={updateDriverPassword}
-              onRemoveDriver={removeDriver}
-              onOpenAssignShipment={(s) => setAssignDriverModalShipment(s)}
-              onViewShipment={(s) => setSelectedDetailShipment(s)}
-              onTestDriverLogin={handleTestDriverLogin}
-              showToast={showToast}
-            />
-          )}
-
-          {/* TAB 9: SERVICE REQUESTS */}
-          {normalizedTab === 'service_requests' && (
-            <ServiceRequestsTab
-              requests={serviceRequests}
-              onUpdateRequestStatus={handleUpdateRequestStatus}
-              onSaveAdminNote={handleSaveAdminNote}
-            />
-          )}
-
-          {/* TAB 10: REPORTS */}
-          {normalizedTab === 'reports' && (
-            <ReportsTab
-              shipments={standardizedShipments}
-              serviceRequests={serviceRequests}
-              documents={managedDocuments}
-            />
-          )}
-
-          {/* TAB 11: NOTIFICATIONS */}
-          {normalizedTab === 'notifications' && (
+          {/* TAB 6: NOTIFICATIONS */}
+          {adminTab === 'notifications' && (
             <NotificationsTab
               notifications={notifications}
               onMarkAsRead={markNotificationAsRead}
               onMarkAllAsRead={markAllNotificationsAsRead}
+              onClearNotifications={clearNotifications}
             />
           )}
 
-          {/* TAB 12: SETTINGS */}
-          {normalizedTab === 'settings' && (
+          {/* TAB 7: SYSTEM REPORTS */}
+          {adminTab === 'system_reports' && (
+            <SystemReportsTab
+              systemUsers={systemUsers}
+              airwayRequests={airwayRequests}
+              shipments={shipments}
+              adminActivityLog={adminActivityLog}
+            />
+          )}
+
+          {/* TAB 8: SETTINGS */}
+          {adminTab === 'settings' && (
             <SettingsTab
-              onSaveToast={(msg, type) => showToast && showToast(msg, type)}
+              onSaveToast={showToast}
             />
           )}
         </main>
       </div>
-
-      {/* Modals */}
-      {selectedDetailShipment && (
-        <ShipmentDetailsModal
-          shipment={selectedDetailShipment}
-          onClose={() => setSelectedDetailShipment(null)}
-          onUpdateStatus={handleUpdateShipmentStatus}
-          onOpenAssignDriver={(s) => setAssignDriverModalShipment(s)}
-        />
-      )}
-
-      {isCreateShipmentOpen && (
-        <CreateShipmentModal
-          isOpen={isCreateShipmentOpen}
-          onClose={() => setIsCreateShipmentOpen(false)}
-          onCreateShipment={handleCreateShipment}
-          partners={transportationPartners}
-        />
-      )}
-
-      {assignDriverModalShipment && (
-        <AssignDriverModal
-          isOpen={!!assignDriverModalShipment}
-          onClose={() => setAssignDriverModalShipment(null)}
-          shipment={assignDriverModalShipment}
-          drivers={drivers}
-          onAssignDriver={handleAssignDriver}
-          onSwitchToDriverPortal={handleTestDriverLogin}
-        />
-      )}
     </div>
   );
 };

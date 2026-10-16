@@ -159,7 +159,7 @@ export const DocumentationTab = ({
 
         <button
           onClick={() => setIsUploadOpen(true)}
-          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
         >
           <Upload className="w-4 h-4" />
           <span>Upload Document</span>
@@ -175,7 +175,7 @@ export const DocumentationTab = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by file name, shipment ID, or customer..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange shadow-2xs"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue shadow-2xs"
           />
         </div>
 
@@ -184,7 +184,7 @@ export const DocumentationTab = ({
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Types ({documents.length})</option>
             {docTypes.map(t => (
@@ -198,7 +198,7 @@ export const DocumentationTab = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange cursor-pointer"
+            className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Statuses</option>
             {docStatuses.map(s => (
@@ -273,7 +273,7 @@ export const DocumentationTab = ({
                       <select
                         value={currentStatus}
                         onChange={(e) => onUpdateDocStatus(doc.id, e.target.value)}
-                        className="py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer focus-orange"
+                        className="py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer focus-blue"
                       >
                         <option value="Pending">Pending</option>
                         <option value="Submitted">Submitted</option>
@@ -285,7 +285,7 @@ export const DocumentationTab = ({
                       <div className="flex items-center justify-end space-x-1">
                         <button
                           onClick={() => handleDownload(doc)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-orange-600 hover:bg-orange-50 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-[#2463EB] hover:bg-[#EAF2FF] transition-colors cursor-pointer"
                           title="Download PDF"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -332,7 +332,7 @@ export const DocumentationTab = ({
                   onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
                   placeholder="e.g. Commercial_Invoice_JOS-88190.pdf"
                   required
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                 />
               </div>
 
@@ -342,7 +342,7 @@ export const DocumentationTab = ({
                   <select
                     value={newDocData.type}
                     onChange={(e) => setNewDocData({ ...newDocData, type: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange text-xs cursor-pointer"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus-blue text-xs cursor-pointer"
                   >
                     {docTypes.map(t => (
                       <option key={t} value={t}>{t}</option>
@@ -355,7 +355,7 @@ export const DocumentationTab = ({
                   <select
                     value={newDocData.status}
                     onChange={(e) => setNewDocData({ ...newDocData, status: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus-orange text-xs cursor-pointer"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus-blue text-xs cursor-pointer"
                   >
                     {docStatuses.map(s => (
                       <option key={s} value={s}>{s}</option>
@@ -373,7 +373,7 @@ export const DocumentationTab = ({
                     onChange={(e) => setNewDocData({ ...newDocData, shipmentId: e.target.value })}
                     placeholder="e.g. JOS-88190-SG"
                     required
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus-orange text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus-blue text-xs"
                   />
                 </div>
 
@@ -384,7 +384,7 @@ export const DocumentationTab = ({
                     value={newDocData.customerName}
                     onChange={(e) => setNewDocData({ ...newDocData, customerName: e.target.value })}
                     placeholder="e.g. Razer Asia-Pacific HQ"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                   />
                 </div>
               </div>
@@ -399,7 +399,7 @@ export const DocumentationTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer"
+                  className="w-1/2 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all cursor-pointer"
                 >
                   Register Document
                 </button>

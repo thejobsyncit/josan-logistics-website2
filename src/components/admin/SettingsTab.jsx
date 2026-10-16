@@ -76,7 +76,7 @@ export const SettingsTab = ({ onSaveToast }) => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+            <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
               System Configuration
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
@@ -101,7 +101,7 @@ export const SettingsTab = ({ onSaveToast }) => {
           <button
             type="button"
             onClick={handleSaveAll}
-            className="px-4 py-2 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+            className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
           >
             <Check className="w-4 h-4" />
             <span>Save All Changes</span>
@@ -126,7 +126,7 @@ export const SettingsTab = ({ onSaveToast }) => {
               onClick={() => setActiveSubTab(tab.id)}
               className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'bg-[#FF6B00] text-white shadow-2xs font-extrabold'
+                  ? 'bg-[#2463EB] text-white shadow-2xs font-extrabold'
                   : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
@@ -142,7 +142,7 @@ export const SettingsTab = ({ onSaveToast }) => {
         <form onSubmit={handleSaveAll} className="space-y-6 text-xs animate-fade-in">
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2 border-b border-slate-200 pb-3">
-              <Building2 className="w-4 h-4 text-orange-600" />
+              <Building2 className="w-4 h-4 text-[#2463EB]" />
               <span>Legal Entity & Singapore Registration</span>
             </h3>
 
@@ -153,7 +153,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.companyName}
                   onChange={(e) => setCompanySettings({ ...companySettings, companyName: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -163,7 +163,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.uen}
                   onChange={(e) => setCompanySettings({ ...companySettings, uen: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -173,7 +173,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.gstReg}
                   onChange={(e) => setCompanySettings({ ...companySettings, gstReg: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -183,7 +183,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.supportPhone}
                   onChange={(e) => setCompanySettings({ ...companySettings, supportPhone: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -193,7 +193,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="email"
                   value={companySettings.contactEmail}
                   onChange={(e) => setCompanySettings({ ...companySettings, contactEmail: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -203,7 +203,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.address}
                   onChange={(e) => setCompanySettings({ ...companySettings, address: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
             </div>
@@ -216,7 +216,7 @@ export const SettingsTab = ({ onSaveToast }) => {
         <form onSubmit={handleSaveAll} className="space-y-6 text-xs animate-fade-in">
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2 border-b border-slate-200 pb-3">
-              <Truck className="w-4 h-4 text-orange-600" />
+              <Truck className="w-4 h-4 text-[#2463EB]" />
               <span>Transportation & Service Execution Rules</span>
             </h3>
 
@@ -238,7 +238,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={servicesSettings.minPartnerInsurance}
                   onChange={(e) => setServicesSettings({ ...servicesSettings, minPartnerInsurance: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -248,7 +248,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={servicesSettings.defaultCarrierSupport}
                   onChange={(e) => setServicesSettings({ ...servicesSettings, defaultCarrierSupport: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -258,7 +258,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={servicesSettings.awbProcessingSla}
                   onChange={(e) => setServicesSettings({ ...servicesSettings, awbProcessingSla: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
 
@@ -268,7 +268,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={servicesSettings.docRetentionYears}
                   onChange={(e) => setServicesSettings({ ...servicesSettings, docRetentionYears: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-orange shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs"
                 />
               </div>
             </div>
@@ -281,7 +281,7 @@ export const SettingsTab = ({ onSaveToast }) => {
         <form onSubmit={handleSaveAll} className="space-y-6 text-xs animate-fade-in">
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2 border-b border-slate-200 pb-3">
-              <Shield className="w-4 h-4 text-orange-600" />
+              <Shield className="w-4 h-4 text-[#2463EB]" />
               <span>Admin Access & Session Governance</span>
             </h3>
 
@@ -301,7 +301,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                 <select
                   value={securitySettings.sessionTimeout}
                   onChange={(e) => setSecuritySettings({ ...securitySettings, sessionTimeout: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-orange shadow-2xs cursor-pointer"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs cursor-pointer"
                 >
                   <option value="15 minutes">15 minutes</option>
                   <option value="30 minutes">30 minutes</option>
@@ -316,7 +316,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                     type="checkbox"
                     checked={securitySettings.twoFactorAuth}
                     onChange={(e) => setSecuritySettings({ ...securitySettings, twoFactorAuth: e.target.checked })}
-                    className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-slate-300"
+                    className="w-4 h-4 rounded text-[#2463EB] focus:ring-[#2463EB]/25 border-slate-300"
                   />
                   <span className="font-bold text-slate-800">Require Two-Factor Authentication (2FA) for Admin Portal logins</span>
                 </label>
@@ -331,7 +331,7 @@ export const SettingsTab = ({ onSaveToast }) => {
         <form onSubmit={handleSaveAll} className="space-y-6 text-xs animate-fade-in">
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2 border-b border-slate-200 pb-3">
-              <Bell className="w-4 h-4 text-orange-600" />
+              <Bell className="w-4 h-4 text-[#2463EB]" />
               <span>Operational Notification Preferences</span>
             </h3>
 
@@ -341,7 +341,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="checkbox"
                   checked={alertSettings.emailOnNewRequest}
                   onChange={(e) => setAlertSettings({ ...alertSettings, emailOnNewRequest: e.target.checked })}
-                  className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-slate-300"
+                  className="w-4 h-4 rounded text-[#2463EB] focus:ring-[#2463EB]/25 border-slate-300"
                 />
                 <div>
                   <span className="font-bold text-slate-900 block">New Service Request Alert</span>
@@ -354,7 +354,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="checkbox"
                   checked={alertSettings.emailOnDocUpload}
                   onChange={(e) => setAlertSettings({ ...alertSettings, emailOnDocUpload: e.target.checked })}
-                  className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-slate-300"
+                  className="w-4 h-4 rounded text-[#2463EB] focus:ring-[#2463EB]/25 border-slate-300"
                 />
                 <div>
                   <span className="font-bold text-slate-900 block">Document Upload Notification</span>
@@ -367,7 +367,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="checkbox"
                   checked={alertSettings.emailOnStatusChange}
                   onChange={(e) => setAlertSettings({ ...alertSettings, emailOnStatusChange: e.target.checked })}
-                  className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-slate-300"
+                  className="w-4 h-4 rounded text-[#2463EB] focus:ring-[#2463EB]/25 border-slate-300"
                 />
                 <div>
                   <span className="font-bold text-slate-900 block">Shipment Status Progression</span>

@@ -72,7 +72,7 @@ export const ReportsTab = ({
   ];
 
   const servicePieData = [
-    { name: 'Road Transportation', value: roadCount, color: '#FF6B00' },
+    { name: 'Road Transportation', value: roadCount, color: '#2463EB' },
     { name: 'Airway Services', value: airwayCount, color: '#3B82F6' },
   ];
 
@@ -137,9 +137,9 @@ export const ReportsTab = ({
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} dy={5} />
                 <YAxis tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#0B132B', borderRadius: '12px', border: '1px solid #1E293B', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: '#0B1F5B', borderRadius: '12px', border: '1px solid #1E293B', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
                 />
-                <Bar dataKey="shipments" name="Shipments" fill="#FF6B00" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="shipments" name="Shipments" fill="#2463EB" radius={[6, 6, 0, 0]} />
                 <Bar dataKey="requests" name="Service Requests" fill="#3B82F6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -168,7 +168,7 @@ export const ReportsTab = ({
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#0B132B', borderRadius: '12px', border: '1px solid #1E293B', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: '#0B1F5B', borderRadius: '12px', border: '1px solid #1E293B', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -181,7 +181,7 @@ export const ReportsTab = ({
           <div className="space-y-2 text-xs pt-2">
             <div className="flex items-center justify-between">
               <span className="flex items-center space-x-2 text-slate-700 font-semibold">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#FF6B00]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2463EB]"></span>
                 <span>Road Transportation</span>
               </span>
               <span className="font-mono font-bold text-slate-900">{roadCount}</span>

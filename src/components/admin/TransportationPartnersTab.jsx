@@ -71,7 +71,7 @@ export const TransportationPartnersTab = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+            <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
               Commercial Road Freight
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
@@ -86,7 +86,7 @@ export const TransportationPartnersTab = ({
 
         <button
           onClick={() => setIsAddOpen(true)}
-          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-extrabold shadow-orange-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Add Transportation Partner</span>
@@ -112,7 +112,7 @@ export const TransportationPartnersTab = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search transportation partner name, contact person, or email..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-orange shadow-2xs"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue shadow-2xs"
           />
         </div>
       </div>
@@ -122,11 +122,11 @@ export const TransportationPartnersTab = ({
         {filtered.map((p) => (
           <div
             key={p.id || p.name}
-            className="p-5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:shadow-md transition-all bg-white space-y-4"
+            className="p-5 rounded-2xl border border-slate-200 hover:border-[#2463EB] hover:shadow-md transition-all bg-white space-y-4"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center font-bold">
                   <Handshake className="w-5 h-5" />
                 </div>
                 <div>
@@ -169,7 +169,7 @@ export const TransportationPartnersTab = ({
                 <Truck className="w-3.5 h-3.5 text-slate-400" />
                 <span>Partner Vehicle Support</span>
               </span>
-              <span className="text-orange-600 font-bold">Standard Commercial SLA</span>
+              <span className="text-[#2463EB] font-bold">Standard Commercial SLA</span>
             </div>
           </div>
         ))}
@@ -198,7 +198,7 @@ export const TransportationPartnersTab = ({
                   onChange={(e) => setNewPartner({ ...newPartner, name: e.target.value })}
                   placeholder="e.g. Jurong Expressway Haulage Pte Ltd"
                   required
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                 />
               </div>
 
@@ -211,7 +211,7 @@ export const TransportationPartnersTab = ({
                     onChange={(e) => setNewPartner({ ...newPartner, contactPerson: e.target.value })}
                     placeholder="e.g. Tan Ah Hock"
                     required
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                   />
                 </div>
                 <div>
@@ -222,7 +222,7 @@ export const TransportationPartnersTab = ({
                     onChange={(e) => setNewPartner({ ...newPartner, phone: e.target.value })}
                     placeholder="e.g. +65 6789 0123"
                     required
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus-orange text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus-blue text-xs"
                   />
                 </div>
               </div>
@@ -236,7 +236,7 @@ export const TransportationPartnersTab = ({
                     onChange={(e) => setNewPartner({ ...newPartner, email: e.target.value })}
                     placeholder="dispatch@partner.com"
                     required
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                   />
                 </div>
                 <div>
@@ -246,7 +246,7 @@ export const TransportationPartnersTab = ({
                     value={newPartner.vehicleTypes}
                     onChange={(e) => setNewPartner({ ...newPartner, vehicleTypes: e.target.value })}
                     placeholder="e.g. 14ft Box Vans, 24ft Lorries"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-orange text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                   />
                 </div>
               </div>
@@ -261,7 +261,7 @@ export const TransportationPartnersTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl font-extrabold shadow-orange-sm transition-all cursor-pointer"
+                  className="w-1/2 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all cursor-pointer"
                 >
                   Save Partner
                 </button>

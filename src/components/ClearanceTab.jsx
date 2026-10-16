@@ -25,7 +25,7 @@ export const ClearanceTab = ({ service }) => {
       {/* Header Row inside Dashboard Card */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-6 gap-4">
         <div className="flex items-center space-x-4">
-          <div className="w-14 h-14 rounded-2xl bg-orange-500 text-white flex items-center justify-center font-black shadow-orange-glow shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-[#2463EB] text-white flex items-center justify-center font-black shadow-sm shrink-0">
             {service.icon && <service.icon className="w-7 h-7 stroke-[2.2]" />}
           </div>
           <div>
@@ -69,13 +69,13 @@ export const ClearanceTab = ({ service }) => {
         <div className="lg:col-span-5 space-y-6">
           
           {/* ⏱️ Clearance Timeline Card */}
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-orange-glow space-y-3 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-[#EAF2FF]0 to-[#1D4ED8] rounded-2xl p-6 text-white shadow-sm space-y-3 relative overflow-hidden">
             <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
                 <Clock className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <span className="text-xs font-black uppercase tracking-wider text-orange-100">
+              <span className="text-xs font-black uppercase tracking-wider text-[#EAF2FF]">
                 ⏱️ Clearance Timeline
               </span>
             </div>
@@ -84,12 +84,12 @@ export const ClearanceTab = ({ service }) => {
               <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white drop-shadow-xs">
                 {service.clearanceTimeline}
               </div>
-              <p className="text-xs font-medium text-orange-100 mt-1 leading-relaxed">
+              <p className="text-xs font-medium text-[#EAF2FF] mt-1 leading-relaxed">
                 Estimated average customs release duration upon document submission.
               </p>
             </div>
 
-            <div className="pt-2 border-t border-white/20 flex items-center justify-between text-[11px] font-bold text-orange-100">
+            <div className="pt-2 border-t border-white/20 flex items-center justify-between text-[11px] font-bold text-[#EAF2FF]">
               <span className="flex items-center space-x-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Fast-Track Clearance SLA</span>
@@ -103,7 +103,7 @@ export const ClearanceTab = ({ service }) => {
           {/* 📥 Sample Clearance Certificate Action Card */}
           <div className="bg-slate-900 rounded-2xl p-6 text-white space-y-4 border border-slate-800 shadow-md">
             <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#2463EB]/20 text-[#2463EB] border border-[#2463EB]/30 flex items-center justify-center shrink-0">
                 <FileCheck className="w-5 h-5" />
               </div>
               <div>
@@ -117,7 +117,7 @@ export const ClearanceTab = ({ service }) => {
             <button
               onClick={() => setIsModalOpen(true)}
               type="button"
-              className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs rounded-xl shadow-orange-sm transition-all duration-200 inline-flex items-center justify-center space-x-2 cursor-pointer group"
+              className="w-full py-3 px-4 bg-[#2463EB] hover:bg-[#1D4ED8] text-white font-extrabold text-xs rounded-xl shadow-sm transition-all duration-200 inline-flex items-center justify-center space-x-2 cursor-pointer group"
             >
               <Eye className="w-4 h-4 group-hover:scale-110 transition-transform" />
               <span>View Sample Certificate</span>
@@ -131,7 +131,7 @@ export const ClearanceTab = ({ service }) => {
         <div className="lg:col-span-7 bg-slate-50/90 rounded-2xl p-6 border border-slate-200 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center font-bold">
                 <FileText className="w-4 h-4 stroke-[2.2]" />
               </div>
               <div>
@@ -143,7 +143,7 @@ export const ClearanceTab = ({ service }) => {
                 </p>
               </div>
             </div>
-            <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-bold text-[#2463EB] bg-[#EAF2FF] px-2.5 py-1 rounded-full">
               {service.clearanceDocuments?.length || 0} Files Needed
             </span>
           </div>
@@ -152,7 +152,7 @@ export const ClearanceTab = ({ service }) => {
             {service.clearanceDocuments && service.clearanceDocuments.map((doc, idx) => (
               <div 
                 key={idx} 
-                className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs flex items-center space-x-3 hover:border-orange-300 transition-colors group"
+                className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs flex items-center space-x-3 hover:border-[#2463EB]/40 transition-colors group"
               >
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                   <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
@@ -164,8 +164,8 @@ export const ClearanceTab = ({ service }) => {
             ))}
           </div>
 
-          <div className="bg-orange-50 border border-orange-200/70 p-3 rounded-xl flex items-center space-x-2.5 text-xs text-orange-800 font-semibold mt-2">
-            <ShieldCheck className="w-4 h-4 text-orange-600 shrink-0" />
+          <div className="bg-[#EAF2FF] border border-[#DCE5F0]/70 p-3 rounded-xl flex items-center space-x-2.5 text-xs text-[#0B1F5B] font-semibold mt-2">
+            <ShieldCheck className="w-4 h-4 text-[#2463EB] shrink-0" />
             <span>All submitted documents are encrypted with 256-bit SSL prior to customs portal transmission.</span>
           </div>
         </div>

@@ -52,19 +52,41 @@ export const ContactPage = () => {
   return (
     <div className="space-y-16 pb-20">
 
-      {/* Header Banner */}
-      <section className="bg-[#10182D] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#FF6B00]/10 rounded-full blur-3xl pointer-events-none"></div>
+      {/* Header Banner with Organic Curve Transition */}
+      <section className="relative bg-[#0B1F3A] text-white pt-16 pb-28 sm:pt-20 sm:pb-36 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Subtle Ambient Radial Lighting */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-12 left-1/4 w-96 h-96 bg-[#F26B21]/10 rounded-full blur-3xl pointer-events-none" />
+
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
-          <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 inline-block">
-            24/7 Customer & Fleet Support
+          <span className="text-[#B6C2D1] font-bold uppercase text-xs tracking-widest bg-white/10 px-4 py-1.5 rounded-full border border-white/15 inline-block backdrop-blur-md">
+            24/7 Customer &amp; Fleet Support
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold font-heading text-white tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading text-white tracking-tight leading-tight">
             Get In Touch With Our Dispatch Team
           </h1>
-          <p className="text-white/90 font-medium max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-[#B6C2D1] font-normal max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
             Have questions regarding cargo bookings, tracking updates, or custom enterprise supply chain quotes? Our team is active 24/7.
           </p>
+        </div>
+
+        {/* Layered Organic Wave Transition merging into the white background */}
+        <div className="absolute -bottom-px left-0 right-0 w-full overflow-hidden leading-none pointer-events-none z-10">
+          <svg 
+            className="relative block w-full h-12 sm:h-16 lg:h-24" 
+            viewBox="0 0 1440 100" 
+            fill="none" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M0,45 C380,95 720,90 1080,45 C1240,25 1360,20 1440,15 L1440,100 L0,100 Z" 
+              fill="rgba(255, 255, 255, 0.15)" 
+            />
+            <path 
+              d="M0,25 C320,85 720,95 1120,55 C1260,40 1370,25 1440,15 L1440,100 L0,100 Z" 
+              fill="#FFFFFF" 
+            />
+          </svg>
         </div>
       </section>
 
@@ -163,44 +185,41 @@ export const ContactPage = () => {
           {/* Hub Locations & Direct Hotlines */}
           <div className="lg:col-span-5 space-y-6">
 
-            <div className="bg-slate-900 text-white p-8 rounded-3xl space-y-6">
+            <div className="bg-[#0B1F3A] text-white p-8 rounded-3xl space-y-6 border border-[#1E3A5F] shadow-card">
               <h3 className="text-xl font-extrabold flex items-center space-x-2">
-                <Building2 className="w-5 h-5 text-orange-400" />
+                <Building2 className="w-5 h-5 text-[#B6C2D1]" />
                 <span>Singapore HQ & Global Hubs</span>
               </h3>
 
               <div className="space-y-4 text-xs">
-                <div className="border-b border-slate-800 pb-3 space-y-1">
-                  <p className="font-bold text-orange-400 text-sm">🇸🇬 Singapore Regional HQ - Mapletree City</p>
-                  <p className="text-slate-300">10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</p>
+                <div className="border-b border-[#1E3A5F] pb-3 space-y-1">
+                  <p className="font-bold text-white text-sm">🇸🇬 Singapore Regional HQ - Mapletree City</p>
+                  <p className="text-[#B6C2D1]">10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</p>
                   <p className="text-slate-400">Phone: +65 6789 0123 | Email: contact@josanlogistics.com.sg</p>
                 </div>
 
-                <div className="border-b border-slate-800 pb-3 space-y-1">
-                  <p className="font-bold text-orange-400 text-sm">🇸🇬 Changi Airport Air Cargo Hub</p>
-                  <p className="text-slate-300">1 Freight Close, Changi Air Cargo Complex, Singapore 819830</p>
+                <div className="border-b border-[#1E3A5F] pb-3 space-y-1">
+                  <p className="font-bold text-white text-sm">🇸🇬 Changi Airport Air Cargo Hub</p>
+                  <p className="text-[#B6C2D1]">1 Freight Close, Changi Air Cargo Complex, Singapore 819830</p>
                   <p className="text-slate-400">Phone: +65 6542 1100 | Email: changi-hub@josanlogistics.com.sg</p>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="font-bold text-orange-400 text-sm">🇸🇬 Tuas Mega Port Sea Logistics Center</p>
-                  <p className="text-slate-300">20 Tuas South Avenue 2, Singapore 637560</p>
+                  <p className="font-bold text-white text-sm">🇸🇬 Tuas Mega Port Sea Logistics Center</p>
+                  <p className="text-[#B6C2D1]">20 Tuas South Avenue 2, Singapore 637560</p>
                   <p className="text-slate-400">Phone: +65 6861 9900 | Email: tuas-port@josanlogistics.com.sg</p>
                 </div>
               </div>
             </div>
 
-            {/* Quick 24/7 Hotline Badge with Water Sinking & Spring Jumping Animation */}
-            <div className="bg-orange-50/90 border-2 border-orange-200 p-6 rounded-2xl flex items-center space-x-4 animate-water-sink cursor-pointer hover:border-orange-400 transition-all relative overflow-hidden group">
-              {/* Subtle Animated Water Wave Surface Line */}
-              <div className="absolute inset-x-0 bottom-0 h-1.5 bg-gradient-to-r from-cyan-400 via-orange-400 to-cyan-500 opacity-80 animate-pulse"></div>
-              
-              <div className="w-12 h-12 rounded-xl bg-orange-gradient text-white flex items-center justify-center font-bold shrink-0 shadow-orange-sm group-hover:scale-110 transition-transform">
-                <Phone className="w-6 h-6 animate-bounce" />
+            {/* Quick 24/7 Hotline Badge */}
+            <div className="bg-white border border-slate-200 p-6 rounded-2xl flex items-center space-x-4 shadow-sm hover:border-slate-300 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-[#0B1F3A] text-white flex items-center justify-center font-bold shrink-0">
+                <Phone className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-extrabold text-slate-900 text-sm">24/7 Singapore Hotline</h4>
-                <p className="text-orange-600 font-extrabold text-lg font-mono tracking-tight">+65 6789 0123</p>
+                <h4 className="font-extrabold text-[#0B1F3A] text-sm">24/7 Singapore Hotline</h4>
+                <p className="text-[#0B1F3A] font-extrabold text-lg font-mono tracking-tight">+65 6789 0123</p>
               </div>
             </div>
 

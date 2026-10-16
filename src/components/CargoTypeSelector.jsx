@@ -178,9 +178,9 @@ export const airFreightCargoTypes = [
   { id: 'general-cargo', name: 'General Cargo', desc: 'Standard consolidated or palletized dry cargo' },
   { id: 'fragile', name: 'Fragile Cargo', desc: 'Delicate glassware, precision instruments & sensitive equipment' },
   { id: 'perishable', name: 'Perishable Cargo', desc: 'Fresh seafood, produce, flowers & short shelf-life goods' },
-  { id: 'temperature-controlled', name: 'Temperature-Controlled', desc: 'Active cold-chain (-20°C to +25°C) & reefer ULD containers' },
+  { id: 'temperature-controlled', name: 'Temperature-Controlled', desc: 'Documentation & coordination for cold-chain shipments (-20°C to +25°C) via reefer ULD containers' },
   { id: 'valuable', name: 'Valuable Cargo', desc: 'High-value jewelry, bullion, luxury goods & secured transit' },
-  { id: 'dangerous-goods', name: 'Dangerous Goods', desc: 'IATA DGR compliant hazardous substances & chemicals' },
+  { id: 'dangerous-goods', name: 'Dangerous Goods', desc: 'Documentation support for IATA DGR-classified hazardous substances & chemicals' },
   { id: 'documents', name: 'Documents', desc: 'Urgent legal contracts, tenders & diplomatic mail' },
   { id: 'electronics', name: 'Electronics', desc: 'Semiconductors, high-tech components & consumer devices' },
   { id: 'healthcare-pharma', name: 'Healthcare & Pharmaceutical', desc: 'GDP-certified medicine, vaccines & medical devices' }
@@ -281,20 +281,20 @@ export const CargoTypeSelector = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full min-h-[48px] px-3.5 py-2.5 bg-white border rounded-xl text-sm transition-all cursor-pointer flex items-center justify-between text-left shadow-2xs hover:border-[#FF6B00] group ${
+        className={`w-full min-h-[48px] px-3.5 py-2.5 bg-white border rounded-xl text-sm transition-all cursor-pointer flex items-center justify-between text-left shadow-2xs hover:border-[#2463EB] group ${
           error
             ? 'border-red-400 ring-2 ring-red-100 bg-red-50/20'
             : isOpen
-            ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20 bg-orange-50/20'
+            ? 'border-[#2463EB] ring-2 ring-[#2463EB]/20 bg-[#EAF2FF]/20'
             : value
-            ? 'border-[#FF6B00] bg-orange-50/30'
-            : 'border-slate-300 hover:border-[#FF6B00]/60'
+            ? 'border-[#2463EB] bg-[#EAF2FF]/30'
+            : 'border-slate-300 hover:border-[#2463EB]/60'
         }`}
       >
         <div className="flex items-center space-x-2.5 truncate">
           {value ? (
             <>
-              <div className="w-7 h-7 rounded-lg bg-[#FF6B00]/15 text-[#FF6B00] flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#2463EB]/15 text-[#2463EB] flex items-center justify-center shrink-0">
                 <Package className="w-4 h-4 stroke-[2.2]" />
               </div>
               <span className="font-bold text-slate-900 truncate text-sm">
@@ -325,7 +325,7 @@ export const CargoTypeSelector = ({
           )}
           <ChevronDown
             className={`w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${
-              isOpen ? 'rotate-180 text-[#FF6B00]' : ''
+              isOpen ? 'rotate-180 text-[#2463EB]' : ''
             }`}
           />
         </div>
@@ -345,7 +345,7 @@ export const CargoTypeSelector = ({
           {/* Enhanced Search Header with Explicit Search Button */}
           {!hideSearch && !categoriesOnly && (
             <div className="p-3 border-b border-slate-100 bg-slate-50/90 flex items-center gap-2">
-              <div className="flex-1 flex items-center bg-white border border-slate-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 rounded-xl px-3 py-1.5 transition-all shadow-2xs">
+              <div className="flex-1 flex items-center bg-white border border-slate-200 focus-within:border-[#2463EB] focus-within:ring-2 focus-within:ring-orange-500/20 rounded-xl px-3 py-1.5 transition-all shadow-2xs">
                 <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
                 <input
                   ref={searchInputRef}
@@ -387,7 +387,7 @@ export const CargoTypeSelector = ({
                     handleApplyCustom();
                   }
                 }}
-                className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-xs shrink-0 flex items-center space-x-1 cursor-pointer"
+                className="px-3.5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-xs shrink-0 flex items-center space-x-1 cursor-pointer"
               >
                 <Search className="w-3.5 h-3.5" />
                 <span>Search</span>
@@ -397,15 +397,15 @@ export const CargoTypeSelector = ({
 
           {/* Quick Action: If searching, always provide button to set query as Custom Cargo */}
           {!categoriesOnly && searchQuery.trim() && (
-            <div className="px-3 py-2 bg-orange-50 border-b border-orange-100 flex items-center justify-between gap-2">
+            <div className="px-3 py-2 bg-[#EAF2FF] border-b border-orange-100 flex items-center justify-between gap-2">
               <div className="flex items-center space-x-1.5 text-xs text-orange-950 font-medium truncate">
-                <Sparkles className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                <Sparkles className="w-3.5 h-3.5 text-[#2463EB] shrink-0" />
                 <span className="truncate">Looking for something specific?</span>
               </div>
               <button
                 type="button"
                 onClick={handleApplyCustom}
-                className="px-2.5 py-1 bg-white hover:bg-orange-100 border border-orange-200 text-orange-700 font-extrabold text-[11px] rounded-lg transition-colors shrink-0 cursor-pointer shadow-2xs flex items-center space-x-1"
+                className="px-2.5 py-1 bg-white hover:bg-[#EAF2FF] border border-[#DCE5F0] text-[#0B1F5B] font-extrabold text-[11px] rounded-lg transition-colors shrink-0 cursor-pointer shadow-2xs flex items-center space-x-1"
               >
                 <span>Use "{searchQuery.trim()}" as Cargo</span>
                 <ChevronRight className="w-3 h-3" />
@@ -430,20 +430,20 @@ export const CargoTypeSelector = ({
                     onClick={() => handleSelect(cat.name)}
                     className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
                       isSelected
-                        ? 'bg-orange-50 text-orange-600 font-extrabold border border-orange-200'
+                        ? 'bg-[#EAF2FF] text-[#2463EB] font-extrabold border border-[#DCE5F0]'
                         : 'hover:bg-slate-100 text-slate-700'
                     }`}
                   >
                     <div className="flex items-center space-x-2.5 truncate">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                        isSelected ? 'bg-orange-500 text-white shadow-xs' : 'bg-orange-50 text-orange-600 group-hover:bg-orange-100'
+                        isSelected ? 'bg-[#2463EB] text-white shadow-xs' : 'bg-[#EAF2FF] text-[#2463EB] group-hover:bg-[#EAF2FF]'
                       }`}>
                         <Icon className="w-4 h-4 stroke-[2.2]" />
                       </div>
                       <span className="truncate font-bold">{cat.name}</span>
                     </div>
                     {isSelected && (
-                      <Check className="w-4 h-4 text-orange-600 shrink-0 ml-2 stroke-[2.5]" />
+                      <Check className="w-4 h-4 text-[#2463EB] shrink-0 ml-2 stroke-[2.5]" />
                     )}
                   </button>
                 );
@@ -470,15 +470,15 @@ export const CargoTypeSelector = ({
                             onClick={() => handleSelect(item.subcategory)}
                             className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center justify-between text-xs sm:text-sm transition-colors cursor-pointer ${
                               isSelected
-                                ? 'bg-orange-500 text-white font-bold'
-                                : 'hover:bg-orange-50/70 text-slate-800'
+                                ? 'bg-[#2463EB] text-white font-bold'
+                                : 'hover:bg-[#EAF2FF]/70 text-slate-800'
                             }`}
                           >
                             <div className="flex items-center space-x-2.5 truncate">
                               <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`} />
                               <span className="font-semibold truncate">{item.subcategory}</span>
                               <span className={`text-[10px] px-1.5 py-0.5 rounded-sm shrink-0 ${
-                                isSelected ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-500'
+                                isSelected ? 'bg-[#1D4ED8] text-white' : 'bg-slate-100 text-slate-500'
                               }`}>
                                 {item.category.name}
                               </span>
@@ -496,7 +496,7 @@ export const CargoTypeSelector = ({
                       <button
                         type="button"
                         onClick={handleApplyCustom}
-                        className="inline-flex items-center space-x-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center space-x-2 px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         <span>Set "{searchQuery}" as Custom Cargo Type</span>
@@ -537,21 +537,21 @@ export const CargoTypeSelector = ({
                           }}
                           className={`w-full px-3 py-2 rounded-xl flex items-center justify-between text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
                             isActive
-                              ? 'bg-white shadow-xs text-orange-600 font-extrabold border border-orange-200'
+                              ? 'bg-white shadow-xs text-[#2463EB] font-extrabold border border-[#DCE5F0]'
                               : 'hover:bg-slate-200/60 text-slate-700'
                           }`}
                         >
                           <div className="flex items-center space-x-2.5 truncate">
                             <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                              isActive ? 'text-orange-500' : 'text-slate-500 group-hover:text-slate-700'
+                              isActive ? 'text-[#2463EB]' : 'text-slate-500 group-hover:text-slate-700'
                             }`} />
                             <span className="truncate">{cat.name}</span>
                             {hasSelected && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0"></span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#2463EB] shrink-0"></span>
                             )}
                           </div>
                           <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                            isActive ? 'text-orange-500 translate-x-0.5' : 'text-slate-400'
+                            isActive ? 'text-[#2463EB] translate-x-0.5' : 'text-slate-400'
                           }`} />
                         </button>
                       );
@@ -565,7 +565,7 @@ export const CargoTypeSelector = ({
                       <button
                         type="button"
                         onClick={() => setMobileSubmenuOpen(false)}
-                        className="flex items-center space-x-1 text-xs font-bold text-orange-600 cursor-pointer"
+                        className="flex items-center space-x-1 text-xs font-bold text-[#2463EB] cursor-pointer"
                       >
                         <ChevronLeft className="w-3.5 h-3.5" />
                         <span>Back to Categories</span>
@@ -579,7 +579,7 @@ export const CargoTypeSelector = ({
                     <div className="hidden sm:flex items-center space-x-2 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1.5 mb-1">
                       {(() => {
                         const CatIcon = currentCategory.icon;
-                        return <CatIcon className="w-3.5 h-3.5 text-orange-500" />;
+                        return <CatIcon className="w-3.5 h-3.5 text-[#2463EB]" />;
                       })()}
                       <span className="truncate">{currentCategory.name}</span>
                     </div>
@@ -595,8 +595,8 @@ export const CargoTypeSelector = ({
                             onClick={() => handleSelect(sub)}
                             className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-medium transition-colors cursor-pointer flex items-center justify-between ${
                               isSelected
-                                ? 'bg-orange-500 text-white font-extrabold shadow-2xs'
-                                : 'hover:bg-orange-50/80 hover:text-orange-700 text-slate-700'
+                                ? 'bg-[#2463EB] text-white font-extrabold shadow-2xs'
+                                : 'hover:bg-[#EAF2FF]/80 hover:text-[#0B1F5B] text-slate-700'
                             }`}
                           >
                             <span className="truncate">{sub}</span>
@@ -608,10 +608,10 @@ export const CargoTypeSelector = ({
 
                     {/* Customizable Text Box integrated inside the active column when in Other or clicked */}
                     {activeCategoryId === 'other-custom' && (
-                      <div className="mt-3 pt-3 border-t border-slate-100 bg-orange-50/40 p-2.5 rounded-xl border border-orange-200/80 space-y-2 animate-fade-in">
+                      <div className="mt-3 pt-3 border-t border-slate-100 bg-[#EAF2FF]/40 p-2.5 rounded-xl border border-[#DCE5F0]/80 space-y-2 animate-fade-in">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-extrabold text-orange-800 flex items-center space-x-1">
-                            <Pencil className="w-3 h-3 text-orange-600" />
+                          <span className="text-[11px] font-extrabold text-[#0B1F5B] flex items-center space-x-1">
+                            <Pencil className="w-3 h-3 text-[#2463EB]" />
                             <span>Specify Custom Cargo</span>
                           </span>
                         </div>
@@ -628,13 +628,13 @@ export const CargoTypeSelector = ({
                               }
                             }}
                             placeholder="e.g. Vintage Teakwood Dining Set..."
-                            className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-hidden focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20"
+                            className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-hidden focus:border-[#2463EB] focus:ring-1 focus:ring-[#2463EB]/20/20"
                           />
                           <button
                             type="button"
                             onClick={handleApplyCustom}
                             disabled={!customText.trim()}
-                            className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shrink-0"
+                            className="px-3 py-1.5 bg-[#2463EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shrink-0"
                           >
                             Set
                           </button>
@@ -653,7 +653,7 @@ export const CargoTypeSelector = ({
           <div className="p-3 bg-slate-50 border-t border-slate-200/80 space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-extrabold text-slate-800 flex items-center space-x-1.5">
-                <Pencil className="w-3.5 h-3.5 text-orange-600" />
+                <Pencil className="w-3.5 h-3.5 text-[#2463EB]" />
                 <span>Other / Custom Cargo Option</span>
               </span>
               <span className="text-[11px] text-slate-500">
@@ -674,13 +674,13 @@ export const CargoTypeSelector = ({
                   }
                 }}
                 placeholder="Type custom cargo description (e.g. Art Frame, Solar Panels, CNC Lathe)..."
-                className="flex-1 px-3 py-2 bg-white border border-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl text-xs text-slate-900 placeholder-slate-400 outline-none transition-all"
+                className="flex-1 px-3 py-2 bg-white border border-slate-300 focus:border-[#2463EB] focus:ring-2 focus:ring-[#2463EB]/20/20 rounded-xl text-xs text-slate-900 placeholder-slate-400 outline-none transition-all"
               />
               <button
                 type="button"
                 onClick={handleApplyCustom}
                 disabled={!customText.trim()}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-xs shrink-0 cursor-pointer flex items-center space-x-1"
+                className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-xs shrink-0 cursor-pointer flex items-center space-x-1"
               >
                 <span>Apply</span>
                 <Check className="w-3.5 h-3.5" />

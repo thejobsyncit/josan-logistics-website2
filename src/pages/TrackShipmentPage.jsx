@@ -352,19 +352,19 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     const chars = currentCode.split('');
     return (
       <svg viewBox="0 0 220 50" className="w-full h-full select-none" preserveAspectRatio="none">
-        <rect width="220" height="50" fill="#f8fafc" />
+        <rect width="220" height="50" fill="#FFFFFF" />
         
         {/* Subtle background security grid */}
-        <line x1="0" y1="12" x2="220" y2="12" stroke="#e2e8f0" strokeWidth="0.8" />
-        <line x1="0" y1="25" x2="220" y2="25" stroke="#e2e8f0" strokeWidth="0.8" />
-        <line x1="0" y1="38" x2="220" y2="38" stroke="#e2e8f0" strokeWidth="0.8" />
+        <line x1="0" y1="12" x2="220" y2="12" stroke="orange-200" strokeWidth="0.8" />
+        <line x1="0" y1="25" x2="220" y2="25" stroke="orange-200" strokeWidth="0.8" />
+        <line x1="0" y1="38" x2="220" y2="38" stroke="orange-200" strokeWidth="0.8" />
         <line x1="45" y1="0" x2="45" y2="50" stroke="#f1f5f9" strokeWidth="1" />
         <line x1="90" y1="0" x2="90" y2="50" stroke="#f1f5f9" strokeWidth="1" />
         <line x1="135" y1="0" x2="135" y2="50" stroke="#f1f5f9" strokeWidth="1" />
         <line x1="180" y1="0" x2="180" y2="50" stroke="#f1f5f9" strokeWidth="1" />
 
         {/* Diagonal strike noise lines matching screenshot */}
-        <line x1="15" y1="42" x2="195" y2="10" stroke="#3b82f6" strokeWidth="1.2" opacity="0.75" />
+        <line x1="15" y1="42" x2="195" y2="10" stroke="#FF6B00" strokeWidth="1.2" opacity="0.75" />
         <line x1="30" y1="8" x2="185" y2="44" stroke="#ef4444" strokeWidth="1.2" opacity="0.65" />
         <line x1="10" y1="24" x2="210" y2="28" stroke="#10b981" strokeWidth="1.5" opacity="0.5" />
         <line x1="75" y1="6" x2="155" y2="45" stroke="#f59e0b" strokeWidth="1.2" opacity="0.6" />
@@ -472,9 +472,9 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
         createdDate: sampleOrId.createdDate || 'Aug 29, 2026',
         estimatedDelivery: sampleOrId.estimatedDelivery || 'Today, 5:00 PM (SGT)',
         timeline: sampleOrId.timeline || [
-          { title: 'Consignment Booked & Lorry Receipt (LR) Issued', timestamp: 'Today 08:30 AM', location: 'Jurong Fleet Depot', completed: true },
-          { title: 'Highway Linehaul En Route (GPS Telematics Active)', timestamp: 'Today 11:30 AM', location: 'PIE Expressway Corridor', completed: true, current: true },
-          { title: 'Delivered & Digital Proof of Delivery (POD) Signed', timestamp: 'Pending', location: 'Destination Terminal', completed: false }
+          { title: 'Consignment Booked & Lorry Receipt (LR) Issued', timestamp: 'Today 08:30 AM', location: 'Commercial Logistics Hub', completed: true },
+          { title: 'Commercial Linehaul En Route', timestamp: 'Today 11:30 AM', location: 'Expressway Route Corridor', completed: true, current: true },
+          { title: 'Delivered & Digital Proof of Delivery (POD) Signed', timestamp: 'Pending', location: 'Destination Facility', completed: false }
         ]
       };
     }
@@ -489,43 +489,43 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
         id: trackingCode,
         awbNumber: cleanAwb,
         referenceNumber: `AWB-${cleanAwb}`,
-        mode: 'Air Freight',
-        status: 'Flight Departed',
-        origin: 'Singapore Changi Airfreight Centre (SIN)',
-        destination: 'Frankfurt CargoCity South (FRA)',
-        currentLocation: 'In Flight — Boeing 777F Freighter (Cruising FL340, Bay of Bengal)',
-        flightNumber: 'SQ-7922 Cargo Freighter',
-        estimatedDelivery: 'Tomorrow, 08:30 AM (CET)',
-        lastUpdatedTime: '12 mins ago (ACARS Telemetry)',
-        serviceLevel: 'Express Air Freight (Next Flight Out)',
-        cargoType: 'Temperature-Controlled Pharmaceuticals (2°C - 8°C)',
-        driverName: 'Flight Crew: Capt. J. Lee / Ramp Lead K. Nair',
-        driver: 'Capt. J. Lee',
+        mode: 'Airway Services',
+        status: 'In Transit',
+        origin: 'Singapore Changi Air Cargo Area (SIN)',
+        destination: 'Bangkok Suvarnabhumi Airport (BKK)',
+        currentLocation: 'In Transit via Scheduled Commercial Carrier',
+        carrierService: 'Scheduled Commercial Air Cargo',
+        estimatedDelivery: 'Tomorrow, 08:30 AM',
+        lastUpdatedTime: 'Consignment Status Verified',
+        serviceLevel: 'Airway Service & Documentation Coordination',
+        cargoType: 'Commercial Consignment',
+        driverName: 'Airport Cargo Transfer Partner',
+        driver: 'Partner Handler',
         driverPhone: '+65 6542 1122',
-        vehicle: 'Boeing 777-200F Cargo Freighter (9V-SFP)',
-        vehiclePlate: '9V-SFP (B777F)',
-        vehicleType: 'Commercial Widebody Freighter',
-        sender: 'Novartis Biome Changi Park',
-        senderAddress: '8 Changi Business Park Ave 1, Singapore 486018',
-        receiver: 'Bayer AG Distribution Center Frankfurt',
-        receiverAddress: 'CargoCity Süd, Geb. 558, 60549 Frankfurt am Main, Germany',
+        vehicle: 'Scheduled Commercial Air Carrier Service',
+        vehiclePlate: 'Commercial Cargo',
+        vehicleType: 'Commercial Carrier Consignment',
+        sender: 'Commercial Shipper Singapore',
+        senderAddress: 'Changi Logistics Corridor, Singapore',
+        receiver: 'Commercial Consignee',
+        receiverAddress: 'Air Cargo Terminal Bay, Bangkok, Thailand',
         weight: '3,850 kg',
         chargeableWeight: '4,200 kg',
         pieces: 14,
-        declaredValue: 'S$ 420,000',
-        price: 'S$ 32,760.00',
+        declaredValue: 'S$ 42,000',
+        price: 'S$ 3,250.00',
         timeline: [
-          { step: 1, title: 'Booking Confirmed', location: 'Singapore Changi Desk', timestamp: 'Yesterday 09:00 AM', completed: true },
-          { step: 2, title: 'Cargo Pickup', location: 'Changi Business Park', timestamp: 'Yesterday 02:00 PM', completed: true },
-          { step: 3, title: 'Warehouse Received', location: 'SATS Airfreight Terminal 5', timestamp: 'Yesterday 05:30 PM', completed: true },
-          { step: 4, title: 'Documentation', location: 'TradeNet & e-AWB Validation', timestamp: 'Yesterday 07:15 PM', completed: true },
-          { step: 5, title: 'Export Customs', location: 'Singapore Customs Air Cargo', timestamp: 'Yesterday 09:45 PM', completed: true },
-          { step: 6, title: 'Airport Handling', location: 'Apron ULD Build & Weigh-in', timestamp: 'Today 01:30 AM', completed: true },
-          { step: 7, title: 'Flight Departed', location: 'SIN Runway 02L (SQ-7922)', timestamp: 'Today 04:15 AM', completed: true, current: true },
-          { step: 8, title: 'Flight Arrived', location: 'FRA Cargo Runway 25C', timestamp: 'Expected Today 06:00 PM', completed: false },
-          { step: 9, title: 'Import Customs', location: 'Zollamt Frankfurt Flughafen', timestamp: 'Expected Today 09:00 PM', completed: false },
-          { step: 10, title: 'Out for Delivery', location: 'Frankfurt Logistics Dispatch', timestamp: 'Expected Tomorrow 06:30 AM', completed: false },
-          { step: 11, title: 'Delivered', location: 'Bayer AG Receiving Dock', timestamp: 'Expected Tomorrow 08:30 AM', completed: false }
+          { step: 1, title: 'Booking Confirmed', location: 'Josan Logistics Operations Desk', timestamp: 'Yesterday 09:00 AM', completed: true },
+          { step: 2, title: 'Cargo Handover', location: 'Shipper Facility', timestamp: 'Yesterday 02:00 PM', completed: true },
+          { step: 3, title: 'Airway Documentation Complete', location: 'AWB Preparation & Billing Desk', timestamp: 'Yesterday 05:30 PM', completed: true },
+          { step: 4, title: 'Export Documentation Verified', location: 'Customs Documentation Support', timestamp: 'Yesterday 07:15 PM', completed: true },
+          { step: 5, title: 'Airport Feeder Transfer', location: 'Changi Air Cargo Logistics Gate', timestamp: 'Yesterday 09:45 PM', completed: true },
+          { step: 6, title: 'Handed to Commercial Carrier', location: 'Commercial Air Carrier Terminal', timestamp: 'Today 01:30 AM', completed: true },
+          { step: 7, title: 'Carrier Transit in Progress', location: 'Regional Flight Corridor', timestamp: 'Today 04:15 AM', completed: true, current: true },
+          { step: 8, title: 'Destination Airport Handover', location: 'Destination Cargo Terminal', timestamp: 'Expected Today 06:00 PM', completed: false },
+          { step: 9, title: 'Destination Documentation Release', location: 'Import Inspection Bay', timestamp: 'Expected Today 09:00 PM', completed: false },
+          { step: 10, title: 'Out for Final Delivery', location: 'Local Transportation Partner', timestamp: 'Expected Tomorrow 06:30 AM', completed: false },
+          { step: 11, title: 'Delivered', location: 'Consignee Receiving Facility', timestamp: 'Expected Tomorrow 08:30 AM', completed: false }
         ]
       };
     }
@@ -534,31 +534,31 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       id: trackingCode,
       referenceNumber: `REF-${trackingCode.replace(/[^0-9]/g, '').slice(-4) || '8819'}-RD`,
       mode: 'Road Freight',
-      origin: 'Jurong Central Highway Freight Hub',
-      destination: 'Woodlands Roadways Terminal',
+      origin: 'Commercial Pickup Facility, Singapore',
+      destination: 'Commercial Delivery Destination, Singapore',
       status: 'In Transit',
-      currentLocation: 'PIE Expressway Telematics Gate (Exit 19)',
-      driverName: 'Tan Wei Ming',
-      driver: 'Tan Wei Ming',
+      currentLocation: 'In Transit with Transportation Partner',
+      driverName: 'Partner Driver (Assigned)',
+      driver: 'Partner Driver',
       driverPhone: '+65 9123 4567',
-      vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
-      sender: 'TechCorp Solutions SG',
-      senderAddress: '10 Pasir Panjang Road, Singapore 117438',
-      receiver: 'Apex Dynamics SG Hub',
-      receiverAddress: '89 Orchard Road, Singapore 238854',
+      vehicle: 'Contracted Partner Commercial Vehicle',
+      sender: 'Commercial Consignor',
+      senderAddress: 'Commercial Facility, Singapore',
+      receiver: 'Commercial Consignee',
+      receiverAddress: 'Delivery Address, Singapore',
       weight: '1,850 kg',
       pieces: 6,
-      cargoType: 'Industrial Commercial Cargo',
-      serviceLevel: 'Express Road Freight & Highway Linehaul (FTL)',
+      cargoType: 'Commercial Goods',
+      serviceLevel: 'Commercial Road Transportation',
       declaredValue: 'S$ 42,000',
       price: 'S$ 580.00',
       createdDate: 'Aug 29, 2026',
-      estimatedDelivery: 'Today, 4:30 PM (SGT)',
+      estimatedDelivery: 'Scheduled Window',
       timeline: [
-        { title: 'Consignment Booked & Lorry Receipt (LR) Issued', timestamp: 'Today 08:30 AM', location: 'Jurong Fleet Depot Bay 3', completed: true },
-        { title: 'Dispatched via Expressway Highway Corridor (GPS Locked)', timestamp: 'Today 10:15 AM', location: 'PIE Expressway Telematics Gate', completed: true, current: true },
-        { title: 'Toll & Waypoint Checkpoint Inspected', location: 'Expressway Interchange 5', timestamp: 'Expected 02:45 PM', completed: false },
-        { title: 'Delivered & Digital LR E-Signature Confirmed', timestamp: 'Expected 04:30 PM', location: 'Woodlands Roadways Terminal', completed: false }
+        { title: 'Consignment Booked & Paperwork Registered', timestamp: 'Today 08:30 AM', location: 'Operations Desk', completed: true },
+        { title: 'Dispatched via Transportation Partner', timestamp: 'Today 10:15 AM', location: 'Route Corridor', completed: true, current: true },
+        { title: 'Transit Route Checkpoint', location: 'En Route', timestamp: 'Expected Today', completed: false },
+        { title: 'Delivered & Consignment Acknowledgment Signed', timestamp: 'Expected Today', location: 'Delivery Destination', completed: false }
       ]
     };
   };
@@ -675,14 +675,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       
       {/* Clean Light Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
-        <span className="text-orange-600 font-bold uppercase text-xs tracking-widest bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200 inline-block">
-          Highway Fleet GPS Telematics
+        <span className="text-[#FF6B00] font-bold uppercase text-xs tracking-widest bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200 inline-block">
+          Shipment Status Inquiry
         </span>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Track Your Roadway Shipment
+          Track Your Shipment
         </h1>
         <p className="text-slate-600 font-medium text-sm sm:text-base leading-relaxed">
-          Monitor real-time highway telematics, toll & checkpoint releases, expressway transits, and live truck delivery milestones.
+          Inquire consignment status, transport milestone updates, and delivery documentation records using your tracking reference number.
         </p>
       </div>
 
@@ -711,13 +711,13 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   className="sr-only"
                 />
                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-                  trackType === 'awb' ? 'border-blue-600 bg-white' : 'border-slate-300'
+                  trackType === 'awb' ? 'border-[#FF6B00] bg-white' : 'border-slate-300'
                 }`}>
-                  {trackType === 'awb' && <div className="w-2 h-2 rounded-full bg-blue-600"></div>}
+                  {trackType === 'awb' && <div className="w-2 h-2 rounded-full bg-[#FF6B00]"></div>}
                 </div>
               </div>
               <span className={`text-sm font-bold transition-colors flex items-center space-x-1 ${
-                trackType === 'awb' ? 'text-blue-600 font-extrabold' : 'text-slate-500'
+                trackType === 'awb' ? 'text-[#FF6B00] font-extrabold' : 'text-slate-500'
               }`}>
                 <Plane className="w-3.5 h-3.5" />
                 <span>Air Waybill (AWB)</span>
@@ -738,9 +738,9 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   className="sr-only"
                 />
                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-                  trackType === 'shipment' ? 'border-orange-500 bg-white' : 'border-slate-300'
+                  trackType === 'shipment' ? 'border-[#FF6B00] bg-white' : 'border-slate-300'
                 }`}>
-                  {trackType === 'shipment' && <div className="w-2 h-2 rounded-full bg-orange-500"></div>}
+                  {trackType === 'shipment' && <div className="w-2 h-2 rounded-full bg-[#FF6B00]"></div>}
                 </div>
               </div>
               <span className={`text-sm font-bold transition-colors ${
@@ -764,9 +764,9 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   className="sr-only"
                 />
                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-                  trackType === 'reference' ? 'border-orange-500 bg-white' : 'border-slate-300'
+                  trackType === 'reference' ? 'border-[#FF6B00] bg-white' : 'border-slate-300'
                 }`}>
-                  {trackType === 'reference' && <div className="w-2 h-2 rounded-full bg-orange-500"></div>}
+                  {trackType === 'reference' && <div className="w-2 h-2 rounded-full bg-[#FF6B00]"></div>}
                 </div>
               </div>
               <span className={`text-sm font-bold transition-colors ${
@@ -799,7 +799,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                     ? 'Enter Shipment ID (e.g. JOS-88190-SG)' 
                     : 'Enter Reference / LR Number (e.g. REF-8819-SG)'
                 }
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200/90 rounded-xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-mono transition-all pr-10"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200/90 rounded-xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#FF6B00] focus:ring-2 focus:ring-orange-300 font-mono transition-all pr-10"
                 required
               />
               {searchInput && (
@@ -828,9 +828,9 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 <button
                   type="button"
                   onClick={() => handleSelectDemo('AWB-880-49201844')}
-                  className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-mono text-[11px] font-bold rounded-lg border border-blue-200 transition-all flex items-center space-x-1 cursor-pointer"
+                  className="px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-[#FF6B00] font-mono text-[11px] font-bold rounded-lg border border-orange-200 transition-all flex items-center space-x-1 cursor-pointer"
                 >
-                  <Plane className="w-3 h-3 text-blue-600" />
+                  <Plane className="w-3 h-3 text-[#FF6B00]" />
                   <span>AWB-880-49201844 (Air Freight)</span>
                 </button>
                 <button
@@ -838,7 +838,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   onClick={() => handleSelectDemo('JOS-88190-SG')}
                   className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-mono text-[11px] font-bold rounded-lg border border-slate-200 transition-all flex items-center space-x-1 cursor-pointer"
                 >
-                  <Truck className="w-3 h-3 text-orange-500" />
+                  <Truck className="w-3 h-3 text-[#FF6B00]" />
                   <span>JOS-88190-SG (Road FTL)</span>
                 </button>
                 <button
@@ -863,7 +863,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                     setCaptchaError('');
                   }}
                   placeholder="Enter Captcha Code"
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500 font-mono"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#FF6B00] font-mono"
                   required
                 />
               </div>
@@ -879,7 +879,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 type="button"
                 onClick={generateNewCaptcha}
                 title="Refresh Captcha"
-                className="w-11 h-11 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/80 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+                className="w-11 h-11 bg-orange-50 hover:bg-orange-50 text-[#FF6B00] border border-orange-200/80 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
               >
                 <RotateCw className="w-4 h-4" />
               </button>
@@ -895,7 +895,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             {/* Brand Orange TRACK SHIPMENT Button */}
             <button
               type="submit"
-              className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 active:scale-[0.99] text-white font-extrabold text-sm tracking-wider uppercase rounded-xl shadow-orange-sm transition-all cursor-pointer flex items-center justify-center space-x-2"
+              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E55C00] active:scale-[0.99] text-white font-extrabold text-sm tracking-wider uppercase rounded-xl shadow-sm transition-all cursor-pointer flex items-center justify-center space-x-2"
             >
               <span>TRACK SHIPMENT</span>
             </button>
@@ -913,7 +913,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             </div>
 
             <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold shrink-0 self-start sm:self-auto">
-              <Phone className="w-3 h-3 text-orange-500" />
+              <Phone className="w-3 h-3 text-[#FF6B00]" />
               <span>24/7 Operations Command</span>
             </span>
           </div>
@@ -945,8 +945,8 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   <div className="flex items-center space-x-2 mb-1">
                     <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                       isAir 
-                        ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                        : 'bg-orange-100 text-orange-800 border border-orange-200'
+                        ? 'bg-orange-100 text-orange-950 border border-orange-200' 
+                        : 'bg-orange-50 text-[#10182D] border border-orange-200'
                     }`}>
                       {isAir ? '✈️ AIR FREIGHT (PRIMARY)' : '🚚 ROAD TRANSPORTATION'}
                     </span>
@@ -972,11 +972,11 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                       : currentShipment.status === 'Delayed'
                       ? 'bg-amber-100 text-amber-800 border border-amber-300 animate-pulse'
                       : isAir
-                      ? 'bg-blue-100 text-blue-800 border border-blue-300 pulse-badge'
-                      : 'bg-orange-100 text-orange-800 border border-orange-300 pulse-badge'
+                      ? 'bg-orange-100 text-orange-950 border border-orange-300 pulse-badge'
+                      : 'bg-orange-50 text-[#10182D] border border-[#FF6B00]/40 pulse-badge'
                   }`}>
                     <span className={`w-2 h-2 rounded-full ${
-                      currentShipment.status === 'Delivered' ? 'bg-emerald-500' : currentShipment.status === 'Delayed' ? 'bg-amber-500' : isAir ? 'bg-blue-600' : 'bg-orange-500'
+                      currentShipment.status === 'Delivered' ? 'bg-emerald-500' : currentShipment.status === 'Delayed' ? 'bg-amber-500' : isAir ? 'bg-[#FF6B00]' : 'bg-[#FF6B00]'
                     }`}></span>
                     <span>{currentShipment.status}</span>
                   </span>
@@ -984,7 +984,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               </div>
 
               {/* 8-9 Display Fields Grid */}
-              <div className="bg-[#F5F6F8] p-5 rounded-2xl border border-[#E2E8F0] space-y-4">
+              <div className="bg-[#F5F6F8] p-5 rounded-2xl border border-orange-200 space-y-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
                   <div>
                     <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">
@@ -996,7 +996,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   </div>
                   <div>
                     <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Current Status</p>
-                    <p className={`font-bold text-xs sm:text-sm mt-0.5 ${isAir ? 'text-blue-600' : 'text-orange'}`}>
+                    <p className={`font-bold text-xs sm:text-sm mt-0.5 ${isAir ? 'text-[#FF6B00]' : 'text-[#FF6B00]'}`}>
                       {currentShipment.status}
                     </p>
                   </div>
@@ -1020,7 +1020,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   </div>
                   <div>
                     <p className="text-[#64748B] font-semibold uppercase text-[10px] tracking-wider">Current Location</p>
-                    <p className={`font-bold text-xs sm:text-sm mt-0.5 flex items-center gap-1 ${isAir ? 'text-blue-600' : 'text-[#FF6B00]'}`}>
+                    <p className={`font-bold text-xs sm:text-sm mt-0.5 flex items-center gap-1 ${isAir ? 'text-[#FF6B00]' : 'text-[#FF6B00]'}`}>
                       {isAir ? <Plane className="w-3.5 h-3.5 shrink-0" /> : <Navigation className="w-3.5 h-3.5 shrink-0" />}
                       <span className="truncate">{currentShipment.currentLocation || 'In Transit'}</span>
                     </p>
@@ -1055,17 +1055,17 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 {/* Sub-bar */}
                 <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Last Telematics Update: <strong className="text-slate-800">{currentShipment.lastUpdatedTime || 'Just now'}</strong></span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Status Record: <strong className="text-slate-800">{currentShipment.status || 'Active'}</strong></span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="italic text-slate-400">
-                      {isAir ? 'IATA e-Freight & ACARS Telemetry Integration' : 'Structured for Regional GPS / IoT Telematics API'}
+                      {isAir ? 'Airway Consignment Record' : 'Commercial Road Transportation Record'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setSelectedDetailShipment(currentShipment)}
-                      className="text-orange font-bold hover:underline flex items-center gap-1"
+                      className="text-[#FF6B00] font-bold hover:underline flex items-center gap-1"
                     >
                       <span>Open Full Dossier & POD</span>
                       <ExternalLink className="w-3 h-3" />
@@ -1081,10 +1081,10 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-bold text-[#10182D] uppercase tracking-wider block flex items-center gap-1.5">
-                        <Plane className="w-3.5 h-3.5 text-blue-600" />
+                        <Plane className="w-3.5 h-3.5 text-[#FF6B00]" />
                         <span>11-Stage International Air Freight Workflow</span>
                       </span>
-                      <span className="text-[11px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] text-[#FF6B00] font-bold bg-orange-50 px-2 py-0.5 rounded-full">
                         Air Freight Stages
                       </span>
                     </div>
@@ -1136,22 +1136,22 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                                 key={st.num}
                                 className={`p-2 rounded-xl border text-center transition-all ${
                                   isCurrent
-                                    ? 'bg-blue-50 border-blue-600 shadow-xs'
+                                    ? 'bg-orange-50 border-[#FF6B00] shadow-xs'
                                     : isDone
                                     ? 'bg-white border-emerald-500/50'
-                                    : 'bg-[#F5F6F8] border-[#E2E8F0] opacity-60'
+                                    : 'bg-[#F5F6F8] border-orange-200 opacity-60'
                                 }`}
                               >
                                 <div className={`w-5 h-5 mx-auto rounded-full text-[10px] font-bold flex items-center justify-center mb-1 ${
                                   isCurrent
-                                    ? 'bg-blue-600 text-white ring-2 ring-blue-300'
+                                    ? 'bg-[#FF6B00] text-white ring-2 ring-orange-300'
                                     : isDone
                                     ? 'bg-emerald-600 text-white'
                                     : 'bg-[#CBD5E1] text-[#64748B]'
                                 }`}>
                                   {isDone && !isCurrent ? '✓' : st.num}
                                 </div>
-                                <span className={`text-[10px] font-bold block truncate ${isCurrent ? 'text-blue-700' : 'text-[#10182D]'}`}>
+                                <span className={`text-[10px] font-bold block truncate ${isCurrent ? 'text-[#FF6B00]' : 'text-[#10182D]'}`}>
                                   {st.label}
                                 </span>
                               </div>
@@ -1218,15 +1218,15 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                                 key={st.num}
                                 className={`p-2.5 rounded-xl border text-center transition-all ${
                                   isCurrent
-                                    ? 'bg-[#FFF8F2] border-[#FF6B00] shadow-xs'
+                                    ? 'bg-orange-50 border-[#FF6B00] shadow-xs'
                                     : isDone
                                     ? 'bg-white border-[#16A34A]/40'
-                                    : 'bg-[#F5F6F8] border-[#E2E8F0] opacity-60'
+                                    : 'bg-[#F5F6F8] border-orange-200 opacity-60'
                                 }`}
                               >
                                 <div className={`w-5 h-5 mx-auto rounded-full text-[10px] font-bold flex items-center justify-center mb-1 ${
                                   isCurrent
-                                    ? 'bg-[#FF6B00] text-white ring-2 ring-orange/20'
+                                    ? 'bg-[#FF6B00] text-white ring-2 ring-orange-300'
                                     : isDone
                                     ? 'bg-[#16A34A] text-white'
                                     : 'bg-[#CBD5E1] text-[#64748B]'
@@ -1292,9 +1292,9 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                         {/* Timeline Node Icon */}
                         <div className={`absolute -left-6 sm:-left-8 top-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all z-10 ${
                           isCurrent
-                            ? 'bg-orange-500 text-white ring-4 ring-orange-100 pulse-badge scale-110 shadow-orange-sm'
+                            ? 'bg-[#FF6B00] text-white ring-4 ring-orange-200 pulse-badge scale-110 shadow-sm'
                             : isCompleted
-                            ? 'bg-orange-500 text-white'
+                            ? 'bg-[#FF6B00] text-white'
                             : 'bg-slate-200 text-slate-400'
                         }`}>
                           {isCompleted ? <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> : idx + 1}
@@ -1309,7 +1309,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                             : 'bg-slate-50 border-slate-200 opacity-60'
                         }`}>
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                            <h4 className={`text-sm font-extrabold ${isCurrent ? 'text-orange-600' : 'text-slate-900'}`}>
+                            <h4 className={`text-sm font-extrabold ${isCurrent ? 'text-[#FF6B00]' : 'text-slate-900'}`}>
                               {step.title}
                             </h4>
                             <span className="text-[11px] font-semibold text-slate-500 font-mono">{step.timestamp}</span>
@@ -1328,22 +1328,22 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
               {/* DIGITAL PROOF OF DELIVERY (POD) CALLOUT */}
               {currentShipment.status === 'Delivered' && (
-                <div className="bg-[#FFF8F2] border-2 border-orange/40 rounded-2xl p-5 space-y-3 shadow-sm animate-fade-in">
+                <div className="bg-orange-50 border-2 border-[#FF6B00]/40 rounded-2xl p-5 space-y-3 shadow-sm animate-fade-in">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-[#10182D] font-extrabold text-sm font-outfit">
-                      <ShieldCheck className="w-5 h-5 text-orange" />
+                      <ShieldCheck className="w-5 h-5 text-[#FF6B00]" />
                       <span>Electronic Proof of Delivery (e-POD) Verified</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setSelectedDetailShipment(currentShipment)}
-                      className="px-4 py-2 bg-orange hover:bg-orange/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2 bg-[#FF6B00] hover:bg-[#FF6B00]/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                     >
                       <span>View & Download Official POD PDF</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-orange/20 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-[#FF6B00]/20 text-xs">
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-semibold">Consignee Signatory</span>
                       <strong className="text-[#10182D]">{currentShipment.pod?.recipientName || 'Authorized Consignee Signatory'}</strong>
@@ -1374,19 +1374,19 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Assigned Driver & Commercial Vehicle</h3>
               
               <div className="flex items-center space-x-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center border-2 border-orange-300">
+                <div className="w-12 h-12 rounded-full bg-orange-50 text-[#FF6B00] font-bold flex items-center justify-center border-2 border-[#FF6B00]/40">
                   {(currentShipment.driverName || currentShipment.driver || 'D').charAt(0)}
                 </div>
                 <div>
                   <h4 className="font-extrabold text-slate-900 text-sm">{currentShipment.driverName || currentShipment.driver || 'Tan Wei Ming'}</h4>
-                  <p className="text-xs text-orange-600 font-semibold">{currentShipment.vehicle || 'Josan 14-Ton Highway Linehaul Truck #SG-8819'}</p>
+                  <p className="text-xs text-[#FF6B00] font-semibold">{currentShipment.vehicle || 'Josan 14-Ton Highway Linehaul Truck #SG-8819'}</p>
                   <p className="text-[10px] text-slate-500">Commercial License: Valid & Verified (Class 4/5)</p>
                 </div>
               </div>
 
               <a
                 href={`tel:${currentShipment.driverPhone || '+65 9123 4567'}`}
-                className="w-full py-2.5 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl font-bold text-xs border border-orange-200 transition-colors flex items-center justify-center space-x-2"
+                className="w-full py-2.5 bg-orange-50 hover:bg-orange-50 text-[#10182D] rounded-xl font-bold text-xs border border-orange-200 transition-colors flex items-center justify-center space-x-2"
               >
                 <Phone className="w-4 h-4" />
                 <span>Call Driver ({currentShipment.driverPhone || '+65 9123 4567'})</span>
@@ -1420,14 +1420,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-slate-700 font-extrabold">Roadway Freight Fee:</span>
-                  <span className="font-mono font-extrabold text-orange-600">{currentShipment.price}</span>
+                  <span className="font-mono font-extrabold text-[#FF6B00]">{currentShipment.price}</span>
                 </div>
               </div>
 
               <div className="pt-2">
                 <button
                   onClick={handleViewInvoice}
-                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-orange-sm transition-all text-center cursor-pointer"
+                  className="w-full py-2.5 bg-[#FF6B00] hover:bg-[#E55C00] text-white rounded-xl font-bold text-xs shadow-sm transition-all text-center cursor-pointer"
                 >
                   Generate Official Lorry Receipt (LR) / Waybill
                 </button>
@@ -1447,15 +1447,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
           {/* Top Header Bar */}
           <div className="bg-slate-900 border-b border-slate-800 p-4 px-6 flex items-center justify-between shadow-2xl text-white">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center font-bold shadow-orange-glow text-lg">
+              <div className="w-10 h-10 rounded-2xl bg-[#FF6B00] text-white flex items-center justify-center font-bold shadow-sm text-lg">
                 🚛
               </div>
               <div>
                 <div className="flex items-center space-x-2">
                   <h2 className="text-base font-extrabold font-mono text-white">{fullscreenMapShipment.id}</h2>
                   <span className="text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full flex items-center space-x-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span>HIGHWAY GPS SIGNAL ACTIVE</span>
+                    <span>SCHEDULED TRANSIT ROUTE</span>
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">
@@ -1491,7 +1490,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
           <div className="bg-slate-900 border-t border-slate-800 p-4 px-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-300">
             <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
               <p className="text-[10px] text-slate-400 font-bold uppercase">Live Vehicle Telemetry</p>
-              <p className="text-sm font-extrabold text-orange-400 font-mono mt-0.5">
+              <p className="text-sm font-extrabold text-[#FF6B00] font-mono mt-0.5">
                 {currentSpeed} KM/H (PIE Highway)
               </p>
             </div>

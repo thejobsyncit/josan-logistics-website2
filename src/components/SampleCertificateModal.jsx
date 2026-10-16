@@ -22,12 +22,12 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
         {/* Modal Header Bar */}
         <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-5 h-5 text-orange-500" />
+            <ShieldCheck className="w-5 h-5 text-[#2463EB]" />
             <span className="font-extrabold text-sm tracking-wide">Sample Customs Clearance Certificate</span>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-orange-500 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-[#2463EB] text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-4 h-4" />
@@ -35,13 +35,13 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
         </div>
 
         {/* Certificate Paper Content (Printable Area) */}
-        <div id="printable-certificate" className="p-6 sm:p-8 space-y-6 bg-gradient-to-b from-orange-50/30 via-white to-slate-50/50">
+        <div id="printable-certificate" className="p-6 sm:p-8 space-y-6 bg-gradient-to-b from-[#EAF2FF]/30 via-white to-slate-50/50">
           
           {/* Header & Watermark Badge */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-orange-500/30 pb-4 gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-[#2463EB]/30 pb-4 gap-4">
             <div>
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white font-extrabold text-xs">
+                <div className="w-8 h-8 rounded-lg bg-[#2463EB] flex items-center justify-center text-white font-extrabold text-xs">
                   JL
                 </div>
                 <span className="text-lg font-black text-slate-900 tracking-wider">JOSAN LOGISTICS</span>
@@ -59,7 +59,7 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
 
           {/* Certificate Title */}
           <div className="text-center py-2 space-y-1">
-            <span className="text-[10px] font-extrabold text-orange-600 uppercase tracking-widest bg-orange-100 px-3 py-0.5 rounded-full">
+            <span className="text-[10px] font-extrabold text-[#2463EB] uppercase tracking-widest bg-[#EAF2FF] px-3 py-0.5 rounded-full">
               Official Verification Document
             </span>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase">
@@ -78,7 +78,7 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Estimated Clearance Window</span>
-              <span className="font-extrabold text-orange-600 text-sm">{timeline}</span>
+              <span className="font-extrabold text-[#2463EB] text-sm">{timeline}</span>
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customs Jurisdiction</span>
@@ -96,7 +96,7 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
           {/* Checklist of Verified Documents */}
           <div className="space-y-3">
             <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
-              <FileText className="w-4 h-4 text-orange-500" />
+              <FileText className="w-4 h-4 text-[#2463EB]" />
               <span>Validated Document Manifest</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -112,7 +112,7 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
           {/* Stamp & Barcode Footer */}
           <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-200 gap-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-xl bg-orange-500/10 border-2 border-orange-500/40 flex flex-col items-center justify-center text-orange-600">
+              <div className="w-12 h-12 rounded-xl bg-[#2463EB]/10 border-2 border-[#2463EB]/40 flex flex-col items-center justify-center text-[#2463EB]">
                 <QrCode className="w-7 h-7" />
               </div>
               <div className="text-[10px] text-slate-500 font-mono">
@@ -122,8 +122,8 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
             </div>
 
             <div className="text-center sm:text-right">
-              <div className="inline-block border-2 border-dashed border-orange-400 p-2 rounded-xl bg-orange-50/50">
-                <p className="text-[10px] font-black text-orange-700 uppercase tracking-wider">
+              <div className="inline-block border-2 border-dashed border-[#2463EB] p-2 rounded-xl bg-[#EAF2FF]/50">
+                <p className="text-[10px] font-black text-[#0B1F5B] uppercase tracking-wider">
                   Josan Customs Seal & Approved
                 </p>
                 <p className="text-[9px] text-slate-500 font-bold">Authorized Brokerage Division</p>
@@ -145,14 +145,14 @@ export const SampleCertificateModal = ({ isOpen, onClose, serviceTitle, timeline
           <div className="flex items-center space-x-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 font-bold text-xs rounded-xl transition-all inline-flex items-center space-x-1.5 cursor-pointer"
+              className="px-4 py-2 bg-[#EAF2FF] hover:bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] font-bold text-xs rounded-xl transition-all inline-flex items-center space-x-1.5 cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print Certificate</span>
             </button>
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-orange-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer"
+              className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-sm transition-all inline-flex items-center space-x-1.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download PDF</span>

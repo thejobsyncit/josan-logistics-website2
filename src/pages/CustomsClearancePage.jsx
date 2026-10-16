@@ -253,19 +253,15 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
     <div className="space-y-16 pb-24 animate-fade-in bg-slate-50/50">
 
       {/* Hero Section */}
-      <section className="bg-slate-900 text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Glow & Geometric Accents */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
+      <section className="bg-[#0B1F3A] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-[#1E3A5F] relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             {/* Left Column: Heading & Content */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center space-x-2 bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-full">
-                <ShieldCheck className="w-4 h-4 text-blue-400" />
-                <span className="text-blue-300 font-bold uppercase text-xs tracking-wider">
+              <div className="inline-flex items-center space-x-2 bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full backdrop-blur-xs">
+                <ShieldCheck className="w-4 h-4 text-[#B6C2D1]" />
+                <span className="text-white font-bold uppercase text-xs tracking-wider">
                   Shipment &amp; Customs Documentation Support
                 </span>
               </div>
@@ -274,12 +270,12 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-sans tracking-tight text-white leading-tight">
                   Customs &amp; Shipment Documentation Support
                 </h1>
-                <p className="text-lg sm:text-xl font-bold text-orange-400">
+                <p className="text-lg sm:text-xl font-bold text-[#B6C2D1]">
                   Air Waybill (AWB) Preparation &amp; Commercial Cargo Documentation Support
                 </p>
               </div>
 
-              <p className="text-slate-300 font-medium text-sm sm:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-[#B6C2D1] font-medium text-sm sm:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 We support businesses with the preparation and organization of shipment and customs-related documentation required for commercial cargo movement. Our services focus on Air Waybill (AWB) preparation, billing, shipment paperwork and documentation coordination for commercial goods.
               </p>
 
@@ -288,7 +284,7 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
                 <button
                   type="button"
                   onClick={() => setActiveTab && setActiveTab('book')}
-                  className="px-6 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-sm rounded-xl transition-all shadow-lg hover:shadow-orange-500/25 flex items-center space-x-2 cursor-pointer active:scale-95"
+                  className="px-6 py-3.5 bg-[#F26B21] hover:bg-[#D95A13] text-white font-extrabold text-sm rounded-xl transition-all shadow-md flex items-center space-x-2 cursor-pointer active:scale-95"
                 >
                   <span>Request Documentation Support</span>
                   <ArrowRight className="w-4 h-4" />
@@ -301,25 +297,25 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
                       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                   }}
-                  className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl border border-white/20 transition-all cursor-pointer backdrop-blur-xs active:scale-95"
+                  className="px-6 py-3.5 bg-white/5 hover:bg-white/10 text-white font-bold text-sm rounded-xl border border-white/20 transition-all cursor-pointer backdrop-blur-xs active:scale-95"
                 >
                   View Required Documents
                 </button>
               </div>
 
               {/* Factual Highlights */}
-              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80 text-left">
+              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-[#1E3A5F] text-left">
                 <div>
                   <span className="block text-base sm:text-lg font-black text-white">AWB Support</span>
-                  <span className="text-xs text-slate-400 font-medium">Preparation &amp; Billing</span>
+                  <span className="text-xs text-[#B6C2D1] font-medium">Preparation &amp; Billing</span>
                 </div>
                 <div>
-                  <span className="block text-base sm:text-lg font-black text-orange-400">Commercial Cargo</span>
-                  <span className="text-xs text-slate-400 font-medium">Invoices &amp; Packing Lists</span>
+                  <span className="block text-base sm:text-lg font-black text-white">Commercial Cargo</span>
+                  <span className="text-xs text-[#B6C2D1] font-medium">Invoices &amp; Packing Lists</span>
                 </div>
                 <div>
-                  <span className="block text-base sm:text-lg font-black text-white">Customs Support</span>
-                  <span className="text-xs text-slate-400 font-medium">Process Documentation</span>
+                  <span className="block text-base sm:text-lg font-black text-white">Compliance</span>
+                  <span className="text-xs text-[#B6C2D1] font-medium">Regulatory Paperwork</span>
                 </div>
               </div>
             </div>
