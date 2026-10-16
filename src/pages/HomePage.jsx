@@ -220,21 +220,21 @@ export const HomePage = ({ setActiveTab }) => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           
-          {/* Bold, prominent text directly on the navy overlay */}
-          <div className="max-w-2xl lg:max-w-3xl space-y-6">
+          {/* Frosted Glass Container for High Contrast and Maximum Readability */}
+          <div className="max-w-2xl lg:max-w-3xl p-6 sm:p-8 lg:p-10 rounded-3xl bg-slate-950/45 backdrop-blur-md border border-white/15 shadow-2xl space-y-6">
             <div 
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs sm:text-sm font-semibold text-black backdrop-blur-md shadow-xs bg-white/80 border-slate-300"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs sm:text-sm font-semibold text-white backdrop-blur-md shadow-xs bg-white/10 border-white/20"
             >
               <Sparkles className="w-4 h-4 text-[#F26B21]" />
-              <span className="tracking-wider uppercase font-semibold text-xs text-black">LOGISTICS &amp; TRANSPORTATION SUPPORT</span>
+              <span className="tracking-wider uppercase font-semibold text-xs text-white">LOGISTICS &amp; TRANSPORTATION SUPPORT</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[62px] font-black tracking-tight text-black leading-[1.08]">
-              <span className="block text-black">Reliable Logistics Solutions</span>
-              <span className="block text-black">For Every Journey</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[62px] font-black tracking-tight text-white leading-[1.08] drop-shadow-md">
+              <span className="block text-white">Reliable Logistics Solutions</span>
+              <span className="block text-white">For Every Journey</span>
             </h1>
 
-            <p className="text-black text-base sm:text-lg lg:text-xl leading-relaxed font-medium max-w-2xl">
+            <p className="text-white/95 text-base sm:text-lg lg:text-xl leading-relaxed font-medium max-w-2xl drop-shadow-sm">
               From Air Waybill preparation and shipment documentation to commercial road transportation, we provide reliable logistics support for businesses moving goods from one location to another.
             </p>
 
@@ -243,7 +243,7 @@ export const HomePage = ({ setActiveTab }) => {
               <button
                 type="button"
                 onClick={handleQuoteAction}
-                className="px-8 py-4 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-full font-bold text-sm sm:text-base tracking-wider uppercase transition-colors flex items-center space-x-2.5 cursor-pointer active:scale-95 group shadow-sm"
+                className="px-8 py-4 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-full font-bold text-sm sm:text-base tracking-wider uppercase transition-colors flex items-center space-x-2.5 cursor-pointer active:scale-95 group shadow-md"
               >
                 <span>Get a Freight Quote</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
