@@ -212,7 +212,7 @@ export const HomePage = ({ setActiveTab }) => {
             preload="auto"
             onLoadedMetadata={(e) => { e.currentTarget.playbackRate = 0.65; }}
             onPlay={(e) => { e.currentTarget.playbackRate = 0.65; }}
-            className="w-full h-full object-cover object-[70%_center] sm:object-[75%_center] lg:object-[80%_center] transform scale-105"
+            className="w-full h-full object-cover object-[70%_25%] sm:object-[75%_25%] lg:object-[80%_20%] transform scale-[1.12] origin-top-left"
           >
             <source src="/assets/freight_truck_highway.mp4" type="video/mp4" />
           </video>
