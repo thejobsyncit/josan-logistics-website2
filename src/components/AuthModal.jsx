@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
-import { X, Lock, Mail, ArrowRight, User, AlertCircle } from 'lucide-react';
+import { X, Lock, Mail, ArrowRight, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { supabaseApi } from '../services/supabaseApi';
 import { isSupabaseConfigured } from '../services/supabase';
 
@@ -17,6 +17,8 @@ export const AuthModal = ({ setActiveTab }) => {
   const [phoneDigits, setPhoneDigits] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
 
   // Driver Registration Profile Picture & Hub
@@ -24,9 +26,28 @@ export const AuthModal = ({ setActiveTab }) => {
   const [driverPhoto, setDriverPhoto] = useState(defaultDriverPhoto);
   const [assignedHub, setAssignedHub] = useState('Changi Air Cargo Logistics Hub');
 
+  const resetForm = () => {
+    setFullName('');
+    setEmail('');
+    setCountryCode('+65');
+    setPhoneDigits('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setError('');
+  };
+
+  useEffect(() => {
+    if (isAuthModalOpen) {
+      resetForm();
+    }
+  }, [isAuthModalOpen]);
+
   const handleClose = () => {
     setIsAuthModalOpen(false);
     if (setAuthRedirectTab) setAuthRedirectTab(null);
+    resetForm();
   };
 
   const handlePhotoUpload = (e) => {
@@ -51,7 +72,12 @@ export const AuthModal = ({ setActiveTab }) => {
     e.preventDefault();
     setError('');
 
-    if (email && !validateEmail(email)) {
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (!validateEmail(email)) {
       setError('Please enter a valid email format (e.g. user@company.com)');
       return;
     }
@@ -64,57 +90,64 @@ export const AuthModal = ({ setActiveTab }) => {
     // Connect Supabase Auth when configured
     if (isSupabaseConfigured) {
       if (isLogin) {
-        const sbRes = await supabaseApi.signIn({ email: email.trim(), password });
-        if (sbRes.error) {
-          console.warn('[AuthModal] Supabase auth sign-in notice:', sbRes.error);
-          // Allow fallback to app authentication logic (loginUser) for demo/local profiles
+        try {
+          const sbRes = await supabaseApi.signIn({ email: email.trim(), password });
+          if (sbRes?.error) {
+            console.warn('[AuthModal] Supabase auth sign-in notice:', sbRes.error);
+            // Allow fallback to app authentication logic (loginUser) for demo/local profiles
+          }
+        } catch (sbErr) {
+          console.warn('[AuthModal] Supabase auth sign-in notice (fallback to local state):', sbErr);
         }
       } else {
-        // Ensure customer record is upserted into Supabase public.customers DB table first
-        if (role.toLowerCase().includes('customer')) {
-          await supabaseApi.createCustomer({
-            name: fullName || email.split('@')[0],
-            email: email.trim(),
-            phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
-            company: 'Global Client Corp',
-            password: password,
-          });
-        }
-
-        const sbRes = await supabaseApi.signUp({
-          email: email.trim(),
-          password,
-          fullName,
-          phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
-          role,
-        });
-
-        if (sbRes.error) {
-          console.warn('[AuthModal] Supabase auth notice:', sbRes.error);
-          const errLower = sbRes.error.toLowerCase();
-          const isIgnorableError = 
-            errLower.includes('rate limit') || 
-            errLower.includes('over_email_send_rate_limit') ||
-            errLower.includes('already registered') ||
-            errLower.includes('already in use') ||
-            errLower.includes('already exists');
-
-          if (!isIgnorableError) {
-            setError(sbRes.error);
-            return;
+        try {
+          // Attempt customer record sync to Supabase public.customers DB table
+          if (role.toLowerCase().includes('customer')) {
+            await supabaseApi.createCustomer({
+              name: fullName || email.split('@')[0],
+              email: email.trim(),
+              phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
+              company: '',
+              password: password,
+            }).catch(e => console.warn('[AuthModal] Remote customer sync notice:', e));
           }
+
+          const sbRes = await supabaseApi.signUp({
+            email: email.trim(),
+            password,
+            fullName,
+            phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
+            role,
+          });
+
+          if (sbRes?.error) {
+            console.warn('[AuthModal] Supabase auth notice:', sbRes.error);
+            const errLower = (sbRes.error || '').toLowerCase();
+            const isNetworkOrIgnorableError = 
+              errLower.includes('failed to fetch') ||
+              errLower.includes('fetch failed') ||
+              errLower.includes('network') ||
+              errLower.includes('rate limit') || 
+              errLower.includes('over_email_send_rate_limit') ||
+              errLower.includes('already registered') ||
+              errLower.includes('already in use') ||
+              errLower.includes('already exists') ||
+              errLower.includes('could not resolve host');
+
+            // Only halt if it is an actual user input validation error (e.g. password too short)
+            if (!isNetworkOrIgnorableError) {
+              setError(sbRes.error);
+              return;
+            }
+          }
+        } catch (sbErr) {
+          console.warn('[AuthModal] Supabase auth registration notice (fallback to local state):', sbErr);
         }
       }
     }
 
-    const defaultEmail = role === 'admin' 
-      ? 'admin@josanlogistics.com' 
-      : role === 'driver' 
-      ? 'tan.weiming@josanlogistics.com' 
-      : 'customer@techcorp.com';
-
     const res = loginUser(
-      email.trim() || defaultEmail,
+      email.trim(),
       password,
       role,
       setActiveTab,
@@ -129,7 +162,7 @@ export const AuthModal = ({ setActiveTab }) => {
     } else {
       setIsAuthModalOpen(false);
       setAuthModalHideClose(false);
-      setError('');
+      resetForm();
       if (setActiveTab) {
         const targetRole = res?.user?.role || role;
         if (targetRole === 'admin') {
@@ -198,7 +231,7 @@ export const AuthModal = ({ setActiveTab }) => {
               value={role}
               onChange={(e) => {
                 setRole(e.target.value);
-                setError('');
+                resetForm();
               }}
               className="w-full p-2.5 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus-orange cursor-pointer"
             >
@@ -235,7 +268,10 @@ export const AuthModal = ({ setActiveTab }) => {
                 <span className="text-[11px] font-bold text-slate-500">Already registered by Admin?</span>
                 <button
                   type="button"
-                  onClick={() => setIsLogin(true)}
+                  onClick={() => {
+                    setIsLogin(true);
+                    resetForm();
+                  }}
                   className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold cursor-pointer transition-colors shadow-sm"
                 >
                   Switch to Driver Sign In
@@ -333,7 +369,7 @@ export const AuthModal = ({ setActiveTab }) => {
                       type="text"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={role === 'driver' ? 'e.g. gurpreet@josanlogistics.com or +65 9123 4567' : 'user@company.com'}
+                      placeholder={role === 'driver' ? 'e.g. gurpreet@josanlogistics.com or +65 XXXX XXXX' : 'user@company.com'}
                       className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
                       required
                     />
@@ -352,14 +388,23 @@ export const AuthModal = ({ setActiveTab }) => {
                 <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
+                    className="w-full pl-9 pr-10 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
                     required
                   />
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -369,14 +414,23 @@ export const AuthModal = ({ setActiveTab }) => {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Confirm Password</label>
                   <div className="relative">
                     <input
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
+                      className="w-full pl-9 pr-10 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
                       required
                     />
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                      aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                      title={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
               )}
@@ -397,7 +451,7 @@ export const AuthModal = ({ setActiveTab }) => {
               type="button"
               onClick={() => {
                 setIsLogin(!isLogin);
-                setError('');
+                resetForm();
               }}
               className="font-semibold text-[#FF6B00] hover:underline cursor-pointer"
             >

@@ -57,8 +57,11 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        heading: ['Outfit', 'Inter', 'sans-serif'],
+        sans: ['Poppins', 'var(--font-body)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        body: ['Poppins', 'var(--font-body)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        heading: ['Montserrat', 'var(--font-heading)', 'sans-serif'],
+        montserrat: ['Montserrat', 'var(--font-heading)', 'sans-serif'],
+        poppins: ['Poppins', 'var(--font-body)', 'sans-serif'],
       },
       boxShadow: {
         'card': '0 1px 3px 0 rgba(11, 31, 58, 0.05), 0 1px 2px -1px rgba(11, 31, 58, 0.03)',

@@ -844,7 +844,7 @@ export const CrmDocumentsTab = ({
                   required
                   value={newDocData.name}
                   onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
-                  placeholder="e.g. Commercial_Invoice_JOS-88190.pdf"
+                  placeholder="e.g. Commercial_Invoice_77102.pdf"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>
@@ -866,7 +866,7 @@ export const CrmDocumentsTab = ({
                     type="text"
                     value={newDocData.shipmentId}
                     onChange={(e) => setNewDocData({ ...newDocData, shipmentId: e.target.value })}
-                    placeholder="e.g. JOS-88190-SG or AIR-0001"
+                    placeholder="Your tracking number or AIR-0001"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
                   />
                 </div>

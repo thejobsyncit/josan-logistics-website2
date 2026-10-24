@@ -129,7 +129,7 @@ For all international and regional air cargo handled by Josan Logistics via Chan
 - Master Air Waybill (MAWB) & House Air Waybill (HAWB)
 - Commercial Invoice (in USD or SGD) detailing item description, HS Codes, unit values, and country of origin.
 - Detailed Packing List (net weight, gross weight, dimension per crate/pallet).
-- Shipper's Declaration for Dangerous Goods (DG Declaration) if cargo contains lithium batteries, chemicals, or hazardous materials under IATA DG Regulations.
+- Shipper's Declaration for Dangerous Goods (DG Declaration) if cargo contains lithium batteries or regulated materials under IATA DG Regulations.
 - Certificate of Origin (Form D / Form E / Form AK where preferential tariff applies).
 
 2. AIR WAYBILL (AWB) DEFINITION & RESPONSIBILITY:
@@ -143,7 +143,7 @@ An Air Waybill is a non-negotiable transport document issued by Josan Logistics 
     fileName: 'Singapore_Customs_and_GST_Clearance.pdf',
     title: 'Singapore Customs Clearance & GST Regulations',
     category: 'Customs',
-    description: 'Detailed explanation of Singapore TradeNet permits, Goods and Services Tax (GST) rate, and bonded warehousing.',
+    description: 'Detailed explanation of Singapore TradeNet permits, Goods and Services Tax (GST) rate, and customs procedures.',
     content: `SINGAPORE CUSTOMS & GST CLEARANCE GUIDE - JOSAN LOGISTICS
 
 1. TRADE PERMIT DECLARATION:
@@ -153,8 +153,8 @@ All commercial shipments entering or exiting Singapore require an approved Trade
 - Out Permit: Required for all exports out of Singapore port/airport.
 
 2. DUTIABLE & CONTROLLED GOODS:
-- Dutiable items: Intoxicating liquors, tobacco products, motor vehicles, and petroleum products.
-- Controlled goods (e.g. strategic goods, pharmaceuticals, food items) require clearance permits from Strategic Goods Control Branch, HSA, or SFA before customs release.
+- Dutiable items: Motor vehicles and petroleum products. Note: Josan Logistics does not handle intoxicating liquors, wines, or tobacco products.
+- Controlled goods (e.g. strategic goods, food items) require clearance permits from Strategic Goods Control Branch, HSA, or SFA before customs release. Note: Josan Logistics does not transport chemicals, healthcare/pharmaceuticals, or fresh/frozen products.
 
 3. JOSAN LOGISTICS CUSTOMS BROKERAGE SERVICES:
 Josan Logistics provides 24/7 TradeNet permit submission with average permit turnaround time under 15 minutes.`
@@ -189,18 +189,17 @@ Josan Logistics delivers goods to specified destination address. Import duties a
     content: `JOSAN LOGISTICS CORPORATE SERVICES & FLEET CAPABILITIES
 
 1. ROAD FREIGHT & LOCAL DISTRIBUTION IN SINGAPORE:
-- Fleet Options: 14ft Box Trucks (tailgate equipped), 24ft Heavy Lorries, and 40ft Prime Movers.
-- Islandwide coverage across Woodlands, Jurong Industrial Estate, Tuas Port, Changi Airport, and CBD.
-- Real-time GPS tracking and instant Proof of Delivery (e-POD) with signature capture.
+- Fleet Options: 14ft Box Trucks (tailgate equipped), 24ft Heavy Lorries, and 40ft Prime Movers coordinated through established transport partners for dependable capacity.
+- Islandwide coverage across Woodlands, Pasir Panjang Logistics Terminal, Tampines Industrial Estate, Changi Airport, and CBD.
+- Real-time GPS tracking and Proof of Delivery (e-POD) with signature capture.
 
 2. INTERNATIONAL FREIGHT FORWARDING:
 - Air Freight Express & Standard Consolidation.
-- Cross-Border Trucking between Singapore, Malaysia (Johor Bahru, KL, Penang), and Thailand.
-- Ocean Freight FCL (Full Container Load) & LCL (Less than Container Load).
+- Ocean Freight Container Coordination.
 
 3. VALUE-ADDED SERVICES:
-- Bonded Warehousing & Temperature-Controlled Storage.
-- Pick and Pack, Crating, and Hazardous Material handling.
-- Instant Online Booking & Shipment Tracking via Josan Customer Portal.`
+- Commercial Warehousing & Storage Coordination.
+- Pick and Pack, Crating, and Cargo handling.
+- Online Booking & Shipment Tracking via Josan Customer Portal.`
   }
 ];

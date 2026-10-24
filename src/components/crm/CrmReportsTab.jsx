@@ -374,11 +374,11 @@ export const CrmReportsTab = ({
       ['Financials', 'Collected Revenue (SGD)', paidBilled.toFixed(2), timeRange, exportTimestamp],
       ['Financials', 'Pending Receivables (SGD)', pendingBilled.toFixed(2), timeRange, exportTimestamp],
       ['Financials', 'Collection Efficiency Rate', `${collectionRate}%`, timeRange, exportTimestamp],
-      ['Airway Services', 'Total Inbound Requests', filteredAirwayRequests.length, timeRange, exportTimestamp],
-      ['Airway Services', 'AWB Preparation', awbPrepCount, timeRange, exportTimestamp],
-      ['Airway Services', 'Shipment Documentation', docsCount, timeRange, exportTimestamp],
-      ['Airway Services', 'AWB Billing', billingCount, timeRange, exportTimestamp],
-      ['Airway Services', 'Transportation Support', transportCount, timeRange, exportTimestamp],
+      ['Air Freight Services', 'Total Inbound Requests', filteredAirwayRequests.length, timeRange, exportTimestamp],
+      ['Air Freight Services', 'AWB Preparation', awbPrepCount, timeRange, exportTimestamp],
+      ['Air Freight Services', 'Shipment Documentation', docsCount, timeRange, exportTimestamp],
+      ['Air Freight Services', 'AWB Billing', billingCount, timeRange, exportTimestamp],
+      ['Air Freight Services', 'Transportation Support', transportCount, timeRange, exportTimestamp],
       ['Road Haulage', 'Active Road Shipments', filteredShipments.length, timeRange, exportTimestamp],
       ['Corporate Customers', 'Active Corporate Accounts', activeShippersCount, timeRange, exportTimestamp],
       ['Partners', 'Active Transport Partners', transportationPartners.length, timeRange, exportTimestamp]
@@ -512,11 +512,11 @@ export const CrmReportsTab = ({
           </div>
         </div>
 
-        {/* Airway Services Distribution */}
+        {/* Air Freight Services Distribution */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h3 className="font-extrabold text-sm text-slate-900">Airway Service Capabilities Mix</h3>
+              <h3 className="font-extrabold text-sm text-slate-900">Air Freight Service Capabilities Mix</h3>
               <p className="text-[11px] text-slate-500">Demand across AWB, documentation and transfers</p>
             </div>
           </div>
@@ -525,7 +525,7 @@ export const CrmReportsTab = ({
             {totalAirwayServicesCount === 0 ? (
               <div className="flex flex-col items-center justify-center text-slate-400 space-y-2">
                 <Plane className="w-8 h-8 text-slate-300 stroke-[1.5]" />
-                <p className="text-xs font-semibold text-slate-500">No airway service data for {timeRange}</p>
+                <p className="text-xs font-semibold text-slate-500">No air freight service data for {timeRange}</p>
                 <p className="text-[11px] text-slate-400">Service breakdown will appear when requests are recorded</p>
               </div>
             ) : (

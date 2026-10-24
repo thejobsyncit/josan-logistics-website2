@@ -27,7 +27,7 @@ export const ShipmentsTab = ({
   const [statusFilter, setStatusFilter] = useState('All');
 
   const filtered = shipments.filter(s => {
-    const serviceLabel = s.service || (s.serviceType?.toLowerCase().includes('air') ? 'Airway Services' : 'Road Transportation');
+    const serviceLabel = s.service || (s.serviceType?.toLowerCase().includes('air') ? 'Air Freight Services' : 'Road Transportation');
     if (serviceFilter !== 'All' && serviceLabel !== serviceFilter) return false;
     if (statusFilter !== 'All' && s.status !== statusFilter) return false;
 
@@ -111,7 +111,7 @@ export const ShipmentsTab = ({
             className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Services</option>
-            <option value="Airway Services">Airway Services</option>
+            <option value="Air Freight Services">Air Freight Services</option>
             <option value="Road Transportation">Road Transportation</option>
           </select>
         </div>
@@ -158,7 +158,7 @@ export const ShipmentsTab = ({
               </tr>
             ) : (
               filtered.map((s) => {
-                const serviceLabel = s.service || (s.serviceType?.toLowerCase().includes('air') ? 'Airway Services' : 'Road Transportation');
+                const serviceLabel = s.service || (s.serviceType?.toLowerCase().includes('air') ? 'Air Freight Services' : 'Road Transportation');
                 const isAir = serviceLabel.includes('Airway') || serviceLabel.includes('Air');
                 const cust = s.customer || s.customerName || s.sender || 'Corporate Account';
                 const hasDriver = !!(s.driverName || s.driverId);

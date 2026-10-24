@@ -534,7 +534,7 @@ export const CrmAirwayRequestsTab = ({
 
               {/* Requested Services */}
               <div className="space-y-2">
-                <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Requested Airway Services</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Requested Air Freight Services</span>
                 <div className="flex flex-wrap gap-2">
                   {(activeRequestModal.services || ['AWB Preparation']).map((s, idx) => (
                     <span key={idx} className="px-3 py-1 bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] rounded-xl font-bold text-xs">
@@ -630,7 +630,7 @@ export const CrmAirwayRequestsTab = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-black text-lg text-slate-900 font-heading">New Airway Service Intake</h3>
-                <p className="text-xs text-slate-500">Record customer airway documentation or coordination request</p>
+                <p className="text-xs text-slate-500">Record customer air freight documentation or coordination request</p>
               </div>
               <button
                 type="button"
@@ -769,7 +769,7 @@ export const CrmAirwayRequestsTab = ({
 
               {/* Services checkboxes */}
               <div>
-                <label className="text-slate-700 block mb-1.5">Requested Airway Services</label>
+                <label className="text-slate-700 block mb-1.5">Requested Air Freight Services</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     'AWB Preparation',

@@ -45,8 +45,8 @@ export const CrmTransportationPartnersTab = ({
     contactPerson: '',
     phone: '',
     email: '',
-    serviceArea: 'Singapore Islandwide Corridors (Tuas, Jurong, Woodlands, Changi)',
-    operatingZones: 'Northern & Western Corridors',
+    serviceArea: 'Singapore Islandwide Corridors (Woodlands, Changi, Pasir Panjang, Tampines)',
+    operatingZones: 'Northern & Eastern Corridors',
     vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
     agreementStatus: 'Active Partner',
     registeredVehicles: 6,
@@ -97,8 +97,8 @@ export const CrmTransportationPartnersTab = ({
       contactPerson: '',
       phone: '',
       email: '',
-      serviceArea: 'Singapore Islandwide Corridors (Tuas, Jurong, Woodlands, Changi)',
-      operatingZones: 'Northern & Western Corridors',
+      serviceArea: 'Singapore Islandwide Corridors (Woodlands, Changi, Pasir Panjang, Tampines)',
+      operatingZones: 'Northern & Eastern Corridors',
       vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
       agreementStatus: 'Active Partner',
       registeredVehicles: 6,
@@ -417,7 +417,7 @@ export const CrmTransportationPartnersTab = ({
                     type="tel"
                     value={newPartnerData.phone}
                     onChange={(e) => setNewPartnerData({ ...newPartnerData, phone: e.target.value })}
-                    placeholder="+65 9123 4567"
+                    placeholder="+65 XXXX XXXX"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   />
                 </div>
@@ -440,7 +440,7 @@ export const CrmTransportationPartnersTab = ({
                   required
                   value={newPartnerData.operatingZones}
                   onChange={(e) => setNewPartnerData({ ...newPartnerData, operatingZones: e.target.value })}
-                  placeholder="e.g. Northern & Western Corridors (Woodlands, Jurong, Tuas)"
+                  placeholder="e.g. Northern & Eastern Corridors (Woodlands, Changi, Pasir Panjang)"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>

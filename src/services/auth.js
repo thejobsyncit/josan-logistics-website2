@@ -31,7 +31,7 @@ export const authService = {
         name: fullName || email.split('@')[0],
         email,
         phone,
-        company: company || 'Global Client Corp',
+        company: company || '',
         role: formattedRole,
         status: 'Active',
       });
@@ -42,8 +42,8 @@ export const authService = {
           id: data.user.id,
           name: fullName || email.split('@')[0],
           email,
-          phone: phone || '+65 6789 0123',
-          company: company || 'Global Client Corp',
+          phone: phone || '',
+          company: company || '',
           password: password,
         });
       }

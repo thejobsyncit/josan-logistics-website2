@@ -190,7 +190,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
     logoutUser();
     if (setActiveTab) setActiveTab('home');
   };
-  const [expandedMapId, setExpandedMapId] = useState('JOS-88190-SG');
+  const [expandedMapId, setExpandedMapId] = useState('JOS-77102-SG');
 
   // Live Truck GPS animation loop for Customer Portal
   const [customerTruckProgress, setCustomerTruckProgress] = useState(35);
@@ -769,7 +769,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="min-w-0 flex-1">
                       <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Assigned Driver</span>
                       <p className="text-xs font-bold text-slate-900 truncate">{s.driverName || s.driver || 'Tan Wei Ming'}</p>
-                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">{s.driverPhone || '+65 9123 4567'}</p>
+                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">{s.driverPhone || '+65 6789 0123'}</p>
                     </div>
                   </div>
 
@@ -959,7 +959,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                             },
                             {
                               title: 'Final Delivery to Destination Warehouse',
-                              location: s.destination ? `${s.destination}` : 'Jurong Port Logistics Hub',
+                              location: s.destination ? `${s.destination}` : 'Destination Distribution Hub',
                               timestamp: 'Estimated Tomorrow',
                               completed: false,
                               current: false
@@ -1628,7 +1628,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     required
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
-                    placeholder="e.g. Jurong Hub Dock #4"
+                    placeholder="e.g. Distribution Center Dock #4"
                     className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue"
                   />
                 </div>
@@ -2301,7 +2301,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   >
                     <option value="Transit Status">Transit Status & ETA</option>
                     <option value="Customs & Clearance">Customs & Clearance</option>
-                    <option value="Cold Chain Monitoring">Cold Chain Telematics</option>
+                    <option value="Shipment Tracking">GPS & Telematics Updates</option>
                     <option value="Billing & Invoicing">Billing & Tax Invoice</option>
                     <option value="Delivery Assistance">Delivery Address Change</option>
                   </select>

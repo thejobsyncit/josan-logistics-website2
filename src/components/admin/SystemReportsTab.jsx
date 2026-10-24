@@ -112,13 +112,13 @@ export const SystemReportsTab = ({
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-sm font-extrabold text-slate-900">Website Request Channel Distribution</h3>
-            <p className="text-xs text-slate-500">Proportion of Airway Service requests vs Road Transportation bookings.</p>
+            <p className="text-xs text-slate-500">Proportion of Air Freight Service requests vs Road Transportation bookings.</p>
           </div>
 
           <div className="space-y-4 pt-2">
             <div>
               <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
-                <span>Airway Services (AWB Coordination)</span>
+                <span>Air Freight Services (AWB Coordination)</span>
                 <span className="font-mono text-blue-600">{airwayCount} ({airwayPct}%)</span>
               </div>
               <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">

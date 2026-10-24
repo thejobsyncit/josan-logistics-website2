@@ -29,7 +29,7 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
       if (type === 'domestic') {
         showToast('🚚 Selected Domestic Shipment (Within Country — No Customs Required)');
       } else {
-        showToast('✈️ Selected International Freight Forwarding (Cross-Border Global Transit)');
+        showToast('✈️ Selected International Freight Forwarding (Global Transit)');
       }
     }
   };
@@ -142,7 +142,7 @@ export const ShipmentTypeModal = ({ setActiveTab }) => {
                 International Services
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed font-normal mt-2">
-                Cross-border cargo forwarding across 180+ countries with automated customs clearance & duty estimates.
+                International cargo forwarding across 180+ countries with automated customs clearance & duty estimates.
               </p>
 
               {/* Pill Badge */}

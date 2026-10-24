@@ -30,6 +30,7 @@ export const ReportsTab = ({
   // Factual aggregations only
   const totalShipments = shipments.length;
   const airwayCount = shipments.filter(s => 
+    s.service === 'Air Freight Services' || 
     s.service === 'Airway Services' || 
     s.serviceType?.toLowerCase().includes('air') || 
     s.type === 'air' ||
@@ -53,7 +54,7 @@ export const ReportsTab = ({
   };
 
   const requestsByService = {
-    'Airway Services': serviceRequests.filter(r => r.service === 'Airway Services').length,
+    'Air Freight Services': serviceRequests.filter(r => r.service === 'Air Freight Services' || r.service === 'Airway Services').length,
     'Road Transportation': serviceRequests.filter(r => r.service === 'Road Transportation').length,
     'Documentation': serviceRequests.filter(r => r.service === 'Documentation').length,
   };
@@ -73,7 +74,7 @@ export const ReportsTab = ({
 
   const servicePieData = [
     { name: 'Road Transportation', value: roadCount, color: '#2463EB' },
-    { name: 'Airway Services', value: airwayCount, color: '#3B82F6' },
+    { name: 'Air Freight Services', value: airwayCount, color: '#3B82F6' },
   ];
 
   return (
@@ -91,7 +92,7 @@ export const ReportsTab = ({
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mt-1">Shipment & Request Summaries</h2>
           <p className="text-xs text-slate-500">
-            Real data summaries for active consignments, airway services, road transportation, and customer service requests.
+            Real data summaries for active consignments, air freight services, road transportation, and customer service requests.
           </p>
         </div>
       </div>
@@ -150,7 +151,7 @@ export const ReportsTab = ({
         <div className="lg:col-span-4 p-6 rounded-2xl border border-slate-200 bg-white space-y-3 flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-extrabold text-slate-900">Service Breakdown</h3>
-            <p className="text-[11px] text-slate-400">Road Transportation vs Airway Services</p>
+            <p className="text-[11px] text-slate-400">Road Transportation vs Air Freight Services</p>
           </div>
 
           <div className="h-44 w-full relative flex items-center justify-center">
@@ -189,7 +190,7 @@ export const ReportsTab = ({
             <div className="flex items-center justify-between">
               <span className="flex items-center space-x-2 text-slate-700 font-semibold">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <span>Airway Services</span>
+                <span>Air Freight Services</span>
               </span>
               <span className="font-mono font-bold text-slate-900">{airwayCount}</span>
             </div>

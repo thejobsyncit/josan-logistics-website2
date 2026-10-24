@@ -26,7 +26,13 @@ export const ServiceRequestsTab = ({
 
   const filtered = requests.filter(r => {
     if (statusFilter !== 'All' && r.status !== statusFilter) return false;
-    if (serviceFilter !== 'All' && r.service !== serviceFilter) return false;
+    if (serviceFilter !== 'All') {
+      if (serviceFilter === 'Air Freight Services') {
+        if (r.service !== 'Air Freight Services' && r.service !== 'Airway Services') return false;
+      } else if (r.service !== serviceFilter) {
+        return false;
+      }
+    }
 
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -113,7 +119,7 @@ export const ServiceRequestsTab = ({
             className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Services</option>
-            <option value="Airway Services">Airway Services</option>
+            <option value="Air Freight Services">Air Freight Services</option>
             <option value="Road Transportation">Road Transportation</option>
             <option value="Documentation">Documentation</option>
           </select>

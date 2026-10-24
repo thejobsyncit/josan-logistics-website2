@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
   Plane, 
   FileText, 
@@ -150,12 +151,31 @@ const CARGO_OPTIONS = [
 export const AirwayRequestPage = ({ setActiveTab }) => {
   const { currentUser, addAirwayRequest, showToast } = useLogistics();
 
-  // Pre-fill if user logged in
+  const parseInitialPhone = (rawPhone) => {
+    if (!rawPhone) return { code: '+65', digits: '' };
+    const matched = countryCodesList.find(c => rawPhone.startsWith(c.code));
+    if (matched) {
+      return {
+        code: matched.code,
+        digits: rawPhone.slice(matched.code.length).replace(/[^0-9]/g, '').slice(0, matched.digits)
+      };
+    }
+    return { code: '+65', digits: rawPhone.replace(/[^0-9]/g, '').slice(0, 8) };
+  };
+
+  const initialShipperPhone = parseInitialPhone(currentUser?.phone);
+  const [shipperCountryCode, setShipperCountryCode] = useState(initialShipperPhone.code);
+  const [shipperPhoneDigits, setShipperPhoneDigits] = useState(initialShipperPhone.digits);
+
+  const [receiverCountryCode, setReceiverCountryCode] = useState('+65');
+  const [receiverPhoneDigits, setReceiverPhoneDigits] = useState('');
+
+  // Pre-fill if user logged in with field sanitization
   const [formData, setFormData] = useState({
-    fullName: currentUser?.name || '',
-    companyName: currentUser?.company || '',
+    fullName: (currentUser?.name || '').replace(/[^a-zA-Z\s]/g, '').slice(0, 50),
+    companyName: (currentUser?.company || '').slice(0, 80),
     email: currentUser?.email || '',
-    phone: currentUser?.phone || '+65 ',
+    phone: initialShipperPhone.digits ? `${initialShipperPhone.code} ${initialShipperPhone.digits}` : '',
     receiverName: '',
     receiverCompany: '',
     receiverEmail: '',
@@ -169,6 +189,18 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
     dimensions: '',
     approximateValue: 'SGD '
   });
+
+  useEffect(() => {
+    if (currentUser?.phone) {
+      const parsed = parseInitialPhone(currentUser.phone);
+      setShipperCountryCode(parsed.code);
+      setShipperPhoneDigits(parsed.digits);
+      setFormData(prev => ({
+        ...prev,
+        phone: parsed.digits ? `${parsed.code} ${parsed.digits}` : prev.phone
+      }));
+    }
+  }, [currentUser]);
 
   // Services multi-selection state
   const availableServices = [
@@ -272,7 +304,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
     setSelectedServices(prev => {
       if (prev.includes(serviceId)) {
         if (prev.length === 1) {
-          if (showToast) showToast('At least one airway service must be selected.', 'warning');
+          if (showToast) showToast('At least one air freight service must be selected.', 'warning');
           return prev;
         }
         return prev.filter(s => s !== serviceId);
@@ -307,14 +339,34 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required.';
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full Name is required.';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.fullName.trim())) {
+      newErrors.fullName = 'Full Name must contain only alphabetic characters.';
+    }
+
     if (!formData.email.trim() || !formData.email.includes('@')) newErrors.email = 'Valid Email is required.';
-    if (!formData.phone.trim() || formData.phone.length < 8) newErrors.phone = 'Valid Phone Number is required.';
+
+    const maxShipperDigits = getPhoneLength(shipperCountryCode);
+    const minShipperDigits = Math.max(6, maxShipperDigits - 1);
+    if (!shipperPhoneDigits || shipperPhoneDigits.length < minShipperDigits) {
+      newErrors.phone = `Valid ${maxShipperDigits}-digit phone number is required for ${shipperCountryCode}.`;
+    }
 
     // Receiver Details Validation
-    if (!formData.receiverName.trim()) newErrors.receiverName = 'Receiver name is required.';
+    if (!formData.receiverName.trim()) {
+      newErrors.receiverName = 'Receiver name is required.';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.receiverName.trim())) {
+      newErrors.receiverName = 'Receiver name must contain only alphabetic characters.';
+    }
+
     if (!formData.receiverEmail.trim() || !formData.receiverEmail.includes('@')) newErrors.receiverEmail = 'Valid Receiver Email is required.';
-    if (!formData.receiverPhone.trim() || formData.receiverPhone.length < 7) newErrors.receiverPhone = 'Valid Receiver Mobile / Phone is required.';
+
+    const maxReceiverDigits = getPhoneLength(receiverCountryCode);
+    const minReceiverDigits = Math.max(6, maxReceiverDigits - 1);
+    if (!receiverPhoneDigits || receiverPhoneDigits.length < minReceiverDigits) {
+      newErrors.receiverPhone = `Valid ${maxReceiverDigits}-digit mobile number is required for ${receiverCountryCode}.`;
+    }
 
     if (!formData.origin.trim()) newErrors.origin = 'Shipment origin is required.';
     if (!destinationOption) {
@@ -332,8 +384,23 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
     } else if (!formData.cargoDescription.trim()) {
       newErrors.cargoDescription = 'Cargo/Product description is required.';
     }
-    if (!formData.packagesCount.trim()) newErrors.packagesCount = 'Number of packages is required.';
-    if (!formData.totalWeight.trim()) newErrors.totalWeight = 'Total weight is required.';
+
+    if (!formData.packagesCount.trim()) {
+      newErrors.packagesCount = 'Number of packages is required.';
+    } else if (!/^[0-9]+$/.test(formData.packagesCount.trim())) {
+      newErrors.packagesCount = 'Number of packages must be a numerical value.';
+    }
+
+    if (!formData.totalWeight.trim()) {
+      newErrors.totalWeight = 'Total weight is required.';
+    } else if (!/^[0-9]+(\.[0-9]+)?$/.test(formData.totalWeight.trim())) {
+      newErrors.totalWeight = 'Total weight must be a numerical value.';
+    }
+
+    if (formData.dimensions.trim() && !/^[0-9xX\s*.-]+$/.test(formData.dimensions.trim())) {
+      newErrors.dimensions = 'Dimensions must contain only numerical values.';
+    }
+
     if (selectedServices.length === 0) newErrors.services = 'Select at least one required service.';
 
     setErrors(newErrors);
@@ -350,16 +417,18 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
     setIsSubmitting(true);
 
     const docList = Object.values(uploadedFiles).filter(Boolean);
+    const fullShipperPhone = `${shipperCountryCode} ${shipperPhoneDigits}`.trim();
+    const fullReceiverPhone = `${receiverCountryCode} ${receiverPhoneDigits}`.trim();
 
     const payload = {
       customerName: formData.fullName.trim(),
       companyName: formData.companyName.trim() || 'Commercial Consignor',
       email: formData.email.trim().toLowerCase(),
-      phone: formData.phone.trim(),
+      phone: fullShipperPhone,
       receiverName: formData.receiverName.trim(),
       receiverCompany: formData.receiverCompany.trim() || 'Consignee Recipient',
       receiverEmail: formData.receiverEmail.trim().toLowerCase(),
-      receiverPhone: formData.receiverPhone.trim(),
+      receiverPhone: fullReceiverPhone,
       incoterm: formData.incoterm || 'FOB',
       origin: formData.origin.trim(),
       destination: formData.destination.trim(),
@@ -409,7 +478,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
             className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-[#2463EB] transition-colors cursor-pointer group"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Airway Services Overview</span>
+            <span>Back to Air Freight Services Overview</span>
           </button>
         </div>
 
@@ -425,10 +494,10 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                 Submission Confirmed
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                Airway Service Request Submitted
+                Air Freight Service Request Submitted
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
-                Your airway coordination request has been registered in the Josan Operations Desk at Changi Air Cargo Complex.
+                Your air freight coordination request has been registered in the Josan Operations Desk at Changi Air Cargo Complex.
               </p>
 
               {/* Request ID Badge */}
@@ -498,7 +567,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
 
               {/* Selected Services */}
               <div className="pt-3 border-t border-slate-200">
-                <span className="text-slate-400 text-[10px] font-bold uppercase block mb-2">Requested Airway Services</span>
+                <span className="text-slate-400 text-[10px] font-bold uppercase block mb-2">Requested Air Freight Services</span>
                 <div className="flex flex-wrap gap-2">
                   {submittedRequest.services?.map((svc) => (
                     <span
@@ -557,7 +626,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                   onClick={() => setActiveTab ? setActiveTab('air-freight') : (window.location.hash = '#air-freight')}
                   className="flex-1 sm:flex-none px-6 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
                 >
-                  Return to Airway Services
+                  Return to Air Freight Services
                 </button>
               </div>
             </div>
@@ -570,15 +639,15 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
             <div className="border-b border-slate-100 pb-6 space-y-2">
               <div className="flex items-center space-x-2">
                 <span className="text-xs font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                  Airway Services & AWB Coordination
+                  Air Freight Services &amp; AWB Coordination
                 </span>
                 <span className="text-xs font-semibold text-slate-400">Singapore Hub</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                Request Airway Service
+                Request Air Freight Service
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-2xl">
-                Submit your shipment details and documentation requirements. Our team will review your request and coordinate the required airway services.
+                Submit your shipment details and documentation requirements. Our team will review your request and coordinate the required air freight services.
               </p>
             </div>
 
@@ -614,9 +683,14 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <input
                       type="text"
                       required
+                      maxLength={50}
                       placeholder="e.g. Marcus Lim"
                       value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      onChange={(e) => {
+                        const clean = e.target.value.replace(/[^a-zA-Z\s]/g, '').slice(0, 50);
+                        setFormData({ ...formData, fullName: clean });
+                        if (errors.fullName) setErrors({ ...errors, fullName: null });
+                      }}
                       className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-bold text-slate-900 focus-blue shadow-2xs ${
                         errors.fullName ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                       }`}
@@ -629,9 +703,10 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <label className="font-bold text-slate-700">Company Name</label>
                     <input
                       type="text"
+                      maxLength={80}
                       placeholder="e.g. Changi Aviation Logistics Pte Ltd"
                       value={formData.companyName}
-                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value.slice(0, 80) })}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs"
                     />
                   </div>
@@ -645,9 +720,13 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <input
                       type="email"
                       required
+                      maxLength={60}
                       placeholder="e.g. ops@changiaviation.sg"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value.slice(0, 60) });
+                        if (errors.email) setErrors({ ...errors, email: null });
+                      }}
                       className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
                         errors.email ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                       }`}
@@ -657,20 +736,66 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
 
                   {/* Phone Number */}
                   <div className="space-y-1">
-                    <label className="font-bold text-slate-700 flex items-center space-x-1">
-                      <span>Phone Number</span>
-                      <span className="text-red-500">*</span>
+                    <label className="font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center space-x-1">
+                        <span>Phone Number</span>
+                        <span className="text-red-500">*</span>
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {getPhoneLength(shipperCountryCode)} digits max
+                      </span>
                     </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="+65 6543 2100"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
-                        errors.phone ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
-                      }`}
-                    />
+                    <div className="flex items-center">
+                      <select
+                        value={shipperCountryCode}
+                        onChange={(e) => {
+                          const newCode = e.target.value;
+                          setShipperCountryCode(newCode);
+                          const maxLen = getPhoneLength(newCode);
+                          const trimmed = shipperPhoneDigits.slice(0, maxLen);
+                          setShipperPhoneDigits(trimmed);
+                          setFormData(prev => ({
+                            ...prev,
+                            phone: trimmed ? `${newCode} ${trimmed}` : ''
+                          }));
+                          if (errors.phone) setErrors(prev => ({ ...prev, phone: null }));
+                        }}
+                        className="h-[42px] px-2.5 bg-slate-100 border border-slate-200 rounded-l-xl text-slate-800 font-bold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none focus:ring-1 focus:ring-[#2463EB]"
+                      >
+                        {countryCodesList.map((item) => (
+                          <option key={item.code} value={item.code}>
+                            {item.flag} {item.code} ({item.country})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        required
+                        maxLength={getPhoneLength(shipperCountryCode)}
+                        placeholder={`e.g. ${'9'.repeat(getPhoneLength(shipperCountryCode))}`}
+                        value={shipperPhoneDigits}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(shipperCountryCode));
+                          setShipperPhoneDigits(clean);
+                          setFormData(prev => ({
+                            ...prev,
+                            phone: clean ? `${shipperCountryCode} ${clean}` : ''
+                          }));
+                          if (errors.phone) setErrors(prev => ({ ...prev, phone: null }));
+                        }}
+                        onKeyDown={(e) => {
+                          const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
+                          if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={`w-full h-[42px] px-3.5 bg-slate-50 border rounded-r-xl font-mono font-medium text-slate-900 focus-blue shadow-2xs ${
+                          errors.phone ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
+                        }`}
+                      />
+                    </div>
                     {errors.phone && <p className="text-[10px] text-red-500 font-bold">{errors.phone}</p>}
                   </div>
                 </div>
@@ -695,10 +820,12 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <input
                       type="text"
                       required
+                      maxLength={50}
                       placeholder="e.g. Kenji Takahashi"
                       value={formData.receiverName}
                       onChange={(e) => {
-                        setFormData({ ...formData, receiverName: e.target.value });
+                        const clean = e.target.value.replace(/[^a-zA-Z\s]/g, '').slice(0, 50);
+                        setFormData({ ...formData, receiverName: clean });
                         if (errors.receiverName) setErrors({ ...errors, receiverName: null });
                       }}
                       className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-bold text-slate-900 focus-blue shadow-2xs ${
@@ -713,9 +840,10 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <label className="font-bold text-slate-700">Company Name (Optional)</label>
                     <input
                       type="text"
+                      maxLength={80}
                       placeholder="e.g. Narita Tech Logistics Co."
                       value={formData.receiverCompany}
-                      onChange={(e) => setFormData({ ...formData, receiverCompany: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, receiverCompany: e.target.value.slice(0, 80) })}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs"
                     />
                   </div>
@@ -729,10 +857,11 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <input
                       type="email"
                       required
+                      maxLength={60}
                       placeholder="e.g. receiving@naritatech.co.jp"
                       value={formData.receiverEmail}
                       onChange={(e) => {
-                        setFormData({ ...formData, receiverEmail: e.target.value });
+                        setFormData({ ...formData, receiverEmail: e.target.value.slice(0, 60) });
                         if (errors.receiverEmail) setErrors({ ...errors, receiverEmail: null });
                       }}
                       className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
@@ -744,23 +873,66 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
 
                   {/* Receiver Mobile Number */}
                   <div className="space-y-1">
-                    <label className="font-bold text-slate-700 flex items-center space-x-1">
-                      <span>Receiver Mobile No</span>
-                      <span className="text-red-500">*</span>
+                    <label className="font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center space-x-1">
+                        <span>Receiver Mobile No</span>
+                        <span className="text-red-500">*</span>
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {getPhoneLength(receiverCountryCode)} digits max
+                      </span>
                     </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="e.g. +81 90 1234 5678"
-                      value={formData.receiverPhone}
-                      onChange={(e) => {
-                        setFormData({ ...formData, receiverPhone: e.target.value });
-                        if (errors.receiverPhone) setErrors({ ...errors, receiverPhone: null });
-                      }}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
-                        errors.receiverPhone ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
-                      }`}
-                    />
+                    <div className="flex items-center">
+                      <select
+                        value={receiverCountryCode}
+                        onChange={(e) => {
+                          const newCode = e.target.value;
+                          setReceiverCountryCode(newCode);
+                          const maxLen = getPhoneLength(newCode);
+                          const trimmed = receiverPhoneDigits.slice(0, maxLen);
+                          setReceiverPhoneDigits(trimmed);
+                          setFormData(prev => ({
+                            ...prev,
+                            receiverPhone: trimmed ? `${newCode} ${trimmed}` : ''
+                          }));
+                          if (errors.receiverPhone) setErrors(prev => ({ ...prev, receiverPhone: null }));
+                        }}
+                        className="h-[42px] px-2.5 bg-slate-100 border border-slate-200 rounded-l-xl text-slate-800 font-bold text-xs shrink-0 cursor-pointer border-r-0 focus:outline-none focus:ring-1 focus:ring-[#2463EB]"
+                      >
+                        {countryCodesList.map((item) => (
+                          <option key={item.code} value={item.code}>
+                            {item.flag} {item.code} ({item.country})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        required
+                        maxLength={getPhoneLength(receiverCountryCode)}
+                        placeholder={`e.g. ${'9'.repeat(getPhoneLength(receiverCountryCode))}`}
+                        value={receiverPhoneDigits}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/[^0-9]/g, '').slice(0, getPhoneLength(receiverCountryCode));
+                          setReceiverPhoneDigits(clean);
+                          setFormData(prev => ({
+                            ...prev,
+                            receiverPhone: clean ? `${receiverCountryCode} ${clean}` : ''
+                          }));
+                          if (errors.receiverPhone) setErrors(prev => ({ ...prev, receiverPhone: null }));
+                        }}
+                        onKeyDown={(e) => {
+                          const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
+                          if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={`w-full h-[42px] px-3.5 bg-slate-50 border rounded-r-xl font-mono font-medium text-slate-900 focus-blue shadow-2xs ${
+                          errors.receiverPhone ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
+                        }`}
+                      />
+                    </div>
                     {errors.receiverPhone && <p className="text-[10px] text-red-500 font-bold">{errors.receiverPhone}</p>}
                   </div>
                 </div>
@@ -874,7 +1046,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                       className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-900 shadow-2xs cursor-default select-none"
                     />
                     <p className="text-[10px] text-slate-400">
-                      Standard trade term for this airway service is strictly FOB (Free on Board).
+                      Standard trade term for this air freight service is strictly FOB (Free on Board).
                     </p>
                   </div>
 
@@ -948,9 +1120,14 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. 4 Crates, 2 Pallets, 15 Cartons"
+                      maxLength={8}
+                      placeholder="e.g. 15"
                       value={formData.packagesCount}
-                      onChange={(e) => setFormData({ ...formData, packagesCount: e.target.value })}
+                      onChange={(e) => {
+                        const clean = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+                        setFormData({ ...formData, packagesCount: clean });
+                        if (errors.packagesCount) setErrors({ ...errors, packagesCount: null });
+                      }}
                       className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-medium text-slate-900 focus-blue shadow-2xs ${
                         errors.packagesCount ? 'border-red-400' : 'border-slate-200'
                       }`}
@@ -961,15 +1138,23 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                   {/* Total Weight */}
                   <div className="space-y-1">
                     <label className="font-bold text-slate-700 flex items-center space-x-1">
-                      <span>Total Weight</span>
+                      <span>Total Weight (kg)</span>
                       <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. 320 kg / 1.2 Tons"
+                      maxLength={10}
+                      placeholder="e.g. 320"
                       value={formData.totalWeight}
-                      onChange={(e) => setFormData({ ...formData, totalWeight: e.target.value })}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9.]/g, '');
+                        const parts = val.split('.');
+                        if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+                        val = val.slice(0, 10);
+                        setFormData({ ...formData, totalWeight: val });
+                        if (errors.totalWeight) setErrors({ ...errors, totalWeight: null });
+                      }}
                       className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs ${
                         errors.totalWeight ? 'border-red-400' : 'border-slate-200'
                       }`}
@@ -982,11 +1167,19 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <label className="font-bold text-slate-700">Dimensions (L x W x H)</label>
                     <input
                       type="text"
-                      placeholder="e.g. 120 x 80 x 75 cm per crate"
+                      maxLength={30}
+                      placeholder="e.g. 120 x 80 x 75 cm"
                       value={formData.dimensions}
-                      onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus-blue shadow-2xs"
+                      onChange={(e) => {
+                        const clean = e.target.value.replace(/[^0-9xX\s*.-]/g, '').slice(0, 30);
+                        setFormData({ ...formData, dimensions: clean });
+                        if (errors.dimensions) setErrors({ ...errors, dimensions: null });
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl font-mono text-slate-900 focus-blue shadow-2xs ${
+                        errors.dimensions ? 'border-red-400' : 'border-slate-200'
+                      }`}
                     />
+                    {errors.dimensions && <p className="text-[10px] text-red-500 font-bold">{errors.dimensions}</p>}
                   </div>
 
                   {/* Approximate Shipment Value */}
@@ -994,9 +1187,17 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                     <label className="font-bold text-slate-700">Approximate Shipment Value</label>
                     <input
                       type="text"
+                      maxLength={20}
                       placeholder="e.g. SGD 45,000"
                       value={formData.approximateValue}
-                      onChange={(e) => setFormData({ ...formData, approximateValue: e.target.value })}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        if (!val.startsWith('SGD ')) {
+                          val = 'SGD ' + val.replace(/^SGD\s*/i, '');
+                        }
+                        const numPart = val.slice(4).replace(/[^0-9,.]/g, '').slice(0, 15);
+                        setFormData({ ...formData, approximateValue: 'SGD ' + numPart });
+                      }}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
                     />
                   </div>
@@ -1136,7 +1337,7 @@ export const AirwayRequestPage = ({ setActiveTab }) => {
                   className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#2463EB] to-[#1D4ED8] hover:from-[#2463EB] hover:to-[#1E40AF] text-white rounded-xl font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-blue-500/25 transition-all cursor-pointer flex items-center justify-center space-x-2 active:scale-95 disabled:opacity-50"
                 >
                   <Plane className="w-4 h-4" />
-                  <span>{isSubmitting ? 'Processing Request...' : 'Submit Airway Service Request'}</span>
+                  <span>{isSubmitting ? 'Processing Request...' : 'Submit Air Freight Service Request'}</span>
                 </button>
               </div>
 

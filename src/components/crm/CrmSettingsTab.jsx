@@ -71,7 +71,7 @@ export const CrmSettingsTab = ({
               Core Approved Service Offerings:
             </span>
             <ul className="space-y-1 text-slate-300 text-[11px]">
-              <li>✓ <strong>Airway Services:</strong> AWB Preparation, AWB Billing, Shipment Documentation, Transportation Support.</li>
+              <li>✓ <strong>Air Freight Services:</strong> AWB Preparation, AWB Billing, Shipment Documentation, Transportation Support.</li>
               <li>✓ <strong>Road Transportation:</strong> Commercial transport of goods through audited transportation arrangements/partners.</li>
               <li>✓ <strong>Documentation:</strong> Shipment documentation and customs-related documentation clearance support.</li>
             </ul>

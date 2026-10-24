@@ -135,9 +135,9 @@ export const FleetPage = ({ setActiveTab }) => {
       telematics: 'Dual-Probe IoT Datalogger, Real-Time Chilled Telemetry',
       image: '/assets/vehicle_cold_chain.jpg',
       idealFor: [
-        'Vaccines & pharmaceutical vials',
-        'Fresh produce & frozen seafood',
-        'Temperature-critical specialty chemicals'
+        'Temperature-sensitive commercial samples',
+        'Chilled packaged consumer goods',
+        'Controlled laboratory supplies'
       ],
       features: ['Dual-zone climate partitions', 'Independent standby power unit', 'GDP pharmaceutical certified']
     },
@@ -432,11 +432,11 @@ export const FleetPage = ({ setActiveTab }) => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
             { hub: 'Changi Airfreight', tag: 'Aviation Cargo Hub', code: 'SIN-AIR', status: 'Active Linehaul' },
-            { hub: 'Tuas Mega Port', tag: 'Maritime Gateway', code: 'TUA-SEA', status: '24/7 Container Runs' },
+            { hub: 'Marina South Gateway', tag: 'Maritime Gateway', code: 'MSG-SEA', status: '24/7 Container Runs' },
             { hub: 'Pasir Panjang', tag: 'Container Terminals', code: 'PSP-PORT', status: 'Port Shuttles' },
-            { hub: 'Woodlands North', tag: 'Cross-Border Highway', code: 'WDL-BDR', status: 'Regional Corridor' },
-            { hub: 'Jurong Island', tag: 'Petrochemical Depot', code: 'JUR-GATE', status: 'Specialized Tankers' },
-            { hub: 'Tampines LogisPark', tag: 'Eastern Distribution', code: 'TMP-LOG', status: 'LTL Consolidation' }
+            { hub: 'Woodlands North', tag: 'Northern Expressway', code: 'WDL-EXP', status: 'Express Corridor' },
+            { hub: 'Seletar Logistics Area', tag: 'Industrial Depot', code: 'SEL-GATE', status: 'Logistics Access' },
+            { hub: 'Tampines LogisPark', tag: 'Eastern Distribution', code: 'TMP-LOG', status: 'Freight Distribution' }
           ].map((item, idx) => (
             <div
               key={idx}

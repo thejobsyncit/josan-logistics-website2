@@ -129,7 +129,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
-      doc.text(`Assigned Driver: ${shipment.driverName || 'Tan Wei Ming'} (${shipment.driverPhone || '+65 9123 4567'})`, 18, 126);
+      doc.text(`Assigned Driver: ${shipment.driverName || 'Tan Wei Ming'} (${shipment.driverPhone || '+65 6789 0123'})`, 18, 126);
       doc.text(`Operating Vehicle: ${shipment.vehicle || 'Josan Linehaul Truck'} | Plate: ${shipment.vehiclePlate || 'SG-8819'}`, 18, 132);
       doc.text(`Cargo Description: ${shipment.cargoType || 'General Freight'} | Weight: ${shipment.weight || '500 kg'}`, 18, 138);
 
@@ -286,7 +286,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-navy/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
       <div 
         className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl my-auto overflow-hidden flex flex-col max-h-[92vh]"
-        style={{ fontFamily: 'Inter, sans-serif' }}
+        style={{ fontFamily: 'var(--font-body)' }}
       >
         {/* Modal Header */}
         <div className="bg-[#10182D] text-white p-5 sm:p-6 flex items-start justify-between relative border-b border-slate-700">
@@ -341,7 +341,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wide">
                   <MapPin size={14} className="text-orange" />
-                  Origin / Consignor
+                  From
                 </div>
                 <div className="text-base font-bold text-[#10182D]">{shipment.sender || 'Consignor Facility'}</div>
                 <div className="text-xs text-slate-600 line-clamp-2">{shipment.senderAddress || shipment.origin}</div>
@@ -365,7 +365,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
               <div className="space-y-1 md:text-right">
                 <div className="flex items-center md:justify-end gap-2 text-xs font-bold text-slate-500 uppercase tracking-wide">
                   <Building size={14} className="text-emerald-600" />
-                  Destination / Consignee
+                  To
                 </div>
                 <div className="text-base font-bold text-[#10182D]">{shipment.receiver || 'Consignee Bay'}</div>
                 <div className="text-xs text-slate-600 line-clamp-2">{shipment.receiverAddress || shipment.destination}</div>
@@ -378,7 +378,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base sm:text-lg font-bold font-outfit text-[#10182D] flex items-center gap-2">
                 <Clock size={18} className="text-orange" />
-                Live 7-Stage Roadway Tracking Progression
+                Shipment Progress
               </h3>
               <span className="text-xs text-slate-500 font-medium hidden sm:inline">
                 API-Ready Logistics Telematics
@@ -469,62 +469,52 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
 
           {/* Grid: Driver & Vehicle & Telematics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Driver & Vehicle Details */}
+            {/* Transport Partner & Vehicle Details */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
               <h3 className="text-base font-bold font-outfit text-[#10182D] flex items-center gap-2 border-b border-slate-100 pb-3">
-                <User size={18} className="text-orange" />
-                Assigned Carrier & Driver Details
+                <Truck size={18} className="text-orange" />
+                Transport Partner
               </h3>
 
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
-                  <img 
-                    src={shipment.driverPhoto || "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80"} 
-                    alt={shipment.driverName || 'Driver'} 
-                    className="w-full h-full object-cover"
-                  />
+              <div className="flex items-center gap-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div className="w-11 h-11 rounded-xl bg-orange-50 text-[#FF6B00] flex items-center justify-center border border-orange-200 shrink-0">
+                  <Truck size={20} />
                 </div>
-                <div>
-                  <div className="text-base font-bold text-[#10182D] flex items-center gap-1.5">
-                    {shipment.driverName || 'Tan Wei Ming'}
-                    <span className="text-[11px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                      Verified Pilot
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                    <span>ID: {shipment.driverId || 'DRV-101'}</span>
-                    &bull;
-                    <span className="text-amber-500 font-semibold">★ 4.98 Rating</span>
-                  </div>
-                  <div className="text-xs text-slate-600 mt-1 flex items-center gap-1">
-                    <Phone size={12} className="text-orange" />
-                    <a href={`tel:${shipment.driverPhone || '+65 9123 4567'}`} className="hover:text-orange font-medium">
-                      {shipment.driverPhone || '+65 9123 4567'}
-                    </a>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Partner Operator</p>
+                  <h4 className="font-extrabold text-slate-900 text-sm truncate">
+                    {shipment.transportPartner || shipment.transportationPartner || shipment.carrier || (isAirShipment ? 'Commercial Airline Partner' : 'Licensed Transport Partner')}
+                  </h4>
+                  <p className="text-xs text-[#FF6B00] font-semibold mt-0.5">
+                    Vehicle: {shipment.vehicleType || (shipment.vehicle ? shipment.vehicle.replace(/#?[A-Z0-9]{2,4}-?[A-Z0-9]{2,6}/gi, '').trim() : 'Lorry')}
+                  </p>
                 </div>
               </div>
 
-              <div className="bg-[#F5F6F8] rounded-xl p-3.5 space-y-2 border border-slate-200 text-xs">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Vehicle Specification:</span>
-                  <span className="font-semibold text-[#10182D]">{shipment.vehicle || 'Josan 14-Ton Box Truck'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">License Plate:</span>
-                  <span className="font-mono font-bold text-orange px-2 py-0.5 bg-white rounded border border-orange/20">
-                    {shipment.vehiclePlate || 'SG-8819'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Fleet Class:</span>
-                  <span className="font-medium text-[#10182D]">{shipment.vehicleType || 'Heavy Linehaul Rigid Truck'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Safety & Inspection:</span>
-                  <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                    <ShieldCheck size={13} /> LTA & ISO-9001 Certified
-                  </span>
+              {/* Contact Josan Support directly */}
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <p className="text-[11px] text-slate-500 font-medium">Need immediate assistance with this consignment?</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <a
+                    href="tel:+6567890123"
+                    className="py-2 px-3 rounded-lg bg-orange-50 hover:bg-orange-100 text-[#10182D] text-xs font-bold border border-orange-200 transition-colors flex items-center justify-center gap-1.5"
+                    title="Call Josan Support Hotline"
+                  >
+                    <Phone size={13} className="text-[#FF6B00]" />
+                    <span>Contact Josan (+65 6789 0123)</span>
+                  </a>
+                  <a
+                    href="https://wa.me/6567890123"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-colors flex items-center justify-center gap-1.5"
+                    title="WhatsApp Josan Support"
+                  >
+                    <svg className="w-3.5 h-3.5 fill-current text-emerald-600" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    <span>WhatsApp</span>
+                  </a>
                 </div>
               </div>
             </div>
@@ -533,16 +523,16 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
             <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
               <h3 className="text-base font-bold font-outfit text-[#10182D] flex items-center gap-2 border-b border-slate-100 pb-3">
                 <Navigation size={18} className="text-orange" />
-                Freight Specifications & Telematics
+                Shipment Details
               </h3>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 bg-[#F5F6F8] rounded-lg border border-slate-200">
-                  <span className="text-slate-500 block text-[11px]">Cargo Category</span>
+                  <span className="text-slate-500 block text-[11px]">Goods</span>
                   <span className="font-bold text-[#10182D] mt-0.5 block">{shipment.cargoType || 'Industrial Equipment'}</span>
                 </div>
                 <div className="p-3 bg-[#F5F6F8] rounded-lg border border-slate-200">
-                  <span className="text-slate-500 block text-[11px]">Weight & Units</span>
+                  <span className="text-slate-500 block text-[11px]">Weight</span>
                   <span className="font-bold text-[#10182D] mt-0.5 block">{shipment.weight || '500 kg'} ({shipment.pieces || 1} Pcs)</span>
                 </div>
                 <div className="p-3 bg-[#F5F6F8] rounded-lg border border-slate-200">
@@ -727,15 +717,15 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
 
               {/* Support */}
               <a
-                href="tel:+6567489912"
+                href="tel:+6567890123"
                 className="p-3.5 bg-white hover:bg-orange/5 border border-slate-200 hover:border-orange/40 rounded-xl text-left transition-all shadow-xs group block"
               >
                 <div className="flex items-center justify-between text-xs font-bold text-[#10182D] group-hover:text-orange">
-                  <span>24/7 Dispatch Support</span>
+                  <span>Dispatch Support</span>
                   <Headphones size={14} />
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
-                  Hotline: +65 6748 9912
+                  Hotline: +65 6789 0123
                 </div>
               </a>
             </div>

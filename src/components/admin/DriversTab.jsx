@@ -57,7 +57,7 @@ export const DriversTab = ({
     vehicleType: '14ft Box Truck',
     vehicleId: 'SG-' + Math.floor(1000 + Math.random() * 9000),
     licenseNumber: 'SG-CLASS4-' + Math.floor(1000 + Math.random() * 9000),
-    assignedHub: 'Jurong Port Logistics Hub'
+    assignedHub: 'Woodlands Port Logistics Hub'
   });
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [regError, setRegError] = useState('');
@@ -159,7 +159,7 @@ export const DriversTab = ({
       vehicleType: '14ft Box Truck',
       vehicleId: 'SG-' + Math.floor(1000 + Math.random() * 9000),
       licenseNumber: 'SG-CLASS4-' + Math.floor(1000 + Math.random() * 9000),
-      assignedHub: 'Jurong Port Logistics Hub'
+      assignedHub: 'Woodlands Port Logistics Hub'
     });
   };
 
@@ -322,8 +322,8 @@ export const DriversTab = ({
           >
             <option value="All">All Hubs</option>
             <option value="Changi Air Cargo Logistics Hub">Changi Logistics Hub</option>
-            <option value="Jurong Port Logistics Hub">Jurong Port Hub</option>
-            <option value="Tuas Mega Port Terminal">Tuas Mega Port</option>
+            <option value="Woodlands Port Logistics Hub">Woodlands Port Hub</option>
+            <option value="Pasir Panjang Logistics Terminal">Pasir Panjang Terminal</option>
             <option value="Woodlands Linehaul Logistics Depot">Woodlands Linehaul</option>
           </select>
         </div>
@@ -374,7 +374,7 @@ export const DriversTab = ({
                           <div>
                             <p className="font-extrabold text-slate-900">{driver.name}</p>
                             <p className="font-mono text-[10px] text-slate-400 font-bold">{driver.id}</p>
-                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">{driver.phone || '+65 9123 4567'}</p>
+                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">{driver.phone || '+65 6789 0123'}</p>
                           </div>
                         </div>
                       </td>
@@ -568,7 +568,7 @@ export const DriversTab = ({
                   <input
                     type="text"
                     required
-                    placeholder="+65 9123 4567"
+                    placeholder="+65 XXXX XXXX"
                     value={newDriver.phone}
                     onChange={(e) => setNewDriver({ ...newDriver, phone: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs"
@@ -661,8 +661,8 @@ export const DriversTab = ({
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus-blue shadow-2xs cursor-pointer"
                   >
                     <option value="Changi Air Cargo Logistics Hub">Changi Logistics Hub</option>
-                    <option value="Jurong Port Logistics Hub">Jurong Port Hub</option>
-                    <option value="Tuas Mega Port Terminal">Tuas Mega Port</option>
+                    <option value="Woodlands Port Logistics Hub">Woodlands Port Hub</option>
+                    <option value="Pasir Panjang Logistics Terminal">Pasir Panjang Terminal</option>
                     <option value="Woodlands Linehaul Logistics Depot">Woodlands Linehaul</option>
                   </select>
                 </div>

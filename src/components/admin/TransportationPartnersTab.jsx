@@ -75,7 +75,7 @@ export const TransportationPartnersTab = ({
               Commercial Road Freight
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
-              {partners.length} Vetted Transportation Partners
+              {partners.length} Established Transportation Partners
             </span>
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mt-1">Transportation Partners Network</h2>
@@ -196,7 +196,7 @@ export const TransportationPartnersTab = ({
                   type="text"
                   value={newPartner.name}
                   onChange={(e) => setNewPartner({ ...newPartner, name: e.target.value })}
-                  placeholder="e.g. Jurong Expressway Haulage Pte Ltd"
+                  placeholder="e.g. Apex Expressway Haulage Pte Ltd"
                   required
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                 />

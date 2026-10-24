@@ -13,7 +13,8 @@ import {
   initialLeads,
   initialCommunications,
   initialTasks,
-  initialTransportationPartners
+  initialTransportationPartners,
+  initialShipmentEvents
 } from '../data/mockData';
 import {
   initialCargoPricing,
@@ -172,7 +173,7 @@ export const LogisticsProvider = ({ children }) => {
         receiverEmail: 'k.takahashi@naritaclinical.co.jp',
         receiverPhone: '+81 3 5555 0142',
         incoterm: 'FOB',
-        origin: 'Tuas Biomedical Hub, Singapore',
+        origin: 'HarbourFront Biomedical Hub, Singapore',
         destination: 'NRT - Tokyo Narita International Airport',
         cargoDescription: 'Temperature-controlled diagnostic reagents & cold-chain test kits',
         packagesCount: '12 insulated cartons',
@@ -193,7 +194,7 @@ export const LogisticsProvider = ({ children }) => {
         customerName: 'Darren Koh',
         company: 'Razer Global Supply Solutions',
         email: 'logistics.sg@razer.com',
-        phone: '+65 9123 4567',
+        phone: '+65 6789 0123',
         receiverName: 'Min-Jun Park',
         receiverCompany: 'Seoul E-Sports Hardware Hub',
         receiverEmail: 'park.mj@seoulelectronics.co.kr',
@@ -657,9 +658,9 @@ export const LogisticsProvider = ({ children }) => {
   // User & Auth state
   const [currentRole, setCurrentRole] = useState(() => {
     try {
-      return localStorage.getItem('josan_role') || 'admin';
+      return localStorage.getItem('josan_role') || 'customer';
     } catch (e) {
-      return 'admin';
+      return 'customer';
     }
   });
 
@@ -931,11 +932,47 @@ export const LogisticsProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_user');
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Clear any stale demo sessions from previous testing
+        const isDemo = parsed && (
+          parsed.name === 'Enterprise Customer' || 
+          parsed.email === 'hr@gojobsync.com' || 
+          parsed.email === 'customer@techcorp.com' ||
+          parsed.company === 'Global Client Corp' ||
+          parsed.company === 'TechCorp Solutions' ||
+          (typeof parsed.name === 'string' && parsed.name.toLowerCase().includes('enterprise customer')) ||
+          (typeof parsed.email === 'string' && parsed.email.toLowerCase().includes('gojobsync'))
+        );
+        if (isDemo) {
+          try { localStorage.removeItem('josan_user'); } catch (e) {}
+          return null;
+        }
+        return parsed;
+      }
+      return null;
     } catch (e) {
       return null;
     }
   });
+
+  // Ensure any lingering demo sessions are immediately purged on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('josan_user');
+      if (saved) {
+        const raw = saved.toLowerCase();
+        if (
+          raw.includes('enterprise customer') || 
+          raw.includes('gojobsync') || 
+          raw.includes('global client corp')
+        ) {
+          localStorage.removeItem('josan_user');
+          setCurrentUser(null);
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   // Toast notification state
   const [toast, setToast] = useState(null);
@@ -1119,14 +1156,14 @@ export const LogisticsProvider = ({ children }) => {
         ? 'Fleet Admin Manager' 
         : userRole === 'driver' 
         ? 'Robert Martinez (Driver)' 
-        : 'Enterprise Customer'),
+        : (email ? email.split('@')[0] : 'Customer')),
       email: matchedDriver?.email || email,
       role: userRole,
-      company: matchedDriver?.assignedHub || matchedCustomer?.company || (userRole === 'admin' 
+      company: matchedDriver?.assignedHub || matchedCustomer?.company || details.company || (userRole === 'admin' 
         ? 'Josan Logistics Operations' 
         : userRole === 'driver' 
         ? 'Josan Fleet Operations' 
-        : 'Global Client Corp'),
+        : ''),
       phone: matchedDriver?.phone || matchedCustomer?.phone || details.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
       licenseNumber: matchedDriver?.licenseNumber || details.licenseNumber || (userRole === 'driver' ? 'SG-CLASS4-881' : ''),
       dob: matchedDriver?.dob || details.dob || (userRole === 'driver' ? '1990-05-12' : ''),
@@ -1218,13 +1255,13 @@ export const LogisticsProvider = ({ children }) => {
     const newShipment = {
       id: trackingId,
       sender: newShipmentData.senderName || currentUser?.name || 'Valued Customer',
-      senderPhone: newShipmentData.senderPhone || '+65 9123 4567',
+      senderPhone: newShipmentData.senderPhone || '+65 6789 0123',
       senderAddress: newShipmentData.pickupAddress || 'Singapore Logistics Terminal 4',
       receiver: newShipmentData.receiverName || 'Recipient',
-      receiverPhone: newShipmentData.receiverPhone || '+65 8123 4567',
+      receiverPhone: newShipmentData.receiverPhone || '+65 6789 0123',
       receiverAddress: newShipmentData.deliveryAddress || 'Singapore Destination Address',
       origin: newShipmentData.pickupCity || 'Changi Air Cargo Hub',
-      destination: newShipmentData.deliveryCity || 'Jurong Port Logistics Hub',
+      destination: newShipmentData.deliveryCity || 'Pasir Panjang Logistics Hub',
       currentLocation: `${newShipmentData.pickupCity || 'Changi Hub'} Sorting Facility`,
       status: 'ASSIGNED',
       statusType: 'active',
@@ -1569,6 +1606,97 @@ export const LogisticsProvider = ({ children }) => {
     return completePod;
   };
 
+  // Shipment Events Management (Manual team updates & Future Live Feed)
+  const [shipmentEvents, setShipmentEvents] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_shipment_events');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return initialShipmentEvents;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('josan_shipment_events', JSON.stringify(shipmentEvents));
+    } catch (e) {}
+  }, [shipmentEvents]);
+
+  const addShipmentEvent = ({
+    shipmentNumber,
+    stage,
+    location,
+    timestamp,
+    source = 'manual',
+    staffUser,
+    note = '',
+    isTest = false
+  }) => {
+    if (!shipmentNumber || !stage || !location) {
+      if (showToast) showToast('Shipment number, stage, and location are required.', 'error');
+      return null;
+    }
+
+    const cleanNum = shipmentNumber.trim().toUpperCase();
+    const eventTime = timestamp || new Date().toISOString();
+    const staffName = staffUser || currentUser?.name || 'Staff User';
+
+    const newEvent = {
+      id: `EVT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      shipmentNumber: cleanNum,
+      stage: stage.trim(),
+      location: location.trim(),
+      timestamp: eventTime,
+      source: source || 'manual',
+      staffUser: staffName,
+      note: (note || '').trim(),
+      isTest: Boolean(isTest)
+    };
+
+    setShipmentEvents(prev => [newEvent, ...prev]);
+
+    // Update matching shipment in shipments state
+    setShipments(prev => prev.map(s => {
+      const sNum = (s.id || s.referenceNumber || '').toUpperCase();
+      if (sNum === cleanNum) {
+        return {
+          ...s,
+          status: newEvent.stage,
+          currentLocation: newEvent.location,
+          lastUpdatedTimestamp: newEvent.timestamp,
+          lastUpdatedTime: 'Just now',
+          isTest: Boolean(isTest)
+        };
+      }
+      return s;
+    }));
+
+    logAdminActivity(
+      'Shipment Tracking Update',
+      `${newEvent.source === 'manual' ? 'Manual update' : 'Live feed'}: #${cleanNum} set to "${newEvent.stage}" at ${newEvent.location}${newEvent.isTest ? ' [TEST]' : ''}`,
+      staffName
+    );
+
+    if (showToast) {
+      showToast(`Tracking update recorded for #${cleanNum}!`, 'success');
+    }
+
+    return newEvent;
+  };
+
+  const getShipmentEvents = (shipmentNumber) => {
+    if (!shipmentNumber) return [];
+    const cleanNum = String(shipmentNumber).trim().toUpperCase();
+    return (shipmentEvents || []).filter(e => 
+      e.shipmentNumber && e.shipmentNumber.toUpperCase() === cleanNum
+    );
+  };
+
+  const getLatestShipmentEvent = (shipmentNumber) => {
+    const events = getShipmentEvents(shipmentNumber);
+    if (!events || events.length === 0) return null;
+    return [...events].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+  };
+
   // Notification Operations
   const addNotification = ({ role = 'customer', userId = 'all', type = 'info', title, message, shipmentId, quoteId }) => {
     const newNotif = {
@@ -1618,11 +1746,11 @@ export const LogisticsProvider = ({ children }) => {
     const newQuote = {
       id: quoteId,
       customerId: currentUser?.id || 'USR-GUEST',
-      customerName: quoteData.contactName || currentUser?.name || 'Enterprise Shipper',
-      customerEmail: quoteData.contactEmail || currentUser?.email || 'contact@enterprise.com',
-      customerPhone: quoteData.contactPhone || currentUser?.phone || '+65 9123 4567',
+      customerName: quoteData.contactName || currentUser?.name || 'Customer',
+      customerEmail: quoteData.contactEmail || currentUser?.email || 'contact@client.com',
+      customerPhone: quoteData.contactPhone || currentUser?.phone || '+65 6789 0123',
       company: quoteData.contactCompany || currentUser?.company || 'Commercial Shipper',
-      origin: quoteData.originZone || 'Jurong West Logistics Hub',
+      origin: quoteData.originZone || 'Singapore Central Logistics Hub',
       destination: quoteData.destinationZone || 'Woodlands Distribution Complex',
       cargoCategory: quoteData.cargoCategory || 'General Commercial Cargo',
       cargoWeight: weightVal,
@@ -1744,7 +1872,7 @@ export const LogisticsProvider = ({ children }) => {
       senderPhone: q.customerPhone,
       senderAddress: q.origin,
       receiver: q.destination,
-      receiverPhone: '+65 9123 4567',
+      receiverPhone: '+65 6789 0123',
       receiverAddress: q.destination,
       origin: q.origin,
       destination: q.destination,
@@ -1760,7 +1888,7 @@ export const LogisticsProvider = ({ children }) => {
       price: `S$ ${q.lineItems.finalAmount.toFixed(2)}`,
       driverId: 'DRV-101',
       driverName: 'Tan Wei Ming',
-      driverPhone: '+65 9123 4567',
+      driverPhone: '+65 6789 0123',
       vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
       vehiclePlate: 'SG-8819',
       vehicleType: '14-Ton Highway Box Truck',
@@ -2396,7 +2524,7 @@ export const LogisticsProvider = ({ children }) => {
     const updatedShipment = {
       id: intimation.shipmentId,
       sender: existingShipment?.sender || 'Enterprise Client',
-      senderPhone: existingShipment?.senderPhone || '+65 9123 4567',
+      senderPhone: existingShipment?.senderPhone || '+65 6789 0123',
       senderAddress: existingShipment?.senderAddress || intimation.pickup || 'Changi Air Cargo Logistics Hub',
       receiver: existingShipment?.receiver || 'Recipient Facility',
       receiverPhone: existingShipment?.receiverPhone || '+65 8123 4567',
@@ -2414,7 +2542,7 @@ export const LogisticsProvider = ({ children }) => {
       price: intimation.price || 'S$ 180.00',
       driverId: driverObj?.id || 'DRV-001',
       driverName: driverObj?.name || 'Active Fleet Driver',
-      driverPhone: driverObj?.phone || '+65 9123 4567',
+      driverPhone: driverObj?.phone || '+65 6789 0123',
       vehicle: `${driverObj?.assignedVehicle || 'Refrigerated Van (SG-8819)'}`,
       estimatedDelivery: 'Same-Day Regional Dispatch',
       createdDate: new Date().toLocaleString(),
@@ -2747,7 +2875,7 @@ export const LogisticsProvider = ({ children }) => {
       customerName: invoiceData.customerName || 'Commercial Client',
       customerEmail: invoiceData.customerEmail || '',
       customerPhone: invoiceData.customerPhone || '',
-      service: invoiceData.service || 'Airway Services / Road Transportation',
+      service: invoiceData.service || 'Air Freight Services / Road Transportation',
       subtotal: Number(invoiceData.amount || invoiceData.subtotal || 0),
       taxRate: 0.09,
       taxAmount: Number(((Number(invoiceData.amount || invoiceData.subtotal || 0)) * 0.09).toFixed(2)),
@@ -2808,7 +2936,7 @@ export const LogisticsProvider = ({ children }) => {
       customerPhone: quoteData.customerPhone || '',
       company: quoteData.company || quoteData.customerName,
       requestId: quoteData.requestId || '',
-      service: quoteData.service || 'Airway Services',
+      service: quoteData.service || 'Air Freight Services',
       origin: quoteData.origin || 'Singapore',
       destination: quoteData.destination || 'Designated Destination',
       cargoCategory: quoteData.cargoCategory || 'General Commercial Freight',
@@ -2999,7 +3127,13 @@ export const LogisticsProvider = ({ children }) => {
 
       // System Activity Audit Log (Admin)
       adminActivityLog,
-      logAdminActivity
+      logAdminActivity,
+
+      // Shipment Events (Manual Tracking Updates & Live Feed Ingestion)
+      shipmentEvents,
+      addShipmentEvent,
+      getShipmentEvents,
+      getLatestShipmentEvent
     }}>
       {children}
     </LogisticsContext.Provider>

@@ -1,4 +1,21 @@
 {
+  "redirects": [
+    {
+      "source": "/airway-services",
+      "destination": "/#air-freight",
+      "permanent": true
+    },
+    {
+      "source": "/services/airway-services",
+      "destination": "/#air-freight",
+      "permanent": true
+    },
+    {
+      "source": "/airway-services/:path*",
+      "destination": "/#air-freight",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
