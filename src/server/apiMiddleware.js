@@ -13,6 +13,25 @@ import { supabase, isSupabaseConfigured } from '../services/supabase.js';
 let inMemoryDocuments = [];
 let inMemoryChunks = [];
 
+// Rate Limiter: IP -> timestamp[] (Maximum 10 attempts per minute per IP address)
+const trackingIpRateLimits = new Map();
+
+function checkIpTrackingRateLimit(ip, maxAttempts = 10, windowMs = 60000) {
+  const now = Date.now();
+  const rawTimestamps = trackingIpRateLimits.get(ip) || [];
+  const validTimestamps = rawTimestamps.filter(t => now - t < windowMs);
+
+  if (validTimestamps.length >= maxAttempts) {
+    const oldest = validTimestamps[0];
+    const retryAfter = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+    return { allowed: false, retryAfter };
+  }
+
+  validTimestamps.push(now);
+  trackingIpRateLimits.set(ip, validTimestamps);
+  return { allowed: true, remaining: maxAttempts - validTimestamps.length };
+}
+
 // Initialize seed documents in memory
 (async function initSeedInMemory() {
   try {
@@ -237,6 +256,31 @@ export async function handleApiRequest(req, res, path) {
     return res.end(JSON.stringify({
       message: `Successfully seeded ${seeded.length} knowledge base documents.`,
       documents: seeded
+    }));
+  }
+
+  // 5. POST /api/track (Visitor Tracking Query IP Rate Limiter: 10 attempts/min/IP)
+  if (path === '/api/track' && req.method === 'POST') {
+    const forwarded = req.headers['x-forwarded-for'];
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
+    const rateCheck = checkIpTrackingRateLimit(clientIp, 10, 60000);
+
+    if (!rateCheck.allowed) {
+      res.statusCode = 429;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Retry-After', String(rateCheck.retryAfter));
+      return res.end(JSON.stringify({
+        error: `Rate limit reached: Maximum 10 tracking queries per minute allowed. Please wait ${rateCheck.retryAfter}s before trying again.`,
+        retryAfter: rateCheck.retryAfter
+      }));
+    }
+
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      success: true,
+      clientIp,
+      remaining: rateCheck.remaining
     }));
   }
 

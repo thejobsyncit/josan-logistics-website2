@@ -138,9 +138,9 @@ export const InvoiceModal = () => {
             </div>
             <div class="card">
               <div class="card-header">SHIP TO (DESTINATION)</div>
-              <div class="card-name">${shipment.receiver || 'Jurong Logistics Hub Gate 4'}</div>
-              <div class="card-desc">${shipment.receiverAddress || '10 Jurong Port Road, Singapore'}</div>
-              <div class="card-hub">Hub: ${shipment.destination || 'Jurong Port Industrial Estate'}</div>
+              <div class="card-name">${shipment.receiver || 'Pasir Panjang Terminal Gate 4'}</div>
+              <div class="card-desc">${shipment.receiverAddress || '10 Pasir Panjang Road, Singapore'}</div>
+              <div class="card-hub">Hub: ${shipment.destination || 'Pasir Panjang Terminal Complex'}</div>
             </div>
           </div>
 
@@ -365,19 +365,19 @@ export const InvoiceModal = () => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(16, 24, 45);
-      const receiverName = doc.splitTextToSize(shipment.receiverName || shipment.receiver || 'Jurong Logistics Hub Gate 4', 77)[0];
+      const receiverName = doc.splitTextToSize(shipment.receiverName || shipment.receiver || 'Pasir Panjang Terminal Gate 4', 77)[0];
       doc.text(receiverName, 113, 80);
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(71, 85, 105);
-      const receiverAddrLines = doc.splitTextToSize(shipment.deliveryAddress || shipment.receiverAddress || '10 Jurong Port Road, Singapore', 77).slice(0, 2);
+      const receiverAddrLines = doc.splitTextToSize(shipment.deliveryAddress || shipment.receiverAddress || '10 Pasir Panjang Road, Singapore', 77).slice(0, 2);
       doc.text(receiverAddrLines, 113, 85);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
       doc.setTextColor(100, 116, 139);
-      doc.text(`Hub: ${shipment.deliveryCity || shipment.destination || 'Jurong Port Terminal'}`, 113, 97);
+      doc.text(`Hub: ${shipment.deliveryCity || shipment.destination || 'Pasir Panjang Terminal Complex'}`, 113, 97);
 
       // 5. Freight Specifications Table
       doc.setFont('helvetica', 'bold');

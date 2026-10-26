@@ -94,7 +94,7 @@ export const shipmentsService = {
 
       // Front-end UI Compatibility
       sender: shipmentData.sender || shipmentData.senderName || 'Josan Client',
-      sender_phone: shipmentData.sender_phone || shipmentData.senderPhone || '+65 9123 4567',
+      sender_phone: shipmentData.sender_phone || shipmentData.senderPhone || '+65 6789 0123',
       sender_address: shipmentData.sender_address || shipmentData.senderAddress || shipmentData.pickupAddress || 'Singapore',
       receiver: shipmentData.receiver || shipmentData.receiverName || 'Recipient',
       receiver_phone: shipmentData.receiver_phone || shipmentData.receiverPhone || '+65 8123 4567',

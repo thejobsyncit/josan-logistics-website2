@@ -73,7 +73,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     id: 'DRV-101',
     name: 'Robert Martinez (Driver)',
     photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    phone: '+65 9123 4567',
+    phone: '+65 6789 0123',
     email: 'robert.m@josanlogistics.com',
     licenseNumber: 'SG-CLASS4-9182',
     dob: '1990-05-12',
@@ -89,10 +89,10 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
   };
 
   const defaultJob = {
-    id: 'JOS-88190-SG',
+    id: 'JOS-77102-SG',
     sender: 'Razer Asia-Pacific HQ',
     origin: 'Changi Air Cargo Complex',
-    destination: 'Jurong Port Industrial Estate',
+    destination: 'Pasir Panjang Terminal Complex',
     status: 'In Transit',
     cargoType: 'High-Tech Electronics & Microchips',
     weight: '245.5 kg',
@@ -214,8 +214,8 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
     {
       id: 'JOB-77194-SG',
       client: 'Sheng Siong Logistics',
-      pickup: 'Tuas Bio-Park Depot',
-      dropoff: 'Jurong Industrial Estate, SG',
+      pickup: 'Pasir Panjang Cargo Depot',
+      dropoff: 'Woodlands Industrial Park, SG',
       weight: '800 kg',
       payout: 'S$ 640.00',
       distance: '30 km',
@@ -1143,7 +1143,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                   <span>DELIVERY TIMELINE STEPPER</span>
                 </h3>
                 <span className="text-[11px] font-bold text-[#2463EB] bg-[#EAF2FF] px-3 py-1 rounded-full border border-[#DCE5F0] font-mono">
-                  Active Order: #{activeJob?.id || 'JOS-88190-SG'} ({activeJob?.status || 'In Transit'})
+                  Active Order: #{activeJob?.id || 'JOS-77102-SG'} ({activeJob?.status || 'In Transit'})
                 </span>
               </div>
 
@@ -1154,8 +1154,8 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                       { title: 'Order Booked & TradeNet Customs Cleared', location: activeJob?.origin || 'Changi Air Cargo Complex (SIN)', timestamp: activeJob?.createdDate || 'Aug 31, 08:15 AM', completed: true },
                       { title: 'Picked Up by Josan Fleet Courier', location: activeJob?.origin ? `${activeJob.origin} Depot` : 'Changi Logistics Depot', timestamp: 'Aug 31, 10:40 AM', completed: true },
                       { title: `In Transit via ${activeJob?.currentLocation || 'Expressway Hub'}`, location: activeJob?.currentLocation || 'Tampines Logistics Depot', timestamp: 'Aug 31, 01:20 PM', completed: activeJob?.status === 'Delivered', current: activeJob?.status !== 'Delivered' },
-                      { title: 'Out for Final Dispatch', location: activeJob?.destination ? `${activeJob.destination} Hub` : 'Jurong Port Hub', timestamp: activeJob?.estimatedDelivery || 'Today, 03:30 PM', completed: activeJob?.status === 'Delivered' },
-                      { title: 'Delivered & Digital E-Signature Signed', location: activeJob?.destination || '10 Jurong Port Road', timestamp: activeJob?.status === 'Delivered' ? 'Delivered' : activeJob?.estimatedDelivery || 'Today, 04:30 PM', completed: activeJob?.status === 'Delivered' }
+                      { title: 'Out for Final Dispatch', location: activeJob?.destination ? `${activeJob.destination} Hub` : 'Pasir Panjang Port Hub', timestamp: activeJob?.estimatedDelivery || 'Today, 03:30 PM', completed: activeJob?.status === 'Delivered' },
+                      { title: 'Delivered & Digital E-Signature Signed', location: activeJob?.destination || '10 Pasir Panjang Road', timestamp: activeJob?.status === 'Delivered' ? 'Delivered' : activeJob?.estimatedDelivery || 'Today, 04:30 PM', completed: activeJob?.status === 'Delivered' }
                     ]
                 ).map((step, idx) => {
                   const isCompleted = step.completed || activeJob?.status === 'Delivered';
@@ -1431,7 +1431,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                     <option value="KPE Expressway Highway Tunnel">KPE Expressway Highway</option>
                     <option value="BKE Expressway Gate 3">BKE Expressway Gate 3</option>
                     <option value="Woodlands North Sector Dock">Woodlands North Sector Dock</option>
-                    <option value="Jurong Port Container Gate">Jurong Port Container Gate</option>
+                    <option value="Pasir Panjang Container Gate">Pasir Panjang Container Gate</option>
                   </select>
                 </div>
               </div>
@@ -1773,7 +1773,7 @@ export const DriverDashboardPage = ({ setActiveTab }) => {
                 {[
                   { name: 'Changi Logistics Hub Supercharger', dist: '2.4 km away', chargers: '8/12 Available', speed: '150 kW DC Fast', lounge: 'AC Lounge + Coffee' },
                   { name: 'Tampines Express Freight Depot', dist: '5.8 km away', chargers: '5/8 Available', speed: '120 kW Fast', lounge: 'Rest Bay' },
-                  { name: 'Jurong Port Fleet Superstation', dist: '18.2 km away', chargers: '11/16 Available', speed: '200 kW Ultra', lounge: 'Full Amenities' }
+                  { name: 'Pasir Panjang Fleet Superstation', dist: '18.2 km away', chargers: '11/16 Available', speed: '200 kW Ultra', lounge: 'Full Amenities' }
                 ].map((station, idx) => (
                   <div key={idx} className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2">
                     <div className="flex items-center justify-between">

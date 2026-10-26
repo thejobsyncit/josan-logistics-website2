@@ -26,7 +26,8 @@ export const ShipmentDetailsModal = ({
 }) => {
   if (!shipment) return null;
 
-  const isAir = shipment.service === 'Airway Services' || 
+  const isAir = shipment.service === 'Air Freight Services' || 
+    shipment.service === 'Airway Services' || 
     shipment.serviceType?.toLowerCase().includes('air') || 
     shipment.type === 'air' ||
     shipment.mode === 'Air';
@@ -44,7 +45,7 @@ export const ShipmentDetailsModal = ({
       pdf.setFontSize(10);
       pdf.setTextColor(100, 116, 139);
       pdf.text(`Shipment Consignment Note: #${shipment.id}`, 20, 28);
-      pdf.text(`Service: ${isAir ? 'Airway Services' : 'Road Transportation'}`, 20, 36);
+      pdf.text(`Service: ${isAir ? 'Air Freight Services' : 'Road Transportation'}`, 20, 36);
       pdf.text(`Customer / Shipper: ${customerName}`, 20, 44);
       pdf.text(`Origin: ${shipment.origin || 'Singapore Central Freight Bay'}`, 20, 52);
       pdf.text(`Destination: ${shipment.destination || 'Singapore Receiving Bay'}`, 20, 60);
@@ -74,7 +75,7 @@ export const ShipmentDetailsModal = ({
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
                   isAir ? 'bg-blue-50 text-blue-700' : 'bg-[#EAF2FF] text-[#0B1F5B]'
                 }`}>
-                  {isAir ? 'Airway Services' : 'Road Transportation'}
+                  {isAir ? 'Air Freight Services' : 'Road Transportation'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium">Customer: {customerName}</p>
@@ -206,7 +207,7 @@ export const ShipmentDetailsModal = ({
               </div>
               <div>
                 <span className="text-slate-400 text-[10px] font-bold uppercase block">Contact Phone</span>
-                <span className="font-mono">{shipment.driverPhone || '+65 9123 4567'}</span>
+                <span className="font-mono">{shipment.driverPhone || '+65 6789 0123'}</span>
               </div>
               <div>
                 <span className="text-slate-400 text-[10px] font-bold uppercase block">Vehicle Plate</span>
@@ -309,7 +310,7 @@ export const CreateShipmentModal = ({
     e.preventDefault();
     if (!formData.customer || !formData.origin || !formData.destination) return;
 
-    const isAir = formData.service === 'Airway Services';
+    const isAir = formData.service === 'Air Freight Services' || formData.service === 'Airway Services';
     const newId = isAir 
       ? `AWB-${Math.floor(100000 + Math.random() * 900000)}` 
       : `JOS-${Math.floor(10000 + Math.random() * 90000)}-SG`;
@@ -342,7 +343,7 @@ export const CreateShipmentModal = ({
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
               >
                 <option value="Road Transportation">Road Transportation</option>
-                <option value="Airway Services">Airway Services</option>
+                <option value="Air Freight Services">Air Freight Services</option>
               </select>
             </div>
             <div>
@@ -365,7 +366,7 @@ export const CreateShipmentModal = ({
                 type="text"
                 value={formData.origin}
                 onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-                placeholder="e.g. Jurong Logistics Hub"
+                placeholder="e.g. Pasir Panjang Logistics Hub"
                 required
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue"
               />
@@ -393,8 +394,8 @@ export const CreateShipmentModal = ({
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue cursor-pointer"
                 >
                   <option value="Woodlands Linehaul Logistics Pte Ltd">Woodlands Linehaul Logistics</option>
-                  <option value="Tuas Prime Haulage Pte Ltd">Tuas Prime Haulage</option>
-                  <option value="Jurong Freight Express Partners">Jurong Freight Express Partners</option>
+                  <option value="Apex Prime Haulage Pte Ltd">Apex Prime Haulage</option>
+                  <option value="Island Freight Express Partners">Island Freight Express Partners</option>
                   <option value="Changi Feeder Transport Co.">Changi Feeder Transport Co.</option>
                 </select>
               </div>

@@ -1,13 +1,13 @@
 export const initialShipments = [
   {
-    id: 'JOS-88190-SG',
+    id: 'JOS-77102-SG',
     sender: 'Razer Asia-Pacific HQ',
     senderPhone: '+65 6789 0123',
     senderAddress: '1 Raffles Place, #20-01, Singapore 048616',
-    receiver: 'Jurong Logistics Hub Gate 4',
-    receiverPhone: '+65 9123 4567',
-    receiverAddress: '10 Jurong Port Road, Singapore 619114',
-    origin: 'Jurong Central Highway Freight Hub',
+    receiver: 'Pasir Panjang Terminal Gate 4',
+    receiverPhone: '+65 6789 0123',
+    receiverAddress: '10 Pasir Panjang Road, Singapore 117438',
+    origin: 'Changi Air Cargo Logistics Hub',
     destination: 'Woodlands Roadways Terminal',
     currentLocation: 'PIE Expressway Telematics Gate (Exit 19)',
     status: 'In Transit',
@@ -21,7 +21,7 @@ export const initialShipments = [
     price: 'S$ 740.00',
     driverId: 'DRV-101',
     driverName: 'Tan Wei Ming',
-    driverPhone: '+65 9123 4567',
+    driverPhone: '+65 6789 0123',
     vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
     vehiclePlate: 'SG-8819',
     vehicleType: '14-Ton Highway Box Truck',
@@ -29,7 +29,7 @@ export const initialShipments = [
     lastUpdatedTime: '10 mins ago (GPS Telematics Sync)',
     createdDate: '2026-08-31 08:15 AM',
     timeline: [
-      { step: 1, title: 'Consignment Booked', location: 'Jurong Central Highway Depot', timestamp: 'Aug 31, 08:15 AM', completed: true },
+      { step: 1, title: 'Consignment Booked', location: 'Changi Air Cargo Depot', timestamp: 'Aug 31, 08:15 AM', completed: true },
       { step: 2, title: 'Booking Confirmed by Operations', location: 'Josan Central Dispatch', timestamp: 'Aug 31, 09:00 AM', completed: true },
       { step: 3, title: 'Pickup Scheduled', location: 'Razer Logistics Bay 2', timestamp: 'Aug 31, 09:45 AM', completed: true },
       { step: 4, title: 'Picked Up & Weighed', location: 'Depot Loading Bay 4', timestamp: 'Aug 31, 10:40 AM', completed: true },
@@ -84,13 +84,13 @@ export const initialShipments = [
   },
   {
     id: 'JOS-66301-SG',
-    sender: 'Tuas Mega Port Terminal',
+    sender: 'Pasir Panjang Terminal Gate',
     senderPhone: '+65 6861 9900',
-    senderAddress: '20 Tuas South Ave 2, Singapore 637560',
+    senderAddress: '10 Pasir Panjang Road, Singapore 117438',
     receiver: 'Biopolis Medical Research Hub',
     receiverPhone: '+65 9876 5432',
     receiverAddress: '8 Biomedical Grove, Singapore 138665',
-    origin: 'Tuas Mega Port Cold Vault',
+    origin: 'Pasir Panjang Logistics Vault',
     destination: 'Biopolis Bio-Hub Research Dock',
     currentLocation: 'Biopolis Dock Bay 2, Singapore',
     status: 'Delivered',
@@ -122,10 +122,10 @@ export const initialShipments = [
       driverId: 'DRV-103'
     },
     timeline: [
-      { step: 1, title: 'Consignment Booked', location: 'Tuas Mega Port Cold Hub', timestamp: 'Aug 31, 06:00 AM', completed: true },
+      { step: 1, title: 'Consignment Booked', location: 'Pasir Panjang Cold Hub', timestamp: 'Aug 31, 06:00 AM', completed: true },
       { step: 2, title: 'Booking Confirmed by Operations', location: 'Pharma Desk', timestamp: 'Aug 31, 06:30 AM', completed: true },
-      { step: 3, title: 'Pickup Scheduled', location: 'Tuas Cryo-Bay 1', timestamp: 'Aug 31, 07:15 AM', completed: true },
-      { step: 4, title: 'Picked Up & Calibrated', location: 'Tuas Port Gate', timestamp: 'Aug 31, 08:00 AM', completed: true },
+      { step: 3, title: 'Pickup Scheduled', location: 'Pasir Panjang Bay 1', timestamp: 'Aug 31, 07:15 AM', completed: true },
+      { step: 4, title: 'Picked Up & Calibrated', location: 'Pasir Panjang Gate', timestamp: 'Aug 31, 08:00 AM', completed: true },
       { step: 5, title: 'In Transit (Temp Monitored)', location: 'AYE Expressway Corridor', timestamp: 'Aug 31, 09:30 AM', completed: true },
       { step: 6, title: 'Near Destination Terminal', location: 'Biopolis North Gate', timestamp: 'Aug 31, 10:50 AM', completed: true },
       { step: 7, title: 'Delivered & Digital POD Signed', location: 'Biopolis Bio-Hub Dock Bay 2', timestamp: 'Aug 31, 11:15 AM', completed: true, current: true }
@@ -134,19 +134,19 @@ export const initialShipments = [
   },
   {
     id: 'JOS-99210-SG',
-    sender: 'Singapore Jurong Logistics Hub',
+    sender: 'Singapore Woodlands Logistics Hub',
     senderPhone: '+65 6265 4321',
-    senderAddress: '15 Jurong Port Road, Singapore 619116',
+    senderAddress: '20 Woodlands Sector 1, Singapore 738344',
     receiver: 'Woodlands Checkpoint Distribution Center',
     receiverPhone: '+65 6368 0000',
     receiverAddress: '900 Woodlands Centre Rd, Singapore 738991',
-    origin: 'Jurong Logistics Hub',
+    origin: 'Woodlands Logistics Hub',
     destination: 'Woodlands Checkpoint Depot',
     currentLocation: 'KPE Tunnel Corridor (Speed Regulated)',
     status: 'Delayed',
     statusType: 'warning',
     paymentStatus: 'Unpaid',
-    serviceLevel: 'Cross-Border Haulage (SG ↔ MY)',
+    serviceLevel: 'Commercial Highway Haulage',
     cargoType: 'Heavy Electrical Machinery & Motors',
     weight: '3,800 kg',
     pieces: 6,
@@ -170,10 +170,10 @@ export const initialShipments = [
       timestamp: 'Aug 31, 01:45 PM'
     },
     timeline: [
-      { step: 1, title: 'Consignment Booked', location: 'Jurong Logistics Hub', timestamp: 'Aug 31, 09:30 AM', completed: true },
+      { step: 1, title: 'Consignment Booked', location: 'Woodlands Logistics Hub', timestamp: 'Aug 31, 09:30 AM', completed: true },
       { step: 2, title: 'Booking Confirmed by Operations', location: 'Operations Desk', timestamp: 'Aug 31, 10:00 AM', completed: true },
       { step: 3, title: 'Pickup Scheduled', location: 'Heavy Loading Bay 8', timestamp: 'Aug 31, 10:30 AM', completed: true },
-      { step: 4, title: 'Picked Up & Manifest Registered', location: 'Jurong Port Weighbridge', timestamp: 'Aug 31, 11:15 AM', completed: true },
+      { step: 4, title: 'Picked Up & Manifest Registered', location: 'Woodlands Port Weighbridge', timestamp: 'Aug 31, 11:15 AM', completed: true },
       { step: 5, title: 'In Transit (Monsoon Safety Speed)', location: 'KPE Expressway Tunnel', timestamp: 'Aug 31, 01:45 PM', completed: true, current: true },
       { step: 6, title: 'Near Destination Terminal', location: 'Woodlands South Approach', timestamp: 'Expected 06:30 PM', completed: false },
       { step: 7, title: 'Delivered & POD Signed', location: 'Woodlands Checkpoint Depot', timestamp: 'Expected 07:45 PM', completed: false }
@@ -185,11 +185,11 @@ export const initialShipments = [
     sender: 'SingPost Logistics Center East',
     senderPhone: '+65 6841 2000',
     senderAddress: '10 Eunos Road 8, Singapore 408600',
-    receiver: 'Tuas Biomedical Hub',
+    receiver: 'HarbourFront Biomedical Hub',
     receiverPhone: '+65 6712 3456',
-    receiverAddress: '51 Tuas View Circuit, Singapore 637777',
+    receiverAddress: '1 Maritime Square, Singapore 099253',
     origin: 'Paya Lebar Eastern Depot',
-    destination: 'Tuas Biomedical Hub',
+    destination: 'HarbourFront Biomedical Hub',
     currentLocation: 'Paya Lebar Hub Staging Bay',
     status: 'Pickup Scheduled',
     statusType: 'active',
@@ -202,7 +202,7 @@ export const initialShipments = [
     price: 'S$ 310.00',
     driverId: 'DRV-101',
     driverName: 'Tan Wei Ming',
-    driverPhone: '+65 9123 4567',
+    driverPhone: '+65 6789 0123',
     vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
     vehiclePlate: 'SG-8819',
     vehicleType: '14-Ton Highway Box Truck',
@@ -215,8 +215,8 @@ export const initialShipments = [
       { step: 3, title: 'Pickup Scheduled', location: 'Paya Lebar Hub Staging Bay', timestamp: 'Scheduled Today, 04:00 PM', completed: true, current: true },
       { step: 4, title: 'Picked Up', location: 'Paya Lebar Dispatch Gate', timestamp: 'Pending', completed: false },
       { step: 5, title: 'In Transit', location: 'PIE/AYE Corridor', timestamp: 'Pending', completed: false },
-      { step: 6, title: 'Near Destination', location: 'Tuas Approach Gate', timestamp: 'Pending', completed: false },
-      { step: 7, title: 'Delivered', location: 'Tuas Biomedical Hub', timestamp: 'Expected Tomorrow', completed: false }
+      { step: 6, title: 'Near Destination', location: 'HarbourFront Approach Gate', timestamp: 'Pending', completed: false },
+      { step: 7, title: 'Delivered', location: 'HarbourFront Biomedical Hub', timestamp: 'Expected Tomorrow', completed: false }
     ],
     coordinates: { origin: [1.3190, 103.8930], current: [1.3190, 103.8930], destination: [1.2890, 103.6290] }
   }
@@ -227,9 +227,9 @@ export const initialQuotes = [
     customerId: 'USR-CUST-01',
     customerName: 'Marcus Vance',
     customerEmail: 'marcus.vance@techcorp.sg',
-    customerPhone: '+65 9123 4567',
+    customerPhone: '+65 6789 0123',
     company: 'TechCorp Solutions SG',
-    origin: 'Jurong West Logistics Hub Gate 4',
+    origin: 'Woodlands Logistics Hub Gate 4',
     destination: 'Changi Air Cargo Logistics Complex',
     cargoCategory: 'High-Tech Electronics & Microchips',
     cargoWeight: 450,
@@ -258,7 +258,7 @@ export const initialQuotes = [
     customerEmail: 'sarah.lim@biopharma.sg',
     customerPhone: '+65 8123 9876',
     company: 'Apex BioPharma Research',
-    origin: 'Tuas Mega Port Cold Vault',
+    origin: 'Pasir Panjang Logistics Vault',
     destination: 'Biopolis Biomedical Research Hub',
     cargoCategory: 'Vaccines & Lab Reagents',
     cargoWeight: 180,
@@ -339,9 +339,9 @@ export const initialNotifications = [
     role: 'customer',
     userId: 'all',
     type: 'shipment',
-    title: '✅ Order #JOS-88190-SG Dispatched (In Transit)',
+    title: '✅ Order #JOS-77102-SG Dispatched (In Transit)',
     message: 'Your shipment has been picked up by Tan Wei Ming (#SG-8819) and is currently en route via PIE Expressway.',
-    shipmentId: 'JOS-88190-SG',
+    shipmentId: 'JOS-77102-SG',
     timestamp: '2 hours ago',
     read: true
   },
@@ -374,7 +374,7 @@ export const initialDrivers = [
     id: 'DRV-101',
     name: 'Tan Wei Ming',
     photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
-    phone: '+65 9123 4567',
+    phone: '+65 6789 0123',
     email: 'tan.weiming@josanlogistics.com',
     password: 'driver123',
     licenseNumber: 'SG-CLASS4-9910',
@@ -402,7 +402,7 @@ export const initialDrivers = [
     deliveriesCompleted: 610,
     onTimeRate: '98.9%',
     rating: 4.8,
-    assignedHub: 'Tuas Mega Port Terminal',
+    assignedHub: 'Pasir Panjang Logistics Terminal',
     safetyScore: '97/100',
     joinedDate: 'Mar 2023'
   },
@@ -420,7 +420,7 @@ export const initialDrivers = [
     deliveriesCompleted: 420,
     onTimeRate: '99.8%',
     rating: 5.0,
-    assignedHub: 'Jurong Port Logistics Hub',
+    assignedHub: 'Woodlands Port Logistics Hub',
     safetyScore: '100/100',
     joinedDate: 'Nov 2024'
   }
@@ -450,8 +450,8 @@ export const initialWarehouses = [
   },
   {
     id: 'SIN-02',
-    name: 'Tuas Mega Port Automated Distribution Hub',
-    location: '20 Tuas South Avenue 2, Singapore 637560',
+    name: 'Pasir Panjang Automated Distribution Hub',
+    location: '10 Pasir Panjang Road, Singapore 117438',
     manager: 'David Ng',
     phone: '+65 6861 9900',
     capacity: '150,000 sq ft',
@@ -471,8 +471,8 @@ export const initialWarehouses = [
   },
   {
     id: 'SIN-03',
-    name: 'Jurong Industrial Estate Cold Storage Hub',
-    location: '15 Jurong Port Road, Singapore 619116',
+    name: 'Tampines Industrial Estate Logistics Hub',
+    location: '18 Tampines Industrial Ave 5, Singapore 528605',
     manager: 'Kavita Sharma',
     phone: '+65 6265 4321',
     capacity: '90,000 sq ft',
@@ -523,14 +523,14 @@ export const analyticsData = {
   ],
   serviceBreakdown: [
     { service: 'Express Air Freight (Changi SIN)', share: 40 },
-    { service: 'Tuas Mega Port Container Sea Cargo', share: 30 },
-    { service: 'Jurong Industrial Land Haulage', share: 20 },
+    { service: 'Pasir Panjang Container Sea Cargo', share: 30 },
+    { service: 'Woodlands Commercial Land Haulage', share: 20 },
     { service: 'Cold Chain Vaccine & Pharma', share: 10 }
   ],
   serviceDistribution: [
     { name: 'Express Air Freight (SIN)', value: 40, color: '#2463EB' },
-    { name: 'Tuas Mega Port Sea Cargo', value: 30, color: '#1E3A8A' },
-    { name: 'Jurong Land Haulage', value: 20, color: '#10B981' },
+    { name: 'Pasir Panjang Sea Cargo', value: 30, color: '#1E3A8A' },
+    { name: 'Woodlands Land Haulage', value: 20, color: '#10B981' },
     { name: 'Pharma Cold Chain', value: 10, color: '#8B5CF6' },
   ]
 };
@@ -616,11 +616,11 @@ export const initialCustomers = [
 
 export const initialDocuments = [
   {
-    id: 'DOC-88190-01',
-    shipmentId: 'JOS-88190-SG',
+    id: 'DOC-77102-01',
+    shipmentId: 'JOS-77102-SG',
     customerName: 'Razer Asia-Pacific HQ',
     type: 'Commercial Invoice',
-    name: 'Commercial_Invoice_JOS-88190-SG.pdf',
+    name: 'Commercial_Invoice_JOS-77102-SG.pdf',
     fileSize: '184 KB',
     uploadedBy: 'Josan Billing System',
     uploadDate: '17 Sep 2026, 08:30 SGT',
@@ -628,11 +628,11 @@ export const initialDocuments = [
     docCategory: 'invoice'
   },
   {
-    id: 'DOC-88190-02',
-    shipmentId: 'JOS-88190-SG',
+    id: 'DOC-77102-02',
+    shipmentId: 'JOS-77102-SG',
     customerName: 'Razer Asia-Pacific HQ',
     type: 'Packing List',
-    name: 'Packing_List_Pallet_Manifest_88190.pdf',
+    name: 'Packing_List_Pallet_Manifest_77102.pdf',
     fileSize: '95 KB',
     uploadedBy: 'Shipper Warehouse Dock',
     uploadDate: '17 Sep 2026, 08:45 SGT',
@@ -640,11 +640,11 @@ export const initialDocuments = [
     docCategory: 'packing_list'
   },
   {
-    id: 'DOC-88190-03',
-    shipmentId: 'JOS-88190-SG',
+    id: 'DOC-77102-03',
+    shipmentId: 'JOS-77102-SG',
     customerName: 'Razer Asia-Pacific HQ',
     type: 'Delivery Note (LR)',
-    name: 'Consignment_Note_LR_88190.pdf',
+    name: 'Consignment_Note_LR_77102.pdf',
     fileSize: '120 KB',
     uploadedBy: 'Operations Dispatch Lead',
     uploadDate: '17 Sep 2026, 09:00 SGT',
@@ -652,8 +652,8 @@ export const initialDocuments = [
     docCategory: 'delivery_note'
   },
   {
-    id: 'DOC-88190-04',
-    shipmentId: 'JOS-88190-SG',
+    id: 'DOC-77102-04',
+    shipmentId: 'JOS-77102-SG',
     customerName: 'Razer Asia-Pacific HQ',
     type: 'Customs Clearance Permit',
     name: 'TradeNet_Clearance_Permit_SG9910.pdf',
@@ -664,11 +664,11 @@ export const initialDocuments = [
     docCategory: 'customs'
   },
   {
-    id: 'DOC-88190-05',
-    shipmentId: 'JOS-88190-SG',
+    id: 'DOC-77102-05',
+    shipmentId: 'JOS-77102-SG',
     customerName: 'Razer Asia-Pacific HQ',
     type: 'Cargo Insurance Policy',
-    name: 'AllRisk_Cargo_Insurance_Policy_88190.pdf',
+    name: 'AllRisk_Cargo_Insurance_Policy_77102.pdf',
     fileSize: '315 KB',
     uploadedBy: 'Underwriter Portal',
     uploadDate: '16 Sep 2026, 18:00 SGT',
@@ -717,7 +717,7 @@ export const initialInvoices = [
   {
     id: 'INV-2026-8819',
     invoiceNumber: 'INV-2026-8819',
-    shipmentId: 'JOS-88190-SG',
+    shipmentId: 'JOS-77102-SG',
     customerName: 'Razer Asia-Pacific HQ',
     customerEmail: 'logistics@razer.com',
     customerPhone: '+65 6789 0123',
@@ -799,7 +799,7 @@ export const initialInvoices = [
 export const initialTickets = [
   {
     id: 'TCK-901',
-    shipmentId: 'JOS-88190-SG',
+    shipmentId: 'JOS-77102-SG',
     customerName: 'Razer Asia-Pacific HQ',
     customerEmail: 'logistics@razer.com',
     customerPhone: '+65 6789 0123',
@@ -893,7 +893,7 @@ export const initialLeads = [
     source: 'Website Quote Form',
     stage: 'Negotiating',
     estimatedValue: 18500,
-    tags: ['Cold Chain', 'Reefer', 'High Value', 'Tuas Fisheries'],
+    tags: ['Cold Chain', 'Reefer', 'High Value', 'Seafood Cold Logistics'],
     createdDate: '2026-09-10',
     convertedCustomerId: null
   },
@@ -952,13 +952,13 @@ export const initialLeads = [
   {
     id: 'LEAD-106',
     name: 'Jason Patel',
-    company: 'BioChemical Express Pte Ltd',
-    email: 'jason@biochemexpress.sg',
+    company: 'Precision Industrial Supplies Pte Ltd',
+    email: 'jason@precisionindustrial.sg',
     phone: '+65 6744 5510',
     source: 'Referral',
     stage: 'Lost',
     estimatedValue: 15000,
-    tags: ['Hazardous', 'Chemicals'],
+    tags: ['Industrial', 'Commercial'],
     createdDate: '2026-08-20',
     convertedCustomerId: null
   },
@@ -971,7 +971,7 @@ export const initialLeads = [
     source: 'Website Quote Form',
     stage: 'New',
     estimatedValue: 21000,
-    tags: ['Renewable Energy', 'FTL', 'Jurong Hub'],
+    tags: ['Renewable Energy', 'FTL', 'Woodlands Hub'],
     createdDate: '2026-09-17',
     convertedCustomerId: null
   }
@@ -1027,10 +1027,10 @@ export const initialTransportationPartners = [
     id: 'PRT-101',
     name: 'Woodlands Linehaul Logistics Pte Ltd',
     contactPerson: 'Tan Wei Ming (Partner Lead)',
-    phone: '+65 9123 4567',
+    phone: '+65 6789 0123',
     email: 'dispatch@woodlandslinehaul.sg',
     vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
-    operatingZones: 'Northern & Western Corridors (Woodlands, Jurong, Tuas)',
+    operatingZones: 'Northern & Eastern Corridors (Woodlands, Changi, Pasir Panjang)',
     agreementStatus: 'Active Partner',
     registeredVehicles: 6,
     designatedDrivers: 8,
@@ -1040,32 +1040,32 @@ export const initialTransportationPartners = [
   },
   {
     id: 'PRT-102',
-    name: 'Tuas Prime Haulage Pte Ltd',
+    name: 'Apex Prime Haulage Pte Ltd',
     contactPerson: 'Muhammad Rizal (Operations Lead)',
     phone: '+65 8234 5678',
-    email: 'ops@tuasprimehaulage.com',
+    email: 'ops@apexprimehaulage.sg',
     vehicleTypes: '24ft Lorries, 40ft Prime Movers',
-    operatingZones: 'Tuas Mega Port & Heavy Industrial Corridors',
+    operatingZones: 'Pasir Panjang Port & Heavy Industrial Corridors',
     agreementStatus: 'Active Partner',
     registeredVehicles: 8,
     designatedDrivers: 10,
     activeDispatches: 4,
-    address: '48 Tuas South Avenue 1, Singapore 637299',
+    address: '10 Pasir Panjang Road, Singapore 117438',
     notes: 'Handles heavy machinery and industrial container line transfers.'
   },
   {
     id: 'PRT-103',
-    name: 'Jurong Freight Express Partners',
+    name: 'Island Freight Express Partners',
     contactPerson: 'Gurpreet Singh',
     phone: '+65 9876 5432',
-    email: 'express@jurongfreight.sg',
+    email: 'express@islandfreight.sg',
     vehicleTypes: '14ft Box Vans, Curtain-siders, Reefer Vans',
-    operatingZones: 'Central & Jurong Commercial Corridors',
+    operatingZones: 'Central & Northern Commercial Corridors',
     agreementStatus: 'Active Partner',
     registeredVehicles: 4,
     designatedDrivers: 5,
     activeDispatches: 2,
-    address: '15 Jurong Port Road, Singapore 619116',
+    address: '20 Woodlands Sector 1, Singapore 738344',
     notes: 'Specializes in temperature-controlled reefer hauls and GDP certified pharma.'
   },
   {
@@ -1082,6 +1082,75 @@ export const initialTransportationPartners = [
     activeDispatches: 3,
     address: '9 Airline Road, Cargo Complex D, Singapore 819827',
     notes: 'Dedicated ramp-to-hub express feeder transportation arrangement.'
+  }
+];
+
+export const initialShipmentEvents = [
+  {
+    id: 'EVT-1001',
+    shipmentNumber: 'AWB-880-49201844',
+    stage: 'In Flight',
+    location: 'SIN Runway 02L → Cruising FL340 (SQ-7922)',
+    timestamp: '2026-10-22T04:15:00+08:00',
+    source: 'manual',
+    staffUser: 'Marcus Lim (Operations Staff)',
+    note: 'Cargo loaded onto SQ-7922 widebody freighter; departed Changi on schedule.',
+    isTest: false
+  },
+  {
+    id: 'EVT-1002',
+    shipmentNumber: 'JOS-AIR-7720-SG',
+    stage: 'Handed to Airline',
+    location: 'DNATA Changi Air Cargo CFS 2 Apron',
+    timestamp: '2026-10-22T14:30:00+08:00',
+    source: 'manual',
+    staffUser: 'Jessica Tan (Operations Lead)',
+    note: 'Customs cleared and handed over to All Nippon Airways Cargo ramp desk.',
+    isTest: false
+  },
+  {
+    id: 'EVT-1003',
+    shipmentNumber: 'JOS-77102-SG',
+    stage: 'In Transit',
+    location: 'PIE Expressway Telematics Gate (Exit 19)',
+    timestamp: '2026-10-22T13:20:00+08:00',
+    source: 'manual',
+    staffUser: 'Alexander Josan (Chief Admin)',
+    note: 'Highway linehaul truck en route along PIE expressway corridor towards Woodlands.',
+    isTest: false
+  },
+  {
+    id: 'EVT-1004',
+    shipmentNumber: 'JOS-44021-SG',
+    stage: 'Near Destination',
+    location: 'BKE Expressway Exit 3 (Approaching Tech Park)',
+    timestamp: '2026-10-22T15:10:00+08:00',
+    source: 'manual',
+    staffUser: 'Darren Josan (Fleet Manager)',
+    note: 'Prime mover exited BKE, approaching Woodlands Tech Park security gate.',
+    isTest: false
+  },
+  {
+    id: 'EVT-1005',
+    shipmentNumber: 'JOS-66301-SG',
+    stage: 'Delivered',
+    location: 'Biopolis Dock Bay 2, Singapore',
+    timestamp: '2026-10-22T11:15:00+08:00',
+    source: 'manual',
+    staffUser: 'Marcus Lim (Operations Staff)',
+    note: 'Cold-chain cargo received and verified by Biopolis security desk.',
+    isTest: false
+  },
+  {
+    id: 'EVT-1006',
+    shipmentNumber: 'JOS-12988-SG',
+    stage: 'In Transit',
+    location: 'SLE Expressway Telematics Gate',
+    timestamp: '2026-10-22T14:10:00+08:00',
+    source: 'manual',
+    staffUser: 'Darren Josan (Fleet Manager)',
+    note: 'Box van en route along SLE towards Sembawang.',
+    isTest: false
   }
 ];
 

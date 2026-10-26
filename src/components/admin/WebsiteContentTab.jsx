@@ -258,7 +258,7 @@ export const WebsiteContentTab = ({
             <div className="space-y-5">
               {/* Airway */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <span className="text-xs font-black uppercase text-slate-900 block">1. Airway Services</span>
+                <span className="text-xs font-black uppercase text-slate-900 block">1. Air Freight Services</span>
                 <input
                   type="text"
                   value={servicesForm.airway?.title || ''}

@@ -35,13 +35,6 @@ export const Chatbot = () => {
             : 'bg-gradient-to-r from-[#FF6B00] via-orange-500 to-amber-500 text-white hover:scale-105 shadow-orange-500/30 shadow-lg active:scale-95'
         }`}
       >
-        {/* Glow pulse ring when closed */}
-        {!isOpen && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-amber-500 border-2 border-white" />
-          </span>
-        )}
 
         <div className="relative flex items-center justify-center">
           {isOpen ? (

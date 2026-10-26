@@ -56,7 +56,7 @@ export const ClearanceTab = ({ service }) => {
               </span>
             </div>
             <p className="text-[11px] font-bold text-emerald-700 mt-0.5">
-              Verified & pre-approved for express booking clearance
+              Verified documentation ready for express booking clearance
             </p>
           </div>
         </div>

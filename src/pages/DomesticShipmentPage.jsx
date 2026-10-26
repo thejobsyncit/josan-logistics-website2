@@ -50,7 +50,6 @@ export const contentCategories = [
   { id: 'cables-wires', name: 'CABLES/WIRES (USB)', icon: Cable },
   { id: 'clothes-apparel', name: 'CLOTHES / APPAREL', icon: Shirt },
   { id: 'electronic-items', name: 'ELECTRONIC ITEMS', icon: Laptop },
-  { id: 'medicines-healthcare', name: 'MEDICINES / HEALTHCARE', icon: Pill },
   { id: 'food-dry-snacks', name: 'FOOD / DRY SNACKS', icon: Utensils },
   { id: 'household-goods', name: 'HOUSEHOLD GOODS', icon: Home },
   { id: 'other-commodity', name: 'OTHER COMMODITY', icon: Boxes }
@@ -179,7 +178,7 @@ export const detectCityFromPincode = (code) => {
   if (clean.startsWith('01') || clean.startsWith('02') || clean.startsWith('03') || clean.startsWith('04')) return 'SINGAPORE CBD / MARINA';
   if (clean.startsWith('22') || clean.startsWith('23')) return 'ORCHARD';
   if (clean.startsWith('56') || clean.startsWith('57')) return 'ANG MO KIO';
-  if (clean.startsWith('60') || clean.startsWith('61') || clean.startsWith('62')) return 'JURONG / WEST';
+  if (clean.startsWith('60') || clean.startsWith('61') || clean.startsWith('62')) return 'WEST SECTOR';
   if (clean.startsWith('46') || clean.startsWith('47')) return 'BEDOK / EAST';
   if (clean.startsWith('52') || clean.startsWith('53')) return 'TAMPINES';
   if (clean.startsWith('82')) return 'PUNGGOL';
@@ -366,7 +365,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
       dimensions: '2.4m (L) × 1.5m (W) × 1.4m (H)',
       access: 'Insulated Double Gasket Sealed Doors with Thermal Curtains',
       telematics: 'Dual-Probe IoT Datalogger, Real-Time Chilled Telemetry',
-      idealFor: ['Vaccines, pharma vials & biological samples', 'Fresh produce, dairy & frozen seafood', 'Temperature-critical specialty chemicals']
+      idealFor: ['Temperature-sensitive commercial samples', 'Chilled packaged beverages', 'Specialty laboratory supplies']
     }
   ];
 
@@ -436,7 +435,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
   const handlePhoneChange = (field) => (e) => {
     // Strip everything that is not a digit
     let val = e.target.value.replace(/\D/g, '');
-    // If user pasted with 65 country code (e.g. 6591234567), strip the leading 65
+    // If user pasted with 65 country code (e.g. 6581234567), strip the leading 65
     if (val.startsWith('65') && val.length > 8) {
       val = val.slice(2);
     }
@@ -814,7 +813,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                       value={form.senderPhone}
                       onChange={handlePhoneChange('senderPhone')}
                       onKeyDown={handlePhoneKeyDown}
-                      placeholder="e.g. 9123 4567"
+                      placeholder="XXXX XXXX"
                       className="w-full py-3 px-3 text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
                     />
                     <div className="pr-3 text-slate-400 shrink-0">
@@ -906,7 +905,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
                       value={form.receiverPhone}
                       onChange={handlePhoneChange('receiverPhone')}
                       onKeyDown={handlePhoneKeyDown}
-                      placeholder="e.g. 9123 4567"
+                      placeholder="XXXX XXXX"
                       className="w-full py-3 px-3 text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
                     />
                     <div className="pr-3 text-slate-400 shrink-0">
@@ -1855,7 +1854,7 @@ export const DomesticShipmentPage = ({ setActiveTab, hideHero = false }) => {
               {activeInfoModal === 'content' && (
                 <>
                   <p><strong>Permitted Goods:</strong> Non-hazardous parcels, business documents, apparel, artificial jewellery, books, consumer electronics, auto spare parts, and packaged dry items.</p>
-                  <p><strong>Prohibited Items:</strong> Flammables, explosives, toxic chemicals, liquid contraband, currency, bullion, live organisms, and dangerous weapons.</p>
+                  <p><strong>Prohibited Items:</strong> Flammables, explosives, toxic hazardous substances, liquid contraband, currency, bullion, live organisms, and dangerous weapons.</p>
                   <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-orange-900 text-[11px] leading-relaxed">
                     <strong>Heavy or High-Value Freight:</strong> Shipments above <strong>100 kg</strong> or valuation over <strong>S$ 10,000</strong> require advance freight declaration. Email us at <a href="mailto:support@josanlogistics.com" className="font-bold underline text-[#FF6B00]">support@josanlogistics.com</a>.
                   </div>

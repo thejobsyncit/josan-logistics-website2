@@ -55,7 +55,7 @@ export const CrmRoadShipmentsTab = ({
   const [newRoadData, setNewRoadData] = useState({
     customer: '',
     senderPhone: '+65 6789 0123',
-    pickupLocation: 'Jurong Logistics Hub Gate 4, Singapore',
+    pickupLocation: 'Pasir Panjang Logistics Terminal Gate 4, Singapore',
     deliveryLocation: 'Woodlands Distribution Terminal, Singapore',
     goodsDescription: '',
     packages: 4,
@@ -159,7 +159,7 @@ export const CrmRoadShipmentsTab = ({
     setNewRoadData({
       customer: '',
       senderPhone: '+65 6789 0123',
-      pickupLocation: 'Jurong Logistics Hub Gate 4, Singapore',
+      pickupLocation: 'Pasir Panjang Logistics Terminal Gate 4, Singapore',
       deliveryLocation: 'Woodlands Distribution Terminal, Singapore',
       goodsDescription: '',
       packages: 4,

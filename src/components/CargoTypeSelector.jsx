@@ -25,28 +25,21 @@ import {
 
 export const cargoCategories = [
   {
-    id: 'beverages-food-plants',
-    name: 'Beverages, Foods & Plants',
-    icon: Wine,
+    id: 'beverages-food',
+    name: 'Beverages & Packaged Foods',
+    icon: Package,
     subcategories: [
       'Non-perishable Foods',
-      'Water, Soft Drinks',
-      'Still and Sparkling Wines',
-      'Spirits, Liquors',
-      'Fresh & Frozen Products',
-      'Tobacco',
-      'Plants, Flowers & Seeds'
+      'Water, Soft Drinks'
     ]
   },
   {
-    id: 'chemicals-healthcare',
-    name: 'Chemicals & Healthcare',
-    icon: FlaskConical,
+    id: 'personal-care-cosmetics',
+    name: 'Cosmetics & Personal Care',
+    icon: Sparkles,
     subcategories: [
-      'Pharmaceutical Goods',
       'Cosmetics, Well-being Products',
-      'Perfumes',
-      'Chemicals, Cleaning Products & Drugstore Products'
+      'Perfumes'
     ]
   },
   {
@@ -178,12 +171,11 @@ export const airFreightCargoTypes = [
   { id: 'general-cargo', name: 'General Cargo', desc: 'Standard consolidated or palletized dry cargo' },
   { id: 'fragile', name: 'Fragile Cargo', desc: 'Delicate glassware, precision instruments & sensitive equipment' },
   { id: 'perishable', name: 'Perishable Cargo', desc: 'Fresh seafood, produce, flowers & short shelf-life goods' },
-  { id: 'temperature-controlled', name: 'Temperature-Controlled', desc: 'Documentation & coordination for cold-chain shipments (-20°C to +25°C) via reefer ULD containers' },
+  { id: 'temperature-controlled', name: 'Temperature-Controlled', desc: 'Documentation & coordination for temperature-sensitive cargo via reefer containers' },
   { id: 'valuable', name: 'Valuable Cargo', desc: 'High-value jewelry, bullion, luxury goods & secured transit' },
-  { id: 'dangerous-goods', name: 'Dangerous Goods', desc: 'Documentation support for IATA DGR-classified hazardous substances & chemicals' },
+  { id: 'dangerous-goods', name: 'Dangerous Goods', desc: 'Documentation support for IATA DGR-classified hazardous substances' },
   { id: 'documents', name: 'Documents', desc: 'Urgent legal contracts, tenders & diplomatic mail' },
-  { id: 'electronics', name: 'Electronics', desc: 'Semiconductors, high-tech components & consumer devices' },
-  { id: 'healthcare-pharma', name: 'Healthcare & Pharmaceutical', desc: 'GDP-certified medicine, vaccines & medical devices' }
+  { id: 'electronics', name: 'Electronics', desc: 'Semiconductors, high-tech components & consumer devices' }
 ];
 
 export const CargoTypeSelector = ({ 
@@ -363,7 +355,7 @@ export const CargoTypeSelector = ({
                       }
                     }
                   }}
-                  placeholder="Search cargo (e.g. wine, chemicals, lights, electronics)..."
+                  placeholder="Search cargo (e.g. garments, hardware, lights, electronics)..."
                   className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-400 border-none outline-none ring-0 focus:outline-hidden focus:ring-0 focus:border-none p-0"
                 />
                 {searchQuery && (

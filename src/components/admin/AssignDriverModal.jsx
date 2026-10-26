@@ -44,7 +44,7 @@ export const AssignDriverModal = ({
     vehicleType: '14ft Box Truck',
     vehicleId: 'SG-' + Math.floor(1000 + Math.random() * 9000),
     licenseNumber: 'SG-CLASS4-' + Math.floor(1000 + Math.random() * 9000),
-    assignedHub: 'Jurong Port Logistics Hub'
+    assignedHub: 'Woodlands Port Logistics Hub'
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -63,8 +63,8 @@ export const AssignDriverModal = ({
 
   const hubOptions = [
     'Changi Air Cargo Logistics Hub',
-    'Jurong Port Logistics Hub',
-    'Tuas Mega Port Terminal',
+    'Woodlands Port Logistics Hub',
+    'Pasir Panjang Logistics Terminal',
     'Woodlands Linehaul Logistics Depot',
     'Central Express Freight Bay'
   ];
@@ -194,7 +194,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Delivery / Destination</span>
             <div className="flex items-center space-x-1 font-semibold text-slate-800 truncate mt-0.5">
               <MapPin className="w-3 h-3 text-[#2463EB] shrink-0" />
-              <span className="truncate">{shipment.destination || 'Jurong Receiving Hub'}</span>
+              <span className="truncate">{shipment.destination || 'Destination Receiving Hub'}</span>
             </div>
           </div>
           <div>
@@ -274,7 +274,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                     Contact Phone
                   </span>
                   <span className="text-slate-200 font-bold">
-                    {assignmentSuccess.phone || '+65 9123 4567'}
+                    {assignmentSuccess.phone || '+65 6789 0123'}
                   </span>
                 </div>
               </div>
@@ -394,7 +394,7 @@ Driver Portal URL: ${window.location.origin}/#driver-dashboard`;
                     <input
                       type="text"
                       required
-                      placeholder="+65 9123 4567"
+                      placeholder="+65 XXXX XXXX"
                       value={newDriverData.phone}
                       onChange={(e) => setNewDriverData({ ...newDriverData, phone: e.target.value })}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus-blue shadow-2xs"

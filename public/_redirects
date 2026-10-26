@@ -1,0 +1,9 @@
+/airway-services /#air-freight 301
+/services/airway-services /#air-freight 301
+/airway-services/* /#air-freight 301
+/customs-clearance /#shipment-documentation-support 301
+/services/customs-clearance /#shipment-documentation-support 301
+/customs-clearance/* /#shipment-documentation-support 301
+/customs /#shipment-documentation-support 301
+/documentation /#shipment-documentation-support 301
+

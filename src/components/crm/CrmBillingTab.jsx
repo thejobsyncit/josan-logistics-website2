@@ -153,7 +153,7 @@ export const generateInvoicePdf = (inv) => {
   doc.setTextColor(71, 85, 105);
   doc.text(`Email: ${inv.customerEmail || 'Accounts Payable'}`, 20, metaY + 20);
   doc.text(`Phone: ${inv.customerPhone || 'Singapore Corporate Client'}`, 20, metaY + 26);
-  doc.text('Entity: Singapore Domestic & Cross-Border Account', 20, metaY + 32);
+  doc.text('Entity: Singapore Corporate Account', 20, metaY + 32);
 
   // Specifications Box
   doc.setFillColor(248, 250, 252);
@@ -205,7 +205,7 @@ export const generateInvoicePdf = (inv) => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
   doc.setTextColor(15, 23, 42);
-  doc.text(inv.service || 'Airway Services & Documentation', 20, rowY);
+  doc.text(inv.service || 'Air Freight Services & Documentation', 20, rowY);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
@@ -317,7 +317,7 @@ export const CrmBillingTab = ({
     customerEmail: '',
     customerPhone: '',
     requestId: '',
-    service: 'Airway Services (AWB Preparation & Billing)',
+    service: 'Air Freight Services (AWB Preparation & Billing)',
     amount: 520,
     paymentStatus: 'Unpaid',
     issueDate: new Date().toISOString().split('T')[0],
@@ -413,7 +413,7 @@ export const CrmBillingTab = ({
       customerEmail: '',
       customerPhone: '',
       requestId: '',
-      service: 'Airway Services (AWB Preparation & Billing)',
+      service: 'Air Freight Services (AWB Preparation & Billing)',
       amount: 520,
       paymentStatus: 'Unpaid',
       issueDate: new Date().toISOString().split('T')[0],
@@ -723,7 +723,7 @@ export const CrmBillingTab = ({
                   <tbody className="divide-y divide-slate-100 font-medium">
                     <tr>
                       <td className="p-3">
-                        <p className="font-bold text-slate-900">{viewingInvoice.service || 'Airway Services & Documentation'}</p>
+                        <p className="font-bold text-slate-900">{viewingInvoice.service || 'Air Freight Services & Documentation'}</p>
                         <p className="text-[10px] text-slate-400">Consignment handling, freight coordination, documentation SLA</p>
                       </td>
                       <td className="p-3 text-right font-mono font-bold">
@@ -859,7 +859,7 @@ export const CrmBillingTab = ({
                     list="billing-request-datalist"
                     value={newInvData.requestId}
                     onChange={(e) => setNewInvData({ ...newInvData, requestId: e.target.value })}
-                    placeholder="e.g. JOS-88190-SG or AIR-0001"
+                    placeholder="Your tracking number or AIR-0001"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
                   />
                   <datalist id="billing-request-datalist">
@@ -880,7 +880,7 @@ export const CrmBillingTab = ({
                   onChange={(e) => setNewInvData({ ...newInvData, service: e.target.value })}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
                 >
-                  <option value="Airway Services (AWB Preparation & Billing)">Airway Services (AWB Preparation & Billing)</option>
+                  <option value="Air Freight Services (AWB Preparation & Billing)">Air Freight Services (AWB Preparation & Billing)</option>
                   <option value="Commercial Road Freight Linehaul">Commercial Road Freight Linehaul</option>
                   <option value="Transportation Support">Transportation Support</option>
                   <option value="Shipment Documentation">Shipment Documentation</option>

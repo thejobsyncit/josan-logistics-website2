@@ -115,7 +115,7 @@ export const CrmQuotationsTab = ({
     email: '',
     phone: '',
     requestId: '',
-    service: 'Airway Services (AWB Preparation, Billing & Documentation)',
+    service: 'Air Freight Services (AWB Preparation, Billing & Documentation)',
     amount: 650,
     status: 'Draft',
     quotationDate: new Date().toISOString().split('T')[0],
@@ -238,7 +238,7 @@ export const CrmQuotationsTab = ({
       email: '',
       phone: '',
       requestId: '',
-      service: 'Airway Services (AWB Preparation, Billing & Documentation)',
+      service: 'Air Freight Services (AWB Preparation, Billing & Documentation)',
       amount: 650,
       status: 'Draft',
       quotationDate: new Date().toISOString().split('T')[0],
@@ -376,7 +376,7 @@ export const CrmQuotationsTab = ({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Prepare, review, dispatch, and track itemized pricing quotations for airway services and commercial road transportation.
+            Prepare, review, dispatch, and track itemized pricing quotations for air freight services and commercial road transportation.
           </p>
         </div>
 
@@ -421,7 +421,7 @@ export const CrmQuotationsTab = ({
             className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="All">All Services</option>
-            <option value="Airway">Airway Services</option>
+            <option value="Airway">Air Freight Services</option>
             <option value="Road">Road Transportation</option>
           </select>
 
@@ -772,7 +772,7 @@ export const CrmQuotationsTab = ({
                     list="crm-quote-requests"
                     value={newQuoteData.requestId}
                     onChange={(e) => setNewQuoteData({ ...newQuoteData, requestId: e.target.value })}
-                    placeholder="e.g. AIR-0001 or JOS-88190-SG"
+                    placeholder="e.g. AIR-0001 or Your tracking number"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
                   />
                   <datalist id="crm-quote-requests">
@@ -802,7 +802,7 @@ export const CrmQuotationsTab = ({
                   onChange={(e) => setNewQuoteData({ ...newQuoteData, service: e.target.value })}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
                 >
-                  <option value="Airway Services (AWB Preparation, Billing & Documentation)">Airway Services (AWB Preparation, Billing & Documentation)</option>
+                  <option value="Air Freight Services (AWB Preparation, Billing & Documentation)">Air Freight Services (AWB Preparation, Billing & Documentation)</option>
                   <option value="Road Transportation Linehaul (FTL)">Road Transportation Linehaul (FTL)</option>
                   <option value="Consolidated Road Haulage (LTL)">Consolidated Road Haulage (LTL)</option>
                   <option value="Airport Transfer & Cargo Feeder">Airport Transfer & Cargo Feeder</option>

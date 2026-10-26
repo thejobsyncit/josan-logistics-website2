@@ -598,7 +598,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.drivers (id, name, phone, email, license_number, vehicle_type, vehicle_id, vehicle_plate, status, deliveries_completed, on_time_rate, rating, safety_score, current_latitude, current_longitude)
 VALUES 
-  ('DRV-101', 'Tan Wei Ming', '+65 9123 4567', 'tan.weiming@josanlogistics.com', 'SG-CLASS4-9910', 'Josan EV Express Cargo Truck', 'SG-8819', 'SG-8819', 'On Delivery', 840, '99.6%', 4.9, '99/100', 1.3521, 103.8200),
+  ('DRV-101', 'Tan Wei Ming', '+65 6789 0123', 'tan.weiming@josanlogistics.com', 'SG-CLASS4-9910', 'Josan EV Express Cargo Truck', 'SG-8819', 'SG-8819', 'On Delivery', 840, '99.6%', 4.9, '99/100', 1.3521, 103.8200),
   ('DRV-102', 'Muhammad Rizal', '+65 8234 5678', 'm.rizal@josanlogistics.com', 'SG-CLASS5-8810', 'Volvo Heavy Container Truck', 'SG-4402', 'SG-4402', 'On Delivery', 610, '98.9%', 4.8, '97/100', 1.3412, 103.7712),
   ('DRV-103', 'Gurpreet Singh', '+65 9876 5432', 'gurpreet.sg@josanlogistics.com', 'SG-CLASS4-7721', 'Refrigerated Cold-Chain Van', 'SG-6630', 'SG-6630', 'Available', 420, '99.8%', 5.0, '100/100', 1.3000, 103.8000)
 ON CONFLICT (id) DO NOTHING;
@@ -611,12 +611,12 @@ INSERT INTO public.shipments (
 )
 VALUES 
   (
-    'JOS-88190-SG', 'JOS-88190-SG', 'CUST-001', 'DRV-101',
+    'JOS-77102-SG', 'JOS-77102-SG', 'CUST-001', 'DRV-101',
     'Razer Asia-Pacific HQ', '+65 6789 0123', '1 Raffles Place, #20-01, Singapore 048616', '1 Raffles Place, #20-01, Singapore', '048616',
-    'Jurong Logistics Hub Gate 4', '+65 9123 4567', '10 Jurong Port Road, Singapore 619114', '10 Jurong Port Road, Singapore', '619114',
-    'Jurong Central Highway Freight Hub', 'Woodlands Roadways Terminal',
+    'Pasir Panjang Terminal Gate 4', '+65 6789 0123', '10 Pasir Panjang Road, Singapore 117438', '10 Pasir Panjang Road, Singapore', '117438',
+    'Changi Air Cargo Logistics Hub', 'Woodlands Roadways Terminal',
     'PIE Expressway Telematics Gate', 'IN_TRANSIT', 'active', 'Paid', 'Express Road Freight (FTL)',
-    'High-Tech Electronics & Components', '2,450 kg', 8, 'S$ 68,500', 'S$ 740.00', 'Tan Wei Ming', '+65 9123 4567',
+    'High-Tech Electronics & Components', '2,450 kg', 8, 'S$ 68,500', 'S$ 740.00', 'Tan Wei Ming', '+65 6789 0123',
     'Josan 14-Ton Highway Linehaul Truck #SG-8819', 'SG-8819', 'Today, 4:30 PM (SGT)'
   ),
   (
@@ -655,8 +655,8 @@ DECLARE
 BEGIN
   user_name := COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', SPLIT_PART(NEW.email, '@', 1));
   user_role := UPPER(COALESCE(NEW.raw_user_meta_data->>'role', 'CUSTOMER'));
-  user_company := COALESCE(NEW.raw_user_meta_data->>'company', 'Global Client Corp');
-  user_phone := COALESCE(NEW.raw_user_meta_data->>'phone', '+65 6789 0123');
+  user_company := COALESCE(NEW.raw_user_meta_data->>'company', '');
+  user_phone := COALESCE(NEW.raw_user_meta_data->>'phone', '');
 
   -- 1. Insert/Update public.profiles safely
   BEGIN

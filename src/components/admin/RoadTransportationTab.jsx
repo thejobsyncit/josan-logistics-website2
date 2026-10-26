@@ -94,7 +94,7 @@ export const RoadTransportationTab = ({
         <div className="flex items-center space-x-2.5">
           <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
           <span className="text-slate-700 font-medium">
-            <strong className="text-slate-900">Partner Fleet Model:</strong> Josan arranges commercial freight through contracted, vetted third-party Transportation Partners across Singapore.
+            <strong className="text-slate-900">Partner Fleet Model:</strong> Josan arranges commercial freight through contracted, established third-party Transportation Partners across Singapore.
           </span>
         </div>
         <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">
@@ -124,8 +124,8 @@ export const RoadTransportationTab = ({
           >
             <option value="All">All Partners</option>
             <option value="Woodlands Linehaul Logistics Pte Ltd">Woodlands Linehaul Logistics</option>
-            <option value="Tuas Prime Haulage Pte Ltd">Tuas Prime Haulage</option>
-            <option value="Jurong Freight Express Partners">Jurong Freight Express Partners</option>
+            <option value="Apex Prime Haulage Pte Ltd">Apex Prime Haulage</option>
+            <option value="Island Freight Express Partners">Island Freight Express Partners</option>
             <option value="Changi Feeder Transport Co.">Changi Feeder Transport Co.</option>
           </select>
         </div>
@@ -158,7 +158,7 @@ export const RoadTransportationTab = ({
                 const vehiclePlate = item.vehiclePlate || 'SG-8819';
                 const vehicleType = item.vehicleType || '14ft Box Truck';
                 const driverName = item.driverName || 'Tan Wei Ming (Partner Driver)';
-                const driverPhone = item.driverPhone || '+65 9123 4567';
+                const driverPhone = item.driverPhone || '+65 6789 0123';
                 const goodsDescription = item.cargoType || 'Commercial Precision Goods';
 
                 return (
@@ -181,7 +181,7 @@ export const RoadTransportationTab = ({
                       <div className="flex items-start space-x-1.5 max-w-[150px]">
                         <MapPin className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
                         <span className="text-[11px] truncate" title={item.origin || item.senderAddress}>
-                          {item.origin || item.senderAddress || 'Jurong Central Freight Hub'}
+                          {item.origin || item.senderAddress || 'Changi Air Cargo Freight Hub'}
                         </span>
                       </div>
                     </td>

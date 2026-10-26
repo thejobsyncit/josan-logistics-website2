@@ -120,7 +120,7 @@ export const CrmDashboardTab = ({
               Operations & Customer Relationship Hub
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-              Consolidated command center managing airway documentation services, third-party transportation partners, quotations, customer billing.
+              Consolidated command center managing air freight documentation services, third-party transportation partners, quotations, customer billing.
             </p>
           </div>
 

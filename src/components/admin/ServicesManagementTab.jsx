@@ -28,7 +28,7 @@ export const ServicesManagementTab = ({
   };
 
   const serviceRoutes = {
-    airway: { label: '/#air-freight (Airway Services)', hash: '#air-freight' },
+    airway: { label: '/#air-freight (Air Freight Services)', hash: '#air-freight' },
     road: { label: '/#road-transportation (Road Transportation)', hash: '#road-freight' },
     documentation: { label: '/#customs-clearance (Documentation Support)', hash: '#customs-clearance' }
   };

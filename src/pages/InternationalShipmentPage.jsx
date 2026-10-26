@@ -128,10 +128,10 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
         <p className="text-xl font-black text-orange-600 mb-8">{confirmedId}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
-            onClick={() => setActiveTab && setActiveTab('customs-clearance')}
+            onClick={() => setActiveTab && setActiveTab('shipment-documentation-support')}
             className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl transition-colors cursor-pointer"
           >
-            Prepare customs documents
+            Shipment Documentation Support
           </button>
           <button
             onClick={() => setActiveTab && setActiveTab('track')}
@@ -173,7 +173,7 @@ export const InternationalShipmentPage = ({ setActiveTab }) => {
         <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl -mr-20 -mt-20" />
         <div className="inline-flex items-center gap-2 bg-orange-500/15 border border-orange-500/30 px-3.5 py-1.5 rounded-full mb-4 relative z-10">
           <Globe className="w-3.5 h-3.5 text-orange-400" />
-          <span className="text-xs font-bold text-orange-400 uppercase tracking-wide">Cross-border freight</span>
+          <span className="text-xs font-bold text-orange-400 uppercase tracking-wide">International freight</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2 relative z-10">Book an international shipment</h1>
         <p className="text-sm sm:text-base text-slate-300 relative z-10 max-w-xl">

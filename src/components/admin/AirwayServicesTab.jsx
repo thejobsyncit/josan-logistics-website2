@@ -848,7 +848,7 @@ export const AirwayServicesTab = ({
               <div className="p-4 rounded-2xl bg-blue-50/40 border border-blue-100 space-y-3">
                 <div className="flex items-center space-x-2 text-blue-900 font-extrabold text-xs">
                   <FileText className="w-4 h-4 text-blue-600" />
-                  <span>Requested Airway Services</span>
+                  <span>Requested Air Freight Services</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {(Array.isArray(selectedRequest.services) ? selectedRequest.services : [selectedRequest.services || 'AWB Preparation']).map((svc, i) => (

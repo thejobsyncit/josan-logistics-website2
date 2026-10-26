@@ -3,7 +3,7 @@ import { RealTruckGraphic } from './RealTruckGraphic';
 
 export const SingaporeGoogleMapBackground = ({
   origin = 'Changi Air Cargo Complex',
-  destination = 'Jurong Port Industrial Estate',
+  destination = 'Pasir Panjang Logistics Terminal',
   vehicle = 'Josan EV Express Semi-Truck #SG-8819',
   truckProgress: externalProgress,
   currentSpeed: externalSpeed,
@@ -28,7 +28,7 @@ export const SingaporeGoogleMapBackground = ({
   }, [externalProgress]);
 
   const safeOrigin = origin || 'Changi Air Cargo Complex';
-  const safeDestination = destination || 'Jurong Port Industrial Estate';
+  const safeDestination = destination || 'Pasir Panjang Logistics Terminal';
   const safeVehicle = vehicle || 'Josan EV Express Semi-Truck #SG-8819';
 
   const progressVal = typeof externalProgress === 'number' && !isNaN(externalProgress) ? externalProgress : internalProgress;
@@ -231,7 +231,7 @@ export const SingaporeGoogleMapBackground = ({
             <text x="0" y="33" textAnchor="middle" fill="#ffffff" fontSize="9.5" fontWeight="800" fontFamily="sans-serif">{safeOrigin}</text>
           </g>
 
-          {/* Destination Pin B (Jurong Port / Tuas) - Locked to SVG Route End */}
+          {/* Destination Pin B - Locked to SVG Route End */}
           <g transform="translate(950, 110)">
             <circle r="14" fill="#0f172a" stroke="#f43f5e" strokeWidth="2.5" />
             <text textAnchor="middle" dy="4" fill="#f43f5e" fontSize="12" fontWeight="900" fontFamily="sans-serif">B</text>

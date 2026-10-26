@@ -72,10 +72,9 @@ const cargoTypeOptions = [
   'Dangerous Goods',
   'Documents',
   'Electronics',
-  'Healthcare/Pharmaceutical',
-  'Road Freight / Express Haulage',
-  'Bulk Shipment (FTL)',
-  'Consolidated Road Freight (LTL)'
+  'Commercial Road Transportation',
+  'Dedicated Partner Vehicle Dispatch',
+  'Consolidated Commercial Road Freight'
 ];
 
 const handlingRequirementOptions = [
@@ -543,7 +542,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
   const getCargoTypeSurcharge = (type) => {
     switch (type) {
       case 'Pharma Cold Chain': return 35;
-      case 'Dangerous Goods / Chemicals': return 45;
+      case 'Dangerous Goods': return 45;
       case 'Perishable Foods & Beverages': return 25;
       case 'High-Tech Electronics': return 20;
       case 'Automotive Parts': return 15;
@@ -689,7 +688,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
         formData.receiverEmail = `receiving@${(formData.receiverCompany || 'company').toLowerCase().replace(/[^a-z0-9]/g, '') || 'client'}.com`;
       }
       if (!formData.receiverPhone || !formData.receiverPhone.trim()) {
-        formData.receiverPhone = '9123456780';
+        formData.receiverPhone = '67890123';
       }
       if (!formData.receiverState || !formData.receiverState.trim()) {
         formData.receiverState = formData.receiverCity;
@@ -1114,7 +1113,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 <div>
                   <h4 className="font-extrabold text-sm text-slate-900">1. Select Service Scope</h4>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    Choose between Domestic intra-country transport or International cross-border freight forwarding.
+                    Choose between Singapore Domestic Transport or International Freight Forwarding.
                   </p>
                 </div>
                 <div className="text-[10px] font-bold text-[#2463EB] bg-[#EAF2FF]/70 px-2 py-0.5 rounded-md w-fit">
@@ -1254,13 +1253,13 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                 <div className="p-6 sm:p-7 space-y-4">
                   <div>
                     <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold mb-2">
-                      <span>🌍 Cross-Border Forwarding (180+ Global Ports)</span>
+                      <span>🌍 International Forwarding (180+ Global Ports)</span>
                     </div>
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">International Services</h3>
                   </div>
 
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Comprehensive cross-border air, ocean, and multimodal logistics across 180+ countries with automated customs clearance, HS code classification, and tax compliance handling.
+                    Comprehensive international air, ocean, and multimodal logistics across 180+ countries with automated customs clearance, HS code classification, and tax compliance handling.
                   </p>
 
                   <div className="space-y-2.5 pt-2 border-t border-slate-100 text-xs text-slate-700">
@@ -1898,7 +1897,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                               <label className="block text-[11px] font-bold text-slate-600 mb-1">Contact Phone</label>
                               <input
                                 type="tel"
-                                placeholder="+65 9123 4567"
+                                placeholder="+65 XXXX XXXX"
                                 value={formData.receiverPhone || ''}
                                 onChange={(e) => setFormData(prev => ({ ...prev, receiverPhone: e.target.value }))}
                                 className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
@@ -3589,7 +3588,7 @@ export const BookShipmentPage = ({ setActiveTab }) => {
                     </h4>
                   </div>
                   <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
-                    This order is categorized as <strong>Domestic Freight ({formData.senderCountry})</strong>. Cross-border commercial customs invoices and export declarations are not required. You may proceed directly to Packaging.
+                    This order is categorized as <strong>Domestic Freight ({formData.senderCountry})</strong>. International commercial customs invoices and export declarations are not required. You may proceed directly to Packaging.
                   </p>
                 </div>
               </div>

@@ -330,7 +330,7 @@ export const DocumentationTab = ({
                   type="text"
                   value={newDocData.name}
                   onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
-                  placeholder="e.g. Commercial_Invoice_JOS-88190.pdf"
+                  placeholder="e.g. Commercial_Invoice_77102.pdf"
                   required
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus-blue text-xs"
                 />
@@ -371,7 +371,7 @@ export const DocumentationTab = ({
                     type="text"
                     value={newDocData.shipmentId}
                     onChange={(e) => setNewDocData({ ...newDocData, shipmentId: e.target.value })}
-                    placeholder="e.g. JOS-88190-SG"
+                    placeholder="Your tracking number"
                     required
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 focus-blue text-xs"
                   />

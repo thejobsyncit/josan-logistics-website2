@@ -111,7 +111,7 @@ export const initialSystemUsers = [
     role: 'crm_manager',
     roleTitle: 'CRM Operations Lead',
     status: 'Active',
-    phone: '+65 9123 4567',
+    phone: '+65 6789 0123',
     company: 'Josan Logistics Operations',
     lastLogin: '2026-10-06 08:30 AM',
     permissions: ['customers', 'airway_requests', 'road_shipments', 'cargo_pricing', 'documents', 'quotations', 'billing', 'transportation_partners', 'reports']
@@ -232,12 +232,12 @@ export const initialWebsiteContent = {
     badge: 'IATA & ACRA Compliant Commercial Logistics',
     title: 'Precision Airway & Commercial Road Freight Logistics',
     subtitle: 'Streamlining Singapore cargo transport with dedicated master AWB preparation, customs documentation, TradeNet declarations, and haulage partner coordination.',
-    ctaPrimary: 'Request Airway Service',
+    ctaPrimary: 'Request Air Freight Service',
     ctaSecondary: 'Book Road Consignment'
   },
   about: {
     tagline: 'Singapore Commercial Logistics Specialist',
-    mission: 'Providing transparent, high-integrity airway documentation and third-party road transportation dispatch for Singapore enterprises.',
+    mission: 'Providing transparent, high-integrity air freight documentation and third-party road transportation dispatch for Singapore enterprises.',
     vision: 'To be the most reliable documentation and commercial road freight coordinator across Singapore industrial corridors.',
     highlights: [
       'Comprehensive Master Air Waybill (AWB) preparation & airline billing',
@@ -254,7 +254,7 @@ export const initialWebsiteContent = {
   },
   services: {
     airway: {
-      title: 'Airway Services & AWB Preparation',
+      title: 'Air Freight Services & AWB Preparation',
       shortDesc: 'Master AWB documentation, airline coordination, and airport feeder transportation support for Changi Air Cargo Complex.'
     },
     road: {
@@ -270,9 +270,9 @@ export const initialWebsiteContent = {
     phone: '+65 6789 0123',
     email: 'operations@josanlogistics.com',
     supportEmail: 'support@josanlogistics.com',
-    address: '10 Tuas South Avenue 8, #03-12 Logistics Hub, Singapore 637421',
+    address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
     operatingHours: 'Mon - Fri: 08:00 AM - 07:00 PM (SGT) | Sat: 08:00 AM - 01:00 PM',
-    emergencyHotline: '+65 9123 4567'
+    emergencyHotline: '+65 6789 0123'
   },
   faqs: [
     {
@@ -297,8 +297,8 @@ export const initialWebsiteContent = {
     }
   ],
   banner: {
-    active: true,
-    text: 'Standardized Airway Documentation & Domestic Linehaul Support available across all Singapore hubs.',
+    active: false,
+    text: 'Standardized Air Freight Documentation & Domestic Linehaul Support available across all Singapore hubs.',
     type: 'info'
   }
 };
@@ -306,7 +306,7 @@ export const initialWebsiteContent = {
 export const initialManagedServices = {
   airway: {
     id: 'airway',
-    name: 'Airway Services',
+    name: 'Air Freight Services',
     description: 'Master AWB documentation, airline coordination, and airport feeder transportation support.',
     badge: 'AWB Preparation & Billing',
     active: true
@@ -345,7 +345,7 @@ export const initialAdminActivityLog = [
   {
     id: 'act-103',
     action: 'Public Services Active',
-    details: 'Airway Services, Road Transportation, and Documentation Support set to active status.',
+    details: 'Air Freight Services, Road Transportation, and Documentation Support set to active status.',
     timestamp: '2026-10-06 10:00 AM',
     user: 'Alexander Josan'
   }
