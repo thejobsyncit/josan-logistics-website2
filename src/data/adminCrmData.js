@@ -287,13 +287,13 @@ export const initialWebsiteContent = {
     },
     {
       id: 'faq-3',
-      q: 'How are estimated cargo charges calculated?',
-      a: 'Charges are calculated dynamically based on cargo classification, weight (KG), and applicable weight slab rates configured in our CRM system (Weight × Applicable Price/KG).'
+      q: 'How are freight quotes calculated?',
+      a: 'Quotes are calculated based on shipment route, cargo type, dimensions, weight, and partner availability after you submit a quote request. We reply with a formal quote, and payment is arranged only after you accept.'
     },
     {
       id: 'faq-4',
-      q: 'What documentation assistance is provided for exports?',
-      a: 'We assist with TradeNet permit declarations, Commercial Invoices, Packing Lists, Certificates of Origin, and Air Waybills for seamless regulatory compliance.'
+      q: 'What documentation assistance is provided?',
+      a: 'We assist with Commercial Invoices, Packing Lists, Certificates of Origin, and Air Waybills. We provide documentation support only and do not provide customs clearance or act as a customs broker.'
     }
   ],
   banner: {

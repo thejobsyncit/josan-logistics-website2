@@ -30,6 +30,8 @@ import { CrmPage } from './pages/CrmPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
+import { LegalDialog, openLegalDialog } from './components/LegalDialog';
+import { CookieBanner } from './components/CookieBanner';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
@@ -102,6 +104,8 @@ const ToastNotification = () => {
 };
 
 const MainContent = () => {
+  const { currentRole, currentUser, loginUser, logoutUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+
   const validTabs = [
     'home', 
     'air-freight',
@@ -141,17 +145,23 @@ const MainContent = () => {
       path === '/staff-login' || 
       path.endsWith('/staff-login') || 
       rawHash === 'staff-login' || 
-      rawHash === '/staff-login'
+      rawHash === '/staff-login' ||
+      rawHash.startsWith('staff-login') ||
+      rawHash.startsWith('staff-setup') ||
+      rawHash.startsWith('staff-reset') ||
+      path.includes('staff-setup') ||
+      path.includes('staff-reset')
     ) {
       return 'staff-login';
     }
+    const currentRoleLower = (currentUser?.role || '').toLowerCase();
     if (
       path === '/crm' || 
       path.endsWith('/crm') || 
       rawHash === 'crm' || 
       rawHash === '/crm'
     ) {
-      return currentUser && (currentUser.role === 'admin' || currentUser.role === 'crm') ? 'crm' : 'staff-login';
+      return currentUser && (currentRoleLower === 'admin' || currentRoleLower === 'crm' || currentRoleLower.startsWith('crm_') || currentRoleLower === 'read-only' || currentRoleLower === 'read_only') ? 'crm' : 'staff-login';
     }
     if (
       path === '/admin' || 
@@ -160,15 +170,17 @@ const MainContent = () => {
       rawHash === '/admin' || 
       rawHash === 'admin-dashboard'
     ) {
-      return currentUser && currentUser.role === 'admin' ? 'admin-dashboard' : 'staff-login';
+      return currentUser && currentRoleLower === 'admin' ? 'admin-dashboard' : 'staff-login';
     }
     if (
       path === '/privacy-policy' || 
+      path === '/privacy' ||
       rawHash === 'privacy-policy' || 
       rawHash === '/privacy-policy' ||
       rawHash === 'privacy'
     ) {
-      return 'privacy-policy';
+      setTimeout(() => openLegalDialog('privacy'), 50);
+      return 'home';
     }
     if (
       path === '/terms-of-service' || 
@@ -178,7 +190,8 @@ const MainContent = () => {
       rawHash === '/terms-of-service' || 
       rawHash === '/terms'
     ) {
-      return 'terms-of-service';
+      setTimeout(() => openLegalDialog('terms'), 50);
+      return 'home';
     }
     if (
       path === '/airway-services' || 
@@ -212,24 +225,33 @@ const MainContent = () => {
     }
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
-  
-  const { currentRole, currentUser, loginUser, logoutUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
 
   // Strict protected role routes: redirect unauthenticated staff to /staff-login
   useEffect(() => {
+    const userRole = (currentUser?.role || currentRole || '').toLowerCase();
+    const isStaff = currentUser && (userRole === 'admin' || userRole === 'crm' || userRole?.startsWith('crm_') || userRole === 'read-only' || userRole === 'read_only');
+
     if (activeTab === 'crm' || activeTab === 'admin-dashboard') {
-      const userRole = currentUser?.role || currentRole;
-      if (!currentUser || (userRole !== 'admin' && userRole !== 'crm' && !userRole?.startsWith('crm_'))) {
+      if (!isStaff) {
         if (showToast) {
           showToast('Staff authentication required to access this portal.', 'warning');
         }
         changeActiveTab('staff-login');
         return;
       }
+
+      // Requirement 5: A CRM user must not be able to open the Admin workspace
+      if (activeTab === 'admin-dashboard' && userRole !== 'admin') {
+        if (showToast) {
+          showToast('Access Denied: Only Administrator accounts can access the Admin workspace.', 'error');
+        }
+        changeActiveTab('crm');
+        return;
+      }
     }
 
     // Automatically log out admin session when returning to public website pages
-    if (activeTab !== 'admin-dashboard' && activeTab !== 'crm' && activeTab !== 'staff-login' && currentUser?.role === 'admin') {
+    if (activeTab !== 'admin-dashboard' && activeTab !== 'crm' && activeTab !== 'staff-login' && userRole === 'admin') {
       logoutUser(true);
       return;
     }
@@ -374,17 +396,32 @@ const MainContent = () => {
       return;
     }
 
-    // Direct CRM route check
+    const userRoleLower = (effectiveRole || '').toLowerCase();
+    const isStaffAuth = effectiveUser && (userRoleLower === 'admin' || userRoleLower === 'crm' || userRoleLower?.startsWith('crm_') || userRoleLower === 'read-only' || userRoleLower === 'read_only');
+
+    // Protected CRM route check
     if (tab === 'crm') {
-      if (!effectiveUser || (effectiveRole !== 'admin' && effectiveRole !== 'crm')) {
-        loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
+      if (!isStaffAuth) {
+        if (showToast) showToast('Staff sign in required for CRM Operations.', 'warning');
+        setActiveTab('staff-login');
+        window.location.hash = '#staff-login';
+        return;
       }
     }
 
-    // Direct Admin route check
+    // Protected Admin workspace route check (Requirement 5)
     if (tab === 'admin-dashboard' || tab === 'admin') {
-      if (!effectiveUser || effectiveRole !== 'admin') {
-        loginUser('admin@josanlogistics.com', 'admin123', 'admin', setActiveTab);
+      if (!effectiveUser || userRoleLower !== 'admin') {
+        if (effectiveUser) {
+          if (showToast) showToast('Access Denied: Only Administrator accounts can access the Admin workspace.', 'error');
+          setActiveTab('crm');
+          window.location.hash = '#crm';
+        } else {
+          if (showToast) showToast('Administrator authentication required.', 'warning');
+          setActiveTab('staff-login');
+          window.location.hash = '#staff-login';
+        }
+        return;
       }
     }
 
@@ -417,14 +454,14 @@ const MainContent = () => {
         return;
       }
 
-      // Privacy policy & Terms of service routes
-      if (path === '/privacy-policy' || rawHash === '#privacy-policy' || rawHash === '#/privacy-policy' || rawHash === '#privacy') {
-        setActiveTab('privacy-policy');
+      // Privacy policy & Terms of service routes: open pop-up dialog without reloading or clearing form state
+      if (path === '/privacy-policy' || path === '/privacy' || rawHash === '#privacy-policy' || rawHash === '#/privacy-policy' || rawHash === '#privacy') {
+        openLegalDialog('privacy');
         return;
       }
 
       if (path === '/terms-of-service' || path === '/terms' || rawHash === '#terms-of-service' || rawHash === '#/terms-of-service' || rawHash === '#terms') {
-        setActiveTab('terms-of-service');
+        openLegalDialog('terms');
         return;
       }
 
@@ -656,6 +693,8 @@ const MainContent = () => {
       <InvoiceModal />
       <ToastNotification />
       <Chatbot />
+      <CookieBanner />
+      <LegalDialog />
     </div>
   );
 };

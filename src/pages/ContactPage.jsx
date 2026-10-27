@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { Mail, Phone, MapPin, Send, HelpCircle, ChevronDown, Clock, Building2, Globe, ExternalLink, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
+import { openLegalDialog } from '../components/LegalDialog';
+import { attachChatToSubmission } from '../services/chatStorageService';
 
 export const ContactPage = ({ setActiveTab }) => {
   const { showToast, addLead, createSupportTicket, addNotification } = useLogistics();
@@ -122,6 +124,19 @@ export const ContactPage = ({ setActiveTab }) => {
 
     // Simulated email dispatch log to REAL EMAIL
     console.info('[Email Service] Transmission dispatched to contact@josanlogistics.com.sg:', submissionData);
+
+    // 5. Attach active chat session to contact enquiry reference if user chatted with AI
+    const enquiryRef = `ENQ-${Math.floor(10000 + Math.random() * 90000)}`;
+    try {
+      attachChatToSubmission(enquiryRef, {
+        name: submissionData.name,
+        email: submissionData.email,
+        phone: submissionData.phone,
+        company: submissionData.company
+      });
+    } catch (e) {
+      console.warn('[ContactPage] Failed to attach chat to contact submission:', e);
+    }
 
     setSubmittedSuccess(true);
     showToast('Thank you. We have received your message and will reply by email or phone as soon as we can.', 'success');
@@ -372,18 +387,18 @@ export const ContactPage = ({ setActiveTab }) => {
                   />
                   <span className="text-xs text-slate-600 leading-snug">
                     I agree to Josan Logistics contacting me about this enquiry and to the{' '}
-                    <a
-                      href="#privacy-policy"
+                    <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
-                        if (setActiveTab) setActiveTab('privacy-policy');
-                        else window.location.href = '#privacy-policy';
+                        e.stopPropagation();
+                        openLegalDialog('privacy', e.currentTarget);
                       }}
-                      className="text-orange-600 font-bold underline hover:text-orange-700 transition-colors"
+                      className="text-orange-600 font-bold underline hover:text-orange-700 transition-colors cursor-pointer inline"
                       title="Read Josan Logistics Privacy Policy"
                     >
                       Privacy Policy
-                    </a>.
+                    </button>.
                   </span>
                 </label>
                 {errors.consent && (
@@ -412,6 +427,34 @@ export const ContactPage = ({ setActiveTab }) => {
                 <Send className="w-4 h-4" />
                 <span>Send Message</span>
               </button>
+
+              <p className="text-center text-xs text-slate-500 mt-2.5 leading-relaxed">
+                By sending this request you agree to our{' '}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openLegalDialog('terms', e.currentTarget);
+                  }}
+                  className="text-orange-600 font-bold underline hover:text-orange-700 transition-colors cursor-pointer inline"
+                >
+                  Terms of Service
+                </button>
+                {' '}and{' '}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openLegalDialog('privacy', e.currentTarget);
+                  }}
+                  className="text-orange-600 font-bold underline hover:text-orange-700 transition-colors cursor-pointer inline"
+                >
+                  Privacy Policy
+                </button>
+                .
+              </p>
             </form>
           </div>
 
@@ -497,6 +540,24 @@ export const ContactPage = ({ setActiveTab }) => {
                   <span>WhatsApp</span>
                 </a>
               </div>
+            </div>
+
+            {/* Contact Hours Card */}
+            <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-3 shadow-sm hover:border-slate-300 transition-all">
+              <div className="flex items-center space-x-3">
+                <div className="w-11 h-11 rounded-xl bg-[#0B1F3A] text-white flex items-center justify-center font-bold shrink-0">
+                  <Clock className="w-5 h-5 text-orange-400" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[#0B1F3A] text-sm">Contact Hours</h4>
+                  <p className="text-slate-800 font-bold text-sm tracking-tight">
+                    [ENTER HOURS]
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 pt-1 border-t border-slate-100">
+                Operations desk and customer enquiry support hours.
+              </p>
             </div>
 
           </div>

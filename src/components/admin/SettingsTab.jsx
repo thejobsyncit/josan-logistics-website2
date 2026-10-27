@@ -9,8 +9,17 @@ import {
   Lock, 
   Save, 
   Plane, 
-  FileCheck 
+  FileCheck,
+  MessageSquare,
+  Trash2,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
+import { 
+  getAdminChatSessions, 
+  deleteChatSession, 
+  deleteCustomerChatsOnRequest 
+} from '../../services/chatStorageService';
 
 export const SettingsTab = ({ onSaveToast }) => {
   const [activeSubTab, setActiveSubTab] = useState('company'); // 'company' | 'services' | 'security' | 'alerts'
@@ -49,6 +58,40 @@ export const SettingsTab = ({ onSaveToast }) => {
     emailOnStatusChange: true,
     dailyDigestEmail: false,
   });
+
+  const [chatSessions, setChatSessions] = useState(() => getAdminChatSessions());
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [deletionFeedback, setDeletionFeedback] = useState(null);
+
+  const refreshChatSessions = () => {
+    setChatSessions(getAdminChatSessions());
+  };
+
+  const handleDeleteCustomerChats = (e) => {
+    e?.preventDefault();
+    if (!customerSearchQuery.trim()) return;
+    const deleted = deleteCustomerChatsOnRequest(customerSearchQuery);
+    refreshChatSessions();
+    if (deleted > 0) {
+      setDeletionFeedback({
+        type: 'success',
+        msg: `Successfully deleted ${deleted} chat session(s) matching "${customerSearchQuery}" on customer request.`
+      });
+      if (onSaveToast) onSaveToast(`Deleted ${deleted} chat record(s) on request`, 'success');
+    } else {
+      setDeletionFeedback({
+        type: 'info',
+        msg: `No chat sessions found matching "${customerSearchQuery}".`
+      });
+    }
+    setCustomerSearchQuery('');
+  };
+
+  const handleDeleteSingleSession = (sessionId) => {
+    deleteChatSession(sessionId);
+    refreshChatSessions();
+    if (onSaveToast) onSaveToast(`Chat session deleted`, 'info');
+  };
 
   const handleSaveAll = (e) => {
     e.preventDefault();
@@ -116,6 +159,7 @@ export const SettingsTab = ({ onSaveToast }) => {
           { id: 'services', label: 'Transportation & Services', icon: Truck },
           { id: 'security', label: 'Security & Access', icon: Shield },
           { id: 'alerts', label: 'Alerts & Notifications', icon: Bell },
+          { id: 'chatPrivacy', label: 'AI Chat Privacy & Retention', icon: MessageSquare },
         ].map((tab) => {
           const TabIcon = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -377,6 +421,190 @@ export const SettingsTab = ({ onSaveToast }) => {
             </div>
           </div>
         </form>
+      )}
+
+      {/* TAB 5: AI CHAT PRIVACY & RETENTION */}
+      {activeSubTab === 'chatPrivacy' && (
+        <div className="space-y-6 text-xs animate-fade-in">
+          {/* Policy Overview Card */}
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
+                  <MessageSquare className="w-4 h-4 text-[#2463EB]" />
+                  <span>JOSAN AI Chat Storage &amp; Retention Controls</span>
+                </h3>
+                <p className="text-slate-500 text-[11px] mt-1">
+                  Store chats for follow-up on enquiry or quote requests and delete them after 30 days, visible to admin staff only.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={refreshChatSessions}
+                className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[11px] font-bold flex items-center space-x-1.5 cursor-pointer self-start shadow-2xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                <span>Refresh Logs</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">
+                  1. Storage Purpose
+                </span>
+                <span className="font-bold text-slate-900 text-xs block">
+                  Follow up on enquiry or quote request
+                </span>
+                <span className="text-[11px] text-slate-500 block mt-1">
+                  Visible to admin staff only. Attached to quote/enquiry ref or sent by customer.
+                </span>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">
+                  2. Retention Rule
+                </span>
+                <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  Delete them after 30 days
+                </span>
+                <span className="text-[11px] text-slate-500 block mt-1">
+                  Chat records are automatically purged after 30 days. Visible to admin staff only.
+                </span>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">
+                  3. Privacy Rights
+                </span>
+                <span className="font-bold text-[#2463EB] text-xs block">
+                  Delete on Customer Request
+                </span>
+                <span className="text-[11px] text-slate-500 block mt-1">
+                  Admin tool below permanently deletes a customer's chats on request.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Delete Customer Chats On Request Tool */}
+          <div className="bg-white p-6 rounded-2xl border border-red-200 shadow-2xs space-y-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  Admin Action: Delete Customer's Chats on Request
+                </h4>
+                <p className="text-[11px] text-slate-500">
+                  Search by customer email, name, or session ID to permanently purge all associated records.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleDeleteCustomerChats} className="flex flex-col sm:flex-row gap-2 pt-1">
+              <input
+                type="text"
+                placeholder="Enter customer email, name, or session ID..."
+                value={customerSearchQuery}
+                onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus-blue"
+              />
+              <button
+                type="submit"
+                disabled={!customerSearchQuery.trim()}
+                className="px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Customer's Chats on Request</span>
+              </button>
+            </form>
+
+            {deletionFeedback && (
+              <div className={`p-3 rounded-xl border text-[11px] font-bold flex items-center space-x-2 animate-fade-in ${
+                deletionFeedback.type === 'success' 
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                  : 'bg-slate-50 text-slate-700 border-slate-200'
+              }`}>
+                <AlertCircle className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>{deletionFeedback.msg}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Stored Chat Sessions Table */}
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  Stored Support & Quote Chats ({chatSessions.length})
+                </h4>
+                <p className="text-[11px] text-slate-500">
+                  Visible to admin staff only. Kept strictly for quote follow-up and service quality.
+                </p>
+              </div>
+              <span className="text-[11px] font-mono font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 self-start">
+                Purge Window: &le; 30 Days
+              </span>
+            </div>
+
+            {chatSessions.length === 0 ? (
+              <div className="bg-white p-8 rounded-xl border border-slate-200 text-center space-y-1">
+                <p className="font-bold text-slate-700">No active stored chat records found.</p>
+                <p className="text-[11px] text-slate-400">
+                  Customer chats will be listed here when visitors submit inquiries through JOSAN AI.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                {chatSessions.map((session) => (
+                  <div key={session.sessionId} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors">
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-bold text-slate-900">
+                          {session.customerName || 'Website Visitor'}
+                        </span>
+                        {session.customerEmail && (
+                          <span className="text-[11px] font-mono text-slate-500">
+                            &lt;{session.customerEmail}&gt;
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100">
+                          {session.messageCount || 0} msgs
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600">
+                          Admin Only
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 truncate font-mono italic">
+                        "{session.preview || 'Inquiry regarding air or road freight'}"
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+                        <span>Session: <code className="font-mono text-slate-600">{session.sessionId}</code></span>
+                        <span>&bull;</span>
+                        <span>Updated: {new Date(session.updatedAt || session.createdAt).toLocaleString()}</span>
+                        <span>&bull;</span>
+                        <span className="text-slate-500 font-medium">Purpose: {session.purpose || 'Quote follow-up & support quality'}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSingleSession(session.sessionId)}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-600 rounded-lg text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer self-start sm:self-center shrink-0"
+                      title="Permanently delete this chat session"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -130,15 +130,9 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
             />
           )}
 
-          {/* TAB 2: USER MANAGEMENT */}
+          {/* TAB 2: USER MANAGEMENT (ADMIN ONLY) */}
           {adminTab === 'users' && (
-            <UserManagementTab
-              systemUsers={systemUsers}
-              onAddUser={addSystemUser}
-              onUpdateUser={updateSystemUser}
-              onDeleteUser={deleteSystemUser}
-              onToggleStatus={toggleSystemUserStatus}
-            />
+            <UserManagementTab />
           )}
 
           {/* TAB 3: ROLES & PERMISSIONS */}

@@ -820,5 +820,42 @@ CREATE POLICY "Public update/delete document_chunks" ON public.document_chunks F
 CREATE POLICY "Public chat_sessions" ON public.chat_sessions FOR ALL USING (true);
 CREATE POLICY "Public chat_messages" ON public.chat_messages FOR ALL USING (true);
 
+-- ============================================================================
+-- 7. Permanent Reference Registry & Unique Constraints (Never Reused on Deletion)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.issued_reference_numbers (
+  reference_number TEXT PRIMARY KEY,
+  reference_type TEXT NOT NULL CHECK (reference_type IN ('QUOTE', 'TEST_QUOTE', 'SHIPMENT', 'TEST_SHIPMENT')),
+  is_test BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Index for rapid collision check
+CREATE INDEX IF NOT EXISTS idx_issued_reference_type ON public.issued_reference_numbers (reference_type);
+
+-- Enable RLS
+ALTER TABLE public.issued_reference_numbers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read/write issued_reference_numbers" ON public.issued_reference_numbers FOR ALL USING (true);
+
+-- Unique constraints on operational tables
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'shipments') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'shipments_tracking_number_unique'
+    ) THEN
+      ALTER TABLE public.shipments ADD CONSTRAINT shipments_tracking_number_unique UNIQUE (tracking_number);
+    END IF;
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'quote_requests') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'quote_requests_reference_unique'
+    ) THEN
+      ALTER TABLE public.quote_requests ADD CONSTRAINT quote_requests_reference_unique UNIQUE (id);
+    END IF;
+  END IF;
+END $$;
+
 
 

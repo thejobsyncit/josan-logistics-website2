@@ -199,8 +199,29 @@ input[type="number"] {
     visibility: hidden !important;
   }
 
-  #printable-invoice, #printable-invoice * {
+  #printable-invoice, #printable-invoice *,
+  [role="dialog"], [role="dialog"] * {
     visibility: visible !important;
+  }
+
+  [role="dialog"] {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  [role="dialog"] header button,
+  [role="dialog"] .scrollbar-none {
+    display: none !important;
   }
 
   #printable-invoice {

@@ -8,7 +8,7 @@ import { extractTextFromFile } from './textExtractor.js';
 import { chunkDocument } from './chunker.js';
 import { generateEmbedding } from './embeddings.js';
 
-export async function ingestDocument({ fileBuffer, fileName, fileType, title, category = 'General', description = '' }) {
+export async function ingestDocument({ fileBuffer, fileName, fileType, title, category = 'General', description = '', source = '', date = '', isOfficialJosan = false }) {
   const docTitle = title || fileName.replace(/\.[^/.]+$/, '');
   const documentId = crypto.randomUUID();
 
@@ -56,7 +56,14 @@ export async function ingestDocument({ fileBuffer, fileName, fileType, title, ca
       content: chunk.content,
       token_count: chunk.tokenCount,
       embedding,
-      metadata: chunk.metadata
+      metadata: {
+        ...chunk.metadata,
+        documentTitle: docTitle,
+        category,
+        source,
+        date,
+        isOfficialJosan
+      }
     });
   }
 
@@ -69,7 +76,7 @@ export async function ingestDocument({ fileBuffer, fileName, fileType, title, ca
         .insert([{
           id: documentId,
           file_name: fileName,
-          file_type: fileType || 'pdf',
+          file_type: fileType || 'txt',
           title: docTitle,
           description: description || `Ingested ${chunks.length} chunks from ${fileName}`,
           category,
@@ -78,6 +85,9 @@ export async function ingestDocument({ fileBuffer, fileName, fileType, title, ca
           metadata: {
             total_characters: text.length,
             chunk_size: 600,
+            source,
+            date,
+            isOfficialJosan,
             ingested_at: new Date().toISOString()
           }
         }]);
@@ -107,6 +117,10 @@ export async function ingestDocument({ fileBuffer, fileName, fileType, title, ca
     documentId,
     title: docTitle,
     fileName,
+    category,
+    source,
+    date,
+    isOfficialJosan,
     chunkCount: chunks.length,
     characterCount: text.length,
     chunks: chunkDataList
@@ -114,92 +128,170 @@ export async function ingestDocument({ fileBuffer, fileName, fileType, title, ca
 }
 
 /**
- * Predefined Josan Logistics Knowledge Base Sample Documents
+ * Predefined Josan Logistics Knowledge Base Documents
+ * Contains Josan approved operational documents and explicit General Reference documents.
  */
 export const SAMPLE_KNOWLEDGE_DOCUMENTS = [
   {
-    fileName: 'Air_Freight_Documentation_Guide.pdf',
-    title: 'Air Freight Cargo & Documentation Standard Operating Procedure',
-    category: 'Air Freight',
-    description: 'Complete guide for required air freight documentation, Air Waybill (AWB) issuance, and Changi Air Cargo Hub procedures.',
-    content: `JOSAN LOGISTICS PTE. LTD. - AIR FREIGHT STANDARD OPERATING PROCEDURE
+    fileName: 'Josan_Services.txt',
+    title: 'Josan Logistics Services Overview',
+    category: 'Company Services',
+    description: 'Scope of Josan Logistics freight coordination, air freight documentation support, and road transportation coordination in Singapore.',
+    source: 'Josan Logistics Internal Operations',
+    date: '2026-10-26',
+    isOfficialJosan: true,
+    content: `JOSAN LOGISTICS PTE. LTD. - COMPANY SERVICES OVERVIEW
+Source: Josan Logistics Approved Text
+Date: 26 October 2026
 
-1. AIR FREIGHT DOCUMENTATION REQUIREMENTS:
-For all international and regional air cargo handled by Josan Logistics via Changi Air Cargo Hub (SIN), the following mandatory documents must be provided prior to origin departure:
-- Master Air Waybill (MAWB) & House Air Waybill (HAWB)
-- Commercial Invoice (in USD or SGD) detailing item description, HS Codes, unit values, and country of origin.
-- Detailed Packing List (net weight, gross weight, dimension per crate/pallet).
-- Shipper's Declaration for Dangerous Goods (DG Declaration) if cargo contains lithium batteries or regulated materials under IATA DG Regulations.
-- Certificate of Origin (Form D / Form E / Form AK where preferential tariff applies).
+1. COMPANY SCOPE:
+Josan Logistics is a freight coordinator based in Singapore. We provide documentation support and coordinate commercial road transportation through established third-party partners. We do not own trucks and do not operate cargo aircraft. All freight carriage is performed by independent transport partners and airline carriers.
 
-2. AIR WAYBILL (AWB) DEFINITION & RESPONSIBILITY:
-An Air Waybill is a non-negotiable transport document issued by Josan Logistics as the freight forwarder or air carrier. It serves as proof of receipt of goods, evidence of the contract of carriage between shipper and carrier, and freight charge invoice.
+2. AIR FREIGHT DOCUMENTATION SUPPORT:
+We assist shippers with Air Waybill (AWB) preparation, consignment details, documentation checks, and cargo handover coordination for partner airlines operating via Changi Air Cargo Hub.
 
-3. CUSTOMS & INSPECTIONS AT CHANGI CARGO COMPLEX:
-- All inbound air freight must be cleared through Singapore Customs (TradeNet System) prior to physical delivery.
-- Perishable cargo receives express green-lane clearance within 2 hours of flight arrival.`
+3. ROAD TRANSPORTATION COORDINATION:
+We coordinate commercial road freight transport across Singapore through independent transport partners. Vehicle types coordinated through partners include box trucks (with tailgate), heavy lorries, and prime movers for commercial deliveries.
+
+4. SHIPMENT DOCUMENTATION SUPPORT:
+We assist businesses with organizing standard trade paperwork, consignment notes, delivery orders, and transport documentation.
+
+5. EXCLUSIONS & LIMITATIONS:
+Josan Logistics does not provide customs clearance, customs broking, tariff classification, or GST advice. We do not provide legal advice or cargo insurance. We do not accept or handle tobacco, spirits and liquors, wines, fresh and frozen food products, chemicals, or healthcare/pharmaceutical supplies.`
   },
   {
-    fileName: 'Singapore_Customs_and_GST_Clearance.pdf',
-    title: 'Singapore Customs Clearance & GST Regulations',
-    category: 'Customs',
-    description: 'Detailed explanation of Singapore TradeNet permits, Goods and Services Tax (GST) rate, and customs procedures.',
-    content: `SINGAPORE CUSTOMS & GST CLEARANCE GUIDE - JOSAN LOGISTICS
+    fileName: 'Josan_Quote_Process.txt',
+    title: 'Josan Logistics Quote Process',
+    category: 'Quotes & Billing',
+    description: 'How to request a quote, required details, no fixed rates or guarantees, and payment terms.',
+    source: 'Josan Logistics Internal Operations',
+    date: '2026-10-26',
+    isOfficialJosan: true,
+    content: `JOSAN LOGISTICS PTE. LTD. - QUOTE PROCESS
+Source: Josan Logistics Approved Text
+Date: 26 October 2026
 
-1. TRADE PERMIT DECLARATION:
-All commercial shipments entering or exiting Singapore require an approved TradeNet Permit issued by Singapore Customs.
-- In-Payment (GST) Permit: Required for non-dutiable commercial imports. Singapore GST (9%) is payable on the CIF value (Cost, Insurance, and Freight).
-- In-Non-Payment Permit: Used when goods enter a Licensed Warehouse or Zero-GST Warehouse.
-- Out Permit: Required for all exports out of Singapore port/airport.
+1. REQUESTING A QUOTE:
+Customers can request a quotation through our website at the Request a Quote page (/quote) or by emailing contact@josanlogistics.com.sg. Required details include origin, destination, cargo nature, dimensions, estimated weight, and service requirements.
 
-2. DUTIABLE & CONTROLLED GOODS:
-- Dutiable items: Motor vehicles and petroleum products. Note: Josan Logistics does not handle intoxicating liquors, wines, or tobacco products.
-- Controlled goods (e.g. strategic goods, food items) require clearance permits from Strategic Goods Control Branch, HSA, or SFA before customs release. Note: Josan Logistics does not transport chemicals, healthcare/pharmaceuticals, or fresh/frozen products.
+2. PRICING & GUARANTEE POLICY:
+We do not publish fixed price lists, per-kilogram rates, transit time guarantees, or promotional discounts. Rates depend on partner availability, fuel surcharges, cargo specifications, route, and schedule.
 
-3. JOSAN LOGISTICS CUSTOMS BROKERAGE SERVICES:
-Josan Logistics provides 24/7 TradeNet permit submission with average permit turnaround time under 15 minutes.`
+3. NO UPFRONT PAYMENT:
+Submitting a quote inquiry is free of charge and carries no payment obligation.
+
+4. INVOICES & PAYMENT TERMS:
+Formal quotations are issued directly by our team. Payment terms and quote validity periods are stated in the specific quotation or commercial invoice.`
   },
   {
-    fileName: 'Incoterms_2020_Quick_Reference.pdf',
-    title: 'Incoterms 2020 Logistics Reference',
-    category: 'International Trade',
-    description: 'Reference guide for Incoterms 2020 rules (EXW, FOB, CIF, DDP, DAP) used by Josan Logistics.',
-    content: `INCOTERMS 2020 LOGISTICS GUIDE - JOSAN LOGISTICS
+    fileName: 'Josan_Tracking_Page.txt',
+    title: 'Josan Logistics Tracking Portal Guide',
+    category: 'Shipment Tracking',
+    description: 'How tracking works on the Track Shipment page, reference numbers, and dispatch milestone updates.',
+    source: 'Josan Logistics Operations Team',
+    date: '2026-10-26',
+    isOfficialJosan: true,
+    content: `JOSAN LOGISTICS PTE. LTD. - TRACKING PORTAL GUIDE
+Source: Josan Logistics Approved Text
+Date: 26 October 2026
 
-1. EXW (Ex Works):
-Seller makes goods available at their warehouse premises. Buyer assumes all costs, freight insurance, customs clearance, and risk from seller's door to destination.
+1. TRACKING ACCESS:
+Customers can check shipment progress on our website Track Shipment page (/track) using their Josan tracking reference (e.g., JL-XXXX-XXXX) or Air Waybill number.
 
-2. FOB (Free On Board):
-Seller clears goods for export and loads them onto the designated vessel or aircraft. Buyer assumes cost and risk once loaded.
+2. STATUS UPDATES:
+Tracking milestone statuses (Booked, Received at Hub, In Transit, Customs Handover, Out for Delivery, Delivered) are entered by the operations dispatch team upon confirmation from partner carriers.
 
-3. CIF (Cost, Insurance, and Freight):
-Seller pays freight charges and marine/air insurance to destination port. Risk transfers to buyer once goods are loaded on ship/aircraft.
-
-4. DDP (Delivered Duty Paid):
-Josan Logistics assumes full responsibility for door-to-door delivery, including export clearance, international freight, Singapore import customs clearance, and payment of import GST & duties.
-
-5. DAP (Delivered at Place):
-Josan Logistics delivers goods to specified destination address. Import duties and GST remain buyer's responsibility upon arrival.`
+3. INDICATIVE TIMESTAMPS:
+Milestones are indicative and reflect the time entered by operations dispatch. Always refer to the 'Last updated' timestamp on the tracking screen. Automated real-time telematics are not claimed.`
   },
   {
-    fileName: 'Josan_Logistics_Services_and_Pricing.pdf',
-    title: 'Josan Logistics Corporate Services & Rate Card',
-    category: 'Services & Rates',
-    description: 'Overview of Josan Logistics transport services, fleet capabilities, warehousing, and pricing model.',
-    content: `JOSAN LOGISTICS CORPORATE SERVICES & FLEET CAPABILITIES
+    fileName: 'Josan_Contact_Details.txt',
+    title: 'Josan Logistics Contact Details & Support',
+    category: 'Contact & Support',
+    description: 'Contact channels, Singapore operational scope, email address, and Data Protection Officer contact.',
+    source: 'Josan Logistics Corporate Information',
+    date: '2026-10-26',
+    isOfficialJosan: true,
+    content: `JOSAN LOGISTICS PTE. LTD. - CONTACT DETAILS
+Source: Josan Logistics Approved Text
+Date: 26 October 2026
 
-1. ROAD FREIGHT & LOCAL DISTRIBUTION IN SINGAPORE:
-- Fleet Options: 14ft Box Trucks (tailgate equipped), 24ft Heavy Lorries, and 40ft Prime Movers coordinated through established transport partners for dependable capacity.
-- Islandwide coverage across Woodlands, Pasir Panjang Logistics Terminal, Tampines Industrial Estate, Changi Airport, and CBD.
-- Real-time GPS tracking and Proof of Delivery (e-POD) with signature capture.
+1. GENERAL CONTACT:
+- Operations & Customer Inquiries: contact@josanlogistics.com.sg
+- Website Contact Form: Available on the Contact page (/contact)
+- Operating Jurisdiction: Singapore
 
-2. INTERNATIONAL FREIGHT FORWARDING:
-- Air Freight Express & Standard Consolidation.
-- Ocean Freight Container Coordination.
+2. SUPPORT SCOPE & CONTACT HOURS:
+- Contact Hours: Shown on the Contact page ([ENTER HOURS]).
+- General inquiries, quote requests, and documentation support coordination.
 
-3. VALUE-ADDED SERVICES:
-- Commercial Warehousing & Storage Coordination.
-- Pick and Pack, Crating, and Cargo handling.
-- Online Booking & Shipment Tracking via Josan Customer Portal.`
+3. DATA PROTECTION OFFICER (DPO):
+For data access requests, corrections, or privacy questions under the Singapore PDPA, email contact@josanlogistics.com.sg with 'Attn: Data Protection Officer'. We aim to respond within 30 days.`
+  },
+  {
+    fileName: 'Josan_Document_Checklist.txt',
+    title: 'Josan Logistics Document Checklist',
+    category: 'Documentation',
+    description: 'Checklist of standard commercial freight documents with mandatory note that requirements vary.',
+    source: 'Josan Logistics Documentation Team',
+    date: '2026-10-26',
+    isOfficialJosan: true,
+    content: `JOSAN LOGISTICS PTE. LTD. - FREIGHT DOCUMENT CHECKLIST
+Source: Josan Logistics Approved Text
+Date: 26 October 2026
+
+1. IMPORTANT NOTICE: REQUIREMENTS VARY:
+Requirements vary depending on the shipment, cargo nature, mode of transport, and the authorities involved. Shippers must confirm specific regulatory requirements with the relevant government authorities or their appointed customs broker. Josan Logistics provides documentation support only and does not act as a customs broker or clearance agent.
+
+2. COMMON COMMERCIAL AIR FREIGHT DOCUMENTS COORDINATED:
+- Air Waybill (AWB): Contract of carriage and cargo transport document for air freight.
+- Commercial Invoice: Shipper's invoice specifying item descriptions, values, and currencies.
+- Packing List: Breakdown of package count, net and gross weight, and dimensions.
+
+3. LOCAL ROAD TRANSPORT DOCUMENTS:
+- Lorry Receipt (LR) / Consignment Note: Paperwork accompanying local transport.`
+  },
+  {
+    fileName: 'General_Reference_Singapore_Customs.txt',
+    title: 'Singapore Customs & TradeNet Overview (General Reference)',
+    category: 'General Reference',
+    description: 'General industry reference on TradeNet permit types and authority requirements. Not Josan Logistics policy.',
+    source: 'Singapore Customs Public Guidance (General Reference)',
+    date: '2026-01-01',
+    isOfficialJosan: false,
+    content: `GENERAL INDUSTRY REFERENCE ONLY - NOT JOSAN LOGISTICS POLICY
+Source: Singapore Customs Public Information (General Reference)
+Date: 1 January 2026
+
+Notice: This document is provided solely as general industry reference. Josan Logistics is a freight coordinator and does not provide customs clearance, customs broking, permit declarations, tariff advice, or GST guidance. Importers and exporters must consult Singapore Customs (www.customs.gov.sg) or their licensed customs agent directly.
+
+1. OVERVIEW OF TRADENET PERMITS:
+Commercial shipments moving through Singapore typically require permits declared via Singapore Customs TradeNet:
+- In-Payment (GST) Permit: For non-dutiable commercial imports subject to Singapore GST.
+- In-Non-Payment Permit: For goods entering licensed warehouses or approved trade schemes.
+- Out Permit: For commercial export shipments leaving Singapore.
+
+2. CONTROLLED AND DUTIABLE GOODS:
+Specific goods (such as strategic items, controlled commodities) require regulatory approval from relevant Controlling Authorities before clearance.`
+  },
+  {
+    fileName: 'General_Reference_Incoterms_2020.txt',
+    title: 'Incoterms 2020 Summary (General Reference)',
+    category: 'General Reference',
+    description: 'General trade reference on standard Incoterms 2020 definitions. Not Josan Logistics policy.',
+    source: 'International Chamber of Commerce (ICC) Incoterms 2020 (General Reference)',
+    date: '2020-01-01',
+    isOfficialJosan: false,
+    content: `GENERAL INDUSTRY REFERENCE ONLY - NOT JOSAN LOGISTICS POLICY
+Source: International Chamber of Commerce (ICC) Incoterms 2020 (General Reference)
+Date: 1 January 2020
+
+Notice: This summary is provided solely for general trade reference. Incoterms define standard international commercial sale terms between buyers and sellers. Josan Logistics provides transport coordination and documentation support under agreed written instructions.
+
+1. EXW (Ex Works): Seller places goods at buyer's disposal at seller's premises. Buyer bears all transport costs, clearance, and risk.
+2. FOB (Free On Board): Seller delivers goods on board the vessel/aircraft nominated by buyer.
+3. CIF (Cost, Insurance and Freight): Seller pays freight charges and minimum insurance to destination port.
+4. DAP (Delivered at Place): Seller delivers goods to specified location ready for unloading; import clearance and taxes remain buyer's responsibility.
+5. DDP (Delivered Duty Paid): Seller delivers goods cleared for import with duties and taxes borne by seller.`
   }
 ];

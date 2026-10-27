@@ -1,46 +1,65 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ragService } from '../services/ragService';
+import { sendChatToTeam } from '../services/chatStorageService';
 
 const QUICK_PROMPTS = [
-  { label: "Air Freight Docs", query: "What documents are required for air freight?" },
-  { label: "Air Waybill Guide", query: "What is an Air Waybill?" },
-  { label: "Singapore Customs", query: "How does Singapore customs clearance work?" },
-  { label: "Josan Services", query: "What services does Josan Logistics provide?" }
+  { label: "How do I get a quote?", query: "How do I get a quote?" },
+  { label: "What documents do I need?", query: "What documents do I need?" },
+  { label: "How do I track my shipment?", query: "How do I track my shipment?" }
 ];
 
 export function useChat() {
+  // Use sessionStorage so the chat is kept ONLY in the browser session and deleted when session ends
   const [sessionId, setSessionId] = useState(() => {
-    return localStorage.getItem('josan_chat_session_id') || `sess_${Date.now()}`;
+    try {
+      return sessionStorage.getItem('josan_session_chat_id') || `sess_${Date.now()}`;
+    } catch (e) {
+      return `sess_${Date.now()}`;
+    }
   });
 
   const [messages, setMessages] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_chat_messages');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-
-    return [
+    const defaultWelcome = [
       {
         id: 'msg_welcome',
         role: 'assistant',
-        content: "Hello! 👋 I am **Josan Logistics AI Assistant**.\n\nHow can I help you with air freight, road transport, Singapore customs clearance, or required documents today?",
+        content: "Hello! I'm the Josan Logistics assistant. I can help with questions about our air freight documentation support, road transportation coordination and shipment documents. For quotes, please use our Request a Quote page.",
+        disclaimer: "This assistant gives general information only and may make mistakes. It does not replace advice from our team.",
         sources: [],
         createdAt: new Date().toISOString()
       }
     ];
+
+    try {
+      const saved = sessionStorage.getItem('josan_session_chat_messages');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (parsed[0].id?.startsWith('msg_welcome')) {
+            parsed[0].content = defaultWelcome[0].content;
+            parsed[0].disclaimer = defaultWelcome[0].disclaimer;
+          }
+          return parsed;
+        }
+      }
+    } catch (e) {}
+
+    return defaultWelcome;
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Persist session & messages
+  // Persist session only in browser session (sessionStorage)
   useEffect(() => {
-    localStorage.setItem('josan_chat_session_id', sessionId);
+    try {
+      sessionStorage.setItem('josan_session_chat_id', sessionId);
+    } catch (e) {}
   }, [sessionId]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('josan_chat_messages', JSON.stringify(messages.slice(-20)));
+      sessionStorage.setItem('josan_session_chat_messages', JSON.stringify(messages.slice(-25)));
     } catch (e) {}
   }, [messages]);
 
@@ -76,6 +95,7 @@ export function useChat() {
         role: 'assistant',
         content: res.answer,
         sources: res.sources || [],
+        hasQuoteAction: res.hasQuoteAction || false,
         createdAt: new Date().toISOString()
       };
 
@@ -89,8 +109,9 @@ export function useChat() {
         {
           id: `err_${Date.now()}`,
           role: 'assistant',
-          content: "I couldn't find enough information in the Josan Logistics knowledge base to answer that accurately. Please check your internet connection or try rephrasing your question.",
+          content: "I don't know enough to answer that accurately. Please check with our team on our [Contact our team](/contact) page.",
           sources: [],
+          hasQuoteAction: false,
           createdAt: new Date().toISOString()
         }
       ]);
@@ -99,21 +120,36 @@ export function useChat() {
     }
   }, [isLoading, messages, sessionId]);
 
-  const clearChat = useCallback(() => {
+  const clearChat = useCallback(async () => {
+    const oldSessionId = sessionId;
     const newSess = `sess_${Date.now()}`;
     setSessionId(newSess);
     const welcomeMsg = [
       {
         id: `msg_welcome_${Date.now()}`,
         role: 'assistant',
-        content: "Hello! 👋 I am **Josan Logistics AI Assistant**.\n\nHow can I help you with air freight, road transport, Singapore customs clearance, or required documents today?",
+        content: "Hello! I'm the Josan Logistics assistant. I can help with questions about our air freight documentation support, road transportation coordination and shipment documents. For quotes, please use our Request a Quote page.",
+        disclaimer: "This assistant gives general information only and may make mistakes. It does not replace advice from our team.",
         sources: [],
         createdAt: new Date().toISOString()
       }
     ];
     setMessages(welcomeMsg);
-    localStorage.setItem('josan_chat_session_id', newSess);
-    localStorage.setItem('josan_chat_messages', JSON.stringify(welcomeMsg));
+    try {
+      sessionStorage.setItem('josan_session_chat_id', newSess);
+      sessionStorage.setItem('josan_session_chat_messages', JSON.stringify(welcomeMsg));
+    } catch (e) {}
+
+    // Delete conversation from server and local admin logs
+    try {
+      await ragService.deleteSession(oldSessionId);
+    } catch (err) {
+      console.warn('[useChat] Failed to delete conversation on server:', err);
+    }
+  }, [sessionId]);
+
+  const sendToTeam = useCallback((userInfo = {}) => {
+    return sendChatToTeam(userInfo);
   }, []);
 
   return {
@@ -122,6 +158,7 @@ export function useChat() {
     error,
     quickPrompts: QUICK_PROMPTS,
     sendMessage,
-    clearChat
+    clearChat,
+    sendToTeam
   };
 }

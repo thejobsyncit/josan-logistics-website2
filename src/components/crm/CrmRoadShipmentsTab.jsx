@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ShieldCheck
 } from 'lucide-react';
+import { fetchServerShipmentReference } from '../../utils/referenceApi';
 
 export const ROAD_STATUS_OPTIONS = [
   'New',
@@ -125,15 +126,20 @@ export const CrmRoadShipmentsTab = ({
     }
   };
 
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (!newRoadData.customer || !newRoadData.goodsDescription) return;
 
     const partnerObj = transportationPartners.find(p => p.id === newRoadData.transportationPartnerId);
-    const newId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+    
+    // Server-only cryptographically secure tracking number: JOS-XXXXXXXXXX (or TJOS-XXXXXXXXXX for test)
+    const serverRef = await fetchServerShipmentReference({ isTest: Boolean(newRoadData.isTest) });
+    const trackingNumber = serverRef.trackingNumber;
 
     onAddShipment({
-      id: newId,
+      id: trackingNumber,
+      trackingNumber,
+      isTest: serverRef.isTest,
       sender: newRoadData.customer,
       customerName: newRoadData.customer,
       senderPhone: newRoadData.senderPhone,

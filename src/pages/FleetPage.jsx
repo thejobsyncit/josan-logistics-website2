@@ -466,7 +466,7 @@ export const FleetPage = ({ setActiveTab }) => {
               Rigorous Vehicle Maintenance &amp; Compliance Standards
             </h2>
             <p className="text-[#B6C2D1] text-xs sm:text-sm leading-relaxed">
-              Every vehicle in the Josan Logistics fleet operates under strict ISO 9001 quality management, undergoes scheduled bi-weekly mechanical safety audits, and utilizes encrypted real-time telematics linked to our Fleet Control Hub.
+              Commercial vehicles coordinated through our transport partners undergo scheduled safety checks and telematics monitoring linked to our operations dispatch hub.
             </p>
           </div>
 

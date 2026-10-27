@@ -16,6 +16,8 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
+import { openLegalDialog } from './LegalDialog';
+import { openCookiePreferences } from './CookieBanner';
 
 export const Footer = ({ setActiveTab }) => {
   const { showToast, currentUser, resetShipmentScope, setIsAuthModalOpen, setAuthRedirectTab } = useLogistics();
@@ -193,9 +195,9 @@ export const Footer = ({ setActiveTab }) => {
             <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-4 sm:mt-0">
               <button 
                 type="button" 
-                onClick={() => {
-                  if (typeof window !== 'undefined') window.location.hash = '#privacy-policy';
-                  if (setActiveTab) setActiveTab('privacy-policy');
+                onClick={(e) => {
+                  e.preventDefault();
+                  openLegalDialog('privacy', e.currentTarget);
                 }} 
                 className="hover:text-white text-[#B6C2D1] cursor-pointer transition-colors"
               >
@@ -203,13 +205,24 @@ export const Footer = ({ setActiveTab }) => {
               </button>
               <button 
                 type="button" 
-                onClick={() => {
-                  if (typeof window !== 'undefined') window.location.hash = '#terms-of-service';
-                  if (setActiveTab) setActiveTab('terms-of-service');
+                onClick={(e) => {
+                  e.preventDefault();
+                  openLegalDialog('terms', e.currentTarget);
                 }} 
                 className="hover:text-white text-[#B6C2D1] cursor-pointer transition-colors"
               >
                 Terms of Service
+              </button>
+              <button 
+                type="button" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  openCookiePreferences();
+                }} 
+                className="hover:text-white text-[#B6C2D1] cursor-pointer transition-colors"
+                title="Manage or withdraw cookie consent"
+              >
+                Cookie settings
               </button>
             </div>
           </div>
@@ -302,48 +315,64 @@ export const Footer = ({ setActiveTab }) => {
               {legalModal === 'privacy' && (
                 <>
                   <div className="bg-amber-50/80 p-4 rounded-xl border border-amber-200/80 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Singapore PDPA Compliance Statement</span>
-                    <p className="text-xs text-amber-950/90 leading-relaxed">
-                      Josan Logistics Pte. Ltd. is committed to protecting corporate and personal data in strict compliance with the Singapore Personal Data Protection Act 2012 (PDPA) and international freight data security benchmarks.
+                    <p className="text-xs text-amber-950 font-bold leading-relaxed">
+                      This website is intended for customers in Singapore.
+                    </p>
+                    <p className="text-xs text-amber-900 leading-relaxed">
+                      Josan Logistics Pte. Ltd. handles personal data in accordance with the Singapore Personal Data Protection Act 2012 (PDPA).
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <h4 className="text-slate-900 font-bold text-sm sm:text-base">1. Information We Collect</h4>
-                    <p>To provide commercial road transport, Air Waybill (AWB) preparation, and customs documentation, we collect:</p>
+                    <p>When you request a quote or contact us, we collect:</p>
                     <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
-                      <li><strong className="text-slate-800">Consignment Data:</strong> Shipper and consignee names, business registration numbers, delivery addresses, billing contacts, and authorized contact persons.</li>
-                      <li><strong className="text-slate-800">Cargo &amp; Documentation Records:</strong> Commercial invoices, packing lists, HS commodity codes, declared customs values, and Air Waybill consignment numbers.</li>
-                      <li><strong className="text-slate-800">Telematics &amp; Operational Data:</strong> GPS coordinates, route milestone timestamps, vehicle speeds, proof-of-delivery (e-POD) digital signatures, and cargo inspection records.</li>
+                      <li><strong className="text-slate-800">Contact Details:</strong> Your name, company name, email address, and phone number.</li>
+                      <li><strong className="text-slate-800">Quote &amp; Shipment Details:</strong> Cargo description, pickup and delivery locations, dimensions, weight, and preferred schedule.</li>
+                      <li><strong className="text-slate-800">Shipment Documents:</strong> Commercial invoices, packing lists, and customs-related documents supplied by you.</li>
+                      <li><strong className="text-slate-800">Security Data:</strong> IP address and anti-spam verification tokens (Cloudflare Turnstile).</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">2. How We Use Consignment Data</h4>
-                    <p>Your data is used strictly for operational logistics fulfillment, including:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
-                      <li>Coordinating origin-to-destination vehicle dispatch with established transportation partners.</li>
-                      <li>Generating standardized Air Waybill (AWB) paperwork and billing summaries.</li>
-                      <li>Real-time shipment tracking alerts and proof-of-handover dispatch records.</li>
-                      <li>Compliance with Singapore Customs (Customs Act) and statutory regulatory filings.</li>
-                    </ul>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">2. How We Use Your Information</h4>
+                    <p>We use your information strictly for logistics coordination, preparing quotes, fulfilling shipments with partners, and keeping statutory records. We do not sell or trade personal data.</p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">3. Data Security &amp; Storage</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">3. Who We Share Data With</h4>
                     <p>
-                      All digital transactions, quotation requests, and CRM consignment documents are encrypted using TLS 1.3 in transit and AES-256 at rest. Access is restricted to authorized operations dispatchers and certified logistics coordinators.
+                      We share data on a need-to-know basis with: our transport partners and airlines for your shipment, service providers such as email and hosting, Cloudflare for spam protection, and authorities where required by law.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">4. Data Protection Officer (DPO) Contact</h4>
-                    <p>For data access requests, corrections, or inquiries regarding our data handling policies, please contact:</p>
-                    <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1 text-slate-600">
-                      <p><strong className="text-slate-900">Data Protection Officer</strong> &bull; Josan Logistics Pte. Ltd.</p>
-                      <p>10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</p>
-                      <p>Email: <a href="mailto:privacy@josanlogistics.com.sg" className="text-[#F26B21] font-semibold hover:underline">privacy@josanlogistics.com.sg</a> &bull; Hotline: +65 6789 0123</p>
-                    </div>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">4. Overseas Transfers</h4>
+                    <p>
+                      Our services are intended for customers in Singapore. Some service providers may process data outside Singapore (such as our email and cloud hosting infrastructure). Where data is processed overseas, we ensure comparable PDPA standards of protection.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">5. How Long We Keep Data</h4>
+                    <p>
+                      Shipping and billing records are retained for <strong>5 years</strong>. Enquiries and stored chats are deleted after <strong>30 days</strong>. Regular chats are kept only in the browser session and deleted when the session ends.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">6. Your Rights &amp; DPO Contact</h4>
+                    <p>
+                      You may request access to, correction of, or withdraw consent for your data. Contact our Data Protection Officer at <a href="mailto:privacy@josanlogistics.com.sg" className="text-[#F26B21] font-bold hover:underline">privacy@josanlogistics.com.sg</a>. We aim to respond within 30 days.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. JOSAN AI &amp; Cookies</h4>
+                    <p>
+                      We store the name and the description of the quote to calculate and deliver quotations. Chat messages are kept in browser session storage and deleted when the session ends, unless attached to a quote or enquiry submission, or sent to our team. Stored chats are deleted after <strong>30 days</strong> and are visible to admin staff only. We use <strong>only essential cookies</strong> (login, security and chat); we do not use analytics or advertising cookies.
+                    </p>
+                    <p className="text-xs text-slate-400 font-mono pt-1">Last updated: 26 October 2026</p>
                   </div>
                 </>
               )}
@@ -352,51 +381,78 @@ export const Footer = ({ setActiveTab }) => {
               {legalModal === 'terms' && (
                 <>
                   <div className="bg-blue-50/80 p-4 rounded-xl border border-blue-200/80 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-blue-800 tracking-wider">Commercial Freight Terms &amp; Conditions</span>
-                    <p className="text-xs text-blue-950/90 leading-relaxed">
-                      These Terms of Service govern all commercial road freight coordination, Air Waybill (AWB) processing, billing, and shipment documentation services contracted through Josan Logistics Pte. Ltd.
+                    <p className="text-xs text-blue-950 font-medium leading-relaxed">
+                      These Terms of Service govern commercial road transportation coordination, Air Waybill (AWB) preparation, billing, tracking, and shipment documentation services provided by Josan Logistics Pte. Ltd.
+                    </p>
+                    <p className="text-xs text-blue-900 font-bold">
+                      This website and our services are intended for customers in Singapore.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">1. Shipper &amp; Consignor Obligations</h4>
-                    <p>The customer warrants that:</p>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">1. Scope of Services</h4>
+                    <p>
+                      Josan Logistics operates strictly as a <strong>freight coordinator</strong> providing shipment documentation support and commercial road transportation coordination through independent transport partners and airlines appointed by us. We do not operate an airline or commercial road fleet directly, nor do we act as a customs broker or clearance agent.
+                    </p>
+                    <p className="text-slate-600 font-medium text-xs">
+                      This website and our services are intended for customers in Singapore.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">2. Shipper &amp; Consignor Obligations</h4>
                     <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
                       <li>All cargo dimensions, gross weights, volume metrics, and commodity classifications provided are complete and accurate.</li>
-                      <li>Consignments are appropriately packed, labeled, and marked to withstand the standard rigors of road and multimodal air transit.</li>
+                      <li>Consignments are appropriately packed, labeled, and marked to withstand standard road and air transit.</li>
                       <li>Shipments do not contain undeclared hazardous materials, restricted contraband, or illegal commodities under Singapore and international aviation regulations.</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">2. Carriage Limitations &amp; Liability</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">3. Documentation and Customer Responsibility</h4>
                     <p>
-                      Josan Logistics operates as a freight coordinator and transport operator. Unless the customer has declared a higher insured value in writing and paid applicable transit insurance premiums:
+                      We provide documentation support only. We do not provide customs clearance or act as a customs broker. While Josan Logistics coordinates AWB generation and customs declaration documents, the customer remains legally and financially responsible for all duties, tariffs, fines, and compliance penalties levied by Singapore Customs or destination authorities.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">4. Quotes and Payment</h4>
+                    <p className="text-xs text-slate-700 font-medium">
+                      Payment terms and quote validity are stated in your quote or invoice.
                     </p>
                     <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
-                      <li>Standard carriage liability for loss or damage is limited according to Singapore Logistics Association (SLA) standard trading conditions.</li>
-                      <li>Josan Logistics shall not be liable for consequential losses, commercial loss of profits, or force majeure events (severe weather, civil unrest, border post closures).</li>
+                      <li><strong>Invoices:</strong> Formal commercial invoices are issued upon quotation confirmation or booking acceptance.</li>
+                      <li><strong>GST:</strong> Singapore Goods and Services Tax (GST, currently 9%) applies to domestic services where required by law.</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">3. Documentation &amp; Customs Responsibility</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">5. Cancellation and Changes</h4>
                     <p>
-                      While Josan Logistics coordinates AWB generation and customs declaration documents, the customer remains legally and financially responsible for all duties, tariffs, fines, and compliance penalties levied by Singapore Customs or destination authorities.
+                      Booking cancellations or changes must be notified in writing prior to vehicle dispatch. Cancellations after vehicle dispatch has commenced or abortive haulage may incur cancellation fees reflecting partner costs incurred <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1 rounded ml-1">[LAWYER]</span>.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">4. Demurrage &amp; Detention Standards</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">6. Tracking Information</h4>
                     <p>
-                      Standard loading and unloading windows of 45 minutes are included per commercial road consignment. Detention exceeding standard windows will be invoiced according to our established tariff schedules.
+                      Shipment updates on Track Shipment are entered by our operations dispatch team and are indicative only. Milestone timestamps reflect reported telematics and operational logs; always check the "Last updated" time on the tracking screen.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">5. Claims &amp; Discrepancy Reporting</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. Limit of Liability <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1 rounded ml-1">[LAWYER TO CONFIRM]</span></h4>
+                    <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
+                      <li>Standard carriage liability for loss or damage is limited according to applicable statutory freight carriage regulations and conventions <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1 rounded ml-1">[LAWYER]</span>.</li>
+                      <li>Cargo insurance is not included unless arranged in writing before dispatch. <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER TO CONFIRM]</span></li>
+                      <li>Josan Logistics shall not be liable for consequential losses, commercial loss of profits, or force majeure events <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1 rounded ml-1">[LAWYER]</span>.</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">8. Use of the Website &amp; Changes to Terms</h4>
                     <p>
-                      Any visible package damage or count discrepancy must be endorsed immediately upon the electronic Proof of Delivery (e-POD). Formal claims must be submitted in writing within 48 hours of cargo handover.
+                      The website and JOSAN AI chatbot are for legitimate logistics inquiries only; automated scraping and crawler extraction are strictly prohibited. We may update these terms periodically, with changes taking effect upon publication with an updated "Last Updated" date.
                     </p>
                   </div>
                 </>

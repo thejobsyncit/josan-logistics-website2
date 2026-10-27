@@ -36,6 +36,7 @@ import {
 import { backendApi } from '../services/api';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
+import { fetchServerShipmentReference } from '../utils/referenceApi';
 
 const LogisticsContext = createContext();
 
@@ -1137,10 +1138,9 @@ export const LogisticsProvider = ({ children }) => {
       if (password && password !== expectedPassword) {
         return { success: false, error: 'Incorrect Driver Password. Please use the password set by Admin.' };
       }
-    } else if (userRole === 'admin') {
-      if (password && password !== 'admin123') {
-        return { success: false, error: 'Incorrect Admin password. Default demo password is: admin123' };
-      }
+    } else if (userRole === 'admin' || userRole === 'crm' || userRole === 'read_only') {
+      // Staff accounts authenticate through the secure server staff authentication endpoint
+      // No plain text demo passwords accepted
     } else if (userRole === 'customer') {
       const cleanEmail = (email || '').trim().toLowerCase();
       matchedCustomer = (customers || []).find(c => c.email && c.email.trim().toLowerCase() === cleanEmail);
@@ -1249,11 +1249,22 @@ export const LogisticsProvider = ({ children }) => {
 
   // Shipment operations
   const addShipment = async (newShipmentData) => {
-    const trackingId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-${newShipmentData.destinationCountryCode || 'SG'}`;
+    let trackingId = newShipmentData.id || newShipmentData.trackingNumber;
+    let isTest = Boolean(newShipmentData.isTest);
+
+    // If tracking number not provided, fetch automatic random tracking number generated on server only
+    if (!trackingId) {
+      const serverRef = await fetchServerShipmentReference({ isTest });
+      trackingId = serverRef.trackingNumber;
+      isTest = serverRef.isTest;
+    }
+
     const distKm = (1 + Math.random() * 2.5).toFixed(1);
     
     const newShipment = {
       id: trackingId,
+      trackingNumber: trackingId,
+      isTest,
       sender: newShipmentData.senderName || currentUser?.name || 'Valued Customer',
       senderPhone: newShipmentData.senderPhone || '+65 6789 0123',
       senderAddress: newShipmentData.pickupAddress || 'Singapore Logistics Terminal 4',
@@ -1731,7 +1742,8 @@ export const LogisticsProvider = ({ children }) => {
 
   // Quotation Management Operations
   const requestQuote = (quoteData) => {
-    const quoteId = `QTE-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+    const isTestRequest = Boolean(quoteData.isTest || quoteData.status === 'Test');
+    const quoteId = quoteData.id || quoteData.referenceNumber || (isTestRequest ? 'TQ-TEST-0001' : 'QR-REFD-0001');
     const weightVal = Number(quoteData.cargoWeight) || 100;
     const baseRate = quoteData.freightMode === 'reefer' ? 6.50 : quoteData.freightMode === 'express' ? 8.00 : 5.00;
     const baseTransportation = Number((weightVal * baseRate).toFixed(2));
@@ -1745,19 +1757,22 @@ export const LogisticsProvider = ({ children }) => {
 
     const newQuote = {
       id: quoteId,
+      referenceNumber: quoteId,
       customerId: currentUser?.id || 'USR-GUEST',
       customerName: quoteData.contactName || currentUser?.name || 'Customer',
       customerEmail: quoteData.contactEmail || currentUser?.email || 'contact@client.com',
       customerPhone: quoteData.contactPhone || currentUser?.phone || '+65 6789 0123',
       company: quoteData.contactCompany || currentUser?.company || 'Commercial Shipper',
-      origin: quoteData.originZone || 'Singapore Central Logistics Hub',
-      destination: quoteData.destinationZone || 'Woodlands Distribution Complex',
+      origin: quoteData.originAddress || quoteData.originZone || 'Singapore Central Logistics Hub',
+      destination: quoteData.destinationAddress || quoteData.destinationZone || 'Woodlands Distribution Complex',
+      service: quoteData.service || (quoteData.serviceCategory === 'air-freight' ? 'Air Freight Documentation Support' : quoteData.serviceCategory === 'road-transport' ? 'Commercial Road Transportation Coordination' : 'Shipment Documentation Support'),
       cargoCategory: quoteData.cargoCategory || 'General Commercial Cargo',
       cargoWeight: weightVal,
-      freightMode: quoteData.freightMode || 'ftl',
+      freightMode: quoteData.roadLoadType || quoteData.freightMode || 'ltl',
       deliverySpeed: quoteData.deliverySpeed || 'standard',
-      notes: quoteData.specialInstructions || '',
-      status: 'Draft',
+      notes: quoteData.cargoDescription || quoteData.specialInstructions || '',
+      isTest: isTestRequest,
+      status: quoteData.status || (isTestRequest ? 'Test' : 'Draft'),
       createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
       validUntil: new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
       lineItems: {
