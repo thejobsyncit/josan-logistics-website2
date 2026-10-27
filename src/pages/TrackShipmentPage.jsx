@@ -306,6 +306,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
   const [captchaToken, setCaptchaToken] = useState(null);
   const [captchaError, setCaptchaError] = useState('');
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Rate limit countdown timer
@@ -410,6 +411,13 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       if (cleaned && !cleaned.toLowerCase().includes('cargo unit')) return cleaned;
     }
     return 'Lorry';
+  };
+
+  // Helper to safely format real tracking values or supply a clean fallback
+  const getRealValueOrFallback = (val, fallback = 'Pending update') => {
+    if (val === undefined || val === null || val === '') return fallback;
+    if (typeof val === 'string' && !val.trim()) return fallback;
+    return val;
   };
 
   // Standard 7-stage road transportation progression stages
@@ -845,6 +853,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       return;
     }
 
+    // 0. Do not let anyone open a quote request on a public tracking page using quote reference alone
+    const cleanQuery = query.toUpperCase();
+    if (cleanQuery.startsWith('QR-') || cleanQuery.startsWith('TQ-')) {
+      setCaptchaError('Quote reference numbers cannot be opened on public tracking pages. Our team will review your request and reply directly by email or phone. Please keep your reference number.');
+      setIsNotFound(false);
+      return;
+    }
+
     // 1. Rate Limiting Check (Client & Local Storage: max 10 requests / min)
     const clientRate = getRateLimitStatus('track_shipment', 10, 60000);
     if (!clientRate.allowed) {
@@ -853,13 +869,13 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       return;
     }
 
-    // 2. Server-side IP Rate Limit Check
+    // 2. Server-side IP Rate Limit & Security Delay Check
     setIsSubmitting(true);
     try {
-      const serverRate = await checkServerIpRateLimit();
+      const serverRate = await checkServerIpRateLimit({ queryNumber: query });
       if (!serverRate.allowed) {
         setRateLimitSeconds(serverRate.retryAfter || 60);
-        setCaptchaError('Too many attempts. Please wait a minute and try again.');
+        setCaptchaError(serverRate.message || 'Too many attempts. Please wait a minute and try again.');
         setIsSubmitting(false);
         return;
       }
@@ -882,6 +898,11 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     setIsSubmitting(false);
 
     if (found) {
+      setFailedAttempts(0);
+      try {
+        checkServerIpRateLimit({ queryNumber: query, status: 'success' });
+      } catch (e) {}
+
       setCurrentShipment(found);
       setActiveTrackingId(found.id);
       setIsNotFound(false);
@@ -891,10 +912,22 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
     } else {
+      const nextFailed = failedAttempts + 1;
+      setFailedAttempts(nextFailed);
+      try {
+        checkServerIpRateLimit({ queryNumber: query, status: 'failed' });
+      } catch (e) {}
+
+      // Progressive delay after repeated failed tries (3 -> 5s, 5 -> 15s, 7+ -> 30s)
+      if (nextFailed >= 3) {
+        const progressiveDelay = nextFailed >= 7 ? 30 : nextFailed >= 5 ? 15 : 5;
+        setRateLimitSeconds(progressiveDelay);
+        setCaptchaError(`Security delay active: Please wait ${progressiveDelay}s after repeated failed attempts.`);
+      }
+
       setCurrentShipment(null);
       setActiveTrackingId('');
       setIsNotFound(true);
-      setCaptchaError('');
     }
   };
 
@@ -1122,7 +1155,6 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   setCaptchaVerified(false);
                   setCaptchaToken(null);
                 }}
-                error={captchaError}
               />
             </div>
 
@@ -1156,11 +1188,12 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               </div>
             )}
 
+            {/* 3. Validation / Quote Reference / Captcha Error (Displayed ONCE) */}
             {captchaError && rateLimitSeconds <= 0 && !isNotFound && (
-              <p className="text-xs text-rose-600 font-bold flex items-center space-x-1.5 animate-fade-in">
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                <span>{captchaError}</span>
-              </p>
+              <div className="p-3.5 bg-rose-50/90 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-start space-x-2.5 animate-fade-in">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{captchaError}</span>
+              </div>
             )}
 
             {/* Brand Orange TRACK Button */}

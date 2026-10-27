@@ -4,10 +4,11 @@
  */
 
 import { supabase, isSupabaseConfigured } from '../../services/supabase.js';
+import { MIN_MATCH_THRESHOLD } from './generation.js';
 
 export async function searchRelevantChunks(queryEmbedding, queryText, options = {}) {
   const {
-    matchThreshold = 0.25,
+    matchThreshold = MIN_MATCH_THRESHOLD,
     matchCount = 5
   } = options;
 

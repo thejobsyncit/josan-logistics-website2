@@ -58,12 +58,12 @@ export const recordRateLimitAttempt = (key = 'track_shipment', windowMs = 60000)
  * Server-side IP rate limiting verification
  * Calls /api/track to verify and log IP-level quota (10 attempts/min/IP)
  */
-export const checkServerIpRateLimit = async () => {
+export const checkServerIpRateLimit = async ({ queryNumber = '', status = 'query' } = {}) => {
   try {
     const res = await fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ timestamp: Date.now() })
+      body: JSON.stringify({ timestamp: Date.now(), queryNumber, status })
     });
 
     if (res.status === 429) {
@@ -72,7 +72,17 @@ export const checkServerIpRateLimit = async () => {
       return {
         allowed: false,
         retryAfter,
+        isDelay: Boolean(data.isDelay),
         message: data.error || `Rate limit reached. Please wait ${retryAfter}s before trying again.`
+      };
+    }
+
+    if (res.status === 400) {
+      const data = await res.json().catch(() => ({}));
+      return {
+        allowed: false,
+        isQuoteReference: Boolean(data.isQuoteReference),
+        message: data.error || 'Invalid query number.'
       };
     }
 

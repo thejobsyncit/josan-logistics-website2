@@ -5,8 +5,9 @@
 
 import { generateEmbedding } from '../server/rag/embeddings';
 import { searchRelevantChunks } from '../server/rag/retrieval';
-import { generateGroundedResponse } from '../server/rag/generation';
+import { generateGroundedResponse, MIN_MATCH_THRESHOLD } from '../server/rag/generation';
 import { SAMPLE_KNOWLEDGE_DOCUMENTS } from '../server/rag/ingestion';
+import { deleteChatSession, deleteCustomerChatsOnRequest } from './chatStorageService';
 
 export const ragService = {
   /**
@@ -32,6 +33,7 @@ export const ragService = {
           success: true,
           answer: data.answer,
           sources: data.sources || [],
+          hasQuoteAction: data.hasQuoteAction || false,
           sessionId: data.sessionId || activeSessionId
         };
       }
@@ -42,7 +44,7 @@ export const ragService = {
     // Client-side execution fallback
     try {
       const embedding = await generateEmbedding(message);
-      const chunks = await searchRelevantChunks(embedding, message, { matchThreshold: 0.2, matchCount: 5 });
+      const chunks = await searchRelevantChunks(embedding, message, { matchThreshold: MIN_MATCH_THRESHOLD, matchCount: 5 });
 
       // If no chunks match from remote database, use sample knowledge documents
       let selectedChunks = chunks;
@@ -50,7 +52,7 @@ export const ragService = {
         const queryLower = message.toLowerCase();
         selectedChunks = SAMPLE_KNOWLEDGE_DOCUMENTS.map((doc, idx) => {
           const docLower = doc.content.toLowerCase();
-          let score = 0.3;
+          let score = 0.25;
           if (queryLower.split(/\s+/).some(word => word.length > 3 && docLower.includes(word))) {
             score += 0.55;
           }
@@ -60,9 +62,32 @@ export const ragService = {
             documentTitle: doc.title,
             page: 1,
             content: doc.content,
+            source: doc.source,
+            date: doc.date,
+            isOfficialJosan: doc.isOfficialJosan,
             similarity: score.toFixed(2)
           };
-        }).filter(c => parseFloat(c.similarity) > 0.4).slice(0, 3);
+        }).filter(c => parseFloat(c.similarity) >= MIN_MATCH_THRESHOLD).slice(0, 3);
+      }
+
+      if (!selectedChunks || selectedChunks.length === 0) {
+        const isQuoteOrPricing = /\b(quote|quotes|pricing|prices|rate|rates|cost|costs|fee|fees|per kg|estimate|specific shipment|shipment details|book a shipment)\b/i.test(message || '');
+        if (isQuoteOrPricing) {
+          return {
+            success: true,
+            answer: "Quotes are prepared by our team after reviewing your request. We do not provide fixed prices, delivery times, or guarantees online. Please submit your shipment details on our [Request a Quote](/quote) page, or [Contact our team](/contact).",
+            sources: [],
+            hasQuoteAction: true,
+            sessionId: activeSessionId
+          };
+        }
+        return {
+          success: true,
+          answer: "I don't know enough to answer that accurately. Please check with our team on our [Contact our team](/contact) page.",
+          sources: [],
+          hasQuoteAction: false,
+          sessionId: activeSessionId
+        };
       }
 
       const res = await generateGroundedResponse(message, selectedChunks, history);
@@ -70,13 +95,15 @@ export const ragService = {
         success: true,
         answer: res.answer,
         sources: res.sources || [],
+        hasQuoteAction: res.hasQuoteAction || false,
         sessionId: activeSessionId
       };
     } catch (err) {
       return {
         success: false,
-        answer: "I couldn't find enough information in the Josan Logistics knowledge base to answer that accurately.",
+        answer: "I don't know enough to answer that accurately. Please check with our team on our [Contact our team](/contact) page.",
         sources: [],
+        hasQuoteAction: false,
         sessionId: activeSessionId,
         error: err.message
       };
@@ -102,9 +129,12 @@ export const ragService = {
       file_name: doc.fileName,
       title: doc.title,
       category: doc.category,
-      chunk_count: 3,
+      source: doc.source,
+      date: doc.date,
+      isOfficialJosan: doc.isOfficialJosan,
+      chunk_count: 1,
       status: 'COMPLETED',
-      created_at: new Date().toISOString()
+      created_at: doc.date ? `${doc.date}T00:00:00Z` : new Date().toISOString()
     }));
   },
 
@@ -150,5 +180,51 @@ export const ragService = {
       }
     } catch (e) {}
     return { success: true, message: 'Seeded 4 sample knowledge documents.' };
+  },
+
+  /**
+   * Delete a chat session permanently from both local and server storage
+   */
+  deleteSession: async (sessionId) => {
+    if (!sessionId) return { success: true };
+    // 1. Purge from local admin storage
+    deleteChatSession(sessionId);
+
+    // 2. Request server deletion
+    try {
+      const response = await fetch('/api/chat/session', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      });
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('[RagService] Server deleteSession warning:', e.message);
+    }
+    return { success: true, sessionId };
+  },
+
+  /**
+   * Delete all chats for a customer by email, name, or session ID
+   */
+  deleteCustomerChats: async (customerIdentifier) => {
+    if (!customerIdentifier) return { count: 0 };
+    const localDeleted = deleteCustomerChatsOnRequest(customerIdentifier);
+    try {
+      const response = await fetch('/api/admin/chat-logs/delete-customer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: customerIdentifier })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return { success: true, count: data.count || localDeleted };
+      }
+    } catch (e) {
+      console.warn('[RagService] Server deleteCustomerChats warning:', e.message);
+    }
+    return { success: true, count: localDeleted };
   }
 };

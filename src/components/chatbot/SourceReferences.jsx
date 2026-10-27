@@ -21,11 +21,19 @@ export const SourceReferences = ({ sources }) => {
             <div
               key={index}
               className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-slate-800 rounded-lg text-xs border border-amber-500/20 transition-all font-medium cursor-default group"
-              title={`Source Document: ${docName}${pageStr ? ' • ' + pageStr : ''}`}
+              title={`Source Document: ${docName}${source.source ? ' • ' + source.source : ''}${source.date ? ' (' + source.date + ')' : ''}`}
             >
               <FileText className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
-              <span className="font-semibold text-slate-900 max-w-[180px] truncate">{docName}</span>
-              {pageStr && <span className="text-[10px] text-slate-500 font-mono">({pageStr})</span>}
+              <span className="font-semibold text-slate-900 max-w-[170px] truncate">{docName}</span>
+              {source.isOfficialJosan ? (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-500/15 text-emerald-800 rounded">
+                  Josan Approved
+                </span>
+              ) : (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded">
+                  General Reference
+                </span>
+              )}
               {relevancePct && (
                 <span className="text-[9px] font-mono px-1 py-0.2 bg-amber-500/20 text-amber-800 rounded font-bold">
                   {relevancePct}%

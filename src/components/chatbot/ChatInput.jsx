@@ -35,15 +35,11 @@ export const ChatInput = ({ onSendMessage, quickPrompts = [], isLoading = false 
   };
 
   return (
-    <div className="p-3 bg-white border-t border-slate-200/90 rounded-b-2xl space-y-2.5">
-      {/* Quick Prompts Chips */}
+    <div className="p-3 bg-white border-t border-slate-200/90 rounded-b-none sm:rounded-b-2xl space-y-2.5">
+      {/* Quick Prompts Chips: 3 chips that fit without sideways scrolling */}
       {quickPrompts && quickPrompts.length > 0 && (
-        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1.5 scrollbar-none text-xs">
-          <div className="flex items-center space-x-1 shrink-0 text-amber-600 font-bold text-[11px] pr-1">
-            <Sparkles className="w-3 h-3 text-[#FF6B00]" />
-            <span>Suggestions:</span>
-          </div>
-          {quickPrompts.map((prompt, idx) => {
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          {quickPrompts.slice(0, 3).map((prompt, idx) => {
             const labelText = typeof prompt === 'object' ? prompt.label : prompt;
             return (
               <button
@@ -51,7 +47,7 @@ export const ChatInput = ({ onSendMessage, quickPrompts = [], isLoading = false 
                 type="button"
                 onClick={() => handleQuickClick(prompt)}
                 disabled={isLoading}
-                className="shrink-0 px-3 py-1 bg-slate-100 hover:bg-orange-50 hover:border-orange-300 text-slate-800 hover:text-[#FF6B00] rounded-full text-[11px] font-semibold border border-slate-200 transition-all cursor-pointer whitespace-nowrap shadow-2xs active:scale-95"
+                className="px-2.5 py-1 bg-slate-100 hover:bg-orange-50 hover:border-orange-300 text-slate-800 hover:text-[#FF6B00] rounded-lg text-[11px] font-sans font-medium border border-slate-200 transition-all cursor-pointer shadow-2xs active:scale-95 leading-tight"
               >
                 {labelText}
               </button>
@@ -67,10 +63,10 @@ export const ChatInput = ({ onSendMessage, quickPrompts = [], isLoading = false 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about shipments, documents, customs..."
+          placeholder="Ask about our services or documents..."
           rows={1}
           disabled={isLoading}
-          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 focus:border-[#FF6B00] focus:bg-white rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all resize-none max-h-32"
+          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 focus:border-[#FF6B00] focus:bg-white rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all resize-none max-h-32 font-sans"
         />
 
         <button
@@ -87,8 +83,8 @@ export const ChatInput = ({ onSendMessage, quickPrompts = [], isLoading = false 
         </button>
       </form>
 
-      <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium px-1">
-        <span>Press <kbd className="px-1 bg-slate-100 border rounded font-mono text-[9px]">Enter</kbd> to send</span>
+      <div className="flex items-center justify-between text-[10px] text-slate-400 font-sans font-medium px-1">
+        <span>Press <kbd className="px-1 bg-slate-100 border rounded text-[9px] font-sans font-semibold">Enter</kbd> to send</span>
       </div>
     </div>
   );

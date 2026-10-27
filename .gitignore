@@ -25,3 +25,7 @@ dist-ssr
 
 # MCP Playwright Artifacts
 .playwright-mcp/
+
+# #Database 
+# .env
+# .env.example

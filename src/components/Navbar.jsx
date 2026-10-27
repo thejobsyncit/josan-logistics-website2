@@ -349,12 +349,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 <button
                   key={item.id}
                   onClick={() => {
-                    if (item.id === 'quote' && !currentUser) {
-                      if (setAuthRedirectTab) setAuthRedirectTab('quote');
-                      setIsAuthModalOpen(true);
-                      if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
-                      return;
-                    }
                     setActiveTab(item.id);
                     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                   }}

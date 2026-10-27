@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { handleApiRequest } from './src/server/apiMiddleware.js';
 
 export default defineConfig({
   plugins: [
@@ -8,8 +7,9 @@ export default defineConfig({
     {
       name: 'josan-rag-api-middleware',
       configureServer(server) {
-        server.middlewares.use((req, res, next) => {
+        server.middlewares.use(async (req, res, next) => {
           if (req.url && req.url.startsWith('/api/')) {
+            const { handleApiRequest } = await import('./src/server/apiMiddleware.js');
             handleApiRequest(req, res, req.url.split('?')[0]);
           } else {
             next();

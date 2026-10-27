@@ -13,7 +13,8 @@ export const QUOTE_STATUS_OPTIONS = [
   'Sent',
   'Accepted',
   'Rejected',
-  'Expired'
+  'Expired',
+  'Test'
 ];
 
 /**
@@ -128,18 +129,24 @@ export const CrmQuotationsTab = ({
     if (!q) return false;
     const term = search.trim().toLowerCase();
     const customer = (q.customerName || q.company || '').toLowerCase();
-    const reqId = (q.requestId || q.id || '').toLowerCase();
+    const reqId = (q.requestId || q.id || q.referenceNumber || '').toLowerCase();
+    const refNum = (q.referenceNumber || '').toLowerCase();
     const service = (q.service || q.cargoCategory || '').toLowerCase();
     const notes = (q.notes || '').toLowerCase();
 
     const matchesSearch = !term ||
       (q.id && q.id.toLowerCase().includes(term)) ||
+      refNum.includes(term) ||
       customer.includes(term) ||
       reqId.includes(term) ||
       service.includes(term) ||
       notes.includes(term);
 
-    const matchesStatus = statusFilter === 'All' || q.status === statusFilter;
+    const matchesStatus = statusFilter === 'All' 
+      ? true 
+      : statusFilter === 'Real Only' 
+        ? (!q.isTest && q.status !== 'Test') 
+        : q.status === statusFilter;
     const matchesService = serviceFilter === 'All' || q.service === serviceFilter ||
       (serviceFilter === 'Airway' && (q.service?.toLowerCase().includes('air') || q.cargoCategory?.toLowerCase().includes('air'))) ||
       (serviceFilter === 'Road' && (q.service?.toLowerCase().includes('road') || q.freightMode === 'ftl' || q.freightMode === 'ltl'));
@@ -170,6 +177,8 @@ export const CrmQuotationsTab = ({
         return 'bg-rose-50 text-rose-700 border-rose-200';
       case 'Expired':
         return 'bg-slate-100 text-slate-500 border-slate-200';
+      case 'Test':
+        return 'bg-purple-50 text-purple-700 border-purple-300';
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
@@ -398,7 +407,7 @@ export const CrmQuotationsTab = ({
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            placeholder="Search by Quote ID, customer, request ID, or service..."
+            placeholder="Search by quote reference (e.g. QR-8K3F-92XD, TQ-...), customer, ID..."
             className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
           />
         </div>
@@ -410,6 +419,7 @@ export const CrmQuotationsTab = ({
             className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="All">All Statuses</option>
+            <option value="Real Only">Real Only (Exclude Test)</option>
             {QUOTE_STATUS_OPTIONS.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
@@ -501,9 +511,15 @@ export const CrmQuotationsTab = ({
 
                       {/* Status */}
                       <td className="p-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(q.status)}`}>
-                          {q.status || 'Draft'}
-                        </span>
+                        {q.isTest || q.status === 'Test' ? (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase border bg-purple-50 text-purple-700 border-purple-300">
+                            Test
+                          </span>
+                        ) : (
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(q.status)}`}>
+                            {q.status || 'Draft'}
+                          </span>
+                        )}
                       </td>
 
                       {/* Date */}

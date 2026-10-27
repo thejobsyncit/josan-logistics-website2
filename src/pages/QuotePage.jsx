@@ -21,11 +21,14 @@ import {
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
+import { openLegalDialog } from '../components/LegalDialog';
+import { attachChatToSubmission } from '../services/chatStorageService';
+import { fetchServerQuoteReference } from '../utils/referenceApi';
 
 // ============================================================================
 // PRICE ESTIMATE VISIBILITY & PRE-LAUNCH INTEGRITY CHECK
 // ============================================================================
-export const SHOW_PRICE_ESTIMATE = true;
+export const SHOW_PRICE_ESTIMATE = false;
 export const HAS_TEST_RATES = false;
 
 if (SHOW_PRICE_ESTIMATE && HAS_TEST_RATES) {
@@ -43,6 +46,93 @@ const CARGO_CLASSIFICATIONS = [
   'Exhibition & Event Materials',
   'Custom / Specialized Freight'
 ];
+
+/**
+ * Mask an email address to format: h***@domain.com
+ */
+export const maskEmail = (email) => {
+  if (!email || typeof email !== 'string') return '';
+  const trimmed = email.trim();
+  const parts = trimmed.split('@');
+  if (parts.length !== 2) return trimmed;
+  const [local, domain] = parts;
+  if (local.length <= 1) {
+    return `${local}***@${domain}`;
+  }
+  return `${local[0]}***@${domain}`;
+};
+
+/**
+ * Format package count as "1 package" or "X packages"
+ */
+export const formatPackageCount = (count) => {
+  if (!count) return '';
+  const num = parseInt(count, 10);
+  if (isNaN(num)) return `${count} packages`;
+  return num === 1 ? '1 package' : `${num} packages`;
+};
+
+/**
+ * Generate sequential reference number in format: QR-YYYY-0001
+ */
+export const generateQuoteReference = () => {
+  const currentYear = new Date().getFullYear();
+  let maxSeq = 0;
+  try {
+    const archive = JSON.parse(localStorage.getItem('josan_admin_quote_requests') || '[]');
+    archive.forEach(item => {
+      if (item && item.id) {
+        const match = item.id.match(/^QR-(\d{4})-(\d+)$/);
+        if (match && parseInt(match[1], 10) === currentYear) {
+          const seq = parseInt(match[2], 10);
+          if (seq > maxSeq) maxSeq = seq;
+        }
+      }
+    });
+  } catch (e) {
+    console.warn('Error reading quote requests archive for ref sequence', e);
+  }
+  const nextSeq = String(maxSeq + 1).padStart(4, '0');
+  return `QR-${currentYear}-${nextSeq}`;
+};
+
+/**
+ * Detect obviously fake or test submissions so they can be marked as 'test' in the admin area
+ */
+export const isObviouslyFakeData = (record) => {
+  if (!record) return false;
+  const fields = [
+    record.contactName,
+    record.contactEmail,
+    record.contactCompany,
+    record.cargoDescription,
+    record.pickupAddress,
+    record.deliveryAddress
+  ];
+  const fullText = fields.filter(Boolean).join(' ').toLowerCase();
+
+  const fakeKeywords = [
+    'test', 'dummy', 'sample', 'asdf', 'qwerty', 'fake',
+    'dtyfyfy', 'foobar', 'testing', '12345', 'noreply', 'none', 'placeholder'
+  ];
+  if (fakeKeywords.some(kw => fullText.includes(kw))) {
+    return true;
+  }
+
+  const fakeDomains = ['example.com', 'test.com', 'fake.com', 'sample.com', 'asdf.com', 'temp.com', 'invalid.com'];
+  if (record.contactEmail) {
+    const emailLower = record.contactEmail.toLowerCase();
+    if (fakeDomains.some(domain => emailLower.endsWith(`@${domain}`))) {
+      return true;
+    }
+  }
+
+  if (/(.)\1{4,}/.test(fullText)) {
+    return true;
+  }
+
+  return false;
+};
 
 export const QuotePage = ({ setActiveTab }) => {
   const { 
@@ -84,7 +174,7 @@ export const QuotePage = ({ setActiveTab }) => {
   
   // Exact required consent checkbox state
   const [consentAgreed, setConsentAgreed] = useState(false);
-  const [emailEstimateToMe, setEmailEstimateToMe] = useState(true);
+  const [emailEstimateToMe, setEmailEstimateToMe] = useState(false);
   const [estimateEmailed, setEstimateEmailed] = useState(false);
 
   // Cloudflare Turnstile protection state
@@ -275,11 +365,11 @@ export const QuotePage = ({ setActiveTab }) => {
     }
     setEstimateEmailed(true);
     if (showToast) {
-      showToast(`Estimate successfully sent to ${contactEmail.trim()}!`, 'success');
+      showToast(`Copy of request successfully sent to ${contactEmail.trim()}!`, 'success');
     }
   };
 
-  const handleQuoteSubmit = (e) => {
+  const handleQuoteSubmit = async (e) => {
     e.preventDefault();
 
     if (!pickupAddress.trim()) {
@@ -329,22 +419,63 @@ export const QuotePage = ({ setActiveTab }) => {
     }
 
     const fullContactPhone = `${quoteCountryCode} ${quotePhoneDigits}`.trim();
-    const refId = `QTE-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    // Determine if request is test (test mode, staff test account, or obviously fake data)
+    const isStaffAccount = Boolean(
+      currentUser && (
+        currentUser.role === 'staff' || 
+        currentUser.role === 'admin' || 
+        currentUser.email?.endsWith('@josanlogistics.com')
+      )
+    );
+    const isFake = isObviouslyFakeData({
+      contactName: contactName.trim(),
+      contactEmail: contactEmail.trim(),
+      contactCompany: contactCompany.trim(),
+      cargoDescription: cargoDescription.trim(),
+      pickupAddress: pickupAddress.trim(),
+      deliveryAddress: deliveryAddress.trim()
+    });
+    const isSiteTestMode = localStorage.getItem('josan_test_mode') === 'true';
+    const isTestCandidate = Boolean(isStaffAccount || isFake || isSiteTestMode || (contactEmail && contactEmail.includes('test')));
+
+    // 1. Fetch automatic random reference number generated on the server only:
+    // Format: QR-XXXX-XXXX for real quotes, TQ-XXXX-XXXX for test quotes (cryptographically secure)
+    const serverRef = await fetchServerQuoteReference({
+      isTest: isTestCandidate,
+      contactEmail: contactEmail.trim(),
+      isStaff: isStaffAccount
+    });
+
+    const refId = serverRef.reference;
+    const isTestSubmission = serverRef.isTest;
     const realRecipientEmail = 'contact@josanlogistics.com.sg';
+    const teamSenderEmail = 'system@josanlogistics.com.sg';
+    const customerSenderEmail = 'quotes@josanlogistics.com.sg';
+
+    const formattedPackages = serviceCategory !== 'documentation'
+      ? (packageCount ? formatPackageCount(packageCount) : 'Pending specification')
+      : 'N/A';
+
+    const isConsolidated = serviceCategory === 'road-transport' && roadLoadType === 'ltl';
 
     // Formatted request record for Admin and Real Email dispatch
     const requestRecord = {
       id: refId,
+      referenceNumber: refId,
       timestamp: new Date().toISOString(),
       singaporeTime: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' }),
       recipientEmail: realRecipientEmail,
       service: getServiceName(serviceCategory, roadLoadType),
+      serviceCategory,
+      roadLoadType: serviceCategory === 'road-transport' ? roadLoadType : null,
+      isConsolidatedFreight: isConsolidated,
       isDocumentationOnly: serviceCategory === 'documentation',
       includeDocumentation: serviceCategory !== 'documentation' && includeDocumentation,
       cargoCategory,
       cargoDescription: cargoDescription.trim() || 'Standard consignment',
       cargoWeight: serviceCategory !== 'documentation' ? (cargoWeight ? `${cargoWeight} kg` : 'Pending specification') : 'N/A',
-      packageCount: serviceCategory !== 'documentation' ? (packageCount ? `${packageCount} pkgs` : 'Pending specification') : 'N/A',
+      packageCount: formattedPackages,
       dimensions: (serviceCategory !== 'documentation' && lengthCm && widthCm && heightCm) ? `${lengthCm} × ${widthCm} × ${heightCm} cm` : 'N/A',
       pickupAddress: pickupAddress.trim(),
       deliveryAddress: deliveryAddress.trim(),
@@ -353,15 +484,17 @@ export const QuotePage = ({ setActiveTab }) => {
       contactEmail: contactEmail.trim(),
       contactCompany: contactCompany.trim() || 'N/A',
       contactPhone: fullContactPhone,
-      estimateSubtotal: pricingDetails.isCalculable ? `S$ ${pricingDetails.subtotal.toFixed(2)}` : 'Quote Pending Review',
-      estimateGst: pricingDetails.isCalculable ? `S$ ${pricingDetails.gst.toFixed(2)}` : 'Quote Pending Review',
-      estimateTotal: pricingDetails.isCalculable ? `S$ ${pricingDetails.total.toFixed(2)}` : 'Quote Pending Review',
-      emailMeCopy: emailEstimateToMe
+      estimateSubtotal: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? `S$ ${pricingDetails.subtotal.toFixed(2)}` : 'Quote Pending Review',
+      estimateGst: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? `S$ ${pricingDetails.gst.toFixed(2)}` : 'Quote Pending Review',
+      estimateTotal: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? `S$ ${pricingDetails.total.toFixed(2)}` : 'Quote Pending Review',
+      emailMeCopy: emailEstimateToMe,
+      isTest: isTestSubmission,
+      status: isTestSubmission ? 'Test' : 'Quote Requested'
     };
 
     setSubmittedSummary(requestRecord);
 
-    // 1. Store in Admin CRM Leads
+    // 1. Store in Admin CRM Leads (mark test if test submission)
     if (addLead) {
       addLead({
         name: requestRecord.contactName,
@@ -369,10 +502,11 @@ export const QuotePage = ({ setActiveTab }) => {
         email: requestRecord.contactEmail,
         phone: requestRecord.contactPhone,
         source: 'Website Quote Form',
-        stage: 'Quote Requested',
-        estimatedValue: pricingDetails.isCalculable ? pricingDetails.total : 0,
+        stage: isTestSubmission ? 'Test' : 'Quote Requested',
+        estimatedValue: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? pricingDetails.total : 0,
         tags: [
-          'Website Quote Request',
+          isTestSubmission ? 'Test Submission' : 'Website Quote Request',
+          `Reference: ${refId}`,
           `Recipient: ${realRecipientEmail}`,
           serviceCategory === 'documentation' 
             ? 'DOCUMENTATION_SUPPORT' 
@@ -381,14 +515,17 @@ export const QuotePage = ({ setActiveTab }) => {
               : `ROAD_TRANSPORT_${roadLoadType.toUpperCase()}`,
           cargoCategory
         ].filter(Boolean),
-        notes: `Routed to ${realRecipientEmail}\nService: ${requestRecord.service}\nPickup: ${requestRecord.pickupAddress}\nDelivery: ${requestRecord.deliveryAddress}\nDate: ${requestRecord.preferredPickupDate}\nCargo: ${requestRecord.cargoDescription}`
+        notes: `[Status: ${isTestSubmission ? 'TEST REQUEST' : 'REAL'}]\nReference: ${refId}\nRouted to ${realRecipientEmail}\nService: ${requestRecord.service}\nPickup: ${requestRecord.pickupAddress}\nDelivery: ${requestRecord.deliveryAddress}\nDate: ${requestRecord.preferredPickupDate}\nCargo: ${requestRecord.cargoDescription}`
       });
     }
 
-    // 2. Store in Admin Quotations Store
+    // 2. Store in Admin Quotations Store (with isTest flag and server refId)
     if (requestQuote) {
       requestQuote({
         id: refId,
+        referenceNumber: refId,
+        isTest: isTestSubmission,
+        status: isTestSubmission ? 'Test' : 'Draft',
         serviceCategory,
         roadLoadType: serviceCategory === 'road-transport' ? roadLoadType : null,
         includeDocumentation: serviceCategory !== 'documentation' && includeDocumentation,
@@ -419,22 +556,54 @@ export const QuotePage = ({ setActiveTab }) => {
       console.warn('Could not save to local storage archive', e);
     }
 
-    // 4. Admin Notification
+    // 4. Admin Notification with Quote Reference
     if (addNotification) {
       addNotification({
         role: 'admin',
         type: 'quote_request',
-        title: `📥 New Quote Request #${refId}`,
-        message: `Routed to ${realRecipientEmail} from ${requestRecord.contactName} (${requestRecord.contactCompany}) • ${requestRecord.service}`,
+        title: isTestSubmission ? `🧪 [TEST] New Quote Request #${refId}` : `📥 New Quote Request #${refId}`,
+        message: `Quote request #${refId} received from ${requestRecord.contactName} (${requestRecord.contactCompany}) • ${requestRecord.service}`,
         quoteId: refId
       });
     }
 
-    // 5. Send request transmission to real email
-    console.info(`[Email Service] Quote request transmission dispatched to ${realRecipientEmail}:`, requestRecord);
+    // 5. Customer email and team notification (with quote reference in subject and body)
+    console.info(`[Email Service] Customer confirmation email sent for Quote #${refId}:
+- Sender: ${customerSenderEmail} (Josan Logistics Quotation Services)
+- Recipient: ${requestRecord.contactEmail}
+- Subject: Quote Request Received - Ref ${refId}
+- Body:
+  Thank you. We have received your request.
+  Reference Number: ${refId}
+  We will send you a quote by email or phone. No payment is required now.
+  Our team will review your request and reply by email or phone. Please keep your reference number.`);
+
+    console.info(`[Email Service] Internal team notification sent for Quote #${refId}:
+- Sender: ${teamSenderEmail} (Josan Automated System)
+- Recipient: ${realRecipientEmail} (Singapore Operations Desk)
+- Subject: ${isTestSubmission ? '[TEST] ' : ''}New Quote Request Ref ${refId}
+- Body:
+  New quote request received.
+  Reference: ${refId}
+  Status: ${isTestSubmission ? 'TEST SUBMISSION' : 'REAL QUOTE REQUEST'}
+  Customer: ${requestRecord.contactName} (${requestRecord.contactCompany})
+  Contact: ${requestRecord.contactEmail} • ${fullContactPhone}
+  Service: ${requestRecord.service}`);
+
     if (emailEstimateToMe && requestRecord.contactEmail) {
-      console.info(`[Email Service] Customer copy dispatched to ${requestRecord.contactEmail}`);
       setEstimateEmailed(true);
+    }
+
+    // 6. Attach active chat session to quote reference number if user interacted with AI chat
+    try {
+      attachChatToSubmission(refId, {
+        name: requestRecord.contactName,
+        email: requestRecord.contactEmail,
+        phone: fullContactPhone,
+        company: requestRecord.contactCompany
+      });
+    } catch (e) {
+      console.warn('[QuotePage] Failed to attach chat to quote submission:', e);
     }
 
     setGeneratedQuoteRef(refId);
@@ -442,7 +611,7 @@ export const QuotePage = ({ setActiveTab }) => {
 
     // Exact required confirmation toast
     if (showToast) {
-      showToast('Thank you. We have received your request and will reply by email or phone.', 'success');
+      showToast('Thank you. We have received your request and will send you a quote by email or phone. No payment is required now.', 'success');
     }
 
     window.scrollTo({ top: 120, behavior: 'smooth' });
@@ -520,16 +689,19 @@ export const QuotePage = ({ setActiveTab }) => {
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-9 h-9" />
               </div>
-              <span className="inline-block text-xs font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                Reference #{generatedQuoteRef}
+              <span className="inline-block text-xs font-mono font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">
+                Reference: {generatedQuoteRef}
               </span>
               
-              {/* Exact required confirmation heading */}
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-snug">
-                Thank you. We have received your request and will reply by email or phone.
+              {/* Reduced headline size to normal heading */}
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+                Thank you. We have received your request.
               </h2>
-              <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
-                Your quote request has been stored in our admin operations desk and routed to our Singapore logistics team.
+              <p className="text-sm text-slate-600 font-medium">
+                We will send you a quote by email or phone. No payment is required now.
+              </p>
+              <p className="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed pt-1">
+                Our team will review your request and reply by email or phone. Please keep your reference number.
               </p>
             </div>
 
@@ -540,7 +712,7 @@ export const QuotePage = ({ setActiveTab }) => {
                     Request Summary
                   </h3>
                   <span className="text-[11px] text-emerald-700 font-bold bg-emerald-100/70 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    Dispatched to Operations Desk
+                    Request received
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -548,6 +720,12 @@ export const QuotePage = ({ setActiveTab }) => {
                     <span className="text-slate-500 block font-medium">Selected Service</span>
                     <span className="font-bold text-slate-900">{submittedSummary.service}</span>
                   </div>
+                  {submittedSummary.isConsolidatedFreight && (
+                    <div>
+                      <span className="text-slate-500 block font-medium">Freight Option</span>
+                      <span className="font-bold text-[#F26B21]">Consolidated Freight</span>
+                    </div>
+                  )}
                   {submittedSummary.includeDocumentation && (
                     <div>
                       <span className="text-slate-500 block font-medium">Additional Service</span>
@@ -566,10 +744,12 @@ export const QuotePage = ({ setActiveTab }) => {
                     <span className="text-slate-500 block font-medium">Preferred Pickup Date</span>
                     <span className="font-bold text-slate-900">{submittedSummary.preferredPickupDate}</span>
                   </div>
-                  <div>
-                    <span className="text-slate-500 block font-medium">Cargo Classification</span>
-                    <span className="font-bold text-slate-900">{submittedSummary.cargoCategory}</span>
-                  </div>
+                  {submittedSummary.cargoCategory && CARGO_CLASSIFICATIONS.includes(submittedSummary.cargoCategory) && (
+                    <div>
+                      <span className="text-slate-500 block font-medium">Cargo Classification</span>
+                      <span className="font-bold text-slate-900">{submittedSummary.cargoCategory}</span>
+                    </div>
+                  )}
                   <div className="sm:col-span-2">
                     <span className="text-slate-500 block font-medium">Cargo Description</span>
                     <span className="font-bold text-slate-900">{submittedSummary.cargoDescription}</span>
@@ -578,13 +758,13 @@ export const QuotePage = ({ setActiveTab }) => {
                     <div>
                       <span className="text-slate-500 block font-medium">Weight & Packages</span>
                       <span className="font-bold text-slate-900">
-                        {submittedSummary.cargoWeight} ({submittedSummary.packageCount})
+                        {submittedSummary.cargoWeight ? `${submittedSummary.cargoWeight} • ` : ''}{submittedSummary.packageCount}
                       </span>
                     </div>
                   )}
                   <div>
                     <span className="text-slate-500 block font-medium">Contact Person</span>
-                    <span className="font-bold text-slate-900">{submittedSummary.contactName} ({submittedSummary.contactEmail})</span>
+                    <span className="font-bold text-slate-900">{submittedSummary.contactName} ({maskEmail(submittedSummary.contactEmail)})</span>
                   </div>
                   <div>
                     <span className="text-slate-500 block font-medium">Phone Number</span>
@@ -593,45 +773,56 @@ export const QuotePage = ({ setActiveTab }) => {
                 </div>
 
                 <div className="pt-3 border-t border-slate-200 text-slate-500 text-[11px] leading-relaxed">
-                  Final price depends on route, cargo, partner availability and applicable charges.
+                  After you send your request, we will reply with a quote. Payment is arranged after you accept the quote, and we will send you an invoice with payment details.
                 </div>
               </div>
             )}
 
-            {/* Confirmation Action Buttons with "Email me this estimate" */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+            {/* Confirmation Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={handleEmailEstimate}
                 disabled={estimateEmailed}
-                className="px-5 py-3 bg-white hover:bg-orange-50 text-[#F26B21] border border-[#F26B21] font-bold text-xs rounded-xl transition-all cursor-pointer text-center flex items-center justify-center space-x-1.5 shadow-2xs"
+                className="px-5 py-2.5 bg-white hover:bg-orange-50 text-[#F26B21] border border-[#F26B21] font-bold text-xs rounded-xl transition-all cursor-pointer text-center flex items-center justify-center space-x-1.5 shadow-2xs"
               >
                 <Mail className="w-3.5 h-3.5" />
-                <span>{estimateEmailed ? `Estimate Emailed to ${contactEmail || 'You'}` : 'Email me this estimate'}</span>
+                <span>{estimateEmailed ? `Copy emailed to ${maskEmail(contactEmail)}` : 'Email me a copy of this request'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleResetForm}
-                className="px-6 py-3 bg-[#F26B21] hover:bg-[#D95A13] text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer text-center"
+                className="px-5 py-2.5 bg-[#F26B21] hover:bg-[#D95A13] text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer text-center"
               >
-                Submit Another Quote Request
+                Submit Another Request
               </button>
+
               <button
                 type="button"
-                onClick={() => setActiveTab && setActiveTab('track')}
-                className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer text-center"
+                onClick={() => setActiveTab && setActiveTab('home')}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer text-center"
               >
-                Track a Shipment
+                Back to Home
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => openLegalDialog('privacy', e.currentTarget)}
+                className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-600 border border-slate-300 font-bold text-xs rounded-xl transition-all cursor-pointer text-center underline underline-offset-2"
+              >
+                Privacy Policy
               </button>
             </div>
           </div>
         ) : (
-          /* Quote Request Form Layout */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          /* Quote Request Form Layout - Centered single column when breakdown panel is hidden */
+          <div className={SHOW_PRICE_ESTIMATE ? "grid grid-cols-1 lg:grid-cols-12 gap-8 items-start" : "max-w-3xl mx-auto"}>
             
-            {/* Left 7 Columns: Request Configuration Form */}
-            <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
+            {/* Request Configuration Form */}
+            <div className={`bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6 ${
+              SHOW_PRICE_ESTIMATE ? 'lg:col-span-7' : ''
+            }`}>
               <div>
                 <h2 className="text-xl font-extrabold text-slate-900">Shipment Specifications</h2>
                 <p className="text-xs text-slate-500 font-semibold">
@@ -704,7 +895,7 @@ export const QuotePage = ({ setActiveTab }) => {
                       <span className={`text-xs font-mono font-bold pt-1 inline-block ${
                         serviceCategory === 'road-transport' ? 'text-white' : 'text-[#F26B21]'
                       }`}>
-                        From S$ 3.80 / kg
+                        {SHOW_PRICE_ESTIMATE ? 'From S$ 3.80 / kg' : 'Quote upon request'}
                       </span>
                     </button>
 
@@ -764,10 +955,7 @@ export const QuotePage = ({ setActiveTab }) => {
                           }`}
                         >
                           <span className="font-bold text-xs text-slate-900 block">Consolidated Road Freight</span>
-                          <span className="text-[10px] text-slate-500 block">Consolidated commercial road freight</span>
-                          <span className="text-[11px] font-mono font-bold text-[#F26B21] block mt-1">
-                            S$ 3.80 / kg (Min. S$ 50.00)
-                          </span>
+                          <span className="text-[10px] text-slate-500 block">Shared vehicle space with other shipments</span>
                         </button>
 
                         <button
@@ -780,10 +968,7 @@ export const QuotePage = ({ setActiveTab }) => {
                           }`}
                         >
                           <span className="font-bold text-xs text-slate-900 block">Dedicated Road Freight</span>
-                          <span className="text-[10px] text-slate-500 block">Dedicated partner vehicle coordination</span>
-                          <span className="text-[11px] font-mono font-bold text-[#F26B21] block mt-1">
-                            S$ 5.50 / kg (Min. S$ 150.00)
-                          </span>
+                          <span className="text-[10px] text-slate-500 block">A vehicle arranged for your shipment alone</span>
                         </button>
                       </div>
                     </div>
@@ -799,7 +984,7 @@ export const QuotePage = ({ setActiveTab }) => {
                         className="w-4 h-4 text-[#F26B21] rounded border-slate-300 focus:ring-[#F26B21] cursor-pointer"
                       />
                       <span className="text-[11px] text-slate-700 font-semibold">
-                        Add Shipment Documentation Support (Documentation support is charged separately. We will confirm the fee in your quote.)
+                        Add shipment documentation support (fee confirmed in quote).
                       </span>
                     </label>
                   )}
@@ -992,8 +1177,8 @@ export const QuotePage = ({ setActiveTab }) => {
                         </div>
                       </div>
 
-                      {/* Chargeable Weight for Road Transport */}
-                      {serviceCategory === 'road-transport' && (
+                      {/* Chargeable Weight for Road Transport (Shown only if price estimates are enabled) */}
+                      {SHOW_PRICE_ESTIMATE && serviceCategory === 'road-transport' && (
                         <div className="p-3 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                           <div className="flex items-center space-x-2">
                             <Scale className="w-4 h-4 text-[#F26B21]" />
@@ -1095,7 +1280,7 @@ export const QuotePage = ({ setActiveTab }) => {
                   </div>
                 </div>
 
-                {/* Email me this estimate option */}
+                {/* Email me a copy of this request option */}
                 <div className="pt-1">
                   <label className="flex items-center space-x-2.5 cursor-pointer text-xs text-slate-700">
                     <input
@@ -1105,7 +1290,7 @@ export const QuotePage = ({ setActiveTab }) => {
                       className="w-4 h-4 text-[#F26B21] rounded border-slate-300 focus:ring-[#F26B21] cursor-pointer"
                     />
                     <span className="font-semibold text-slate-800">
-                      Email me this estimate
+                      Email me a copy of this request
                       {contactEmail.trim() ? ` (to ${contactEmail.trim()})` : ''}
                     </span>
                   </label>
@@ -1126,12 +1311,25 @@ export const QuotePage = ({ setActiveTab }) => {
                       <button
                         type="button"
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
-                          if (setActiveTab) setActiveTab('privacy');
+                          openLegalDialog('privacy', e.currentTarget);
                         }}
                         className="text-[#F26B21] hover:underline font-bold inline cursor-pointer"
                       >
                         Privacy Policy
+                      </button>
+                      {' '}and{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openLegalDialog('terms', e.currentTarget);
+                        }}
+                        className="text-[#F26B21] hover:underline font-bold inline cursor-pointer"
+                      >
+                        Terms of Service
                       </button>
                       .
                     </span>
@@ -1162,146 +1360,175 @@ export const QuotePage = ({ setActiveTab }) => {
                     <Send className="w-4 h-4" />
                     <span>Send Quote Request</span>
                   </button>
-                  <p className="text-[11px] text-slate-500 text-center font-medium mt-2">
-                    Final price depends on route, cargo, partner availability and applicable charges.
+                  <p className="text-[11px] text-slate-500 text-center font-medium mt-2 leading-relaxed max-w-xl mx-auto">
+                    After you send your request, we will reply with a quote. Payment is arranged after you accept the quote, and we will send you an invoice with payment details.
+                  </p>
+                  <p className="text-center text-xs text-slate-500 mt-2.5 leading-relaxed">
+                    By sending this request you agree to our{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openLegalDialog('terms', e.currentTarget);
+                      }}
+                      className="text-[#F26B21] hover:underline font-bold inline cursor-pointer"
+                    >
+                      Terms of Service
+                    </button>
+                    {' '}and{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openLegalDialog('privacy', e.currentTarget);
+                      }}
+                      className="text-[#F26B21] hover:underline font-bold inline cursor-pointer"
+                    >
+                      Privacy Policy
+                    </button>
+                    .
                   </p>
                 </div>
               </form>
             </div>
 
-            {/* Right 5 Columns: Quotation Breakdown Panel */}
-            <div className="lg:col-span-5 space-y-6 sticky top-24">
-              <div className="bg-[#0B1F3A] text-white rounded-3xl p-6 sm:p-8 border border-[#1E3A5F] shadow-xl space-y-6">
-                <div className="flex items-center justify-between border-b border-[#1E3A5F] pb-4">
-                  <div>
-                    <h3 className="text-xl font-extrabold text-white">Quotation Breakdown</h3>
-                    <p className="text-xs text-[#B6C2D1] mt-0.5">
-                      Itemized freight cost calculation based on selected shipment specifications.
+            {/* Right 5 Columns: Quotation Breakdown Panel (Only shown if SHOW_PRICE_ESTIMATE is true) */}
+            {SHOW_PRICE_ESTIMATE && (
+              <div className="lg:col-span-5 space-y-6 sticky top-24">
+                <div className="bg-[#0B1F3A] text-white rounded-3xl p-6 sm:p-8 border border-[#1E3A5F] shadow-xl space-y-6">
+                  <div className="flex items-center justify-between border-b border-[#1E3A5F] pb-4">
+                    <div>
+                      <h3 className="text-xl font-extrabold text-white">Quotation Breakdown</h3>
+                      <p className="text-xs text-[#B6C2D1] mt-0.5">
+                        Itemized freight cost calculation based on selected shipment specifications.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Route & Service Overview */}
+                  <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-2 text-xs">
+                    <div className="flex items-start space-x-2 text-slate-300 font-semibold">
+                      <MapPin className="w-3.5 h-3.5 text-[#F26B21] shrink-0 mt-0.5" />
+                      <span className="truncate">
+                        Pickup: {pickupAddress.trim() || 'Address not specified'}
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2 text-slate-300 font-semibold">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <span className="truncate">
+                        Delivery: {deliveryAddress.trim() || 'Address not specified'}
+                      </span>
+                    </div>
+                    {preferredPickupDate && (
+                      <div className="flex items-center space-x-2 text-slate-300 font-semibold pt-1 border-t border-white/10">
+                        <Calendar className="w-3.5 h-3.5 text-[#F26B21] shrink-0" />
+                        <span>Pickup Date: {preferredPickupDate}</span>
+                      </div>
+                    )}
+                    {cargoDescription.trim() && (
+                      <div className="text-[11px] text-slate-400 pt-1 border-t border-white/10 truncate">
+                        Cargo: <span className="text-slate-200">{cargoDescription.trim()}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Breakdown Itemized Lines: Service, Rate, Quantity/Weight, Min Charge, Subtotal, 9% GST, Total */}
+                  <div className="space-y-3 text-xs">
+                    {/* Service Line */}
+                    <div className="flex justify-between items-start text-slate-300 gap-2">
+                      <span className="text-slate-400 shrink-0">Service:</span>
+                      <span className="font-bold text-white text-right">{pricingDetails.serviceName}</span>
+                    </div>
+
+                    {/* Rate Line */}
+                    <div className="flex justify-between items-center text-slate-300">
+                      <span className="text-slate-400">Rate:</span>
+                      <span className="font-mono font-bold text-[#F26B21]">{pricingDetails.rateText}</span>
+                    </div>
+
+                    {/* Quantity or Weight Line */}
+                    <div className="flex justify-between items-center text-slate-300">
+                      <span className="text-slate-400">
+                        {serviceCategory === 'documentation' ? 'Quantity:' : 'Quantity / Weight:'}
+                      </span>
+                      <span className="font-mono text-slate-200">{pricingDetails.quantityOrWeightText}</span>
+                    </div>
+
+                    {/* Documentation add-on notice if selected alongside transport */}
+                    {serviceCategory !== 'documentation' && includeDocumentation && (
+                      <div className="p-2.5 bg-orange-950/40 border border-orange-500/30 rounded-xl text-[11px] text-orange-200 leading-relaxed">
+                        <strong>Documentation Support:</strong> Charged separately. We will confirm the fee in your quote.
+                      </div>
+                    )}
+
+                    {/* Case A: Price is Calculable -> Render Subtotal, Min Charge (if applicable), 9% GST, and Total */}
+                    {pricingDetails.isCalculable ? (
+                      <>
+                        {/* Separate Minimum Charge Line if one applies */}
+                        {pricingDetails.minChargeLine && (
+                          <div className="p-2.5 bg-amber-950/40 border border-amber-700/50 rounded-xl space-y-1">
+                            <div className="flex justify-between items-center text-amber-300 font-bold text-xs">
+                              <span>Minimum Charge Applied:</span>
+                              <span className="font-mono">S$ {pricingDetails.minChargeLine.amount.toFixed(2)}</span>
+                            </div>
+                            <p className="text-[10px] text-amber-200/80 leading-tight">
+                              Calculated rate: S$ {pricingDetails.baseCalculated.toFixed(2)} (Standard minimum fee per consignment applied).
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Subtotal Line */}
+                        <div className="flex justify-between items-center text-slate-300 pt-2 border-t border-slate-700">
+                          <span className="text-slate-400">Subtotal:</span>
+                          <span className="font-mono font-bold text-slate-100">
+                            S$ {pricingDetails.subtotal.toFixed(2)}
+                          </span>
+                        </div>
+
+                        {/* 9% GST Line */}
+                        <div className="flex justify-between items-center text-slate-300">
+                          <span className="text-slate-400">Singapore GST (9%):</span>
+                          <span className="font-mono font-semibold text-slate-200">
+                            S$ {pricingDetails.gst.toFixed(2)}
+                          </span>
+                        </div>
+
+                        {/* Total Line */}
+                        <div className="flex justify-between items-center text-white pt-3 border-t border-slate-600 font-extrabold">
+                          <span className="text-sm">Total:</span>
+                          <span className="font-mono text-2xl text-[#FF6B00] font-black">
+                            S$ {pricingDetails.total.toFixed(2)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      /* Case B: Price cannot be calculated -> Show exact required text instead of a number or S$0.00 */
+                      <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-center space-y-2 my-2">
+                        <div className="flex items-center justify-center space-x-1.5 text-amber-400 font-extrabold text-xs sm:text-sm">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>We will confirm the price after reviewing your request</span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          {serviceCategory === 'air-freight'
+                            ? 'Air freight documentation and cargo arrangements depend on route, partner airline availability, and flight schedules.'
+                            : serviceCategory === 'documentation'
+                            ? 'Documentation support is charged separately. We will confirm the fee in your quote.'
+                            : 'Please enter your shipment gross weight above to compute an itemized calculation, or submit your request and our team will quote directly.'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-[#1E3A5F]">
+                    <p className="text-[10px] text-slate-400 text-center font-medium leading-relaxed">
+                      Final price depends on route, cargo, partner availability and applicable charges.
                     </p>
                   </div>
                 </div>
-
-                {/* Route & Service Overview */}
-                <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-2 text-xs">
-                  <div className="flex items-start space-x-2 text-slate-300 font-semibold">
-                    <MapPin className="w-3.5 h-3.5 text-[#F26B21] shrink-0 mt-0.5" />
-                    <span className="truncate">
-                      Pickup: {pickupAddress.trim() || 'Address not specified'}
-                    </span>
-                  </div>
-                  <div className="flex items-start space-x-2 text-slate-300 font-semibold">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                    <span className="truncate">
-                      Delivery: {deliveryAddress.trim() || 'Address not specified'}
-                    </span>
-                  </div>
-                  {preferredPickupDate && (
-                    <div className="flex items-center space-x-2 text-slate-300 font-semibold pt-1 border-t border-white/10">
-                      <Calendar className="w-3.5 h-3.5 text-[#F26B21] shrink-0" />
-                      <span>Pickup Date: {preferredPickupDate}</span>
-                    </div>
-                  )}
-                  {cargoDescription.trim() && (
-                    <div className="text-[11px] text-slate-400 pt-1 border-t border-white/10 truncate">
-                      Cargo: <span className="text-slate-200">{cargoDescription.trim()}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Breakdown Itemized Lines: Service, Rate, Quantity/Weight, Min Charge, Subtotal, 9% GST, Total */}
-                <div className="space-y-3 text-xs">
-                  {/* Service Line */}
-                  <div className="flex justify-between items-start text-slate-300 gap-2">
-                    <span className="text-slate-400 shrink-0">Service:</span>
-                    <span className="font-bold text-white text-right">{pricingDetails.serviceName}</span>
-                  </div>
-
-                  {/* Rate Line */}
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span className="text-slate-400">Rate:</span>
-                    <span className="font-mono font-bold text-[#F26B21]">{pricingDetails.rateText}</span>
-                  </div>
-
-                  {/* Quantity or Weight Line */}
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span className="text-slate-400">
-                      {serviceCategory === 'documentation' ? 'Quantity:' : 'Quantity / Weight:'}
-                    </span>
-                    <span className="font-mono text-slate-200">{pricingDetails.quantityOrWeightText}</span>
-                  </div>
-
-                  {/* Documentation add-on notice if selected alongside transport */}
-                  {serviceCategory !== 'documentation' && includeDocumentation && (
-                    <div className="p-2.5 bg-orange-950/40 border border-orange-500/30 rounded-xl text-[11px] text-orange-200 leading-relaxed">
-                      <strong>Documentation Support:</strong> Charged separately. We will confirm the fee in your quote.
-                    </div>
-                  )}
-
-                  {/* Case A: Price is Calculable -> Render Subtotal, Min Charge (if applicable), 9% GST, and Total */}
-                  {pricingDetails.isCalculable ? (
-                    <>
-                      {/* Separate Minimum Charge Line if one applies */}
-                      {pricingDetails.minChargeLine && (
-                        <div className="p-2.5 bg-amber-950/40 border border-amber-700/50 rounded-xl space-y-1">
-                          <div className="flex justify-between items-center text-amber-300 font-bold text-xs">
-                            <span>Minimum Charge Applied:</span>
-                            <span className="font-mono">S$ {pricingDetails.minChargeLine.amount.toFixed(2)}</span>
-                          </div>
-                          <p className="text-[10px] text-amber-200/80 leading-tight">
-                            Calculated rate: S$ {pricingDetails.baseCalculated.toFixed(2)} (Standard minimum fee per consignment applied).
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Subtotal Line */}
-                      <div className="flex justify-between items-center text-slate-300 pt-2 border-t border-slate-700">
-                        <span className="text-slate-400">Subtotal:</span>
-                        <span className="font-mono font-bold text-slate-100">
-                          S$ {pricingDetails.subtotal.toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* 9% GST Line */}
-                      <div className="flex justify-between items-center text-slate-300">
-                        <span className="text-slate-400">Singapore GST (9%):</span>
-                        <span className="font-mono font-semibold text-slate-200">
-                          S$ {pricingDetails.gst.toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* Total Line */}
-                      <div className="flex justify-between items-center text-white pt-3 border-t border-slate-600 font-extrabold">
-                        <span className="text-sm">Total:</span>
-                        <span className="font-mono text-2xl text-[#FF6B00] font-black">
-                          S$ {pricingDetails.total.toFixed(2)}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    /* Case B: Price cannot be calculated -> Show exact required text instead of a number or S$0.00 */
-                    <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-center space-y-2 my-2">
-                      <div className="flex items-center justify-center space-x-1.5 text-amber-400 font-extrabold text-xs sm:text-sm">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>We will confirm the price after reviewing your request</span>
-                      </div>
-                      <p className="text-[11px] text-slate-300 leading-relaxed">
-                        {serviceCategory === 'air-freight'
-                          ? 'Air freight documentation and cargo arrangements depend on route, partner airline availability, and flight schedules.'
-                          : serviceCategory === 'documentation'
-                          ? 'Documentation support is charged separately. We will confirm the fee in your quote.'
-                          : 'Please enter your shipment gross weight above to compute an itemized calculation, or submit your request and our team will quote directly.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-2 border-t border-[#1E3A5F]">
-                  <p className="text-[10px] text-slate-400 text-center font-medium leading-relaxed">
-                    Final price depends on route, cargo, partner availability and applicable charges.
-                  </p>
-                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </section>

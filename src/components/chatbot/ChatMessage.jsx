@@ -1,11 +1,12 @@
 import React from 'react';
 import { SourceReferences } from './SourceReferences';
 import { Bot, User, Loader2 } from 'lucide-react';
+import { openLegalDialog } from '../LegalDialog';
 
-export const ChatMessage = ({ message, isLoadingMessage }) => {
+export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) => {
   const isUser = message?.role === 'user';
 
-  // Basic Markdown Formatter (Bold, Bullet lists, Code tags)
+  // Basic Markdown Formatter (Bold, Bullet lists, Markdown Links [text](url))
   const formatText = (text) => {
     if (!text) return null;
 
@@ -40,15 +41,67 @@ export const ChatMessage = ({ message, isLoadingMessage }) => {
   };
 
   const renderFormattedInline = (str) => {
-    // Replace **bold** with <strong>
-    const parts = str.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, idx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={idx} className="font-extrabold text-slate-900">{part.slice(2, -2)}</strong>;
+    if (!str) return null;
+
+    // Parse markdown links [text](url)
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(str)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(str.substring(lastIndex, match.index));
       }
-      return part;
+      parts.push({
+        type: 'link',
+        text: match[1],
+        url: match[2]
+      });
+      lastIndex = linkRegex.lastIndex;
+    }
+    if (lastIndex < str.length) {
+      parts.push(str.substring(lastIndex));
+    }
+
+    return parts.map((part, pIdx) => {
+      if (typeof part === 'object' && part.type === 'link') {
+        const isPrivacyLink = part.url === '/privacy' || 
+                              part.url.includes('privacy') || 
+                              part.text.toLowerCase().includes('privacy');
+        return (
+          <a
+            key={pIdx}
+            href={part.url}
+            onClick={(e) => {
+              if (isPrivacyLink) {
+                e.preventDefault();
+                e.stopPropagation();
+                openLegalDialog('privacy', e.currentTarget);
+              }
+            }}
+            className="text-[#FF6B00] hover:text-orange-600 font-bold underline transition-colors cursor-pointer"
+          >
+            {part.text}
+          </a>
+        );
+      }
+
+      // Handle **bold** formatting within plain text
+      const boldParts = part.split(/(\*\*.*?\*\*)/g);
+      return boldParts.map((bPart, bIdx) => {
+        if (bPart.startsWith('**') && bPart.endsWith('**')) {
+          return <strong key={`${pIdx}-${bIdx}`} className="font-extrabold text-slate-900">{bPart.slice(2, -2)}</strong>;
+        }
+        return bPart;
+      });
     });
   };
+
+  const isQuoteOrPricingOrShipmentAnswer = !isUser && (
+    message?.hasQuoteAction ||
+    /\b(quote|quotes|pricing|prices|rate|rates|cost|costs|per kg|estimate|specific shipment|shipment details|book a shipment|shipping request)\b/i.test(message?.content || '')
+  ) && !message?.id?.startsWith('msg_welcome');
 
   if (isLoadingMessage) {
     return (
@@ -58,7 +111,7 @@ export const ChatMessage = ({ message, isLoadingMessage }) => {
         </div>
         <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm max-w-[85%] rounded-tl-xs flex items-center space-x-2 text-slate-600">
           <Loader2 className="w-4 h-4 animate-spin text-[#FF6B00]" />
-          <span className="text-xs font-semibold text-slate-500">Consulting Josan Knowledge Base...</span>
+          <span className="text-xs font-semibold text-slate-500">Searching assistance...</span>
         </div>
       </div>
     );
@@ -85,13 +138,41 @@ export const ChatMessage = ({ message, isLoadingMessage }) => {
           {isUser ? <p className="leading-relaxed">{message.content}</p> : formatText(message.content)}
         </div>
 
-        {/* Sources References */}
-        {!isUser && message.sources && message.sources.length > 0 && (
+        {/* Disclaimer under message */}
+        {!isUser && message.disclaimer && (
+          <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-500 italic leading-relaxed">
+            {message.disclaimer}
+          </div>
+        )}
+
+        {/* Quote / Pricing / Specific Shipment Actions */}
+        {isQuoteOrPricingOrShipmentAnswer && (
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = '/quote';
+              }}
+              className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-orange-500/20 active:scale-95 cursor-pointer flex items-center space-x-1"
+            >
+              <span>Request a Quote</span>
+            </button>
+            <a
+              href="/contact"
+              className="text-xs font-semibold text-slate-600 hover:text-[#FF6B00] underline transition-colors cursor-pointer"
+            >
+              Contact our team
+            </a>
+          </div>
+        )}
+
+        {/* Sources References (Visible in Admin View Only for Testing) */}
+        {isAdminView && !isUser && message.sources && message.sources.length > 0 && (
           <SourceReferences sources={message.sources} />
         )}
 
-        {/* Timestamp */}
-        <div className={`text-[10px] mt-1.5 text-right font-mono ${isUser ? 'text-orange-200' : 'text-slate-400'}`}>
+        {/* Timestamp: Same font as rest of the site */}
+        <div className={`text-[10px] mt-1.5 text-right font-sans font-normal ${isUser ? 'text-orange-200' : 'text-slate-400'}`}>
           {message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
         </div>
       </div>

@@ -4,6 +4,7 @@ import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { X, Lock, Mail, ArrowRight, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { supabaseApi } from '../services/supabaseApi';
 import { isSupabaseConfigured } from '../services/supabase';
+import { openLegalDialog } from './LegalDialog';
 
 export const AuthModal = ({ setActiveTab }) => {
   const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, setAuthModalHideClose, loginUser, authRedirectTab, setAuthRedirectTab } = useLogistics();
@@ -19,6 +20,7 @@ export const AuthModal = ({ setActiveTab }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [consentAgreed, setConsentAgreed] = useState(false);
   const [error, setError] = useState('');
 
   // Driver Registration Profile Picture & Hub
@@ -35,6 +37,7 @@ export const AuthModal = ({ setActiveTab }) => {
     setConfirmPassword('');
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setConsentAgreed(false);
     setError('');
   };
 
@@ -84,6 +87,11 @@ export const AuthModal = ({ setActiveTab }) => {
 
     if (!isLogin && password !== confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    if (!isLogin && !consentAgreed) {
+      setError('Please agree to the Privacy Policy and Terms of Service to create an account.');
       return;
     }
 
@@ -435,6 +443,48 @@ export const AuthModal = ({ setActiveTab }) => {
                 </div>
               )}
 
+              {/* Consent Checkbox on Registration */}
+              {!isLogin && (
+                <div className="pt-1">
+                  <label className="flex items-start space-x-2.5 cursor-pointer text-xs text-slate-600">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={consentAgreed}
+                      onChange={(e) => setConsentAgreed(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 text-[#FF6B00] rounded border-slate-300 focus:ring-[#FF6B00] cursor-pointer"
+                    />
+                    <span className="leading-relaxed">
+                      I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openLegalDialog('privacy', e.currentTarget);
+                        }}
+                        className="text-[#FF6B00] hover:underline font-bold inline cursor-pointer"
+                      >
+                        Privacy Policy
+                      </button>
+                      {' '}and{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openLegalDialog('terms', e.currentTarget);
+                        }}
+                        className="text-[#FF6B00] hover:underline font-bold inline cursor-pointer"
+                      >
+                        Terms of Service
+                      </button>
+                      .
+                    </span>
+                  </label>
+                </div>
+              )}
+
               <button
                 type="submit"
                 className="w-full h-11 bg-[#FF6B00] hover:bg-[#E55C00] text-white rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
@@ -442,6 +492,37 @@ export const AuthModal = ({ setActiveTab }) => {
                 <span>{isLogin ? 'Sign In' : 'Register Account'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              {/* Terms & Privacy Notice on Sign In */}
+              {isLogin && (
+                <p className="text-center text-[11px] text-slate-500 mt-2 leading-relaxed">
+                  By signing in, you agree to our{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openLegalDialog('terms', e.currentTarget);
+                    }}
+                    className="text-[#FF6B00] hover:underline font-semibold inline cursor-pointer"
+                  >
+                    Terms of Service
+                  </button>
+                  {' '}and{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openLegalDialog('privacy', e.currentTarget);
+                    }}
+                    className="text-[#FF6B00] hover:underline font-semibold inline cursor-pointer"
+                  >
+                    Privacy Policy
+                  </button>
+                  .
+                </p>
+              )}
             </>
           )}
 
