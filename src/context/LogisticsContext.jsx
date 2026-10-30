@@ -835,6 +835,7 @@ export const LogisticsProvider = ({ children }) => {
           documentation: { 
             ...initialManagedServices.documentation, 
             ...(parsed.documentation || {}),
+            active: parsed.documentation?.userToggled ? parsed.documentation.active : initialManagedServices.documentation.active,
             name: 'Shipment Documentation Support',
             badge: 'Documentation Only',
             description: 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.'
@@ -861,7 +862,8 @@ export const LogisticsProvider = ({ children }) => {
         ...prev,
         [serviceId]: {
           ...current,
-          active: nextActive
+          active: nextActive,
+          userToggled: true
         }
       };
     });

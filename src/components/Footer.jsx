@@ -137,7 +137,7 @@ export const Footer = ({ setActiveTab }) => {
                     </button>
                   </li>
                 )}
-                {managedServices?.documentation?.active !== false && (
+                {Boolean(managedServices?.documentation?.active) && (
                   <li>
                     <button 
                       type="button"

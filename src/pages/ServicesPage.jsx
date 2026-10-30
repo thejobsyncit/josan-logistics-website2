@@ -57,7 +57,7 @@ export const ServicesPage = ({ setActiveTab }) => {
     },
     {
       id: 'documentation',
-      active: managedServices?.documentation?.active !== false,
+      active: Boolean(managedServices?.documentation?.active),
       title: servicesContent.documentation?.title || 'Shipment Documentation Support',
       desc: servicesContent.documentation?.shortDesc || 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.',
       image: docsHeroImg,
