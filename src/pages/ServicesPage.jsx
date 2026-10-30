@@ -97,9 +97,15 @@ export const ServicesPage = ({ setActiveTab }) => {
         </div>
       </section>
 
-      {/* 2. THREE SERVICE CARDS IN ONE ROW (STACKED ON MOBILE) */}
+      {/* 2. SERVICE CARDS IN ONE ROW (CENTERED EVENLY) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <div className={`grid grid-cols-1 ${
+          services.length === 1 
+            ? 'max-w-md mx-auto' 
+            : services.length === 2 
+              ? 'md:grid-cols-2 max-w-4xl mx-auto' 
+              : 'md:grid-cols-3'
+        } gap-6 lg:gap-8 justify-center`}>
           {services.map((service) => (
             <div 
               key={service.id}
