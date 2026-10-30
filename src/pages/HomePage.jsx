@@ -314,8 +314,14 @@ export const HomePage = ({ setActiveTab }) => {
             </p>
           </div>
 
-          {/* 3 Cards in a Single Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {/* Service Cards Centered Evenly */}
+          <div className={`grid grid-cols-1 ${
+            ourServices.length === 1 
+              ? 'max-w-md mx-auto' 
+              : ourServices.length === 2 
+                ? 'md:grid-cols-2 max-w-4xl mx-auto' 
+                : 'md:grid-cols-3'
+          } gap-6 lg:gap-8 justify-center`}>
             {ourServices.map((svc) => (
               <div 
                 key={svc.id}
