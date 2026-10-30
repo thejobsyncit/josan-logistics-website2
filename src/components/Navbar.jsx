@@ -309,7 +309,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const servicesDropdownItems = [
     ...(managedServices?.airway?.active !== false ? [{ id: 'air-freight', label: 'Air Freight Services', icon: Plane }] : []),
     ...(managedServices?.road?.active !== false ? [{ id: 'road-transportation', label: 'Commercial Road Transportation', icon: Truck }] : []),
-    ...(managedServices?.documentation?.active !== false ? [{ id: 'shipment-documentation-support', label: 'Shipment Documentation Support', icon: FileText }] : [])
+    ...(Boolean(managedServices?.documentation?.active) ? [{ id: 'shipment-documentation-support', label: 'Shipment Documentation Support', icon: FileText }] : [])
   ];
 
   return (

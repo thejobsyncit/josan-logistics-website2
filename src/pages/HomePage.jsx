@@ -120,7 +120,7 @@ export const HomePage = ({ setActiveTab }) => {
     },
     {
       id: 'customs-docs',
-      active: managedServices?.documentation?.active !== false,
+      active: Boolean(managedServices?.documentation?.active),
       title: servicesData.documentation?.title || 'Shipment Documentation Support',
       desc: servicesData.documentation?.shortDesc || 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.',
       image: '/assets/shipment_documentation_desk.jpg',

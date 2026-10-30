@@ -150,7 +150,7 @@ export const QuotePage = ({ setActiveTab }) => {
 
   const isAirActive = managedServices?.airway?.active !== false;
   const isRoadActive = managedServices?.road?.active !== false;
-  const isDocActive = managedServices?.documentation?.active !== false;
+  const isDocActive = Boolean(managedServices?.documentation?.active);
 
   // Form State: 3 Service Options
   // 'air-freight' (Air Freight Documentation Support)

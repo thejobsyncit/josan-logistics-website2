@@ -334,7 +334,7 @@ export const initialManagedServices = {
     name: 'Shipment Documentation Support',
     description: 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.',
     badge: 'Documentation Only',
-    active: true
+    active: false
   }
 };
 
