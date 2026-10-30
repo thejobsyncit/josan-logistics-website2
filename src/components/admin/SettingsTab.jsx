@@ -20,21 +20,40 @@ import {
   deleteChatSession, 
   deleteCustomerChatsOnRequest 
 } from '../../services/chatStorageService';
+import { useLogistics } from '../../context/LogisticsContext';
 
 export const SettingsTab = ({ onSaveToast }) => {
+  const { siteSettings, updateSiteSettings } = useLogistics();
   const [activeSubTab, setActiveSubTab] = useState('company'); // 'company' | 'services' | 'security' | 'alerts'
 
   const [companySettings, setCompanySettings] = useState({
-    companyName: 'Josan Logistics Pte. Ltd.',
-    uen: '201829481K',
-    gstReg: 'M90382910X',
-    contactEmail: 'operations@josanlogistics.com',
-    supportPhone: '+65 6789 1234',
-    address: '7 Changi South Street 2, #03-01 Changi Logistics Centre, Singapore 486415',
+    companyName: siteSettings?.company_name || 'Josan Logistics Pte. Ltd.',
+    uen: siteSettings?.uen || '',
+    gstReg: siteSettings?.gst_reg || '',
+    contactEmail: siteSettings?.contact_email || 'contact@josanlogistics.com.sg',
+    supportPhone: siteSettings?.phone || '+65 6789 0123',
+    address: siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
     currency: 'SGD (S$)',
     timezone: 'Asia/Singapore (UTC+8)',
     operatingRegion: 'Singapore Domestic & Port Corridors',
   });
+
+  // Keep in sync with siteSettings from Supabase / Context
+  React.useEffect(() => {
+    if (siteSettings) {
+      setCompanySettings({
+        companyName: siteSettings.company_name || 'Josan Logistics Pte. Ltd.',
+        uen: siteSettings.uen === '201829481K' || siteSettings.uen === '202412345K' ? '' : (siteSettings.uen || ''),
+        gstReg: siteSettings.gst_reg === 'M90382910X' || siteSettings.gst_reg === 'M90384721' ? '' : (siteSettings.gst_reg || ''),
+        contactEmail: siteSettings.contact_email || 'contact@josanlogistics.com.sg',
+        supportPhone: siteSettings.phone || '+65 6789 0123',
+        address: siteSettings.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        currency: 'SGD (S$)',
+        timezone: 'Asia/Singapore (UTC+8)',
+        operatingRegion: 'Singapore Domestic & Port Corridors',
+      });
+    }
+  }, [siteSettings]);
 
   const [servicesSettings, setServicesSettings] = useState({
     defaultCarrierSupport: 'Singapore Airlines Cargo (SQ)',
@@ -93,24 +112,34 @@ export const SettingsTab = ({ onSaveToast }) => {
     if (onSaveToast) onSaveToast(`Chat session deleted`, 'info');
   };
 
-  const handleSaveAll = (e) => {
-    e.preventDefault();
-    if (onSaveToast) onSaveToast('Settings successfully updated and saved to system profile.', 'success');
+  const handleSaveAll = async (e) => {
+    e?.preventDefault();
+    if (typeof updateSiteSettings === 'function') {
+      await updateSiteSettings({
+        company_name: companySettings.companyName,
+        uen: companySettings.uen ? companySettings.uen.trim() : '',
+        gst_reg: companySettings.gstReg ? companySettings.gstReg.trim() : '',
+        phone: companySettings.supportPhone ? companySettings.supportPhone.trim() : '+65 6789 0123',
+        contact_email: companySettings.contactEmail ? companySettings.contactEmail.trim() : 'contact@josanlogistics.com.sg',
+        registered_office: companySettings.address ? companySettings.address.trim() : '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+      });
+    }
+    if (onSaveToast) onSaveToast('Settings successfully updated and saved to system profile & database.', 'success');
   };
 
   const handleResetDefaults = () => {
     setCompanySettings({
       companyName: 'Josan Logistics Pte. Ltd.',
-      uen: '201829481K',
-      gstReg: 'M90382910X',
-      contactEmail: 'operations@josanlogistics.com',
-      supportPhone: '+65 6789 1234',
-      address: '7 Changi South Street 2, #03-01 Changi Logistics Centre, Singapore 486415',
+      uen: '',
+      gstReg: '',
+      contactEmail: 'contact@josanlogistics.com.sg',
+      supportPhone: '+65 6789 0123',
+      address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
       currency: 'SGD (S$)',
       timezone: 'Asia/Singapore (UTC+8)',
       operatingRegion: 'Singapore Domestic & Port Corridors',
     });
-    if (onSaveToast) onSaveToast('Default operational profile restored.', 'info');
+    if (onSaveToast) onSaveToast('Default real corporate profile restored.', 'info');
   };
 
   return (
@@ -128,7 +157,7 @@ export const SettingsTab = ({ onSaveToast }) => {
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mt-1">Platform & Operations Settings</h2>
           <p className="text-xs text-slate-500">
-            Configure company legal registration, airway & road partner rules, access security, and alerts.
+            Configure company legal registration, air freight &amp; road partner rules, access security, and alerts.
           </p>
         </div>
 
@@ -144,7 +173,7 @@ export const SettingsTab = ({ onSaveToast }) => {
           <button
             type="button"
             onClick={handleSaveAll}
-            className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+            className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer"
           >
             <Check className="w-4 h-4" />
             <span>Save All Changes</span>
@@ -170,11 +199,11 @@ export const SettingsTab = ({ onSaveToast }) => {
               onClick={() => setActiveSubTab(tab.id)}
               className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'bg-[#2463EB] text-white shadow-2xs font-extrabold'
+                  ? 'bg-slate-900 text-white shadow-2xs font-extrabold'
                   : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
-              <TabIcon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+              <TabIcon className={`w-4 h-4 ${isActive ? 'text-[#FF6B00]' : 'text-slate-500'}`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -184,10 +213,28 @@ export const SettingsTab = ({ onSaveToast }) => {
       {/* TAB 1: COMPANY & PROFILE */}
       {activeSubTab === 'company' && (
         <form onSubmit={handleSaveAll} className="space-y-6 text-xs animate-fade-in">
+          {/* Demo Values Warning Banner */}
+          {siteSettings?.demo_mode && (
+            <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl flex items-start space-x-3 text-amber-900 shadow-sm animate-fade-in">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="font-extrabold text-sm text-amber-900">Demo values</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-200 text-amber-800 border border-amber-300">
+                    demo_mode: true
+                  </span>
+                </div>
+                <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                  This portal is operating in demonstration mode. The contact phone (+65 6789 0123) and regulatory numbers are demonstration values. Please enter real ACRA UEN and IRAS GST registration numbers before production deployment.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2 border-b border-slate-200 pb-3">
-              <Building2 className="w-4 h-4 text-[#2463EB]" />
-              <span>Legal Entity & Singapore Registration</span>
+              <Building2 className="w-4 h-4 text-[#FF6B00]" />
+              <span>Legal Entity &amp; Singapore Registration</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -197,7 +244,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.companyName}
                   onChange={(e) => setCompanySettings({ ...companySettings, companyName: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] shadow-2xs"
                 />
               </div>
 
@@ -207,8 +254,10 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.uen}
                   onChange={(e) => setCompanySettings({ ...companySettings, uen: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
+                  placeholder="[ENTER REAL UEN or leave blank]"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] shadow-2xs"
                 />
+                <span className="text-[10px] text-slate-500 mt-1 block">Leave blank until real ACRA UEN is issued.</span>
               </div>
 
               <div>
@@ -217,8 +266,10 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.gstReg}
                   onChange={(e) => setCompanySettings({ ...companySettings, gstReg: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus-blue shadow-2xs"
+                  placeholder="[ENTER REAL or leave blank]"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono font-bold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] shadow-2xs"
                 />
+                <span className="text-[10px] text-slate-500 mt-1 block">Leave blank if non-GST registered or pending IRAS registration.</span>
               </div>
 
               <div>
@@ -227,29 +278,45 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.supportPhone}
                   onChange={(e) => setCompanySettings({ ...companySettings, supportPhone: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
+                  placeholder="+65 6789 0123"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] shadow-2xs"
                 />
+                <span className="text-[10px] text-slate-500 mt-1 block">Single site phone from site_settings (currently +65 6789 0123, a demo).</span>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-slate-700 font-bold mb-1">Contact & Dispatch Email</label>
+                <label className="block text-slate-700 font-bold mb-1">Contact Email</label>
                 <input
                   type="email"
                   value={companySettings.contactEmail}
                   onChange={(e) => setCompanySettings({ ...companySettings, contactEmail: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus-blue shadow-2xs"
+                  placeholder="contact@josanlogistics.com.sg"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] shadow-2xs"
                 />
+                <span className="text-[10px] text-slate-500 mt-1 block">Primary contact email across all public pages, quotes, and documentation.</span>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-slate-700 font-bold mb-1">Registered Logistics Office Address</label>
+                <label className="block text-slate-700 font-bold mb-1">Registered Office Address</label>
                 <input
                   type="text"
                   value={companySettings.address}
                   onChange={(e) => setCompanySettings({ ...companySettings, address: e.target.value })}
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus-blue shadow-2xs"
+                  placeholder="10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438 [CONFIRM]"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] shadow-2xs"
                 />
+                <span className="text-[10px] text-slate-500 mt-1 block">10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438 [CONFIRM]</span>
               </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold flex items-center space-x-1.5 cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all text-xs"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save Company Profile</span>
+              </button>
             </div>
           </div>
         </form>
@@ -389,7 +456,7 @@ export const SettingsTab = ({ onSaveToast }) => {
                 />
                 <div>
                   <span className="font-bold text-slate-900 block">New Service Request Alert</span>
-                  <span className="text-[11px] text-slate-500">Receive email notification when a customer submits an inquiry or booking request.</span>
+                  <span className="text-[11px] text-slate-500">Receive email notification when a customer submits an inquiry or quote request.</span>
                 </div>
               </label>
 

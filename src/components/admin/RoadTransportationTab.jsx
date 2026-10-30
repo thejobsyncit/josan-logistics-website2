@@ -33,7 +33,7 @@ export const RoadTransportationTab = ({
   );
 
   const filtered = roadShipments.filter(s => {
-    const partner = s.transportationPartner || s.carrier || 'Woodlands Linehaul Logistics Pte Ltd';
+    const partner = s.transportationPartner || s.carrier || 'Woodlands Roadways Logistics Pte Ltd';
     if (partnerFilter !== 'All' && partner !== partnerFilter) return false;
 
     if (!search.trim()) return true;
@@ -123,7 +123,7 @@ export const RoadTransportationTab = ({
             className="py-2 px-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue cursor-pointer"
           >
             <option value="All">All Partners</option>
-            <option value="Woodlands Linehaul Logistics Pte Ltd">Woodlands Linehaul Logistics</option>
+            <option value="Woodlands Roadways Logistics Pte Ltd">Woodlands Roadways Logistics</option>
             <option value="Apex Prime Haulage Pte Ltd">Apex Prime Haulage</option>
             <option value="Island Freight Express Partners">Island Freight Express Partners</option>
             <option value="Changi Feeder Transport Co.">Changi Feeder Transport Co.</option>
@@ -154,7 +154,7 @@ export const RoadTransportationTab = ({
               </tr>
             ) : (
               filtered.map((item) => {
-                const partnerName = item.transportationPartner || item.carrier || 'Woodlands Linehaul Logistics Pte Ltd';
+                const partnerName = item.transportationPartner || item.carrier || 'Woodlands Roadways Logistics Pte Ltd';
                 const vehiclePlate = item.vehiclePlate || 'SG-8819';
                 const vehicleType = item.vehicleType || '14ft Box Truck';
                 const driverName = item.driverName || 'Tan Wei Ming (Partner Driver)';

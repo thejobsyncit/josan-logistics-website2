@@ -1,861 +1,753 @@
--- =======================================================================
--- JOSAN LOGISTICS PLATFORM - COMPLETE SUPABASE DATABASE MIGRATION SCRIPT
--- Shared Backend Migration for Admin Website & Driver App
--- Copy and paste this complete script into your Supabase SQL Editor (https://app.supabase.com)
--- =======================================================================
+-- =========================================================
+-- JOSAN LOGISTICS - FRESH DATABASE SCHEMA
+-- =========================================================
+create extension if not exists pgcrypto with schema extensions;
 
--- 1. Enable Required Extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- ---------- helper functions ----------
+create or replace function public.set_updated_at() returns trigger
+language plpgsql as $$
+begin new.updated_at = now(); return new; end $$;
 
--- =======================================================================
--- TABLE 1: PROFILES (Extends Supabase Auth users)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  user_id UUID DEFAULT auth.uid(),
-  name TEXT NOT NULL DEFAULT 'User',
-  email TEXT UNIQUE NOT NULL,
-  phone TEXT,
-  role TEXT DEFAULT 'CUSTOMER',
-  status TEXT DEFAULT 'Active',
-  company TEXT,
-  avatar_url TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+-- secure random code from a readable alphabet (no 0, O, 1, I, L)
+create or replace function public.random_code(len int) returns text
+language plpgsql set search_path = public, extensions as $$
+declare
+  alphabet constant text := '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+  b bytea := gen_random_bytes(len);
+  r text := '';
+begin
+  for i in 0..len-1 loop
+    r := r || substr(alphabet, (get_byte(b, i) % 31) + 1, 1);
+  end loop;
+  return r;
+end $$;
+
+-- ---------- profiles (customers and staff) ----------
+create table public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  name text,
+  email text unique not null,
+  phone text,
+  company text,
+  uen text,
+  billing_address text,
+  role text not null default 'CUSTOMER'
+    check (role in ('CUSTOMER','CRM','ADMIN','READONLY')),
+  status text not null default 'Active'
+    check (status in ('Active','Invited','Disabled')),
+  must_change_password boolean not null default false,
+  last_login_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- Ensure missing columns exist if table was previously created
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS user_id UUID DEFAULT auth.uid();
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS name TEXT DEFAULT 'User';
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone TEXT;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'CUSTOMER';
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active';
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS company TEXT;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
-
--- =======================================================================
--- TABLE 2: DRIVERS (Driver Fleet Telematics & Roster)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.drivers (
-  id TEXT PRIMARY KEY,
-  profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-  employee_id TEXT,
-  phone TEXT NOT NULL DEFAULT '+65 9000 0000',
-  vehicle_number TEXT,
-  vehicle_type TEXT DEFAULT '14-Ton Box Truck',
-  status TEXT DEFAULT 'Available',
-  current_latitude DOUBLE PRECISION DEFAULT 1.3521,
-  current_longitude DOUBLE PRECISION DEFAULT 103.8200,
-  last_location_at TIMESTAMPTZ DEFAULT NOW(),
-
-  -- Additional Fleet Roster Metadata
-  name TEXT NOT NULL DEFAULT 'Fleet Driver',
-  email TEXT UNIQUE,
-  password TEXT DEFAULT 'driver123',
-  photo TEXT,
-  license_number TEXT,
-  vehicle_id TEXT,
-  vehicle_plate TEXT,
-  deliveries_completed INT DEFAULT 0,
-  on_time_rate TEXT DEFAULT '99.5%',
-  rating NUMERIC(3,2) DEFAULT 4.90,
-  assigned_hub TEXT DEFAULT 'Changi Air Cargo Hub',
-  safety_score TEXT DEFAULT '99/100',
-  coordinates JSONB DEFAULT '[1.3521, 103.8200]'::jsonb,
-  last_location TEXT DEFAULT 'Singapore Central Hub',
-  speed_kph NUMERIC DEFAULT 0,
-  battery_level INT DEFAULT 95,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Ensure missing columns exist on existing drivers table
-ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
-ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS employee_id TEXT;
-ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS vehicle_number TEXT;
-ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS vehicle_type TEXT DEFAULT '14-Ton Box Truck';
-ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS current_latitude DOUBLE PRECISION DEFAULT 1.3521;
-ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS current_longitude DOUBLE PRECISION DEFAULT 103.8200;
-ALTER TABLE public.drivers ADD COLUMN IF NOT EXISTS last_location_at TIMESTAMPTZ DEFAULT NOW();
-
--- =======================================================================
--- TABLE 3: CUSTOMERS (Corporate Shippers Directory)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.customers (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL DEFAULT 'Customer',
-  company_name TEXT,
-  email TEXT UNIQUE NOT NULL,
-  phone TEXT,
-  address TEXT,
-  postal_code TEXT,
-  
-  -- Additional Corporate Account Metadata
-  company TEXT,
-  tier TEXT DEFAULT 'Standard Corporate',
-  total_spent TEXT DEFAULT 'S$ 0.00',
-  total_shipments INT DEFAULT 0,
-  status TEXT DEFAULT 'Active',
-  tags TEXT[] DEFAULT ARRAY['Corporate'],
-  credit_limit TEXT DEFAULT 'S$ 50,000',
-  payment_terms TEXT DEFAULT 'Net 30 Days',
-  password TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Ensure missing columns exist on existing customers table
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS name TEXT DEFAULT 'Customer';
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS company_name TEXT;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS email TEXT;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS phone TEXT;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS address TEXT;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS postal_code TEXT;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS company TEXT;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS tier TEXT DEFAULT 'Standard Corporate';
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS total_spent TEXT DEFAULT 'S$ 0.00';
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS total_shipments INT DEFAULT 0;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active';
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT ARRAY['Corporate'];
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS credit_limit TEXT DEFAULT 'S$ 50,000';
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS payment_terms TEXT DEFAULT 'Net 30 Days';
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS password TEXT;
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
-ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
-
--- =======================================================================
--- TABLE 4: SHIPMENTS (Consignments & Live Telematics)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.shipments (
-  id TEXT PRIMARY KEY,
-  tracking_number TEXT,
-  customer_id TEXT REFERENCES public.customers(id) ON DELETE SET NULL,
-  driver_id TEXT REFERENCES public.drivers(id) ON DELETE SET NULL,
-  pickup_address TEXT,
-  pickup_postal_code TEXT DEFAULT '048616',
-  delivery_address TEXT,
-  delivery_postal_code TEXT DEFAULT '619114',
-  package_description TEXT DEFAULT 'General Freight Cargo',
-  weight TEXT DEFAULT '500 kg',
-  dimensions TEXT DEFAULT '120x80x100 cm',
-  scheduled_date TEXT DEFAULT 'Today',
-  time_slot TEXT DEFAULT '09:00 AM - 05:00 PM',
-  status TEXT DEFAULT 'ASSIGNED',
-
-  -- UI Compatibility & Telematics Fields
-  sender TEXT,
-  sender_phone TEXT,
-  sender_address TEXT,
-  receiver TEXT,
-  receiver_phone TEXT,
-  receiver_address TEXT,
-  origin TEXT,
-  destination TEXT,
-  current_location TEXT DEFAULT 'Singapore Central Freight Hub',
-  status_type TEXT DEFAULT 'active',
-  payment_status TEXT DEFAULT 'Paid',
-  service_level TEXT DEFAULT 'Express Road Freight',
-  cargo_type TEXT DEFAULT 'General Freight',
-  pieces INT DEFAULT 1,
-  declared_value TEXT DEFAULT 'S$ 10,000',
-  price TEXT DEFAULT 'S$ 450.00',
-  driver_name TEXT,
-  driver_phone TEXT,
-  vehicle TEXT,
-  vehicle_plate TEXT,
-  vehicle_type TEXT,
-  estimated_delivery TEXT DEFAULT 'Today, 5:00 PM',
-  last_updated_time TEXT DEFAULT 'Just now',
-  delivery_otp TEXT,
-  otp_verified BOOLEAN DEFAULT FALSE,
-  otp_generated_at TEXT,
-  coordinates JSONB DEFAULT '{"origin": [1.3400, 103.7100], "current": [1.3521, 103.8200], "destination": [1.4380, 103.7890]}'::jsonb,
-  timeline JSONB DEFAULT '[]'::jsonb,
-  weather_delay JSONB,
-  pod JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Ensure missing columns exist on existing shipments table
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS tracking_number TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS customer_id TEXT REFERENCES public.customers(id) ON DELETE SET NULL;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS driver_id TEXT REFERENCES public.drivers(id) ON DELETE SET NULL;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pickup_address TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pickup_postal_code TEXT DEFAULT '048616';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS delivery_address TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS delivery_postal_code TEXT DEFAULT '619114';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS package_description TEXT DEFAULT 'General Freight Cargo';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS weight TEXT DEFAULT '500 kg';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS dimensions TEXT DEFAULT '120x80x100 cm';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS scheduled_date TEXT DEFAULT 'Today';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS time_slot TEXT DEFAULT '09:00 AM - 05:00 PM';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'ASSIGNED';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS sender TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS sender_phone TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS sender_address TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS receiver TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS receiver_phone TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS receiver_address TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS origin TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS destination TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS current_location TEXT DEFAULT 'Singapore Central Freight Hub';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS status_type TEXT DEFAULT 'active';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'Paid';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS service_level TEXT DEFAULT 'Express Road Freight';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS cargo_type TEXT DEFAULT 'General Freight';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pieces INT DEFAULT 1;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS declared_value TEXT DEFAULT 'S$ 10,000';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS price TEXT DEFAULT 'S$ 450.00';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS driver_name TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS driver_phone TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS vehicle TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS vehicle_plate TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS vehicle_type TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS estimated_delivery TEXT DEFAULT 'Today, 5:00 PM';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS last_updated_time TEXT DEFAULT 'Just now';
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS delivery_otp TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS otp_verified BOOLEAN DEFAULT FALSE;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS otp_generated_at TEXT;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS coordinates JSONB DEFAULT '{"origin": [1.3400, 103.7100], "current": [1.3521, 103.8200], "destination": [1.4380, 103.7890]}'::jsonb;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS timeline JSONB DEFAULT '[]'::jsonb;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS weather_delay JSONB;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS pod JSONB;
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
-ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
-
--- Remove legacy CHECK constraints on shipments.status if any exist to support standard status names
-DO $$
-DECLARE
-    r RECORD;
-BEGIN
-    FOR r IN (
-        SELECT constraint_name 
-        FROM information_schema.table_constraints 
-        WHERE table_schema = 'public' 
-          AND table_name = 'shipments' 
-          AND constraint_type = 'CHECK'
-    ) LOOP
-        EXECUTE 'ALTER TABLE public.shipments DROP CONSTRAINT IF EXISTS ' || quote_ident(r.constraint_name);
-    END LOOP;
-END $$;
-
--- Sync tracking_number and fallback addresses if null
-CREATE OR REPLACE FUNCTION sync_shipment_tracking_number()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.tracking_number IS NULL THEN
-    NEW.tracking_number := NEW.id;
-  END IF;
-  IF NEW.pickup_address IS NULL THEN
-    NEW.pickup_address := COALESCE(NEW.sender_address, NEW.origin, 'Singapore Pickup Address');
-  END IF;
-  IF NEW.delivery_address IS NULL THEN
-    NEW.delivery_address := COALESCE(NEW.receiver_address, NEW.destination, 'Singapore Delivery Address');
-  END IF;
-  IF NEW.sender IS NULL THEN
-    NEW.sender := 'Josan Client';
-  END IF;
-  IF NEW.receiver IS NULL THEN
-    NEW.receiver := 'Recipient';
-  END IF;
-  IF NEW.origin IS NULL THEN
-    NEW.origin := NEW.pickup_address;
-  END IF;
-  IF NEW.destination IS NULL THEN
-    NEW.destination := NEW.delivery_address;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trigger_sync_shipment_tracking_number ON public.shipments;
-CREATE TRIGGER trigger_sync_shipment_tracking_number
-BEFORE INSERT OR UPDATE ON public.shipments
-FOR EACH ROW EXECUTE FUNCTION sync_shipment_tracking_number();
-
--- =======================================================================
--- TABLE 5: TRIP_STATUS_HISTORY (Consignment Timeline Audit Log)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.trip_status_history (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  shipment_id TEXT REFERENCES public.shipments(id) ON DELETE CASCADE NOT NULL,
-  driver_id TEXT REFERENCES public.drivers(id) ON DELETE SET NULL,
-  status TEXT NOT NULL,
-  latitude NUMERIC(10, 6),
-  longitude NUMERIC(10, 6),
-  notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- =======================================================================
--- TABLE 6: DRIVER_LOCATIONS (GPS Telemetry Stream)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.driver_locations (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  driver_id TEXT REFERENCES public.drivers(id) ON DELETE CASCADE NOT NULL,
-  latitude NUMERIC(10, 6) NOT NULL,
-  longitude NUMERIC(10, 6) NOT NULL,
-  accuracy NUMERIC(8, 2) DEFAULT 5.0,
-  recorded_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Trigger to update driver current location upon telemetry ping
-CREATE OR REPLACE FUNCTION update_driver_current_location()
-RETURNS TRIGGER AS $$
-BEGIN
-  UPDATE public.drivers
-  SET current_latitude = NEW.latitude,
-      current_longitude = NEW.longitude,
-      last_location_at = NEW.recorded_at,
-      coordinates = jsonb_build_array(NEW.latitude, NEW.longitude),
-      updated_at = NOW()
-  WHERE id = NEW.driver_id;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trigger_update_driver_location ON public.driver_locations;
-CREATE TRIGGER trigger_update_driver_location
-AFTER INSERT ON public.driver_locations
-FOR EACH ROW EXECUTE FUNCTION update_driver_current_location();
-
--- =======================================================================
--- TABLE 7: PROOF_OF_DELIVERY (Digital POD Certificates)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.proof_of_delivery (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  shipment_id TEXT REFERENCES public.shipments(id) ON DELETE CASCADE NOT NULL,
-  driver_id TEXT REFERENCES public.drivers(id) ON DELETE SET NULL,
-  receiver_name TEXT NOT NULL,
-  signature_url TEXT,
-  photo_url TEXT,
-  notes TEXT,
-  delivered_at TIMESTAMPTZ DEFAULT NOW(),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Trigger to log shipment status change into trip_status_history
-CREATE OR REPLACE FUNCTION log_shipment_status_change()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF (TG_OP = 'INSERT') OR (OLD.status IS DISTINCT FROM NEW.status) THEN
-    INSERT INTO public.trip_status_history (shipment_id, driver_id, status, latitude, longitude, notes)
-    VALUES (
-      NEW.id,
-      NEW.driver_id,
-      NEW.status,
-      (NEW.coordinates->'current'->>0)::numeric,
-      (NEW.coordinates->'current'->>1)::numeric,
-      'Shipment status updated to ' || NEW.status
-    );
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trigger_log_shipment_status ON public.shipments;
-CREATE TRIGGER trigger_log_shipment_status
-AFTER INSERT OR UPDATE ON public.shipments
-FOR EACH ROW EXECUTE FUNCTION log_shipment_status_change();
-
--- =======================================================================
--- TABLE 8: NOTIFICATIONS (System & User Alerts)
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.notifications (
-  id TEXT PRIMARY KEY,
-  user_id TEXT DEFAULT 'all',
-  title TEXT NOT NULL,
-  message TEXT NOT NULL,
-  type TEXT DEFAULT 'general',
-  read BOOLEAN DEFAULT FALSE,
-  role TEXT DEFAULT 'customer',
-  shipment_id TEXT,
-  quote_id TEXT,
-  timestamp TEXT DEFAULT 'Just now',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- =======================================================================
--- TABLE 9: WAREHOUSES & OTHER MODULES
--- =======================================================================
-CREATE TABLE IF NOT EXISTS public.warehouses (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  location TEXT NOT NULL,
-  manager TEXT,
-  phone TEXT,
-  capacity TEXT DEFAULT '85,000 sq ft',
-  capacity_percentage INT DEFAULT 75,
-  status TEXT DEFAULT 'Operational',
-  utilization TEXT DEFAULT '75%',
-  active_parcels INT DEFAULT 1000,
-  incoming_today INT DEFAULT 200,
-  outgoing_today INT DEFAULT 180,
-  bins JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.quotes (
-  id TEXT PRIMARY KEY,
-  customer_id TEXT,
-  customer_name TEXT NOT NULL,
-  customer_email TEXT NOT NULL,
-  customer_phone TEXT,
-  company TEXT,
-  origin TEXT NOT NULL,
-  destination TEXT NOT NULL,
-  cargo_category TEXT DEFAULT 'General Freight',
-  cargo_weight NUMERIC DEFAULT 500,
-  freight_mode TEXT DEFAULT 'ftl',
-  delivery_speed TEXT DEFAULT 'standard',
-  notes TEXT,
-  status TEXT DEFAULT 'Sent',
-  valid_until TEXT DEFAULT 'Sep 07, 2026',
-  line_items JSONB DEFAULT '{}'::jsonb,
-  admin_notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.crm_leads (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  company TEXT NOT NULL,
-  email TEXT NOT NULL,
-  phone TEXT,
-  source TEXT DEFAULT 'Website Quote Form',
-  stage TEXT DEFAULT 'New',
-  estimated_value NUMERIC DEFAULT 10000,
-  tags TEXT[] DEFAULT ARRAY['Singapore-Roadways'],
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.crm_communications (
-  id TEXT PRIMARY KEY,
-  target_type TEXT DEFAULT 'lead',
-  target_id TEXT NOT NULL,
-  type TEXT DEFAULT 'call',
-  staff_name TEXT DEFAULT 'Darren Josan',
-  summary TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.crm_tasks (
-  id TEXT PRIMARY KEY,
-  target_type TEXT DEFAULT 'lead',
-  target_id TEXT,
-  title TEXT NOT NULL,
-  due_date TEXT DEFAULT '2026-09-30',
-  priority TEXT DEFAULT 'medium',
-  status TEXT DEFAULT 'pending',
-  assigned_to TEXT DEFAULT 'Sales Specialist',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.invoices (
-  id TEXT PRIMARY KEY,
-  shipment_id TEXT REFERENCES public.shipments(id) ON DELETE SET NULL,
-  customer_name TEXT NOT NULL,
-  customer_company TEXT,
-  amount TEXT NOT NULL,
-  status TEXT DEFAULT 'Pending',
-  issue_date TEXT DEFAULT '2026-08-31',
-  due_date TEXT DEFAULT '2026-09-30',
-  items JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.support_tickets (
-  id TEXT PRIMARY KEY,
-  customer_name TEXT NOT NULL,
-  customer_email TEXT NOT NULL,
-  subject TEXT NOT NULL,
-  description TEXT NOT NULL,
-  status TEXT DEFAULT 'Open',
-  priority TEXT DEFAULT 'Medium',
-  replies JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.documents (
-  id TEXT PRIMARY KEY,
-  shipment_id TEXT REFERENCES public.shipments(id) ON DELETE CASCADE,
-  document_name TEXT NOT NULL,
-  document_type TEXT DEFAULT 'e-Waybill',
-  file_url TEXT,
-  uploaded_by TEXT DEFAULT 'Operations',
-  uploaded_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- =======================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
--- =======================================================================
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.drivers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.shipments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.trip_status_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.driver_locations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.proof_of_delivery ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.warehouses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quotes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.crm_leads ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.crm_communications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.crm_tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
-
--- Create Open Policies for Client Access
-DO $$ 
-BEGIN
-    DROP POLICY IF EXISTS "Profiles Policy" ON public.profiles;
-    DROP POLICY IF EXISTS "Drivers Policy" ON public.drivers;
-    DROP POLICY IF EXISTS "Customers Policy" ON public.customers;
-    DROP POLICY IF EXISTS "Shipments Policy" ON public.shipments;
-    DROP POLICY IF EXISTS "Trip Status History Policy" ON public.trip_status_history;
-    DROP POLICY IF EXISTS "Driver Locations Policy" ON public.driver_locations;
-    DROP POLICY IF EXISTS "Proof of Delivery Policy" ON public.proof_of_delivery;
-    DROP POLICY IF EXISTS "Notifications Policy" ON public.notifications;
-    DROP POLICY IF EXISTS "Warehouses Policy" ON public.warehouses;
-    DROP POLICY IF EXISTS "Quotes Policy" ON public.quotes;
-    DROP POLICY IF EXISTS "CRM Leads Policy" ON public.crm_leads;
-    DROP POLICY IF EXISTS "CRM Comms Policy" ON public.crm_communications;
-    DROP POLICY IF EXISTS "CRM Tasks Policy" ON public.crm_tasks;
-    DROP POLICY IF EXISTS "Invoices Policy" ON public.invoices;
-    DROP POLICY IF EXISTS "Tickets Policy" ON public.support_tickets;
-    DROP POLICY IF EXISTS "Documents Policy" ON public.documents;
-END $$;
-
-CREATE POLICY "Profiles Policy" ON public.profiles FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Drivers Policy" ON public.drivers FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Customers Policy" ON public.customers FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Shipments Policy" ON public.shipments FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Trip Status History Policy" ON public.trip_status_history FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Driver Locations Policy" ON public.driver_locations FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Proof of Delivery Policy" ON public.proof_of_delivery FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Notifications Policy" ON public.notifications FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Warehouses Policy" ON public.warehouses FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Quotes Policy" ON public.quotes FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "CRM Leads Policy" ON public.crm_leads FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "CRM Comms Policy" ON public.crm_communications FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "CRM Tasks Policy" ON public.crm_tasks FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Invoices Policy" ON public.invoices FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Tickets Policy" ON public.support_tickets FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Documents Policy" ON public.documents FOR ALL USING (true) WITH CHECK (true);
-
--- =======================================================================
--- SUPABASE REALTIME PUBLICATION
--- =======================================================================
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-    CREATE PUBLICATION supabase_realtime;
-  END IF;
-
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.shipments;
-  EXCEPTION WHEN duplicate_object THEN NULL;
-  END;
-
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.drivers;
-  EXCEPTION WHEN duplicate_object THEN NULL;
-  END;
-
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.driver_locations;
-  EXCEPTION WHEN duplicate_object THEN NULL;
-  END;
-
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.trip_status_history;
-  EXCEPTION WHEN duplicate_object THEN NULL;
-  END;
-
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.proof_of_delivery;
-  EXCEPTION WHEN duplicate_object THEN NULL;
-  END;
-
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
-  EXCEPTION WHEN duplicate_object THEN NULL;
-  END;
-END $$;
-
--- =======================================================================
--- INITIAL SEED DATA
--- =======================================================================
-INSERT INTO public.customers (id, name, company_name, email, phone, address, postal_code, tier)
-VALUES 
-  ('CUST-001', 'Razer Asia-Pacific HQ', 'Razer Asia-Pacific', 'shipping@razer.com', '+65 6789 0123', '1 Raffles Place, #20-01, Singapore', '048616', 'Tier 1 Corporate'),
-  ('CUST-002', 'PSA Pasir Panjang Terminal', 'PSA Singapore', 'logistics@psa.sg', '+65 6273 8888', '33 Harbour Drive, Singapore', '117606', 'Enterprise Key Account')
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO public.drivers (id, name, phone, email, license_number, vehicle_type, vehicle_id, vehicle_plate, status, deliveries_completed, on_time_rate, rating, safety_score, current_latitude, current_longitude)
-VALUES 
-  ('DRV-101', 'Tan Wei Ming', '+65 6789 0123', 'tan.weiming@josanlogistics.com', 'SG-CLASS4-9910', 'Josan EV Express Cargo Truck', 'SG-8819', 'SG-8819', 'On Delivery', 840, '99.6%', 4.9, '99/100', 1.3521, 103.8200),
-  ('DRV-102', 'Muhammad Rizal', '+65 8234 5678', 'm.rizal@josanlogistics.com', 'SG-CLASS5-8810', 'Volvo Heavy Container Truck', 'SG-4402', 'SG-4402', 'On Delivery', 610, '98.9%', 4.8, '97/100', 1.3412, 103.7712),
-  ('DRV-103', 'Gurpreet Singh', '+65 9876 5432', 'gurpreet.sg@josanlogistics.com', 'SG-CLASS4-7721', 'Refrigerated Cold-Chain Van', 'SG-6630', 'SG-6630', 'Available', 420, '99.8%', 5.0, '100/100', 1.3000, 103.8000)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO public.shipments (
-  id, tracking_number, customer_id, driver_id, sender, sender_phone, sender_address, pickup_address, pickup_postal_code,
-  receiver, receiver_phone, receiver_address, delivery_address, delivery_postal_code, origin, destination,
-  current_location, status, status_type, payment_status, service_level, cargo_type, weight, pieces, declared_value,
-  price, driver_name, driver_phone, vehicle, vehicle_plate, estimated_delivery
-)
-VALUES 
-  (
-    'JOS-77102-SG', 'JOS-77102-SG', 'CUST-001', 'DRV-101',
-    'Razer Asia-Pacific HQ', '+65 6789 0123', '1 Raffles Place, #20-01, Singapore 048616', '1 Raffles Place, #20-01, Singapore', '048616',
-    'Pasir Panjang Terminal Gate 4', '+65 6789 0123', '10 Pasir Panjang Road, Singapore 117438', '10 Pasir Panjang Road, Singapore', '117438',
-    'Changi Air Cargo Logistics Hub', 'Woodlands Roadways Terminal',
-    'PIE Expressway Telematics Gate', 'IN_TRANSIT', 'active', 'Paid', 'Express Road Freight (FTL)',
-    'High-Tech Electronics & Components', '2,450 kg', 8, 'S$ 68,500', 'S$ 740.00', 'Tan Wei Ming', '+65 6789 0123',
-    'Josan 14-Ton Highway Linehaul Truck #SG-8819', 'SG-8819', 'Today, 4:30 PM (SGT)'
-  ),
-  (
-    'JOS-44021-SG', 'JOS-44021-SG', 'CUST-002', 'DRV-102',
-    'PSA Pasir Panjang Terminal', '+65 6273 8888', '33 Harbour Drive, Singapore 117606', '33 Harbour Drive, Singapore', '117606',
-    'Woodlands High-Tech Park', '+65 8234 5678', '21 Woodlands Loop, Singapore 738322', '21 Woodlands Loop, Singapore', '738322',
-    'Pasir Panjang Terminal Berth 5', 'Woodlands Industrial Estate',
-    'BKE Expressway Exit 7', 'ARRIVED_AT_DELIVERY', 'active', 'Unpaid', 'Land Trucking & Container Line',
-    'Industrial Precision Components', '1,420 kg', 12, 'S$ 145,000', 'S$ 1,280.00', 'Muhammad Rizal', '+65 8234 5678',
-    'Volvo Heavy Container Truck #SG-4402', 'SG-4402', 'Today, 5:15 PM (SGT)'
-  )
-ON CONFLICT (id) DO NOTHING;
-
--- Ensure unique constraint on customers email if missing
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname = 'customers_email_key'
-    ) THEN
-        ALTER TABLE public.customers ADD CONSTRAINT customers_email_key UNIQUE (email);
-    END IF;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
--- =======================================================================
--- AUTOMATIC NEW USER SYNC TRIGGER (auth.users -> profiles & customers)
--- Exception-safe database trigger for Supabase Auth signups
--- =======================================================================
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-DECLARE
-  user_name TEXT;
-  user_role TEXT;
-  user_company TEXT;
-  user_phone TEXT;
-BEGIN
-  user_name := COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', SPLIT_PART(NEW.email, '@', 1));
-  user_role := UPPER(COALESCE(NEW.raw_user_meta_data->>'role', 'CUSTOMER'));
-  user_company := COALESCE(NEW.raw_user_meta_data->>'company', '');
-  user_phone := COALESCE(NEW.raw_user_meta_data->>'phone', '');
-
-  -- 1. Insert/Update public.profiles safely
-  BEGIN
-    INSERT INTO public.profiles (id, user_id, name, email, phone, role, company, status)
-    VALUES (NEW.id, NEW.id, user_name, NEW.email, user_phone, user_role, user_company, 'Active')
-    ON CONFLICT (id) DO UPDATE SET
-      name = EXCLUDED.name,
-      phone = EXCLUDED.phone,
-      company = EXCLUDED.company,
-      role = EXCLUDED.role;
-  EXCEPTION WHEN OTHERS THEN
-    RAISE WARNING 'Profiles sync error: %', SQLERRM;
-  END;
-
-  -- 2. Insert/Update public.customers safely if user role includes CUSTOMER
-  IF user_role LIKE '%CUSTOMER%' THEN
-    BEGIN
-      INSERT INTO public.customers (id, name, company_name, email, phone, company, status, tier, password)
-      VALUES (NEW.id::text, user_name, user_company, NEW.email, user_phone, user_company, 'Active', 'Standard Corporate', 'customer123')
-      ON CONFLICT (id) DO UPDATE SET
-        name = EXCLUDED.name,
-        company_name = EXCLUDED.company_name,
-        email = EXCLUDED.email,
-        phone = EXCLUDED.phone,
-        company = EXCLUDED.company,
-        password = EXCLUDED.password;
-    EXCEPTION WHEN OTHERS THEN
-      RAISE WARNING 'Customers sync error: %', SQLERRM;
-    END;
-  END IF;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create database trigger on auth.users table
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- =======================================================================
--- TABLE 13: RAG CHATBOT & KNOWLEDGE BASE SCHEMA (pgvector)
--- =======================================================================
-
--- Enable pgvector extension for similarity vector search
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- 1. Master Documents Metadata Table
-CREATE TABLE IF NOT EXISTS public.documents (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  file_name TEXT NOT NULL,
-  file_url TEXT,
-  file_type TEXT DEFAULT 'pdf',
-  title TEXT NOT NULL,
-  description TEXT,
-  category TEXT DEFAULT 'General',
-  chunk_count INT DEFAULT 0,
-  status TEXT DEFAULT 'COMPLETED', -- UPLOADING, PROCESSING, COMPLETED, FAILED
-  error_message TEXT,
-  metadata JSONB DEFAULT '{}'::jsonb,
-  uploaded_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 2. Document Vector Chunks Table
-CREATE TABLE IF NOT EXISTS public.document_chunks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  document_id UUID REFERENCES public.documents(id) ON DELETE CASCADE NOT NULL,
-  chunk_index INT NOT NULL,
-  content TEXT NOT NULL,
-  token_count INT DEFAULT 0,
-  embedding vector(1536), -- 1536 dimensions for OpenAI / Ada-002 / Gemini compatible embeddings
-  metadata JSONB DEFAULT '{}'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Vector Cosine Similarity Search Index (HNSW Index)
-CREATE INDEX IF NOT EXISTS document_chunks_embedding_idx 
-ON public.document_chunks 
-USING hnsw (embedding vector_cosine_ops);
-
-CREATE INDEX IF NOT EXISTS document_chunks_doc_id_idx 
-ON public.document_chunks(document_id);
-
--- 3. Chat Sessions Table
-CREATE TABLE IF NOT EXISTS public.chat_sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  title TEXT DEFAULT 'New Conversation',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 4. Chat Messages Table
-CREATE TABLE IF NOT EXISTS public.chat_messages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id UUID REFERENCES public.chat_sessions(id) ON DELETE CASCADE NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
-  content TEXT NOT NULL,
-  sources JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 5. Vector Similarity Search Function (Supabase RPC)
-CREATE OR REPLACE FUNCTION public.match_document_chunks(
-  query_embedding vector(1536),
-  match_threshold float DEFAULT 0.3,
-  match_count int DEFAULT 5
-)
-RETURNS TABLE (
-  id UUID,
-  document_id UUID,
-  chunk_index INT,
-  content TEXT,
-  similarity float,
-  document_name TEXT,
-  document_title TEXT,
-  page_number INT,
-  metadata JSONB
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    dc.id,
-    dc.document_id,
-    dc.chunk_index,
-    dc.content,
-    (1 - (dc.embedding <=> query_embedding))::float AS similarity,
-    COALESCE(d.file_name, 'Knowledge Base') AS document_name,
-    COALESCE(d.title, d.file_name, 'Knowledge Base Document') AS document_title,
-    COALESCE((dc.metadata->>'page')::int, (dc.metadata->>'page_number')::int, 1) AS page_number,
-    dc.metadata
-  FROM public.document_chunks dc
-  JOIN public.documents d ON d.id = dc.document_id
-  WHERE (1 - (dc.embedding <=> query_embedding)) > match_threshold
-  ORDER BY dc.embedding <=> query_embedding ASC
-  LIMIT match_count;
-END;
+-- role helpers (read the role from the database, never from the browser)
+create or replace function public.current_role_name() returns text
+language sql stable security definer set search_path = public as $$
+  select role from public.profiles where id = auth.uid() and status = 'Active'
+$$;
+create or replace function public.is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce(public.current_role_name() = 'ADMIN', false)
+$$;
+create or replace function public.is_staff() returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce(public.current_role_name() in ('ADMIN','CRM','READONLY'), false)
+$$;
+create or replace function public.can_edit() returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce(public.current_role_name() in ('ADMIN','CRM'), false)
 $$;
 
--- 6. Enable Row Level Security Policies for RAG Tables
-ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.document_chunks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.chat_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+-- every new sign-up becomes a CUSTOMER by default, or ADMIN/CRM if designated or matching staff credentials
+create or replace function public.handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  v_role text := 'CUSTOMER';
+  v_meta_role text := lower(coalesce(new.raw_user_meta_data->>'role', ''));
+  v_email text := lower(new.email);
+begin
+  if v_email in ('admin@josanlogistics.com', 'admin@josanlogistics.com.sg', 'josanlogisticss@gmail.com')
+     or v_meta_role in ('admin', 'administrator') then
+    v_role := 'ADMIN';
+  elsif v_meta_role in ('crm', 'crm_manager', 'operations_manager', 'coordinator', 'finance', 'operations') then
+    v_role := 'CRM';
+  elsif v_meta_role in ('readonly', 'read-only', 'read_only', 'viewer') then
+    v_role := 'READONLY';
+  end if;
 
--- Security Policies (Allow Public Read for RAG Search; Authenticated/Public Insert)
-CREATE POLICY "Public read documents" ON public.documents FOR SELECT USING (true);
-CREATE POLICY "Public insert documents" ON public.documents FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public update/delete documents" ON public.documents FOR ALL USING (true);
+  insert into public.profiles (id, email, name, role)
+  values (new.id, v_email,
+          coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1)),
+          v_role)
+  on conflict (id) do update set
+    name = coalesce(excluded.name, profiles.name),
+    role = excluded.role,
+    updated_at = now();
+  return new;
+end $$;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
 
-CREATE POLICY "Public read document_chunks" ON public.document_chunks FOR SELECT USING (true);
-CREATE POLICY "Public insert document_chunks" ON public.document_chunks FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public update/delete document_chunks" ON public.document_chunks FOR ALL USING (true);
+-- a user can never change their own role, status or email
+create or replace function public.protect_profile_columns() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is not null and not public.is_admin() then
+    if new.role   is distinct from old.role
+    or new.status is distinct from old.status
+    or new.email  is distinct from old.email
+    or new.id     is distinct from old.id then
+      raise exception 'Not allowed to change role, status or email';
+    end if;
+  end if;
+  return new;
+end $$;
+create trigger protect_profile_columns
+  before update on public.profiles
+  for each row execute function public.protect_profile_columns();
 
-CREATE POLICY "Public chat_sessions" ON public.chat_sessions FOR ALL USING (true);
-CREATE POLICY "Public chat_messages" ON public.chat_messages FOR ALL USING (true);
-
--- ============================================================================
--- 7. Permanent Reference Registry & Unique Constraints (Never Reused on Deletion)
--- ============================================================================
-CREATE TABLE IF NOT EXISTS public.issued_reference_numbers (
-  reference_number TEXT PRIMARY KEY,
-  reference_type TEXT NOT NULL CHECK (reference_type IN ('QUOTE', 'TEST_QUOTE', 'SHIPMENT', 'TEST_SHIPMENT')),
-  is_test BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- ---------- transport partners ----------
+create table public.transport_partners (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  contact_name text,
+  contact_phone text,
+  contact_email text,
+  service_areas text,
+  vehicle_types text,
+  status text not null default 'Active' check (status in ('Active','Inactive')),
+  vetting_notes text,          -- what was actually checked (licence, insurance...)
+  verified_on date,            -- fill in before using the word "vetted"
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- Index for rapid collision check
-CREATE INDEX IF NOT EXISTS idx_issued_reference_type ON public.issued_reference_numbers (reference_type);
+-- ---------- quote requests ----------
+create table public.quote_requests (
+  id uuid primary key default gen_random_uuid(),
+  reference text unique,                       -- set automatically
+  is_test boolean not null default false,
+  customer_id uuid references public.profiles(id) on delete set null,
+  service_type text not null
+    check (service_type in ('AIR_FREIGHT_DOCS','ROAD_TRANSPORT','SHIPMENT_DOCS')),
+  road_load_type text,                         -- optional: consolidated / dedicated
+  add_documentation boolean not null default false,
+  pickup_location text,
+  delivery_location text,
+  preferred_pickup_date date,
+  cargo_classification text,
+  cargo_description text,
+  packages integer,
+  gross_weight_kg numeric(10,2),
+  length_cm numeric(8,2), width_cm numeric(8,2), height_cm numeric(8,2),
+  contact_name text not null,
+  contact_email text not null,
+  contact_phone text,
+  company_name text,
+  consent_given boolean not null default false,
+  consent_at timestamptz,
+  copy_to_customer boolean not null default false,
+  status text not null default 'New'
+    check (status in ('New','In review','Quoted','Accepted','Declined','Closed')),
+  assigned_to uuid references public.profiles(id) on delete set null,
+  quoted_amount numeric(12,2),                 -- stays empty until prices are approved
+  quoted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index on public.quote_requests (status, created_at desc);
 
--- Enable RLS
-ALTER TABLE public.issued_reference_numbers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public read/write issued_reference_numbers" ON public.issued_reference_numbers FOR ALL USING (true);
+create or replace function public.set_quote_reference() returns trigger
+language plpgsql set search_path = public as $$
+declare code text; ref text; prefix text;
+begin
+  prefix := case when new.is_test then 'TQ-' else 'QR-' end;
+  loop
+    code := public.random_code(8);
+    ref  := prefix || substr(code,1,4) || '-' || substr(code,5,4);
+    exit when not exists (select 1 from public.quote_requests where reference = ref);
+  end loop;
+  new.reference := ref;                        -- always overwritten, never from the browser
+  return new;
+end $$;
+create trigger set_quote_reference
+  before insert on public.quote_requests
+  for each row execute function public.set_quote_reference();
 
--- Unique constraints on operational tables
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'shipments') THEN
-    IF NOT EXISTS (
-      SELECT 1 FROM pg_constraint WHERE conname = 'shipments_tracking_number_unique'
-    ) THEN
-      ALTER TABLE public.shipments ADD CONSTRAINT shipments_tracking_number_unique UNIQUE (tracking_number);
-    END IF;
-  END IF;
+create table public.quote_notes (
+  id uuid primary key default gen_random_uuid(),
+  quote_id uuid not null references public.quote_requests(id) on delete cascade,
+  author_id uuid references public.profiles(id) on delete set null,
+  note text not null,
+  created_at timestamptz not null default now()
+);
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'quote_requests') THEN
-    IF NOT EXISTS (
-      SELECT 1 FROM pg_constraint WHERE conname = 'quote_requests_reference_unique'
-    ) THEN
-      ALTER TABLE public.quote_requests ADD CONSTRAINT quote_requests_reference_unique UNIQUE (id);
-    END IF;
-  END IF;
-END $$;
+-- ---------- shipments and tracking ----------
+create table public.shipments (
+  id uuid primary key default gen_random_uuid(),
+  tracking_number text unique,                 -- set automatically
+  is_test boolean not null default false,
+  quote_id uuid references public.quote_requests(id) on delete set null,
+  customer_id uuid references public.profiles(id) on delete set null,
+  partner_id uuid references public.transport_partners(id) on delete set null,
+  service_type text not null
+    check (service_type in ('AIR_FREIGHT_DOCS','ROAD_TRANSPORT','SHIPMENT_DOCS')),
+  awb_number text,
+  road_reference text,
+  origin_city text,
+  destination_city text,
+  pickup_address text,
+  delivery_address text,
+  cargo_description text,
+  packages integer,
+  weight_kg numeric(10,2),
+  declared_value numeric(12,2),                -- private: staff and the owner only
+  freight_fee numeric(12,2),                   -- private: staff and the owner only
+  status text not null default 'Booked'
+    check (status in ('Booked','Confirmed','Pickup Scheduled','Picked Up',
+                      'In Transit','Near Destination','Delivered','Cancelled')),
+  estimated_delivery timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index on public.shipments (customer_id);
+
+create or replace function public.set_tracking_number() returns trigger
+language plpgsql set search_path = public as $$
+declare ref text; prefix text;
+begin
+  prefix := case when new.is_test then 'TJOS-' else 'JOS-' end;
+  loop
+    ref := prefix || public.random_code(10);
+    exit when not exists (select 1 from public.shipments where tracking_number = ref);
+  end loop;
+  new.tracking_number := ref;
+  return new;
+end $$;
+create trigger set_tracking_number
+  before insert on public.shipments
+  for each row execute function public.set_tracking_number();
+
+create table public.tracking_events (
+  id uuid primary key default gen_random_uuid(),
+  shipment_id uuid not null references public.shipments(id) on delete cascade,
+  stage text not null,
+  location text,
+  note text,
+  occurred_at timestamptz not null default now(),
+  source text not null default 'manual' check (source in ('manual','live feed')),
+  is_public boolean not null default true,
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index on public.tracking_events (shipment_id, occurred_at);
+
+create table public.shipment_documents (
+  id uuid primary key default gen_random_uuid(),
+  shipment_id uuid references public.shipments(id) on delete cascade,
+  quote_id uuid references public.quote_requests(id) on delete cascade,
+  doc_type text not null,                      -- invoice, packing list, AWB, LR...
+  file_path text not null,                     -- path in a PRIVATE Storage bucket
+  visible_to_customer boolean not null default false,
+  uploaded_by uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- ---------- invoices ----------
+create sequence public.invoice_seq start 1;
+create table public.invoices (
+  id uuid primary key default gen_random_uuid(),
+  invoice_number text unique not null
+    default ('INV-' || to_char(now(),'YYYY') || '-' || lpad(nextval('public.invoice_seq')::text, 5, '0')),
+  customer_id uuid references public.profiles(id) on delete set null,
+  shipment_id uuid references public.shipments(id) on delete set null,
+  quote_id uuid references public.quote_requests(id) on delete set null,
+  amount_excl_gst numeric(12,2) not null,
+  gst numeric(12,2) not null default 0,
+  total numeric(12,2) not null,
+  status text not null default 'Draft' check (status in ('Draft','Sent','Paid','Void')),
+  issued_at timestamptz,
+  due_at timestamptz,
+  paid_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- ---------- contact form ----------
+create table public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  is_test boolean not null default false,
+  name text not null,
+  email text not null,
+  phone text,
+  company text,
+  subject text,
+  message text not null,
+  tracking_ref text,
+  consent_given boolean not null default false,
+  consent_at timestamptz,
+  status text not null default 'New' check (status in ('New','Replied','Closed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- ---------- chatbot ----------
+create table public.chat_conversations (
+  id uuid primary key default gen_random_uuid(),
+  quote_id uuid references public.quote_requests(id) on delete set null,
+  contact_id uuid references public.contact_messages(id) on delete set null,
+  shared_by_visitor boolean not null default true,   -- stored only when sent to the team
+  created_at timestamptz not null default now(),
+  expires_at timestamptz                              -- set when management decides retention
+);
+create table public.chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid not null references public.chat_conversations(id) on delete cascade,
+  sender text not null check (sender in ('user','assistant')),
+  content text not null,
+  created_at timestamptz not null default now()
+);
+create index on public.chat_messages (conversation_id, created_at);
+
+create table public.knowledge_base_documents (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  content text not null,
+  source text,                                 -- where it came from
+  owner_name text,                             -- who is responsible at Josan
+  licence_note text,                           -- note if copied from another organisation
+  status text not null default 'Draft' check (status in ('Draft','Approved','Retired')),
+  approved_by uuid references public.profiles(id) on delete set null,
+  approved_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- ---------- notifications, audit log, settings ----------
+create table public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  title text not null,
+  body text,
+  link text,
+  read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table public.audit_log (
+  id uuid primary key default gen_random_uuid(),
+  actor_id uuid references public.profiles(id) on delete set null,
+  action text not null,
+  entity text,
+  entity_id text,
+  details jsonb,
+  created_at timestamptz not null default now()
+);
+
+create table public.site_settings (
+  key text primary key,
+  value text,
+  is_public boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+-- starter settings (demo_mode is true; all demo values to be replaced before live launch)
+insert into public.site_settings (key, value, is_public) values
+  ('company_name',        'Josan Logistics Pte. Ltd.',     true),
+  ('uen',                 '',                              true),
+  ('gst_reg',             '',                              true),
+  ('phone',               '+65 6789 0123',                 true),
+  ('whatsapp',            '+65 6789 0123',                 true),
+  ('contact_email',       'contact@josanlogistics.com.sg', true),
+  ('registered_office',   '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', true),
+  ('dpo_email',           'contact@josanlogistics.com.sg', true),
+  ('show_price_estimate', 'false',                         true),
+  ('demo_mode',           'true',                          true)
+on conflict (key) do update set value = excluded.value;
+
+-- ---------- updated_at triggers ----------
+do $$
+declare t text;
+begin
+  foreach t in array array['profiles','transport_partners','quote_requests','shipments',
+    'invoices','contact_messages','knowledge_base_documents','site_settings'] loop
+    execute format('create trigger set_updated_at before update on public.%I
+                    for each row execute function public.set_updated_at()', t);
+  end loop;
+end $$;
+
+-- ---------- module permissions (RBAC / RLS toggle enforcement) ----------
+create table if not exists public.module_permissions (
+  id uuid primary key default gen_random_uuid(),
+  role text,                                   -- 'admin', 'crm_manager', 'crm_ops', 'crm_finance', 'viewer', 'CRM', 'READONLY'
+  user_id uuid references public.profiles(id) on delete cascade,
+  module_key text not null,                    -- 'dashboard','customers','airway_requests','road_shipments','documents','quotations','billing','transportation_partners','notifications','reports','settings'
+  can_access boolean not null default true,
+  can_write boolean not null default false,
+  updated_at timestamptz not null default now(),
+  constraint uq_role_module unique (role, module_key),
+  constraint uq_user_module unique (user_id, module_key)
+);
+create index if not exists idx_module_perms_role on public.module_permissions (role, module_key);
+create index if not exists idx_module_perms_user on public.module_permissions (user_id, module_key);
+
+-- Helper to check whether the current user has access to a specific CRM module
+create or replace function public.has_module_access(p_module text, p_write boolean default false) returns boolean
+language plpgsql stable security definer set search_path = public as $$
+declare
+  v_role text;
+  v_uid uuid := auth.uid();
+  v_allowed boolean;
+begin
+  if v_uid is null then
+    return false;
+  end if;
+
+  select role into v_role from public.profiles where id = v_uid and status = 'Active';
+  if v_role is null then
+    return false;
+  end if;
+
+  -- Admin role always has full unrestricted access
+  if upper(v_role) = 'ADMIN' or lower(v_role) = 'admin' then
+    return true;
+  end if;
+
+  -- Read-only role is strictly view-only: never grant write permissions
+  if (upper(v_role) = 'READONLY' or lower(v_role) = 'viewer') and p_write then
+    return false;
+  end if;
+
+  -- 1. Check user-specific toggle override first
+  if p_write then
+    select (can_access and can_write) into v_allowed
+    from public.module_permissions
+    where user_id = v_uid and module_key = p_module;
+  else
+    select can_access into v_allowed
+    from public.module_permissions
+    where user_id = v_uid and module_key = p_module;
+  end if;
+
+  if v_allowed is not null then
+    return v_allowed;
+  end if;
+
+  -- 2. Check role-based toggle permission (normalize role keys)
+  if p_write then
+    select (can_access and can_write) into v_allowed
+    from public.module_permissions
+    where (lower(role) = lower(v_role) or upper(role) = upper(v_role)) and module_key = p_module;
+  else
+    select can_access into v_allowed
+    from public.module_permissions
+    where (lower(role) = lower(v_role) or upper(role) = upper(v_role)) and module_key = p_module;
+  end if;
+
+  if v_allowed is not null then
+    return v_allowed;
+  end if;
+
+  -- 3. Default fallback by role
+  if upper(v_role) = 'READONLY' or lower(v_role) = 'viewer' then
+    return (not p_write);
+  end if;
+
+  if upper(v_role) = 'CRM' or lower(v_role) like 'crm%' then
+    return true;
+  end if;
+
+  return false;
+end $$;
+
+-- Seed default role-based module permissions
+insert into public.module_permissions (role, module_key, can_access, can_write) values
+  ('admin', 'dashboard', true, true),
+  ('admin', 'customers', true, true),
+  ('admin', 'airway_requests', true, true),
+  ('admin', 'road_shipments', true, true),
+  ('admin', 'documents', true, true),
+  ('admin', 'quotations', true, true),
+  ('admin', 'billing', true, true),
+  ('admin', 'transportation_partners', true, true),
+  ('admin', 'notifications', true, true),
+  ('admin', 'reports', true, true),
+  ('admin', 'settings', true, true),
+
+  ('crm_manager', 'dashboard', true, true),
+  ('crm_manager', 'customers', true, true),
+  ('crm_manager', 'airway_requests', true, true),
+  ('crm_manager', 'road_shipments', true, true),
+  ('crm_manager', 'documents', true, true),
+  ('crm_manager', 'quotations', true, true),
+  ('crm_manager', 'billing', true, true),
+  ('crm_manager', 'transportation_partners', true, true),
+  ('crm_manager', 'notifications', true, true),
+  ('crm_manager', 'reports', true, true),
+  ('crm_manager', 'settings', false, false),
+
+  ('crm_ops', 'dashboard', true, true),
+  ('crm_ops', 'customers', true, true),
+  ('crm_ops', 'airway_requests', true, true),
+  ('crm_ops', 'road_shipments', true, true),
+  ('crm_ops', 'documents', true, true),
+  ('crm_ops', 'quotations', false, false),
+  ('crm_ops', 'billing', false, false),
+  ('crm_ops', 'transportation_partners', true, true),
+  ('crm_ops', 'notifications', true, true),
+  ('crm_ops', 'reports', false, false),
+  ('crm_ops', 'settings', false, false),
+
+  ('crm_finance', 'dashboard', true, true),
+  ('crm_finance', 'customers', true, true),
+  ('crm_finance', 'airway_requests', false, false),
+  ('crm_finance', 'road_shipments', false, false),
+  ('crm_finance', 'documents', true, true),
+  ('crm_finance', 'quotations', true, true),
+  ('crm_finance', 'billing', true, true),
+  ('crm_finance', 'transportation_partners', false, false),
+  ('crm_finance', 'notifications', true, true),
+  ('crm_finance', 'reports', true, true),
+  ('crm_finance', 'settings', false, false),
+
+  ('viewer', 'dashboard', true, false),
+  ('viewer', 'customers', true, false),
+  ('viewer', 'airway_requests', true, false),
+  ('viewer', 'road_shipments', true, false),
+  ('viewer', 'documents', true, false),
+  ('viewer', 'quotations', true, false),
+  ('viewer', 'billing', false, false),
+  ('viewer', 'transportation_partners', true, false),
+  ('viewer', 'notifications', true, false),
+  ('viewer', 'reports', true, false),
+  ('viewer', 'settings', false, false)
+on conflict (role, module_key) do update set
+  can_access = excluded.can_access,
+  can_write = excluded.can_write;
+
+-- =========================================================
+-- ROW LEVEL SECURITY (Enforcing Every Toggle with Database Rules)
+-- =========================================================
+alter table public.profiles                 enable row level security;
+alter table public.module_permissions       enable row level security;
+alter table public.transport_partners       enable row level security;
+alter table public.quote_requests           enable row level security;
+alter table public.quote_notes              enable row level security;
+alter table public.shipments                enable row level security;
+alter table public.tracking_events          enable row level security;
+alter table public.shipment_documents       enable row level security;
+alter table public.invoices                 enable row level security;
+alter table public.contact_messages         enable row level security;
+alter table public.chat_conversations       enable row level security;
+alter table public.chat_messages            enable row level security;
+alter table public.knowledge_base_documents enable row level security;
+alter table public.notifications            enable row level security;
+alter table public.audit_log                enable row level security;
+alter table public.site_settings            enable row level security;
+
+-- module_permissions: staff read, admins manage
+create policy "staff read perms" on public.module_permissions for select
+  using (public.is_staff());
+create policy "admin manage perms" on public.module_permissions for all
+  using (public.is_admin()) with check (public.is_admin());
+
+-- profiles: read own, read staff directory (ADMIN, CRM, READONLY), or read customer profiles if granted 'customers' module
+create policy "own or staff read" on public.profiles for select
+  using (
+    id = auth.uid() 
+    or role in ('ADMIN', 'CRM', 'READONLY')
+    or public.is_admin()
+    or public.has_module_access('customers', false)
+  );
+create policy "update own profile" on public.profiles for update
+  using (id = auth.uid()) with check (id = auth.uid());
+create policy "admin manage profiles" on public.profiles for all
+  using (public.is_admin()) with check (public.is_admin());
+
+-- transport_partners: enforced by 'transportation_partners' module toggle
+create policy "staff read partners" on public.transport_partners for select
+  using (public.is_admin() or public.has_module_access('transportation_partners', false));
+create policy "editors manage partners" on public.transport_partners for all
+  using (public.is_admin() or public.has_module_access('transportation_partners', true))
+  with check (public.is_admin() or public.has_module_access('transportation_partners', true));
+
+-- quotes & quote_notes: enforced by 'quotations' & 'airway_requests' module toggles
+create policy "own quotes" on public.quote_requests for select
+  using (customer_id = auth.uid());
+create policy "staff read quotes" on public.quote_requests for select
+  using (public.is_admin() or public.has_module_access('quotations', false) or public.has_module_access('airway_requests', false));
+create policy "editors manage quotes" on public.quote_requests for all
+  using (public.is_admin() or public.has_module_access('quotations', true) or public.has_module_access('airway_requests', true))
+  with check (public.is_admin() or public.has_module_access('quotations', true) or public.has_module_access('airway_requests', true));
+
+create policy "staff read quote_notes" on public.quote_notes for select
+  using (public.is_admin() or public.has_module_access('quotations', false) or public.has_module_access('airway_requests', false));
+create policy "editors manage quote_notes" on public.quote_notes for all
+  using (public.is_admin() or public.has_module_access('quotations', true) or public.has_module_access('airway_requests', true))
+  with check (public.is_admin() or public.has_module_access('quotations', true) or public.has_module_access('airway_requests', true));
+
+-- shipments & tracking: enforced by 'road_shipments' (Road Coordination) and 'airway_requests' (Air Freight Requests)
+create or replace function public.owns_shipment(sid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.shipments where id = sid and customer_id = auth.uid())
+$$;
+create policy "own shipments" on public.shipments for select
+  using (customer_id = auth.uid());
+create policy "staff read shipments" on public.shipments for select
+  using (
+    public.is_admin() 
+    or (service_type = 'ROAD_TRANSPORT' and public.has_module_access('road_shipments', false))
+    or (service_type in ('AIR_FREIGHT_DOCS','SHIPMENT_DOCS') and public.has_module_access('airway_requests', false))
+    or public.has_module_access('road_shipments', false)
+  );
+create policy "editors manage shipments" on public.shipments for all
+  using (
+    public.is_admin() 
+    or (service_type = 'ROAD_TRANSPORT' and public.has_module_access('road_shipments', true))
+    or (service_type in ('AIR_FREIGHT_DOCS','SHIPMENT_DOCS') and public.has_module_access('airway_requests', true))
+    or public.has_module_access('road_shipments', true)
+  )
+  with check (
+    public.is_admin() 
+    or (service_type = 'ROAD_TRANSPORT' and public.has_module_access('road_shipments', true))
+    or (service_type in ('AIR_FREIGHT_DOCS','SHIPMENT_DOCS') and public.has_module_access('airway_requests', true))
+    or public.has_module_access('road_shipments', true)
+  );
+
+create policy "own events" on public.tracking_events for select
+  using (public.owns_shipment(shipment_id) and is_public);
+create policy "staff read events" on public.tracking_events for select
+  using (public.is_admin() or public.has_module_access('road_shipments', false) or public.has_module_access('airway_requests', false));
+create policy "editors manage events" on public.tracking_events for all
+  using (public.is_admin() or public.has_module_access('road_shipments', true) or public.has_module_access('airway_requests', true))
+  with check (public.is_admin() or public.has_module_access('road_shipments', true) or public.has_module_access('airway_requests', true));
+
+-- shipment_documents: enforced by 'documents' (Shipment Documents) module toggle
+create policy "own documents" on public.shipment_documents for select
+  using (visible_to_customer and public.owns_shipment(shipment_id));
+create policy "staff read documents" on public.shipment_documents for select
+  using (public.is_admin() or public.has_module_access('documents', false));
+create policy "editors manage documents" on public.shipment_documents for all
+  using (public.is_admin() or public.has_module_access('documents', true))
+  with check (public.is_admin() or public.has_module_access('documents', true));
+
+-- invoices: enforced by 'billing' module toggle
+create policy "own invoices" on public.invoices for select
+  using (customer_id = auth.uid() and status <> 'Draft');
+create policy "staff read invoices" on public.invoices for select
+  using (public.is_admin() or public.has_module_access('billing', false));
+create policy "editors manage invoices" on public.invoices for all
+  using (public.is_admin() or public.has_module_access('billing', true))
+  with check (public.is_admin() or public.has_module_access('billing', true));
+
+-- contact messages: enforced by 'customers' module toggle
+create policy "staff read contact" on public.contact_messages for select
+  using (public.is_admin() or public.has_module_access('customers', false));
+create policy "editors manage contact" on public.contact_messages for all
+  using (public.is_admin() or public.has_module_access('customers', true))
+  with check (public.is_admin() or public.has_module_access('customers', true));
+
+-- notifications: enforced by 'notifications' module toggle
+create policy "own notifications" on public.notifications for select
+  using (user_id = auth.uid());
+create policy "mark own read" on public.notifications for update
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "staff read notifications" on public.notifications for select
+  using (public.is_admin() or public.has_module_access('notifications', false));
+create policy "editors create notifications" on public.notifications for insert
+  with check (public.is_admin() or public.has_module_access('notifications', true));
+
+-- audit_log: readable by admin and staff, insertable by system / authenticated actions
+create policy "staff read audit" on public.audit_log for select
+  using (public.is_admin() or public.is_staff());
+create policy "insert audit log" on public.audit_log for insert
+  with check (true);
+
+-- settings: public readable, staff read governed by 'settings' toggle, admin manages
+create policy "public settings" on public.site_settings for select using (is_public);
+create policy "staff settings"  on public.site_settings for select
+  using (public.is_admin() or public.has_module_access('settings', false));
+create policy "admin manage"    on public.site_settings for all
+  using (public.is_admin() or public.has_module_access('settings', true))
+  with check (public.is_admin() or public.has_module_access('settings', true));
+
+-- chat conversations and knowledge base
+create policy "staff read chat"   on public.chat_conversations for select using (public.is_staff());
+create policy "admin delete chat" on public.chat_conversations for delete using (public.is_admin());
+create policy "staff read chat_msgs" on public.chat_messages for select using (public.is_staff());
+create policy "admin delete chat_msgs" on public.chat_messages for delete using (public.is_admin());
+create policy "staff read kb"     on public.knowledge_base_documents for select using (public.is_staff());
+create policy "admin manage kb"   on public.knowledge_base_documents for all using (public.is_admin()) with check (public.is_admin());
+
+-- public tracking lookup returns limited, non-sensitive data only
+create or replace function public.track_shipment(p_tracking text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'tracking_number', s.tracking_number,
+    'status', s.status,
+    'service_type', s.service_type,
+    'origin_city', s.origin_city,
+    'destination_city', s.destination_city,
+    'estimated_delivery', s.estimated_delivery,
+    'last_updated', (select max(e.occurred_at) from public.tracking_events e where e.shipment_id = s.id),
+    'events', coalesce((select jsonb_agg(jsonb_build_object(
+        'stage', e.stage, 'location', e.location, 'occurred_at', e.occurred_at)
+        order by e.occurred_at)
+      from public.tracking_events e where e.shipment_id = s.id and e.is_public), '[]'::jsonb))
+  from public.shipments s
+  where s.tracking_number = upper(trim(p_tracking)) and s.is_test = false
+$$;
+revoke all on function public.track_shipment(text) from public, anon, authenticated;
+grant execute on function public.track_shipment(text) to service_role;
 
 
+-- =========================================================
+-- CHATBOT KNOWLEDGE BASE (pgvector), run AFTER the main schema
+-- =========================================================
+create extension if not exists vector with schema extensions;
 
+create table public.document_chunks (
+  id uuid primary key default gen_random_uuid(),
+  document_id uuid not null references public.knowledge_base_documents(id) on delete cascade,
+  chunk_index int not null,
+  content text not null,
+  token_count int not null default 0,
+  embedding extensions.vector(1536),     -- must match your embedding model
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+create index on public.document_chunks (document_id);
+create index on public.document_chunks
+  using hnsw (embedding extensions.vector_cosine_ops);
+
+alter table public.document_chunks enable row level security;
+create policy "staff read"   on public.document_chunks for select using (public.is_staff());
+create policy "admin manage" on public.document_chunks for all
+  using (public.is_admin()) with check (public.is_admin());
+
+-- search only APPROVED documents, callable only from the server (Edge Function)
+create or replace function public.match_document_chunks(
+  query_embedding extensions.vector(1536),
+  match_threshold float default 0.5,
+  match_count int default 5
+) returns table (
+  id uuid, document_id uuid, content text, similarity float,
+  document_title text, metadata jsonb
+)
+language sql stable security definer set search_path = public, extensions as $$
+  select dc.id, dc.document_id, dc.content,
+         (1 - (dc.embedding <=> query_embedding))::float as similarity,
+         d.title, dc.metadata
+  from public.document_chunks dc
+  join public.knowledge_base_documents d on d.id = dc.document_id
+  where d.status = 'Approved'
+    and (1 - (dc.embedding <=> query_embedding)) > match_threshold
+  order by dc.embedding <=> query_embedding
+  limit match_count
+$$;
+revoke all on function public.match_document_chunks(extensions.vector, float, int)
+  from public, anon, authenticated;
+grant execute on function public.match_document_chunks(extensions.vector, float, int)
+  to service_role;

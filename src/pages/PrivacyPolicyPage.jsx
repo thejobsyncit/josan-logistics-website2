@@ -16,11 +16,38 @@ import {
   RefreshCw,
   CheckCircle2,
   X,
-  Settings
+  Download,
+  Printer,
+  Loader2,
+  Settings,
+  Scale,
+  Shield,
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { COOKIE_AUDIT_DATA, openCookiePreferences } from '../components/CookieBanner';
+import { generateLegalPdf } from '../utils/legalPdfGenerator';
+import { useLogistics } from '../context/LogisticsContext';
 
 export const PrivacyPolicyPage = ({ setActiveTab }) => {
+  const { siteSettings } = useLogistics?.() || {};
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = () => {
+    try {
+      setIsDownloading(true);
+      generateLegalPdf('privacy', siteSettings);
+    } catch (err) {
+      console.error('PDF error:', err);
+      window.print();
+    } finally {
+      setTimeout(() => setIsDownloading(false), 800);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -30,19 +57,54 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
         <div className="bg-[#0B1F3A] text-white p-8 sm:p-12 rounded-3xl border border-[#1E3A5F] shadow-card space-y-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-slate-400 font-semibold">Singapore PDPA 2012</span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
+                Singapore PDPA 2012 Compliance
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight pt-2">
+                Privacy Policy
+              </h1>
+            </div>
+
+            {/* Download & Print Actions */}
+            <div className="flex items-center space-x-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#F26B21] hover:bg-[#D95A13] text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-75"
+                title="Download Privacy Policy as PDF"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                <span>{isDownloading ? 'Generating...' : 'Download PDF'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+                title="Print Document"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print</span>
+              </button>
+            </div>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Privacy Policy
-          </h1>
           <p className="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
             Josan Logistics Pte. Ltd. handles personal data in accordance with the Singapore Personal Data Protection Act 2012 (PDPA).
           </p>
-          <p className="text-xs text-slate-400 font-mono">
-            Last Updated: 26 October 2026
-          </p>
+          <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-400 font-mono">
+            <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded border border-orange-500/30 font-semibold">
+              Effective Date: 29 October 2026
+            </span>
+            <span>Last Updated: 29 October 2026</span>
+          </div>
         </div>
 
         {/* Content Body */}
@@ -98,21 +160,20 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
             </p>
           </section>
 
-          {/* Section 4: Who We Share Data With */}
+          {/* Section 4: Third-Party Service Providers Policy */}
           <section className="space-y-3">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
               <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">4</span>
-              <span>Who We Share Data With</span>
+              <span>Third-Party Service Providers Policy</span>
             </h2>
-            <p>
-              We share your information strictly on a need-to-know basis with:
-            </p>
-            <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600">
-              <li><strong>Our transport partners and airlines:</strong> For coordinating and fulfilling your physical shipment.</li>
-              <li><strong>Service providers:</strong> Such as email and hosting providers who supply our secure IT and database infrastructure.</li>
-              <li><strong>Cloudflare:</strong> For spam protection and bot defense on our website forms.</li>
-              <li><strong>Authorities:</strong> Government or regulatory authorities where required by Singapore law.</li>
-            </ul>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <p>
+                Josan Logistics Pte. Ltd. may share personal data with authorised third-party service providers, including transport partners, airlines, freight handlers, cloud hosting providers, email service providers, and technology vendors, where necessary to deliver our services.
+              </p>
+              <p className="text-xs text-slate-600">
+                We take reasonable steps to ensure that these providers protect personal data, maintain confidentiality, and process information only for authorised purposes and in accordance with applicable data protection laws.
+              </p>
+            </div>
           </section>
 
           {/* Section 5: Overseas Transfers */}
@@ -131,45 +192,89 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
             </div>
           </section>
 
-          {/* Section 6: How Long We Keep Data */}
+          {/* Section 6: Data Retention and Secure Deletion Policy */}
           <section className="space-y-3">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
               <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">6</span>
-              <span>How Long We Keep Data</span>
+              <span>Data Retention and Secure Deletion Policy</span>
             </h2>
-            <p>
-              We keep your information only as long as necessary for business, legal, and operational purposes:
-            </p>
-            <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600">
-              <li><strong>Shipping, Invoicing &amp; Billing Records:</strong> Retained for <strong>5 years</strong> in accordance with statutory accounting and tax retention standards.</li>
-              <li><strong>Enquiries and Chats:</strong> Enquiries and stored chats are deleted after <strong>30 days</strong>. Regular chats are kept only in the browser session and deleted when the session ends.</li>
-            </ul>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <p>
+                Josan Logistics Pte. Ltd. retains personal data only for as long as necessary to fulfil business purposes, provide logistics services, comply with legal and regulatory obligations, and resolve disputes.
+              </p>
+              <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 text-xs">
+                <li><strong>Commercial &amp; Financial Records:</strong> Certain commercial, tax, and accounting records may be retained for <strong>five to seven years</strong>, where applicable.</li>
+                <li><strong>Enquiries &amp; Chatbot Logs:</strong> Website enquiries and chatbot logs may be deleted after <strong>30 days</strong> where they are no longer required.</li>
+                <li><strong>Secure Disposal:</strong> When data is no longer needed, we take reasonable steps to securely delete, anonymise, or dispose of it, subject to applicable legal requirements.</li>
+              </ul>
+            </div>
           </section>
 
-          {/* Section 7: Your Rights */}
+          {/* Section 7: Consent and Communication Preferences */}
           <section className="space-y-3">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
               <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">7</span>
-              <span>Your Rights</span>
+              <span>Consent and Communication Preferences</span>
             </h2>
             <p>
-              Under the Singapore Personal Data Protection Act (PDPA), you have the right to:
+              Josan Logistics Pte. Ltd. collects, uses, and discloses personal data in accordance with applicable data protection laws. Where consent is required, we will obtain it before processing personal data for the relevant purpose.
             </p>
-            <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600">
-              <li>Request access to your personal data that we hold.</li>
-              <li>Request correction of inaccurate or outdated information.</li>
-              <li>Withdraw your consent for data collection or processing at any time.</li>
-              <li>Contact our Data Protection Officer (DPO).</li>
-            </ul>
-            <p className="text-xs text-slate-500 bg-orange-50/70 p-3 rounded-xl border border-orange-200 text-orange-950">
-              <strong>Response Timeline:</strong> We aim to respond to all verified access and correction requests within <strong>30 days</strong>.
-            </p>
+            <div className="p-4 bg-orange-50/70 rounded-2xl border border-orange-200 text-xs space-y-2 text-slate-700">
+              <p>
+                <strong>Withdrawal of Consent:</strong> Individuals may withdraw their consent by contacting our Data Protection Officer, subject to legal and contractual restrictions.
+              </p>
+              <p>
+                <strong>Essential Communications:</strong> We may continue to send essential service-related communications, including shipment updates, booking confirmations, and legal notices, where necessary.
+              </p>
+            </div>
           </section>
 
-          {/* Section 8: JOSAN AI Chat and Track Shipment */}
+          {/* Section 8: Children's Privacy Policy */}
           <section className="space-y-3">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
               <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">8</span>
+              <span>Children's Privacy Policy</span>
+            </h2>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+              <p>
+                The Josan Logistics website and services are primarily intended for businesses and adults arranging logistics and freight services. We do not knowingly collect personal data from children unless necessary for a legitimate and lawful service-related purpose.
+              </p>
+              <p className="text-slate-600">
+                Any such information will be handled in accordance with applicable laws. If you believe that a child has provided personal data to us inappropriately, contact our Data Protection Officer so that we can review the matter and take appropriate action.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 9: Do Not Track and Cookie Preferences */}
+          <section className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
+                <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">9</span>
+                <span>Do Not Track and Cookie Preferences</span>
+              </h2>
+              
+              <button
+                type="button"
+                onClick={() => openCookiePreferences()}
+                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-orange-50 hover:text-[#F26B21] text-slate-700 font-bold text-xs border border-slate-200 transition-all cursor-pointer shadow-2xs shrink-0 self-start sm:self-auto"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span>Cookie Settings</span>
+              </button>
+            </div>
+            
+            <p>
+              Our website may use cookies and similar technologies to support website functionality, security, and user preferences. Where analytics or other non-essential cookies are used, relevant information and available choices will be provided through the website or an appropriate cookie notice.
+            </p>
+            <p className="text-xs text-slate-600">
+              Users may manage or disable cookies through their browser settings, although some website features may not function properly as a result. We will handle tracking preferences in accordance with applicable laws and the technologies actually implemented on our website.
+            </p>
+          </section>
+
+          {/* Section 10: JOSAN AI Chat and Track Shipment */}
+          <section className="space-y-3">
+            <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
+              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">10</span>
               <span>JOSAN AI Chat and Track Shipment</span>
             </h2>
             <p>Here is what our public tools collect, store, and why:</p>
@@ -196,26 +301,15 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
             </div>
           </section>
 
-          {/* Section 9: Cookies & Cookie Settings */}
+          {/* Section 11: Inventory of Cookies & Storage Items in Use */}
           <section className="space-y-3" id="cookie-section">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
-                <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">9</span>
-                <span>Cookies</span>
-              </h2>
-              
-              <button
-                type="button"
-                onClick={() => openCookiePreferences()}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-orange-50 hover:text-[#F26B21] text-slate-700 font-bold text-xs border border-slate-200 transition-all cursor-pointer shadow-2xs shrink-0 self-start sm:self-auto"
-              >
-                <Settings className="w-3.5 h-3.5" />
-                <span>Cookie Settings</span>
-              </button>
-            </div>
+            <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
+              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">11</span>
+              <span>Inventory of Cookies &amp; Storage Items in Use</span>
+            </h2>
             
-            <p>
-              We use <strong>only essential cookies</strong> (login, security and chat); we do not use analytics or advertising cookies.
+            <p className="text-xs text-slate-600">
+              We use <strong>only essential cookies</strong> (login, security and chat); we do not use third-party marketing or cross-site tracking cookies.
             </p>
 
             {/* Audited Cookies & Storage Table */}
@@ -259,10 +353,10 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
             </div>
           </section>
 
-          {/* Section 10: Data Protection & Security */}
+          {/* Section 12: Data Protection & Security */}
           <section className="space-y-3">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
-              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">10</span>
+              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">12</span>
               <span>Data Protection &amp; Security</span>
             </h2>
             <p>
@@ -270,45 +364,69 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
             </p>
           </section>
 
-          {/* Section 11: Changes to this Policy */}
+          {/* Section 13: Policy Updates and Effective Date */}
           <section className="space-y-3">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
-              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">11</span>
-              <span>Changes to this Policy</span>
+              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">13</span>
+              <span>Policy Updates and Effective Date</span>
             </h2>
-            <p>
-              We may update this Privacy Policy from time to time to reflect changes in our legal obligations, operational procedures, or website features. When revisions occur, we will update the "Last Updated" date at the top of this page. We encourage you to review this page periodically to stay informed about how we protect your information.
-            </p>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs text-slate-700">
+              <p>
+                Josan Logistics Pte. Ltd. may update this Privacy Policy from time to time to reflect changes in our services, business operations, technology, or applicable legal requirements. The revised policy will be published on our website with an updated “Last Updated” date.
+              </p>
+              <p>
+                Where required by law, we will provide additional notice or obtain consent before implementing relevant changes. Users are encouraged to review this policy periodically.
+              </p>
+              <p className="font-bold text-slate-900 pt-1">
+                Effective Date: 29 October 2026
+              </p>
+            </div>
           </section>
 
-          {/* Section 12: Data Protection Officer (DPO) Contact */}
+          {/* Section 14: Complaints and Dispute Resolution */}
           <section className="space-y-3">
             <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
-              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">12</span>
-              <span>Data Protection Officer (DPO) Contact</span>
+              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">14</span>
+              <span>Complaints and Dispute Resolution</span>
+            </h2>
+            <div className="p-4 bg-orange-50/70 rounded-2xl border border-orange-200 space-y-2 text-xs text-slate-700">
+              <p>
+                Individuals who have questions, concerns, or complaints regarding the collection, use, disclosure, or protection of their personal data may contact our Data Protection Officer. We will review complaints, investigate relevant circumstances, and take appropriate corrective action where necessary.
+              </p>
+              <p>
+                We aim to respond within the timeframe required by applicable law. If a complaint cannot be resolved directly, individuals may refer the matter to the relevant Singapore authority, including the <strong>Personal Data Protection Commission (PDPC)</strong>, where appropriate.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 15: Data Protection Officer (DPO) Contact Details */}
+          <section className="space-y-3">
+            <h2 className="text-lg font-extrabold text-slate-900 flex items-center space-x-2.5">
+              <span className="w-7 h-7 rounded-xl bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">15</span>
+              <span>Data Protection Officer Contact Details</span>
             </h2>
             <p>
-              If you have any questions, feedback, or wish to exercise your rights of access, correction, or consent withdrawal, please contact our Data Protection Officer:
+              Individuals who have questions, concerns, or wish to exercise their data rights may contact our appointed Data Protection Officer:
             </p>
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-2.5 text-xs text-slate-700">
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-3 text-xs text-slate-700">
               <div className="flex items-center space-x-2">
-                <ShieldCheck className="w-4 h-4 text-[#F26B21]" />
-                <p className="font-bold text-slate-900 text-sm">Data Protection Officer &bull; Josan Logistics Pte. Ltd.</p>
+                <ShieldCheck className="w-5 h-5 text-[#F26B21]" />
+                <p className="font-extrabold text-slate-900 text-sm">Josan Logistics Pte. Ltd. &bull; Data Protection Officer</p>
               </div>
-              <p className="text-slate-500 font-medium">Monitored by the appointed Data Protection Officer and compliance team.</p>
+              <p className="text-slate-500 font-medium">Overseeing PDPA compliance, data subject rights, and security policies.</p>
               
               <div className="pt-2 border-t border-slate-200 space-y-2">
-                <p className="flex items-center space-x-2">
-                  <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                  <span>10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</span>
+                <p className="flex items-start space-x-2">
+                  <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                  <span><strong>Address:</strong> {siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</span>
                 </p>
                 <p className="flex items-center space-x-2">
-                  <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                  <span>Email: <a href="mailto:privacy@josanlogistics.com.sg" className="text-[#F26B21] font-bold hover:underline">privacy@josanlogistics.com.sg</a></span>
+                  <Mail className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span><strong>Email:</strong> <a href={`mailto:${siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}</a></span>
                 </p>
                 <p className="flex items-center space-x-2">
-                  <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                  <span>Phone: <a href="tel:+6567890123" className="text-slate-900 font-bold hover:underline">+65 6789 0123</a></span>
+                  <Phone className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span><strong>Telephone:</strong> <a href={`tel:${(siteSettings?.phone || '+65 6789 0123').replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings?.phone || '+65 6789 0123'}</a></span>
                 </p>
               </div>
             </div>

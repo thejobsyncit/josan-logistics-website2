@@ -29,7 +29,7 @@ import {
 import { useLogistics } from '../context/LogisticsContext';
 import docsHeroImg from '../assets/shipment_documentation_desk.jpg';
 
-export const CustomsClearancePage = ({ setActiveTab }) => {
+export const ShipmentDocumentationPage = ({ setActiveTab }) => {
   const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
   // Cargo Mode Tabs State - Airway Services as Primary Default
   const [activeMode, setActiveMode] = useState('air');
@@ -139,8 +139,6 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
       icon: FileCheck
     }
   ];
-
-
 
   return (
     <div className="space-y-16 pb-24 animate-fade-in bg-slate-50/50">
@@ -426,8 +424,6 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
         </div>
       </section>
 
-
-
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden border border-slate-800">
@@ -487,3 +483,4 @@ export const CustomsClearancePage = ({ setActiveTab }) => {
     </div>
   );
 };
+export default ShipmentDocumentationPage;

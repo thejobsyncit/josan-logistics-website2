@@ -2,81 +2,42 @@ import { supabase, isSupabaseConfigured } from './supabase';
 
 export const customersService = {
   /**
-   * Fetch corporate customers directory.
+   * Fetch corporate customers directory from public.profiles table (role = 'CUSTOMER').
    */
   getCustomers: async () => {
     if (!isSupabaseConfigured) return null;
-    const { data, error } = await supabase
-      .from('customers')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.warn('[CustomersService] Fetch customers error:', error.message);
-      return null;
-    }
-    return data;
-  },
-
-  /**
-   * Create or update corporate customer record.
-   */
-  createCustomer: async (customerData) => {
-    if (!isSupabaseConfigured) return null;
-
-    const dbRecord = {
-      id: customerData.id || `CUST-${Math.floor(100 + Math.random() * 900)}`,
-      name: customerData.name || 'Customer',
-      company_name: customerData.company_name || customerData.companyName || customerData.company || '',
-      email: customerData.email,
-      phone: customerData.phone || '',
-      address: customerData.address || 'Singapore',
-      postal_code: customerData.postal_code || customerData.postalCode || '048616',
-      company: customerData.company || customerData.company_name || '',
-      tier: customerData.tier || 'Standard Corporate',
-      total_spent: customerData.total_spent || customerData.totalSpent || 'S$ 0.00',
-      total_shipments: customerData.total_shipments ?? customerData.totalShipments ?? 0,
-      status: customerData.status || 'Active',
-      tags: customerData.tags || ['Corporate'],
-      credit_limit: customerData.credit_limit || customerData.creditLimit || 'S$ 50,000',
-      payment_terms: customerData.payment_terms || customerData.paymentTerms || 'Net 30 Days',
-      password: customerData.password || null
-    };
 
     try {
-      // Check if a customer record with this email already exists to reuse its ID
-      const { data: existing } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('email', customerData.email)
-        .maybeSingle();
-
-      if (existing?.id) {
-        dbRecord.id = existing.id;
-      }
-
       const { data, error } = await supabase
-        .from('customers')
-        .upsert([dbRecord], { onConflict: 'id' })
-        .select();
+        .from('profiles')
+        .select('*')
+        .eq('role', 'CUSTOMER')
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('[CustomersService] Primary upsert by id failed, retrying by email:', error.message);
-        const { data: altData, error: altError } = await supabase
-          .from('customers')
-          .upsert([dbRecord], { onConflict: 'email' })
-          .select();
-
-        if (altError) {
-          console.error('[CustomersService] Create customer error:', altError.message);
-          return null;
-        }
-        return altData?.[0];
+        console.warn('[CustomersService] Fetch customers from profiles error:', error.message);
+        return null;
       }
-      return data?.[0];
+
+      return (data || []).map(p => ({
+        id: p.id,
+        name: p.name || 'Corporate Customer',
+        email: p.email,
+        phone: p.phone || '',
+        company: p.company || '',
+        company_name: p.company || '',
+        status: p.status || 'Active',
+        created_at: p.created_at,
+        role: p.role || 'CUSTOMER',
+        tier: 'Standard Corporate',
+        total_spent: 'S$ 0.00',
+        total_shipments: 0,
+        address: 'Singapore',
+        tags: ['Corporate']
+      }));
     } catch (err) {
-      console.error('[CustomersService] Exception creating customer:', err);
+      console.warn('[CustomersService] Error querying profiles:', err);
       return null;
     }
-  },
+  }
 };

@@ -159,23 +159,23 @@ export const CrmAirwayRequestsTab = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
         <div>
           <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-black text-slate-900 font-heading">Airway Service Requests</h2>
-            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[#EAF2FF] text-[#2463EB]">
+            <h2 className="text-xl font-black text-slate-900 font-heading">Air Freight Requests</h2>
+            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-orange-100 text-orange-700">
               {airwayRequests.length} Total
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage inbound website airway service requests: AWB Preparation, AWB Billing, Shipment Documentation, and Transportation Support.
+            Manage inbound website air freight service requests: AWB Preparation, AWB Billing, Shipment Documentation, and Transportation Support.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>New Airway Request</span>
+          <span>New Air Freight Request</span>
         </button>
       </div>
 
@@ -609,7 +609,7 @@ export const CrmAirwayRequestsTab = ({
                   <button
                     type="button"
                     onClick={() => handleNextStage(activeRequestModal)}
-                    className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold shadow-sm flex items-center space-x-1 cursor-pointer"
+                    className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold shadow-md shadow-orange-500/20 active:scale-95 flex items-center space-x-1 cursor-pointer transition-all"
                   >
                     <span>Advance to Next Stage</span>
                     <ChevronRight className="w-4 h-4" />
@@ -826,7 +826,7 @@ export const CrmAirwayRequestsTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Create Request
                 </button>

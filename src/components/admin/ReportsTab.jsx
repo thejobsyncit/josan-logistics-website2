@@ -118,9 +118,9 @@ export const ReportsTab = ({
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Road vs Airway Ratio</span>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Road vs Air Freight Ratio</span>
           <p className="text-2xl font-black text-blue-600">{roadCount} : {airwayCount}</p>
-          <p className="text-[11px] text-slate-500 font-medium">Road partners vs Airway</p>
+          <p className="text-[11px] text-slate-500 font-medium">Road partners vs Air Freight</p>
         </div>
       </div>
 

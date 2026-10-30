@@ -8,7 +8,6 @@ import { CrmDashboardTab } from '../components/crm/CrmDashboardTab';
 import { CrmCustomersTab } from '../components/crm/CrmCustomersTab';
 import { CrmAirwayRequestsTab } from '../components/crm/CrmAirwayRequestsTab';
 import { CrmRoadShipmentsTab } from '../components/crm/CrmRoadShipmentsTab';
-import { CrmCargoPricingTab } from '../components/crm/CrmCargoPricingTab';
 import { CrmDocumentsTab } from '../components/crm/CrmDocumentsTab';
 import { CrmQuotationsTab } from '../components/crm/CrmQuotationsTab';
 import { CrmBillingTab } from '../components/crm/CrmBillingTab';
@@ -41,6 +40,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
 
     quotes = [],
     createCrmQuotation,
+    updateAdminQuote,
     sendQuoteToCustomer,
     customerRespondQuote,
 
@@ -58,13 +58,6 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
     markNotificationAsRead,
     markAllNotificationsAsRead,
     clearNotifications,
-
-    // Cargo & Pricing State & Handlers
-    cargoPricing = [],
-    addCargoPricing,
-    updateCargoPricing,
-    deleteCargoPricing,
-    toggleCargoPricingStatus,
 
     currentUser,
     logoutUser,
@@ -105,14 +98,13 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
       customers: customers.length,
       airway: airwayRequests.filter(r => r.status === 'New' || r.status === 'Under Review').length,
       road: shipments.filter(s =>!['Delivered','Completed','Cancelled'].includes(s.status)).length,
-      cargo: cargoPricing.filter(c => c.active).length,
       docs: documents.length,
       quotes: quotes.filter(q => q.status === 'Draft' || q.status === 'Sent').length,
       billing: invoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Pending').length,
       partners: transportationPartners.length,
       notifs: notifications.filter(n => !n.read).length
     };
-  }, [customers, airwayRequests, shipments, cargoPricing, documents, quotes, invoices, transportationPartners, notifications]);
+  }, [customers, airwayRequests, shipments, documents, quotes, invoices, transportationPartners, notifications]);
 
   // Handlers for switching tabs with deep-link entity selection
   const handleOpenAirwayDetails = (req) => {
@@ -144,6 +136,25 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
     else setActiveTab('notifications');
   };
 
+  const activeUser = currentUser || (() => {
+    try {
+      return JSON.parse(localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user') || 'null');
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  // Guard against unauthenticated access
+  useEffect(() => {
+    if (!activeUser) {
+      if (setParentActiveTab) {
+        setParentActiveTab('staff-login');
+      } else if (typeof window !== 'undefined') {
+        window.location.hash = '#staff-login';
+      }
+    }
+  }, [activeUser, setParentActiveTab]);
+
   const handleBackToWebsite = () => {
     if (setParentActiveTab) {
       setParentActiveTab('home');
@@ -153,11 +164,12 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
   };
 
   const handleLogout = () => {
-    if (logoutUser) logoutUser(true);
+    if (logoutUser) logoutUser(false);
     if (setParentActiveTab) {
-      setParentActiveTab('home');
-    } else {
-      window.location.href = '/#home';
+      setParentActiveTab('staff-login');
+    }
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#staff-login';
     }
   };
 
@@ -172,7 +184,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
         mobileOpen={mobileSidebarOpen}
         setMobileOpen={setMobileSidebarOpen}
         badgeCounts={badgeCounts}
-        currentUser={currentUser}
+        currentUser={activeUser}
         onLogout={handleLogout}
         onBackToWebsite={handleBackToWebsite}
       />
@@ -200,7 +212,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
           onNotificationClick={handleNotificationClick}
           onMarkAllNotifsRead={markAllNotificationsAsRead}
           onBackToWebsite={handleBackToWebsite}
-          currentUser={currentUser}
+          currentUser={activeUser}
         />
 
         {/* 4. WORKSPACE TAB CONTAINER */}
@@ -284,18 +296,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
             />
           )}
 
-          {/* TAB 5: CARGO & PRICING */}
-          {activeTab === 'cargo-pricing' && (
-            <CrmCargoPricingTab
-              cargoPricing={cargoPricing}
-              onAddCargoPricing={addCargoPricing}
-              onUpdateCargoPricing={updateCargoPricing}
-              onDeleteCargoPricing={deleteCargoPricing}
-              onToggleStatus={toggleCargoPricingStatus}
-            />
-          )}
-
-          {/* TAB 6: DOCUMENTS */}
+          {/* TAB 5: SHIPMENT DOCUMENTS */}
           {activeTab === 'documents' && (
             <CrmDocumentsTab
               documents={documents}
@@ -319,6 +320,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
               onCreateQuotation={createCrmQuotation}
               onSendQuote={sendQuoteToCustomer}
               onUpdateQuoteStatus={customerRespondQuote}
+              onUpdateQuotePricing={updateAdminQuote}
               onConvertQuote={() => {}}
             />
           )}

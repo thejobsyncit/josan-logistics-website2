@@ -190,7 +190,8 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
     logoutUser();
     if (setActiveTab) setActiveTab('home');
   };
-  const [expandedMapId, setExpandedMapId] = useState('JOS-77102-SG');
+
+  const [expandedMapId, setExpandedMapId] = useState(null);
 
   // Live Truck GPS animation loop for Customer Portal
   const [customerTruckProgress, setCustomerTruckProgress] = useState(35);
@@ -397,22 +398,6 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
   return (
     <div className="space-y-6 pb-20 w-full px-3 sm:px-5 lg:px-6 pt-6 animate-fade-in">
-      
-      {/* Driver Role Alert Banner */}
-      {currentRole === 'driver' && (
-        <div className="bg-amber-50 border-2 border-amber-300 p-4.5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 font-extrabold shadow-sm animate-fade-in">
-          <div className="flex items-center space-x-2.5">
-            <span className="text-lg">🚛</span>
-            <span>You are currently logged in with a <strong>Driver Account ({currentUser?.name})</strong>. Switch to your Driver Portal for live GPS telematics navigation & dispatch.</span>
-          </div>
-          <button
-            onClick={() => setActiveTab('driver-dashboard')}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all whitespace-nowrap"
-          >
-            Open Driver Portal →
-          </button>
-        </div>
-      )}
 
       {/* Customer Header Card */}
       <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -431,11 +416,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => setActiveTab('book')}
-            className="px-5 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5"
+            onClick={() => setActiveTab('quote')}
+            className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05D00] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Book New Shipment</span>
+            <span>Request Freight Quote</span>
           </button>
         </div>
       </div>
@@ -691,7 +676,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                       <span>{s.status}</span>
                     </span>
                     <span className="text-xs font-bold text-[#2463EB] bg-[#EAF2FF]/80 px-3 py-1 rounded-full border border-[#DCE5F0]/60">
-                      {s.serviceLevel || 'Express Linehaul'}
+                      {s.serviceLevel || 'Commercial Road Transport'}
                     </span>
                     {s.referenceNumber && (
                       <span className="text-xs text-slate-500 font-mono hidden md:inline-block">
@@ -781,8 +766,8 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="min-w-0 flex-1">
                       <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Vehicle Plate & Class</span>
                       <p className="text-xs font-mono font-bold text-slate-900 truncate">{s.vehiclePlate || 'SG-8819'}</p>
-                      <p className="text-[11px] text-slate-500 truncate mt-0.5" title={s.vehicle || 'Heavy Linehaul Truck'}>
-                        {s.vehicle || 'Heavy Linehaul Truck'}
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5" title={s.vehicle || 'Commercial Transport Truck'}>
+                        {s.vehicle || 'Commercial Transport Truck'}
                       </p>
                     </div>
                   </div>
@@ -937,7 +922,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                         ? s.timeline
                         : [
                             {
-                              title: 'Order Booked & TradeNet Customs Cleared',
+                              title: 'Order Booked & Documentation Verified',
                               location: s.origin ? `${s.origin} (SIN)` : 'Changi Air Cargo Complex (SIN)',
                               timestamp: s.createdDate || 'Aug 31, 08:15 AM',
                               completed: true,
@@ -1080,7 +1065,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          Requested: <span className="font-medium text-slate-700">{q.createdDate || 'Recently'}</span> &bull; Mode: <strong className="text-slate-800">{q.freightMode || 'Roadway Linehaul'}</strong>
+                          Requested: <span className="font-medium text-slate-700">{q.createdDate || 'Recently'}</span> &bull; Mode: <strong className="text-slate-800">{q.freightMode || 'Commercial Road Transport'}</strong>
                         </p>
                       </div>
 
@@ -1218,7 +1203,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 <span>Customer Notifications Center</span>
               </h2>
               <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                Real-time dispatch alerts, booking updates, OTP verifications, and delivery receipts.
+                Alerts about quote requests, contact messages and account activity.
               </p>
             </div>
             <button
@@ -1741,11 +1726,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <button
                     type="button"
                     onClick={() => {
-                      if (setActiveTab) setActiveTab('book');
+                      if (setActiveTab) setActiveTab('quote');
                     }}
                     className="w-full py-2 bg-slate-50 hover:bg-[#EAF2FF] text-slate-700 hover:text-[#2463EB] rounded-xl text-xs font-bold transition-colors border border-slate-200 flex items-center justify-center space-x-1 cursor-pointer"
                   >
-                    <span>Use in New Booking</span>
+                    <span>Use for Quote Request</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

@@ -245,10 +245,10 @@ export const CrmDocumentsTab = ({
           <button
             type="button"
             onClick={() => setIsUploadOpen(true)}
-            className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-black shadow-sm transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+            className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-black shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
           >
             <Upload className="w-4 h-4" />
-            <span>Upload Document</span>
+            <span>Upload Shipment Document</span>
           </button>
         </div>
 
@@ -788,7 +788,7 @@ export const CrmDocumentsTab = ({
                 <button
                   type="button"
                   onClick={() => handleDownloadMockFile(viewingDoc)}
-                  className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold text-xs shadow-sm flex items-center space-x-1.5 cursor-pointer"
+                  className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold text-xs shadow-md shadow-orange-500/20 active:scale-95 flex items-center space-x-1.5 cursor-pointer transition-all"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download Document</span>
@@ -906,7 +906,7 @@ export const CrmDocumentsTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Upload & Archive
                 </button>

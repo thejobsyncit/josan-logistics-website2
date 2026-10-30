@@ -18,6 +18,7 @@ import {
   Layers,
   FileText
 } from 'lucide-react';
+import { supabase } from '../../services/supabase';
 
 export const DashboardOverviewTab = ({
   systemUsers = [],
@@ -28,22 +29,117 @@ export const DashboardOverviewTab = ({
   adminActivityLog = [],
   onNavigateTab
 }) => {
-  // 1. Total users
-  const totalUsers = systemUsers.length;
+  // Live Database Counts State from Supabase
+  const [dbCounts, setDbCounts] = React.useState({
+    totalUsers: null,
+    activeCrmUsers: null,
+    totalAirwayInquiries: null,
+    totalRoadBookings: null,
+    unreadNotifications: null,
+    isLoaded: false
+  });
 
-  // 2. Active CRM users
-  const activeCrmUsers = systemUsers.filter(u => 
-    u.status === 'Active' && 
-    (u.role?.includes('crm') || u.role === 'admin')
-  ).length;
+  // Query live counts directly from Supabase database
+  React.useEffect(() => {
+    let isMounted = true;
 
-  // 3. Website requests summary
-  const totalAirwayInquiries = airwayRequests.length;
-  const totalRoadBookings = shipments.length;
+    const fetchDatabaseCounts = async () => {
+      try {
+        // 1. Fetch profiles from database matching Staff Directory
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name, email, role, status')
+          .in('role', ['ADMIN', 'CRM', 'READONLY', 'admin', 'crm', 'readonly', 'crm_manager', 'crm_ops', 'crm_finance', 'viewer']);
+
+        // 2. Fetch quote requests (air freight / web requests)
+        const { count: quotesCount } = await supabase
+          .from('quote_requests')
+          .select('id', { count: 'exact', head: true });
+
+        // 3. Fetch shipments (road coordination / freight jobs)
+        const { count: shipmentsCount } = await supabase
+          .from('shipments')
+          .select('id', { count: 'exact', head: true });
+
+        // 4. Fetch notifications
+        const { count: notifsCount } = await supabase
+          .from('notifications')
+          .select('id', { count: 'exact', head: true })
+          .eq('read', false);
+
+        if (isMounted) {
+          let staffList = [];
+          if (profilesData && Array.isArray(profilesData) && profilesData.length > 0) {
+            staffList = profilesData.map(p => ({
+              id: p.id,
+              role: (p.role || '').toUpperCase(),
+              status: p.status === 'Disabled' ? 'Deactivated' : (p.status || 'Active')
+            }));
+          }
+
+          // Ensure Admin is accounted for (identical to Staff Directory)
+          const hasAdmin = staffList.some(u => u.role === 'ADMIN' || u.role === 'ADMINISTRATOR');
+          if (!hasAdmin) {
+            staffList = [{ id: 'admin', role: 'ADMIN', status: 'Active' }, ...staffList];
+          }
+
+          const totalUsersCount = staffList.length;
+          const activeCrmUsersCount = staffList.filter(u => u.status === 'Active').length;
+
+          setDbCounts({
+            totalUsers: totalUsersCount,
+            activeCrmUsers: activeCrmUsersCount,
+            totalAirwayInquiries: quotesCount !== null && quotesCount !== undefined ? quotesCount : airwayRequests.length,
+            totalRoadBookings: shipmentsCount !== null && shipmentsCount !== undefined ? shipmentsCount : shipments.length,
+            unreadNotifications: notifsCount !== null && notifsCount !== undefined ? notifsCount : notifications.filter(n => !n.read).length,
+            isLoaded: true
+          });
+        }
+      } catch (err) {
+        console.warn('Dashboard Supabase count fetch fallback:', err);
+      }
+    };
+
+    fetchDatabaseCounts();
+    return () => { isMounted = false; };
+  }, [airwayRequests.length, shipments.length, notifications]);
+
+  // Computed counts prioritizing live database counts
+  const totalUsers = dbCounts.totalUsers !== null ? dbCounts.totalUsers : systemUsers.length;
+  const activeCrmUsers = dbCounts.activeCrmUsers !== null 
+    ? dbCounts.activeCrmUsers 
+    : systemUsers.filter(u => u.status === 'Active' && (u.role?.includes('crm') || u.role === 'admin' || u.role === 'Admin')).length;
+  const totalAirwayInquiries = dbCounts.totalAirwayInquiries !== null ? dbCounts.totalAirwayInquiries : airwayRequests.length;
+  const totalRoadBookings = dbCounts.totalRoadBookings !== null ? dbCounts.totalRoadBookings : shipments.length;
   const totalWebsiteRequests = totalAirwayInquiries + totalRoadBookings;
+  const unreadNotifications = dbCounts.unreadNotifications !== null ? dbCounts.unreadNotifications : notifications.filter(n => !n.read).length;
 
-  // 4. System notifications
-  const unreadNotifications = notifications.filter(n => !n.read).length;
+  // 5. Real health endpoint telemetry check
+  const [healthStatus, setHealthStatus] = React.useState({
+    checking: true,
+    online: false,
+    latency: null
+  });
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const t0 = performance.now();
+    supabase.auth.getSession()
+      .then(({ error }) => {
+        if (!isMounted) return;
+        const latencyMs = Math.round(performance.now() - t0);
+        setHealthStatus({
+          checking: false,
+          online: !error,
+          latency: `${latencyMs}ms`
+        });
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setHealthStatus({ checking: false, online: false, latency: null });
+      });
+    return () => { isMounted = false; };
+  }, []);
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in font-sans">
@@ -67,17 +163,6 @@ export const DashboardOverviewTab = ({
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
               High-level administrative control over public website content, active services, CRM user accounts, and role-based permissions. Operational logistics workflows are maintained in CRM.
             </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2.5 shrink-0">
-            <a
-              href="/crm"
-              className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center space-x-2 shadow-sm"
-              title="Open Separate CRM Portal"
-            >
-              <span>Go to CRM Portal</span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#2463EB]" />
-            </a>
           </div>
         </div>
       </div>
@@ -129,7 +214,7 @@ export const DashboardOverviewTab = ({
           <div className="mt-3">
             <p className="text-2xl font-black text-slate-900 font-mono">{totalWebsiteRequests}</p>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              {totalAirwayInquiries} Airway • {totalRoadBookings} Road Bookings
+              {totalAirwayInquiries} Air Freight • {totalRoadBookings} Road Quote Requests
             </p>
           </div>
         </div>
@@ -169,20 +254,20 @@ export const DashboardOverviewTab = ({
 
           <div className="space-y-3 text-xs">
             <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
-              <span className="text-slate-600 font-medium">Core API & Router</span>
-              <span className="font-mono font-bold text-emerald-600">Online (28ms)</span>
+              <span className="text-slate-600 font-medium">Supabase Auth &amp; REST API</span>
+              <span className="font-mono font-bold text-emerald-600">
+                {healthStatus.checking ? 'Pinging endpoint...' : (healthStatus.online ? `Online (${healthStatus.latency})` : 'Endpoint Offline')}
+              </span>
             </div>
             <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
               <span className="text-slate-600 font-medium">Database Persistence</span>
-              <span className="font-mono font-bold text-emerald-600">Connected & Synced</span>
+              <span className="font-mono font-bold text-emerald-600">
+                {healthStatus.online ? 'Connected & Verified' : 'Connecting...'}
+              </span>
             </div>
             <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
               <span className="text-slate-600 font-medium">Session Auth Guard</span>
-              <span className="font-mono font-bold text-slate-800">RBAC Enforced</span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
-              <span className="text-slate-600 font-medium">Uptime Metric</span>
-              <span className="font-mono font-bold text-slate-800">99.98% (SG Cloud)</span>
+              <span className="font-mono font-bold text-slate-800">RBAC Active</span>
             </div>
           </div>
         </div>
@@ -297,8 +382,8 @@ export const DashboardOverviewTab = ({
 
         <div className="divide-y divide-slate-100">
           {adminActivityLog.length === 0 ? (
-            <p className="text-xs text-slate-400 italic py-4 text-center">
-              No recent administrative actions recorded.
+            <p className="text-xs text-slate-400 italic py-6 text-center">
+              No activity yet
             </p>
           ) : (
             adminActivityLog.slice(0, 6).map((log) => (

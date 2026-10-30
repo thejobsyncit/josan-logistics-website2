@@ -12,7 +12,8 @@ import {
 import roadwayTruckImg from '../assets/Local CDL Training in Minden.jpg';
 
 export const AboutUsPage = ({ setActiveTab }) => {
-  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast, websiteContent } = useLogistics();
+  const aboutContent = websiteContent?.about || {};
 
   const handleQuoteClick = () => {
     if (!currentUser) {
@@ -74,7 +75,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
 
         <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading text-white tracking-tight leading-tight">
-            Moving Goods with Reliable Logistics Support
+            {aboutContent.tagline || 'Air freight documentation and road transportation coordination in Singapore'}
           </h1>
           <p className="text-[#B6C2D1] font-normal max-w-3xl mx-auto text-sm sm:text-base leading-relaxed">
             Josan Logistics provides logistics and transportation support for businesses that need to move commercial goods efficiently between locations. Our services cover air freight documentation and transportation support as well as commercial road transportation through trusted transportation partners.
@@ -109,7 +110,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
           {/* Left Column: Text */}
           <div className="lg:col-span-7 space-y-4">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1F3A] font-heading tracking-tight">
-              Dedicated Freight Coordination &amp; Documentation Support
+              Reliable Freight Coordination &amp; Documentation Support
             </h2>
             <div className="space-y-3 text-slate-700 text-sm sm:text-base leading-relaxed font-normal">
               <p>
@@ -253,7 +254,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
             </div>
             <h3 className="text-2xl font-extrabold text-white font-heading">Our Mission</h3>
             <p className="text-[#B6C2D1] text-sm sm:text-base leading-relaxed font-normal">
-              To provide dependable logistics and documentation support that simplifies commercial cargo movement.
+              {aboutContent.mission || 'To provide dependable logistics and documentation support that simplifies commercial cargo movement.'}
             </p>
           </div>
 
@@ -264,7 +265,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
             </div>
             <h3 className="text-2xl font-extrabold text-white font-heading">Our Vision</h3>
             <p className="text-[#B6C2D1] text-sm sm:text-base leading-relaxed font-normal">
-              To be a trusted logistics partner known for reliable transport coordination, accurate documentation, and responsive service.
+              {aboutContent.vision || 'To be a trusted logistics partner known for reliable transport coordination, accurate documentation, and responsive service.'}
             </p>
           </div>
 

@@ -30,7 +30,7 @@ export const ServicesManagementTab = ({
   const serviceRoutes = {
     airway: { label: '/#air-freight (Air Freight Services)', hash: '#air-freight' },
     road: { label: '/#road-transportation (Road Transportation)', hash: '#road-freight' },
-    documentation: { label: '/#customs-clearance (Documentation Support)', hash: '#customs-clearance' }
+    documentation: { label: '/#documentation (Shipment Documentation Support)', hash: '#documentation' }
   };
 
   const handleStartEdit = (svc) => {
@@ -58,7 +58,7 @@ export const ServicesManagementTab = ({
           </span>
         </div>
         <p className="text-xs text-slate-500 mt-0.5">
-          Enable or temporarily pause public customer booking requests for Airway, Road Transportation, or Documentation services.
+          Enable or temporarily pause public customer quote requests for Air Freight, Road Transportation, or Documentation services.
         </p>
       </div>
 
@@ -147,7 +147,7 @@ export const ServicesManagementTab = ({
                       <button
                         type="button"
                         onClick={() => handleSaveEdit(key)}
-                        className="px-3.5 py-1 bg-[#2463EB] text-white rounded-lg text-xs font-extrabold shadow-sm"
+                        className="px-3.5 py-1 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-lg text-xs font-extrabold shadow-sm cursor-pointer transition-all"
                       >
                         Save
                       </button>
@@ -181,7 +181,7 @@ export const ServicesManagementTab = ({
               {/* Bottom Status & Public Website Route */}
               <div className="pt-6 border-t border-slate-100 mt-6 space-y-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-medium">Website Booking:</span>
+                  <span className="text-slate-400 font-medium">Website Quote Requests:</span>
                   <span className={`font-extrabold flex items-center space-x-1 ${
                     svc.active ? 'text-emerald-600' : 'text-slate-400'
                   }`}>

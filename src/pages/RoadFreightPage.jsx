@@ -40,17 +40,6 @@ export const RoadFreightPage = ({ setActiveTab }) => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
-  const handleBookClick = () => {
-    if (!currentUser) {
-      if (setAuthRedirectTab) setAuthRedirectTab('book');
-      setIsAuthModalOpen(true);
-      if (showToast) showToast('Please sign in or create an account to book a road shipment.', 'warning');
-      return;
-    }
-    setActiveTab('book');
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-  };
-
   // 4 Core Road Transportation Services based on actual business model
   const roadServices = [
     {
@@ -59,7 +48,7 @@ export const RoadFreightPage = ({ setActiveTab }) => {
       badge: 'B2B Cargo Movement',
       desc: 'Transportation support for moving commercial products from one location to another.',
       features: [
-        'Dedicated commercial goods and product movement',
+        'Commercial goods and product movement',
         'Direct origin-to-destination transport arrangements',
         'Organized handling tailored for business inventory'
       ],
@@ -146,7 +135,7 @@ export const RoadFreightPage = ({ setActiveTab }) => {
     },
     {
       title: 'Retail & Wholesale Merchandise',
-      desc: 'Commercial inventory moving between suppliers, distribution hubs, and retail stores.',
+      desc: 'Commercial inventory moving between suppliers, distribution centres, and retail stores.',
       icon: Building2
     },
     {

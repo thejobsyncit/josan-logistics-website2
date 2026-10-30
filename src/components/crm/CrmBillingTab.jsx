@@ -10,6 +10,7 @@ import {
   Download, 
   X
 } from 'lucide-react';
+import { useLogistics } from '../../context/LogisticsContext';
 
 export const BILLING_PAYMENT_STATUSES = [
   'Paid',
@@ -76,7 +77,15 @@ export const generateUniqueInvoiceNumber = (existingInvoices = []) => {
 /**
  * Generates and downloads an official Tax Invoice PDF
  */
-export const generateInvoicePdf = (inv) => {
+export const generateInvoicePdf = (inv, customSiteSettings = null) => {
+  let settings = customSiteSettings;
+  if (!settings) {
+    try {
+      const saved = localStorage.getItem('josan_site_settings');
+      if (saved) settings = JSON.parse(saved);
+    } catch (e) {}
+  }
+
   const { subtotal, gst, total } = calculateInvoiceAmounts(inv);
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -91,20 +100,29 @@ export const generateInvoicePdf = (inv) => {
   doc.rect(0, 0, pageWidth, 38, 'F');
 
   // Orange accent strip
-  doc.setFillColor(255, 107, 0); // #2463EB
+  doc.setFillColor(255, 107, 0); // brand orange
   doc.rect(0, 38, pageWidth, 2, 'F');
 
   // Company Name & Singapore Details
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(15);
-  doc.text('JOSAN LOGISTICS PTE LTD', 15, 15);
+  doc.setFontSize(14);
+  doc.text((settings?.company_name || 'JOSAN LOGISTICS PTE LTD').toUpperCase(), 15, 15);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(203, 213, 225); // slate-300
-  doc.text('UEN: 202412345K  |  GST Reg: M90384721', 15, 22);
-  doc.text('Changi Air Cargo Logistics Hub  |  Singapore Corridors', 15, 28);
+
+  const uen = settings?.uen && settings.uen !== '202412345K' && settings.uen !== '201829481K' ? settings.uen : '';
+  const gstReg = settings?.gst_reg && settings.gst_reg !== 'M90384721' && settings.gst_reg !== 'M90382910X' ? settings.gst_reg : '';
+  const uenGstLine = [
+    uen ? `UEN: ${uen}` : 'UEN: [Pending]',
+    gstReg ? `GST Reg: ${gstReg}` : 'Non-GST Registered'
+  ].join('  |  ');
+  const registeredOffice = settings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438';
+
+  doc.text(uenGstLine, 15, 22);
+  doc.text(registeredOffice, 15, 28);
 
   // TAX INVOICE header on right
   doc.setFont('helvetica', 'bold');
@@ -257,10 +275,10 @@ export const generateInvoicePdf = (inv) => {
   doc.setTextColor(15, 23, 42);
   doc.text('Payment & Settlement Remittance Instructions', 20, remitY + 6.5);
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(71, 85, 105);
-  doc.text('PayNow UEN: 202412345K (Josan Logistics Pte Ltd)', 20, remitY + 13);
+  const payNowText = uen 
+    ? `PayNow UEN: ${uen} (${settings?.company_name || 'Josan Logistics Pte Ltd'})`
+    : `PayNow: Contact Accounts (${settings?.company_name || 'Josan Logistics Pte Ltd'})`;
+  doc.text(payNowText, 20, remitY + 13);
   doc.text('Bank Transfer: DBS Bank Singapore  |  Account No: 012-987654-3  |  Marina Bay Financial Centre', 20, remitY + 19);
 
   // Footer notes
@@ -282,6 +300,7 @@ export const CrmBillingTab = ({
   onUpdatePaymentStatus,
   selectedInvoiceFromSearch = null
 }) => {
+  const { siteSettings } = useLogistics?.() || {};
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
@@ -441,7 +460,7 @@ export const CrmBillingTab = ({
         <button
           type="button"
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Generate Invoice</span>
@@ -672,9 +691,18 @@ export const CrmBillingTab = ({
               {/* Header */}
               <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <span className="font-black text-base text-[#0B1F5B] tracking-tight block">JOSAN LOGISTICS PTE LTD</span>
-                  <p className="text-[11px] text-slate-500">UEN: 202412345K • GST Registered: M90384721</p>
-                  <p className="text-[11px] text-slate-400">Changi Air Cargo Logistics Hub • Singapore</p>
+                  <span className="font-black text-base text-[#0B1F5B] tracking-tight block">
+                    {(siteSettings?.company_name || 'JOSAN LOGISTICS PTE LTD').toUpperCase()}
+                  </span>
+                  <p className="text-[11px] text-slate-500">
+                    {[
+                      siteSettings?.uen && siteSettings.uen !== '202412345K' ? `UEN: ${siteSettings.uen}` : 'UEN: [Pending]',
+                      siteSettings?.gst_reg && siteSettings.gst_reg !== 'M90384721' ? `GST Registered: ${siteSettings.gst_reg}` : 'Non-GST Registered'
+                    ].join(' • ')}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    {siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}
+                  </p>
                 </div>
 
                 <div className="text-right">
@@ -751,7 +779,11 @@ export const CrmBillingTab = ({
               {/* Bank Remittance Details */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[11px] space-y-1">
                 <p className="font-extrabold text-slate-900">Payment & Settlement Remittance</p>
-                <p className="text-slate-600">PayNow UEN: <span className="font-mono font-bold">202412345K</span> (Josan Logistics Pte Ltd)</p>
+                <p className="text-slate-600">
+                  PayNow UEN: <span className="font-mono font-bold">
+                    {siteSettings?.uen && siteSettings.uen !== '202412345K' ? siteSettings.uen : '[Pending]'}
+                  </span> ({siteSettings?.company_name || 'Josan Logistics Pte Ltd'})
+                </p>
                 <p className="text-slate-600">Bank Transfer: <span className="font-mono font-bold">DBS Bank Ltd</span> • Account No: <span className="font-mono font-bold">012-987654-3</span></p>
               </div>
 
@@ -776,8 +808,8 @@ export const CrmBillingTab = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => generateInvoicePdf(viewingInvoice)}
-                    className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold shadow-sm flex items-center space-x-1.5 cursor-pointer"
+                    onClick={() => generateInvoicePdf(viewingInvoice, siteSettings)}
+                    className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold shadow-md shadow-orange-500/20 active:scale-95 flex items-center space-x-1.5 cursor-pointer transition-all"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download PDF</span>
@@ -881,7 +913,7 @@ export const CrmBillingTab = ({
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
                 >
                   <option value="Air Freight Services (AWB Preparation & Billing)">Air Freight Services (AWB Preparation & Billing)</option>
-                  <option value="Commercial Road Freight Linehaul">Commercial Road Freight Linehaul</option>
+                  <option value="Commercial Road Transportation (Partner Carriers)">Commercial Road Transportation (Partner Carriers)</option>
                   <option value="Transportation Support">Transportation Support</option>
                   <option value="Shipment Documentation">Shipment Documentation</option>
                 </select>
@@ -971,7 +1003,7 @@ export const CrmBillingTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Generate Invoice
                 </button>

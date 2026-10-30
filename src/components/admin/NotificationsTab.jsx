@@ -22,7 +22,7 @@ export const NotificationsTab = ({
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mt-1">Operational Alerts & Notifications</h2>
           <p className="text-xs text-slate-500">
-            Real-time updates on customer service requests, documentation verification, and road dispatch milestones.
+            Alerts about quote requests, contact messages and account activity.
           </p>
         </div>
 

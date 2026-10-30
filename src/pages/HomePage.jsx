@@ -38,7 +38,9 @@ export const HomePage = ({ setActiveTab }) => {
     setAuthRedirectTab,
     resetShipmentScope, 
     setActiveTrackingId,
-    showToast 
+    showToast,
+    websiteContent,
+    managedServices
   } = useLogistics();
 
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -49,6 +51,13 @@ export const HomePage = ({ setActiveTab }) => {
       videoRef.current.playbackRate = 0.65;
     }
   }, []);
+
+  const heroData = websiteContent?.hero || {};
+  const heroTitle = heroData.title || 'Reliable Logistics Solutions For Every Journey';
+  const heroSubtitle = heroData.subtitle || 'From Air Waybill preparation and shipment documentation to commercial road transportation, we provide reliable logistics support for businesses moving goods from one location to another.';
+  const heroCtaPrimary = heroData.ctaPrimary || 'Get a Freight Quote';
+  const heroCtaSecondary = heroData.ctaSecondary || '';
+  const heroBadge = heroData.badge || '';
 
   const handleHeroTrackSubmit = (e) => {
     if (e) e.preventDefault();
@@ -73,7 +82,6 @@ export const HomePage = ({ setActiveTab }) => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
-
   const handleQuoteAction = () => {
     if (!currentUser) {
       if (setAuthRedirectTab) setAuthRedirectTab('quote');
@@ -91,30 +99,35 @@ export const HomePage = ({ setActiveTab }) => {
     { id: 'location', label: 'Based in Singapore', icon: MapPin }
   ];
 
-  // 3 Primary Services for "Our Services" Section
-  const ourServices = [
+  // 3 Primary Services read directly from centralized websiteContent
+  const servicesData = websiteContent?.services || {};
+  const allServices = [
     {
       id: 'air-freight',
-      title: 'Air Freight Support',
-      desc: 'Air Waybill preparation, billing, shipment documentation, and cargo movement coordination for commercial air freight.',
+      active: managedServices?.airway?.active !== false,
+      title: servicesData.airway?.title || 'Air Freight Services',
+      desc: servicesData.airway?.shortDesc || 'Air Waybill preparation, billing and shipment documentation support for commercial air freight.',
       image: '/assets/air_freight_unbranded.jpg',
       tab: 'air-freight'
     },
     {
       id: 'road-transport',
-      title: 'Commercial Road Transportation',
-      desc: 'Reliable road transportation for commercial goods and products coordinated through our network of trusted transport partners.',
+      active: managedServices?.road?.active !== false,
+      title: servicesData.road?.title || 'Commercial Road Transportation',
+      desc: servicesData.road?.shortDesc || 'Commercial road transportation coordinated through partner carriers, based on your shipment requirements.',
       image: '/assets/road_truck_highway.jpg',
       tab: 'road-freight'
     },
     {
       id: 'customs-docs',
-      title: 'Shipment Documentation Support',
-      desc: 'Help preparing and organising your shipment documents, including Air Waybill details, commercial invoices and packing lists. Documentation support only.',
+      active: managedServices?.documentation?.active !== false,
+      title: servicesData.documentation?.title || 'Shipment Documentation Support',
+      desc: servicesData.documentation?.shortDesc || 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.',
       image: '/assets/shipment_documentation_desk.jpg',
       tab: 'shipment-documentation-support'
     }
   ];
+  const ourServices = allServices.filter(s => s.active);
 
   // 4 Genuine Differentiators for "Why Choose Josan Logistics" Section
   const differentiators = [
@@ -147,6 +160,19 @@ export const HomePage = ({ setActiveTab }) => {
   return (
     <div className="w-full">
       
+      {/* Announcement Banner (if activated in Admin > Website Content) */}
+      {websiteContent?.banner?.active && websiteContent?.banner?.text && (
+        <div className={`w-full py-2.5 px-4 text-center text-xs font-bold tracking-wide z-30 transition-all ${
+          websiteContent.banner.type === 'warning'
+            ? 'bg-amber-500 text-slate-950'
+            : websiteContent.banner.type === 'alert'
+            ? 'bg-rose-600 text-white'
+            : 'bg-[#0B1F3A] text-white border-b border-[#1E3A5F]'
+        }`}>
+          <span>{websiteContent.banner.text}</span>
+        </div>
+      )}
+
       {/* ========================================================================= */}
       {/* 1. HERO SECTION                                                           */}
       {/* ========================================================================= */}
@@ -172,19 +198,24 @@ export const HomePage = ({ setActiveTab }) => {
           
           {/* Left-aligned text container without any box blocking the truck */}
           <div className="max-w-xl lg:max-w-2xl space-y-6 text-left">
+            {heroBadge ? (
+              <span className="inline-block px-3.5 py-1 rounded-full text-xs font-bold bg-white/20 text-white backdrop-blur-md border border-white/30">
+                {heroBadge}
+              </span>
+            ) : null}
+
             <h1 
               className="text-4xl sm:text-5xl lg:text-[54px] xl:text-[58px] font-black tracking-tight text-white leading-[1.1]"
               style={{ textShadow: '0 2px 10px rgba(0,0,0,0.85), 0 4px 24px rgba(0,0,0,0.7)' }}
             >
-              <span className="block text-white">Reliable Logistics Solutions</span>
-              <span className="block text-white">For Every Journey</span>
+              {heroTitle}
             </h1>
 
             <p 
               className="text-white text-base sm:text-lg lg:text-xl leading-relaxed font-medium max-w-xl"
               style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9), 0 2px 14px rgba(0,0,0,0.75)' }}
             >
-              From Air Waybill preparation and shipment documentation to commercial road transportation, we provide reliable logistics support for businesses moving goods from one location to another.
+              {heroSubtitle}
             </p>
 
             {/* Compact Tracking Box + Get a Freight Quote CTA */}
@@ -213,16 +244,29 @@ export const HomePage = ({ setActiveTab }) => {
                 </button>
               </form>
 
-              {/* Secondary Action: Get a Freight Quote */}
+              {/* Action Buttons: Primary + Optional Secondary */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   type="button"
                   onClick={handleQuoteAction}
                   className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-full font-bold text-xs sm:text-sm tracking-wider uppercase transition-colors flex items-center justify-center space-x-2.5 cursor-pointer active:scale-95 shadow-lg group"
                 >
-                  <span>Get a Freight Quote</span>
+                  <span>{heroCtaPrimary}</span>
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
+
+                {heroCtaSecondary ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('road-freight');
+                      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                    }}
+                    className="w-full sm:w-auto px-6 py-3.5 sm:py-4 bg-white/20 hover:bg-white/30 text-white rounded-full font-bold text-xs sm:text-sm tracking-wider uppercase transition-colors flex items-center justify-center space-x-2 border border-white/30 cursor-pointer"
+                  >
+                    <span>{heroCtaSecondary}</span>
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>

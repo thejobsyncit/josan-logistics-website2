@@ -339,7 +339,7 @@ function synthesizeFallbackResponse(userQuestion, chunks, sources) {
   } else if (docIdentifier.includes('contact') || /\b(contact|email|phone|address|office|dpo|privacy|pdpa)\b/i.test(query)) {
     answer = "Our contact hours are shown on the Contact page. You can reach our Singapore team via contact@josanlogistics.com.sg or through our Contact page.";
   } else if (docIdentifier.includes('customs')) {
-    answer = "For general reference, commercial cargo moving through Singapore typically requires TradeNet permits declared with Singapore Customs. Because requirements vary and we do not act as a customs broker, please consult Singapore Customs or your licensed customs agent.";
+    answer = "For general reference, commercial cargo moving through Singapore typically requires permits declared with Singapore Customs. Because requirements vary and we do not act as a customs broker, please consult Singapore Customs or your licensed customs agent.";
   } else if (docIdentifier.includes('incoterms')) {
     answer = "Incoterms (such as EXW, FOB, CIF, DAP, and DDP) outline standard commercial trade terms agreed between buyer and seller. We coordinate transport and paperwork according to agreed instructions.";
   } else if (docIdentifier.includes('quote') || isPricingOrQuoteOrShipmentQuery) {

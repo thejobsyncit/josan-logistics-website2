@@ -13,22 +13,39 @@ import {
   Save,
   Info
 } from 'lucide-react';
+import { useLogistics } from '../../context/LogisticsContext';
 
 export const CrmSettingsTab = ({
   currentUser,
   showToast
 }) => {
+  const { siteSettings, updateSiteSettings } = useLogistics();
+
   const [companySettings, setCompanySettings] = useState({
-    companyName: 'Josan Logistics Pte Ltd',
-    uen: '202412345K',
-    gstReg: 'M90384721',
-    address: '1 Freight Close, Changi Air Cargo Complex, Singapore 819830',
-    opsPhone: '+65 6789 0123',
-    opsEmail: 'ops@josanlogistics.com',
-    crmSupportEmail: 'crm@josanlogistics.com',
+    companyName: siteSettings?.company_name || 'Josan Logistics Pte. Ltd.',
+    uen: siteSettings?.uen === '202412345K' ? '' : (siteSettings?.uen || ''),
+    gstReg: siteSettings?.gst_reg === 'M90384721' ? '' : (siteSettings?.gst_reg || ''),
+    address: siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+    opsPhone: siteSettings?.phone || '+65 6789 0123',
+    contactEmail: siteSettings?.contact_email || 'contact@josanlogistics.com.sg',
     currency: 'SGD (S$)',
     gstRate: 9
   });
+
+  React.useEffect(() => {
+    if (siteSettings) {
+      setCompanySettings({
+        companyName: siteSettings.company_name || 'Josan Logistics Pte. Ltd.',
+        uen: siteSettings.uen === '202412345K' || siteSettings.uen === '201829481K' ? '' : (siteSettings.uen || ''),
+        gstReg: siteSettings.gst_reg === 'M90384721' || siteSettings.gst_reg === 'M90382910X' ? '' : (siteSettings.gst_reg || ''),
+        address: siteSettings.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        opsPhone: siteSettings.phone || '+65 6789 0123',
+        contactEmail: siteSettings.contact_email || 'contact@josanlogistics.com.sg',
+        currency: 'SGD (S$)',
+        gstRate: 9
+      });
+    }
+  }, [siteSettings]);
 
   const [notificationSettings, setNotificationSettings] = useState({
     emailOnAirwayIntake: true,
@@ -38,8 +55,18 @@ export const CrmSettingsTab = ({
     dailySummaryReport: true
   });
 
-  const handleSaveCompany = (e) => {
+  const handleSaveCompany = async (e) => {
     e.preventDefault();
+    if (typeof updateSiteSettings === 'function') {
+      await updateSiteSettings({
+        company_name: companySettings.companyName,
+        uen: companySettings.uen ? companySettings.uen.trim() : '',
+        gst_reg: companySettings.gstReg ? companySettings.gstReg.trim() : '',
+        registered_office: companySettings.address ? companySettings.address.trim() : '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        phone: companySettings.opsPhone ? companySettings.opsPhone.trim() : '+65 6789 0123',
+        contact_email: companySettings.contactEmail ? companySettings.contactEmail.trim() : 'contact@josanlogistics.com.sg',
+      });
+    }
     if (showToast) showToast('Company profile and CRM settings saved!', 'success');
   };
 
@@ -177,7 +204,7 @@ export const CrmSettingsTab = ({
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
-              className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold flex items-center space-x-1.5 cursor-pointer shadow-sm transition-all"
+              className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold flex items-center space-x-1.5 cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
             >
               <Save className="w-4 h-4" />
               <span>Save Company Settings</span>

@@ -25,14 +25,6 @@ import {
   initialAdminActivityLog,
   calculateCargoPricingHelper
 } from '../data/adminCrmData';
-import { 
-  connectAdminSocket, 
-  onAdminSocketStatus, 
-  onLocationUpdate, 
-  onDriverStatusChange, 
-  onTripEvent,
-  onCustomerActivity 
-} from '../services/socket';
 import { backendApi } from '../services/api';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
@@ -116,7 +108,47 @@ export const LogisticsProvider = ({ children }) => {
   const [quotes, setQuotes] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_quotes');
-      return saved ? JSON.parse(saved) : initialQuotes;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(q => ({
+            ...q,
+            staffPriced: q.staffPriced === true ? true : false,
+            total: q.staffPriced === true ? (q.total ?? q.amount) : null,
+            amount: q.staffPriced === true ? (q.amount ?? q.total) : null,
+            status: !q.staffPriced && q.status === 'Draft' ? 'Requested' : (q.status || 'Requested')
+          }));
+        }
+      }
+      // Fallback: check josan_admin_quote_requests archive
+      const archive = localStorage.getItem('josan_admin_quote_requests');
+      if (archive) {
+        const parsedArchive = JSON.parse(archive);
+        if (Array.isArray(parsedArchive) && parsedArchive.length > 0) {
+          return parsedArchive.map(req => ({
+            id: req.id || req.referenceNumber,
+            referenceNumber: req.referenceNumber || req.id,
+            requestId: req.referenceNumber || req.id,
+            customerName: req.contactName || 'Customer',
+            customerEmail: req.contactEmail || '',
+            customerPhone: req.contactPhone || '',
+            company: req.contactCompany || 'Commercial Shipper',
+            origin: req.pickupAddress || 'Singapore',
+            destination: req.deliveryAddress || 'Destination',
+            service: req.service || (req.serviceCategory === 'air-freight' ? 'Air Freight Documentation Support' : req.serviceCategory === 'road-transport' ? 'Commercial Road Transportation Coordination' : 'Shipment Documentation Support'),
+            cargoCategory: req.cargoCategory || 'General Commercial Cargo',
+            cargoWeight: req.cargoWeight || 100,
+            status: req.isTest ? 'Test' : 'Requested',
+            isTest: Boolean(req.isTest),
+            createdAt: req.singaporeTime || new Date().toLocaleString(),
+            staffPriced: false,
+            amount: null,
+            total: null,
+            lineItems: null
+          }));
+        }
+      }
+      return initialQuotes.map(q => ({ ...q, staffPriced: false, total: null, amount: null }));
     } catch (e) {
       return initialQuotes;
     }
@@ -188,7 +220,7 @@ export const LogisticsProvider = ({ children }) => {
         ],
         date: '2026-09-23',
         status: 'Documentation',
-        adminNotes: 'TradeNet chemical export clearance permit attached.'
+        adminNotes: 'Chemical export clearance permit attached.'
       },
       {
         id: 'AIR-0003',
@@ -230,9 +262,23 @@ export const LogisticsProvider = ({ children }) => {
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_notifications');
-      return saved ? JSON.parse(saved) : initialNotifications;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+          // Filter out any legacy or invalid test notifications
+          const isSeeded = (n) => {
+            const title = (n.title || '').toLowerCase();
+            const msg = (n.message || '').toLowerCase();
+            const id = (n.id || '').toLowerCase();
+            return (
+              id.startsWith('notif-0') ||
+              title.includes('test') || msg.includes('test')
+            );
+          };
+          return parsed.filter(n => !isSeeded(n));
+      }
+      return [];
     } catch (e) {
-      return initialNotifications;
+      return [];
     }
   });
 
@@ -389,30 +435,49 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [cargoPricing]);
 
-  // 2. Admin System Activity Audit Log
+  const sanitizeActivityLogs = (logs) => {
+    if (!Array.isArray(logs)) return [];
+    return logs.filter(log => {
+      const u = String(log?.user || '').toLowerCase();
+      const a = String(log?.action || '').toLowerCase();
+      const d = String(log?.details || '').toLowerCase();
+      if (u.includes('alexander') || (u.includes('josan') && !u.includes('@'))) return false;
+      if (a.includes('cargo pricing verified') || a.includes('system initialized')) return false;
+      if (d.includes('cargo pricing verified') || d.includes('6 standardized cargo')) return false;
+      if (log?.id === 'act-101' || log?.id === 'act-102') return false;
+      return true;
+    });
+  };
+
+  // 2. Admin System Activity Audit Log (Real audit events only)
   const [adminActivityLog, setAdminActivityLog] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_admin_activity');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const cleaned = sanitizeActivityLogs(JSON.parse(saved));
+        localStorage.setItem('josan_admin_activity', JSON.stringify(cleaned));
+        return cleaned;
+      }
     } catch (e) {}
-    return initialAdminActivityLog;
+    return sanitizeActivityLogs(initialAdminActivityLog);
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('josan_admin_activity', JSON.stringify(adminActivityLog));
+      localStorage.setItem('josan_admin_activity', JSON.stringify(sanitizeActivityLogs(adminActivityLog)));
     } catch (e) {}
   }, [adminActivityLog]);
 
-  const logAdminActivity = (action, details, user = 'Admin') => {
+  const logAdminActivity = (action, details, user) => {
+    const defaultUser = currentUser?.name || currentUser?.email || 'Administrator';
     const newEntry = {
       id: `act-${Date.now()}`,
       action,
       details,
       timestamp: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' SGT, ' + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-      user: user || 'Alexander Josan'
+      user: user || defaultUser
     };
-    setAdminActivityLog(prev => [newEntry, ...prev.slice(0, 49)]);
+    setAdminActivityLog(prev => sanitizeActivityLogs([newEntry, ...prev.slice(0, 49)]));
   };
 
   const addCargoPricing = (cargoData) => {
@@ -557,7 +622,52 @@ export const LogisticsProvider = ({ children }) => {
   const [websiteContent, setWebsiteContent] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_website_content');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...initialWebsiteContent,
+          ...parsed,
+          hero: {
+            ...initialWebsiteContent.hero,
+            ...(parsed.hero || {}),
+            badge: '',
+            title: parsed.hero?.title || initialWebsiteContent.hero.title,
+            subtitle: parsed.hero?.subtitle || initialWebsiteContent.hero.subtitle,
+            ctaPrimary: parsed.hero?.ctaPrimary || initialWebsiteContent.hero.ctaPrimary,
+            ctaSecondary: '' // explicitly removed secondary button
+          },
+          services: {
+            ...initialWebsiteContent.services,
+            ...(parsed.services || {}),
+            documentation: {
+              ...initialWebsiteContent.services.documentation,
+              ...(parsed.services?.documentation || {}),
+              title: 'Shipment Documentation Support',
+              shortDesc: 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.'
+            }
+          },
+          about: {
+            ...initialWebsiteContent.about,
+            ...(parsed.about || {}),
+            tagline: parsed.about?.tagline || initialWebsiteContent.about.tagline,
+            mission: parsed.about?.mission || initialWebsiteContent.about.mission,
+            vision: parsed.about?.vision || initialWebsiteContent.about.vision
+          },
+          contact: {
+            ...initialWebsiteContent.contact,
+            ...(parsed.contact || {}),
+            description: 'Phone number, email, office address and opening hours.',
+            operatingHours: parsed.contact?.operatingHours || '[ENTER REAL HOURS]'
+          },
+          faqs: (parsed.faqs && parsed.faqs.length > 0) ? parsed.faqs : initialWebsiteContent.faqs,
+          banner: {
+            ...initialWebsiteContent.banner,
+            ...(parsed.banner || {}),
+            active: false,
+            text: 'Air freight documentation support and road transportation coordination in Singapore.'
+          }
+        };
+      }
     } catch (e) {}
     return initialWebsiteContent;
   });
@@ -612,11 +722,125 @@ export const LogisticsProvider = ({ children }) => {
     if (showToast) showToast('FAQ removed from public website', 'info');
   };
 
+  // 5b. Unified Site Settings (Company Profile, UEN, GST, Registered Office, Demo Mode)
+  const initialSiteSettings = {
+    company_name: 'Josan Logistics Pte. Ltd.',
+    uen: '',
+    gst_reg: '',
+    phone: '+65 6789 0123',
+    whatsapp: '+65 6789 0123',
+    contact_email: 'contact@josanlogistics.com.sg',
+    registered_office: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+    dpo_email: 'contact@josanlogistics.com.sg',
+    show_price_estimate: 'false',
+    demo_mode: true
+  };
+
+  const [siteSettings, setSiteSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('josan_site_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...initialSiteSettings,
+          ...parsed,
+          company_name: parsed.company_name || initialSiteSettings.company_name,
+          uen: parsed.uen === '201829481K' || parsed.uen === '202412345K' ? '' : (parsed.uen ?? ''),
+          gst_reg: parsed.gst_reg === 'M90382910X' || parsed.gst_reg === 'M90384721' ? '' : (parsed.gst_reg ?? ''),
+          phone: parsed.phone || initialSiteSettings.phone,
+          contact_email: parsed.contact_email || initialSiteSettings.contact_email,
+          registered_office: parsed.registered_office || initialSiteSettings.registered_office,
+          demo_mode: parsed.demo_mode !== false && parsed.demo_mode !== 'false'
+        };
+      }
+    } catch (e) {}
+    return initialSiteSettings;
+  });
+
+  // Sync siteSettings from Supabase database on mount
+  useEffect(() => {
+    let isMounted = true;
+    supabaseApi.getSiteSettings().then((remoteSettings) => {
+      if (isMounted && remoteSettings && Object.keys(remoteSettings).length > 0) {
+        setSiteSettings(prev => {
+          const merged = {
+            ...prev,
+            ...remoteSettings,
+            uen: remoteSettings.uen === '201829481K' || remoteSettings.uen === '202412345K' ? '' : (remoteSettings.uen ?? prev.uen ?? ''),
+            gst_reg: remoteSettings.gst_reg === 'M90382910X' || remoteSettings.gst_reg === 'M90384721' ? '' : (remoteSettings.gst_reg ?? prev.gst_reg ?? ''),
+            phone: remoteSettings.phone || prev.phone,
+            contact_email: remoteSettings.contact_email || prev.contact_email,
+            registered_office: remoteSettings.registered_office || prev.registered_office,
+            demo_mode: remoteSettings.demo_mode !== 'false' && remoteSettings.demo_mode !== false
+          };
+          try {
+            localStorage.setItem('josan_site_settings', JSON.stringify(merged));
+          } catch (e) {}
+          return merged;
+        });
+      }
+    }).catch(() => {});
+    return () => { isMounted = false; };
+  }, []);
+
+  const updateSiteSettings = async (newSettings) => {
+    setSiteSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      try {
+        localStorage.setItem('josan_site_settings', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // Synchronize to websiteContent.contact as well so all consumers stay 100% in sync
+    setWebsiteContent(prev => ({
+      ...prev,
+      contact: {
+        ...(prev.contact || {}),
+        phone: newSettings.phone || prev.contact?.phone || initialSiteSettings.phone,
+        email: newSettings.contact_email || prev.contact?.email || initialSiteSettings.contact_email,
+        address: newSettings.registered_office || prev.contact?.address || initialSiteSettings.registered_office,
+        description: 'Phone number, email, office address and opening hours.',
+        operatingHours: prev.contact?.operatingHours || '[ENTER REAL HOURS]'
+      }
+    }));
+
+    // Persist to Supabase site_settings table
+    try {
+      await supabaseApi.saveSiteSettings(newSettings);
+    } catch (err) {
+      console.warn('Failed to sync site_settings to Supabase:', err);
+    }
+
+    logAdminActivity('Settings Updated', 'Updated company profile and site_settings');
+    if (showToast) showToast('Company profile & site settings updated', 'success');
+  };
+
   // 6. Admin Services Management State
   const [managedServices, setManagedServices] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_managed_services');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          airway: { ...initialManagedServices.airway, ...(parsed.airway || {}) },
+          road: { 
+            ...initialManagedServices.road, 
+            ...(parsed.road || {}),
+            badge: 'Partner Carriers',
+            description: (parsed.road?.description && !parsed.road.description.includes('linehaul') && !parsed.road.description.includes('FTL'))
+              ? parsed.road.description
+              : initialManagedServices.road.description
+          },
+          documentation: { 
+            ...initialManagedServices.documentation, 
+            ...(parsed.documentation || {}),
+            name: 'Shipment Documentation Support',
+            badge: 'Documentation Only',
+            description: 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.'
+          }
+        };
+      }
     } catch (e) {}
     return initialManagedServices;
   });
@@ -705,9 +929,6 @@ export const LogisticsProvider = ({ children }) => {
         setCustomers(prev => {
           const dbIds = new Set(dbCustomers.map(c => c.id));
           const localOnly = (prev || []).filter(c => c && c.id && !dbIds.has(c.id));
-          if (localOnly.length > 0) {
-            localOnly.forEach(c => supabaseApi.createCustomer(c));
-          }
           return [...dbCustomers, ...localOnly];
         });
       }
@@ -715,214 +936,14 @@ export const LogisticsProvider = ({ children }) => {
 
     loadSupabaseData();
 
-    // Supabase Realtime Channels for Live Database Changes
-    const channelShipments = supabase
-      .channel('realtime:shipments')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setShipments(prev => [payload.new, ...prev.filter(s => s.id !== payload.new.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          setShipments(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
-        } else if (payload.eventType === 'DELETE') {
-          setShipments(prev => prev.filter(s => s.id !== payload.old.id));
-        }
-      })
-      .subscribe();
-
-    const channelDrivers = supabase
-      .channel('realtime:drivers')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'drivers' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const normalized = {
-            ...payload.new,
-            licenseNumber: payload.new.license_number || payload.new.licenseNumber,
-            vehicleType: payload.new.vehicle_type || payload.new.vehicleType,
-            vehicleId: payload.new.vehicle_id || payload.new.vehicleId,
-            vehiclePlate: payload.new.vehicle_plate || payload.new.vehiclePlate,
-            deliveriesCompleted: payload.new.deliveries_completed ?? payload.new.deliveriesCompleted ?? 0,
-            onTimeRate: payload.new.on_time_rate || payload.new.onTimeRate || '100%',
-            assignedHub: payload.new.assigned_hub || payload.new.assignedHub,
-            safetyScore: payload.new.safety_score || payload.new.safetyScore,
-            assignedVehicle: `${payload.new.vehicle_type || 'Vehicle'} (${payload.new.vehicle_plate || payload.new.vehicle_id || 'N/A'})`,
-          };
-          setDrivers(prev => [normalized, ...prev.filter(d => d.id !== normalized.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          setDrivers(prev => prev.map(d => (d.id === payload.new.id || d.driverId === payload.new.id) ? { 
-            ...d, 
-            ...payload.new,
-            licenseNumber: payload.new.license_number || d.licenseNumber,
-            vehicleType: payload.new.vehicle_type || d.vehicleType,
-            vehicleId: payload.new.vehicle_id || d.vehicleId,
-            vehiclePlate: payload.new.vehicle_plate || d.vehiclePlate,
-            deliveriesCompleted: payload.new.deliveries_completed ?? d.deliveriesCompleted,
-            onTimeRate: payload.new.on_time_rate || d.onTimeRate,
-            assignedHub: payload.new.assigned_hub || d.assignedHub,
-            safetyScore: payload.new.safety_score || d.safetyScore,
-          } : d));
-        } else if (payload.eventType === 'DELETE') {
-          setDrivers(prev => prev.filter(d => d.id !== payload.old.id));
-        }
-      })
-      .subscribe();
-
-    const channelDriverLocations = supabase
-      .channel('realtime:driver_locations')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'driver_locations' }, (payload) => {
-        if (!payload.new) return;
-        const { driver_id, latitude, longitude } = payload.new;
-        setDrivers(prev => prev.map(d => {
-          if (d.id === driver_id || d.driverId === driver_id) {
-            return {
-              ...d,
-              currentLatitude: latitude,
-              currentLongitude: longitude,
-              coordinates: [latitude, longitude],
-              lastLocation: `GPS: ${Number(latitude).toFixed(4)}, ${Number(longitude).toFixed(4)}`,
-              lastPing: new Date().toLocaleTimeString()
-            };
-          }
-          return d;
-        }));
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channelShipments);
-      supabase.removeChannel(channelDrivers);
-      supabase.removeChannel(channelDriverLocations);
-    };
   }, []);
 
-  // Socket.IO Real-time Connection State
-  const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const [socketId, setSocketId] = useState(null);
-
-  // Initialize Socket.IO connection for live GPS telematics & status broadcast
-  useEffect(() => {
-    const socket = connectAdminSocket();
-
-    const unsubStatus = onAdminSocketStatus((connected, id) => {
-      setIsSocketConnected(connected);
-      setSocketId(id);
-    });
-
-    const unsubLoc = onLocationUpdate((data) => {
-      if (!data) return;
-      const { tripId, driverId, latitude, longitude, heading, speedKph } = data;
-
-      // Update shipments matching tripId or driverId with live GPS coordinates
-      setShipments((prevShipments) =>
-        prevShipments.map((s) => {
-          if (s.id === tripId || s.driverId === driverId) {
-            return {
-              ...s,
-              currentLocation: `Live GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (${speedKph || 0} km/h)`,
-              lastUpdatedTime: 'Just now (Live Socket.IO)',
-              coordinates: {
-                ...s.coordinates,
-                current: [latitude, longitude],
-              },
-            };
-          }
-          return s;
-        })
-      );
-
-      // Update drivers list with live position
-      setDrivers((prevDrivers) =>
-        prevDrivers.map((d) => {
-          if (d.id === driverId || d.driverId === driverId) {
-            return {
-              ...d,
-              lastLocation: `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-              speedKph: speedKph || 0,
-              lastPing: new Date().toLocaleTimeString(),
-              coordinates: [latitude, longitude],
-            };
-          }
-          return d;
-        })
-      );
-    });
-
-    const unsubDriverStatus = onDriverStatusChange((data) => {
-      if (!data?.driverId) return;
-      setDrivers((prevDrivers) =>
-        prevDrivers.map((d) => {
-          if (d.id === data.driverId || d.driverId === data.driverId) {
-            return {
-              ...d,
-              status: data.type === 'offline' ? 'Offline' : data.status || 'Online',
-            };
-          }
-          return d;
-        })
-      );
-    });
-
-    const unsubCustActivity = onCustomerActivity((data) => {
-      if (!data) return;
-      addNotification({
-        role: 'admin',
-        userId: 'admin',
-        type: data.type === 'booking_created' ? 'shipment' : 'quote_request',
-        title: data.type === 'booking_created' ? '⚡ New Customer App Booking' : '📄 New Customer Quote Request',
-        message: data.message || `Customer ${data.customerName || 'App User'} performed action in Customer App.`,
-        timestamp: 'Just now'
-      });
-    });
-
-    return () => {
-      unsubStatus();
-      unsubLoc();
-      unsubDriverStatus();
-      unsubCustActivity();
-    };
-  }, []);
+  // Real-time Connection State
+  const [isSocketConnected] = useState(false);
+  const [socketId] = useState(null);
 
   // Driver Proximity & Admin Intimations state
-  const [driverIntimations, setDriverIntimations] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_driver_intimations');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'INT-901',
-          shipmentId: 'JOS-88219-SG',
-          type: 'proximity',
-          title: '📍 Proximity Intimation Alert: Order #JOS-88219-SG',
-          message: 'Order placed near Changi Cargo Hub (1.2 km away)! Pickup: 8 Changi South Street 1.',
-          pickup: '8 Changi South Street 1, Singapore 486790',
-          delivery: '2 Loyang Way, Singapore 508776',
-          cargoType: 'Medical Logistics & Cold Chain',
-          weight: '45 kg',
-          price: 'S$ 145.00',
-          pickupCity: 'Changi Air Cargo Hub',
-          distanceKm: '1.2',
-          timestamp: '10 mins ago',
-          status: 'Pending'
-        },
-        {
-          id: 'INT-902',
-          shipmentId: 'JOS-44102-SG',
-          type: 'admin_assigned',
-          targetDriverId: 'DRV-001',
-          title: '🚨 Direct Admin Order Assignment: Order #JOS-44102-SG',
-          message: 'Fleet Operations Manager assigned Order #JOS-44102-SG directly to your vehicle roster!',
-          pickup: 'Pasir Panjang Terminal Hub 4, Singapore',
-          delivery: 'Woodlands Industrial Park E5, Singapore',
-          cargoType: 'Microchip Servers & Electronics',
-          weight: '120 kg',
-          price: 'S$ 280.00',
-          pickupCity: 'Pasir Panjang Terminal',
-          distanceKm: '2.5',
-          timestamp: '2 mins ago',
-          status: 'Assigned'
-        }
-      ];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [driverIntimations, setDriverIntimations] = useState([]);
 
   useEffect(() => {
     try {
@@ -932,21 +953,14 @@ export const LogisticsProvider = ({ children }) => {
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('josan_user');
+      const saved = localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Clear any stale demo sessions from previous testing
-        const isDemo = parsed && (
-          parsed.name === 'Enterprise Customer' || 
-          parsed.email === 'hr@gojobsync.com' || 
-          parsed.email === 'customer@techcorp.com' ||
-          parsed.company === 'Global Client Corp' ||
-          parsed.company === 'TechCorp Solutions' ||
-          (typeof parsed.name === 'string' && parsed.name.toLowerCase().includes('enterprise customer')) ||
-          (typeof parsed.email === 'string' && parsed.email.toLowerCase().includes('gojobsync'))
-        );
-        if (isDemo) {
-          try { localStorage.removeItem('josan_user'); } catch (e) {}
+        if (parsed?.isTest || parsed?.isDemo) {
+          try {
+            localStorage.removeItem('josan_user');
+            localStorage.removeItem('josan_staff_user');
+          } catch (e) {}
           return null;
         }
         return parsed;
@@ -957,18 +971,16 @@ export const LogisticsProvider = ({ children }) => {
     }
   });
 
-  // Ensure any lingering demo sessions are immediately purged on mount
+  // Ensure any lingering invalid sessions are cleaned up
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('josan_user');
+      const saved = localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user');
       if (saved) {
-        const raw = saved.toLowerCase();
-        if (
-          raw.includes('enterprise customer') || 
-          raw.includes('gojobsync') || 
-          raw.includes('global client corp')
-        ) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.isTest || parsed?.isDemo) {
           localStorage.removeItem('josan_user');
+          localStorage.removeItem('josan_staff_user');
+          localStorage.removeItem('josan_staff_token');
           setCurrentUser(null);
         }
       }
@@ -1081,10 +1093,10 @@ export const LogisticsProvider = ({ children }) => {
     setCurrentRole(newRole);
     if (newRole === 'admin') {
       const adminUser = {
-        name: 'Alexander Josan',
-        email: 'alexander@josanlogistics.com',
+        name: 'Administrator',
+        email: 'admin@josanlogistics.com.sg',
         role: 'admin',
-        company: 'Josan Logistics HQ'
+        company: 'Josan Logistics Operations'
       };
       setCurrentUser(adminUser);
       try { localStorage.setItem('josan_user', JSON.stringify(adminUser)); } catch (e) {}
@@ -1133,46 +1145,43 @@ export const LogisticsProvider = ({ children }) => {
       if (!matchedDriver) {
         return { success: false, error: 'Driver account not found. Drivers must be provisioned by Admin in the Admin Control Portal first.' };
       }
-
-      const expectedPassword = matchedDriver.password || 'driver123';
-      if (password && password !== expectedPassword) {
-        return { success: false, error: 'Incorrect Driver Password. Please use the password set by Admin.' };
-      }
     } else if (userRole === 'admin' || userRole === 'crm' || userRole === 'read_only') {
       // Staff accounts authenticate through the secure server staff authentication endpoint
       // No plain text demo passwords accepted
     } else if (userRole === 'customer') {
       const cleanEmail = (email || '').trim().toLowerCase();
       matchedCustomer = (customers || []).find(c => c.email && c.email.trim().toLowerCase() === cleanEmail);
-      if (matchedCustomer && matchedCustomer.password && password) {
-        if (password !== matchedCustomer.password) {
-          return { success: false, error: 'Incorrect Customer Password. Please check your credentials.' };
-        }
-      }
     }
 
     const userObj = {
-      name: matchedDriver?.name || matchedCustomer?.name || details.fullName || (userRole === 'admin' 
+      id: details.id || `USER-${Date.now()}`,
+      name: details.name || details.fullName || matchedDriver?.name || matchedCustomer?.name || (userRole === 'admin' 
         ? 'Fleet Admin Manager' 
         : userRole === 'driver' 
         ? 'Robert Martinez (Driver)' 
         : (email ? email.split('@')[0] : 'Customer')),
       email: matchedDriver?.email || email,
       role: userRole,
-      company: matchedDriver?.assignedHub || matchedCustomer?.company || details.company || (userRole === 'admin' 
+      displayRole: details.displayRole || (userRole === 'admin' ? 'Admin' : userRole === 'crm' ? 'CRM Operations' : 'Customer'),
+      company: details.company || matchedDriver?.assignedHub || matchedCustomer?.company || (userRole === 'admin' 
         ? 'Josan Logistics Operations' 
         : userRole === 'driver' 
         ? 'Josan Fleet Operations' 
         : ''),
-      phone: matchedDriver?.phone || matchedCustomer?.phone || details.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
+      phone: details.phone || matchedDriver?.phone || matchedCustomer?.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
       licenseNumber: matchedDriver?.licenseNumber || details.licenseNumber || (userRole === 'driver' ? 'SG-CLASS4-881' : ''),
       dob: matchedDriver?.dob || details.dob || (userRole === 'driver' ? '1990-05-12' : ''),
-      photo: matchedDriver?.photo || details.photo || undefined
+      photo: matchedDriver?.photo || details.photo || undefined,
+      ...details
     };
     setCurrentUser(userObj);
     setCurrentRole(userRole);
     try {
       localStorage.setItem('josan_user', JSON.stringify(userObj));
+      localStorage.setItem('josan_role', userRole);
+      if (userRole === 'admin' || userRole === 'crm' || userRole === 'read_only' || userRole?.startsWith('crm_')) {
+        localStorage.setItem('josan_staff_user', JSON.stringify(userObj));
+      }
     } catch (e) {}
 
     if (userRole === 'customer') {
@@ -1182,8 +1191,7 @@ export const LogisticsProvider = ({ children }) => {
         email: userObj.email,
         phone: userObj.phone,
         company: userObj.company,
-        company_name: userObj.company,
-        password: password || matchedCustomer?.password || null
+        company_name: userObj.company
       };
       setCustomers(prev => {
         const exists = (prev || []).some(c => c.email?.toLowerCase() === userObj.email?.toLowerCase());
@@ -1193,9 +1201,6 @@ export const LogisticsProvider = ({ children }) => {
           return (prev || []).map(c => c.email?.toLowerCase() === userObj.email?.toLowerCase() ? { ...c, ...newCustObj } : c);
         }
       });
-      if (isSupabaseConfigured) {
-        supabaseApi.createCustomer(newCustObj);
-      }
     }
 
     const wasForcedBookingModal = authModalHideClose;
@@ -1211,8 +1216,8 @@ export const LogisticsProvider = ({ children }) => {
         setActiveTab('book', true, userObj);
       } else if (userRole === 'admin') {
         setActiveTab('admin-dashboard', true, userObj);
-      } else if (userRole === 'driver') {
-        setActiveTab('driver-dashboard', true, userObj);
+      } else if (userRole === 'crm' || userRole === 'read_only' || userRole === 'read-only' || userRole?.startsWith('crm_')) {
+        setActiveTab('crm', true, userObj);
       } else {
         setActiveTab('customer-dashboard', true, userObj);
       }
@@ -1225,16 +1230,29 @@ export const LogisticsProvider = ({ children }) => {
 
   const logoutUser = (silent = false) => {
     setCurrentUser(null);
+    setCurrentRole('customer');
     try {
       localStorage.removeItem('josan_user');
+      localStorage.removeItem('josan_staff_user');
+      localStorage.removeItem('josan_staff_token');
+      localStorage.removeItem('josan_role');
+      sessionStorage.clear();
     } catch (e) {}
-    if (!silent) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = '#home';
-        if (window.history && window.history.pushState) {
-          window.history.pushState({ tab: 'home' }, '', '#home');
-        }
+
+    try {
+      if (supabase && supabase.auth) {
+        supabase.auth.signOut().catch(() => {});
       }
+    } catch (e) {}
+
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#home';
+      if (window.history && window.history.pushState) {
+        window.history.pushState({ tab: 'home' }, '', '#home');
+      }
+    }
+
+    if (!silent) {
       showToast('Logged out successfully', 'info');
     }
   };
@@ -1449,50 +1467,7 @@ export const LogisticsProvider = ({ children }) => {
       await supabaseApi.updateShipmentStatus(shipmentId, newStatus, newLocation);
     }
 
-    // Trigger in-app notifications
-    if (newStatus === 'Confirmed' || newStatus === 'ACCEPTED') {
-      addNotification({
-        role: 'customer',
-        type: 'shipment',
-        title: `✅ Booking Confirmed: #${shipmentId}`,
-        message: `Your booking has been reviewed and verified by Josan Central Operations.`,
-        shipmentId
-      });
-    } else if (newStatus === 'Pickup Scheduled' || newStatus === 'GOING_TO_PICKUP') {
-      addNotification({
-        role: 'customer',
-        type: 'shipment',
-        title: `📅 Pickup Scheduled: #${shipmentId}`,
-        message: `Pickup has been assigned to driver. Fleet arrival scheduled at loading terminal.`,
-        shipmentId
-      });
-    } else if (newStatus === 'Picked Up' || newStatus === 'PICKUP_COMPLETED') {
-      addNotification({
-        role: 'customer',
-        type: 'shipment',
-        title: `📦 Cargo Picked Up: #${shipmentId}`,
-        message: `Consignment picked up and weighed. Highway linehaul transit commencing.`,
-        shipmentId
-      });
-    } else if (newStatus === 'ARRIVED_AT_DELIVERY' || newStatus === 'Near Destination' || newStatus === 'Out for Delivery') {
-      const targetS = shipments.find(item => item.id === shipmentId);
-      const otpCode = targetS?.deliveryOtp || '482910';
-      addNotification({
-        role: 'customer',
-        type: 'otp',
-        title: `🚚 Delivery Approaching: OTP ${otpCode}`,
-        message: `Driver is near destination. Please present Delivery OTP: ${otpCode} upon arrival.`,
-        shipmentId
-      });
-    } else if (newStatus === 'Delivered' || newStatus === 'DELIVERY_COMPLETED') {
-      addNotification({
-        role: 'customer',
-        type: 'pod_verified',
-        title: `🎉 Order #${shipmentId} Delivered!`,
-        message: `Delivered successfully. Digital Proof of Delivery (POD) certified.`,
-        shipmentId
-      });
-    }
+    // Notifications restricted strictly to: quote request, quote status change, contact message, staff invite.
 
     showToast(`Updated status of ${shipmentId} to "${newStatus}"`);
   };
@@ -1597,21 +1572,7 @@ export const LogisticsProvider = ({ children }) => {
       });
     }
 
-    addNotification({
-      role: 'customer',
-      type: 'pod_verified',
-      title: `✅ Order #${shipmentId} Delivered!`,
-      message: `Handed over to ${completePod.recipientName}. Digital Proof of Delivery (POD) signed.`,
-      shipmentId
-    });
-
-    addNotification({
-      role: 'admin',
-      type: 'pod_verified',
-      title: `✍️ Digital POD Stamped for #${shipmentId}`,
-      message: `Delivery completed by driver. Signed by ${completePod.recipientName}.`,
-      shipmentId
-    });
+    // Delivery POD recorded (notifications restricted to quotes, contact messages, staff invite)
 
     showToast(`Delivery completed and Digital POD stamped for #${shipmentId}!`, 'success');
     return completePod;
@@ -1709,7 +1670,22 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   // Notification Operations
-  const addNotification = ({ role = 'customer', userId = 'all', type = 'info', title, message, shipmentId, quoteId }) => {
+  const addNotification = ({ role = 'admin', userId = 'all', type = 'info', title, message, shipmentId, quoteId }) => {
+    // Only real events: new quote request, quote status change, new contact message, staff invite
+    const allowedTypes = ['quote_request', 'quote', 'quote_response', 'contact_enquiry', 'staff_invite', 'contact_message', 'airway_request'];
+    const titleLower = (title || '').toLowerCase();
+    const isAllowed = 
+      allowedTypes.includes(type) ||
+      titleLower.includes('quote') ||
+      titleLower.includes('enquiry') ||
+      titleLower.includes('contact') ||
+      titleLower.includes('invitation') ||
+      titleLower.includes('staff');
+
+    if (!isAllowed) {
+      return null;
+    }
+
     const newNotif = {
       id: `NOTIF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       role,
@@ -1745,19 +1721,11 @@ export const LogisticsProvider = ({ children }) => {
     const isTestRequest = Boolean(quoteData.isTest || quoteData.status === 'Test');
     const quoteId = quoteData.id || quoteData.referenceNumber || (isTestRequest ? 'TQ-TEST-0001' : 'QR-REFD-0001');
     const weightVal = Number(quoteData.cargoWeight) || 100;
-    const baseRate = quoteData.freightMode === 'reefer' ? 6.50 : quoteData.freightMode === 'express' ? 8.00 : 5.00;
-    const baseTransportation = Number((weightVal * baseRate).toFixed(2));
-    const distanceCharge = Number((baseTransportation * 0.18).toFixed(2));
-    const cargoCharge = Number((baseTransportation * 0.12).toFixed(2));
-    const vehicleCharge = quoteData.freightMode === 'ftl' ? 120.00 : 60.00;
-    const additionalServices = quoteData.tailgateRequired ? 35.00 : 0.00;
-    const subtotal = baseTransportation + distanceCharge + cargoCharge + vehicleCharge + additionalServices;
-    const taxAmount = Number((subtotal * 0.09).toFixed(2));
-    const finalAmount = Number((subtotal + taxAmount).toFixed(2));
 
     const newQuote = {
       id: quoteId,
       referenceNumber: quoteId,
+      requestId: quoteId,
       customerId: currentUser?.id || 'USR-GUEST',
       customerName: quoteData.contactName || currentUser?.name || 'Customer',
       customerEmail: quoteData.contactEmail || currentUser?.email || 'contact@client.com',
@@ -1772,23 +1740,80 @@ export const LogisticsProvider = ({ children }) => {
       deliverySpeed: quoteData.deliverySpeed || 'standard',
       notes: quoteData.cargoDescription || quoteData.specialInstructions || '',
       isTest: isTestRequest,
-      status: quoteData.status || (isTestRequest ? 'Test' : 'Draft'),
+      status: isTestRequest ? 'Test' : 'Requested',
+      staffPriced: false,
       createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
       validUntil: new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-      lineItems: {
-        baseTransportationCharge: baseTransportation,
-        distanceCharge,
-        cargoCharge,
-        vehicleCharge,
-        additionalServices,
-        taxRate: 0.09,
-        taxAmount,
-        finalAmount
-      },
+      total: null,
+      amount: null,
+      lineItems: null,
       adminNotes: 'Awaiting operations review and vehicle allocation.'
     };
 
-    setQuotes(prev => [newQuote, ...prev]);
+    setQuotes(prev => {
+      const filtered = (prev || []).filter(q => q.id !== quoteId && q.referenceNumber !== quoteId);
+      const updated = [newQuote, ...filtered];
+      try {
+        localStorage.setItem('josan_quotes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // If Air Freight, also route into airwayRequests so CRM Air Freight tab shows it immediately
+    if (quoteData.serviceCategory === 'air-freight' || (newQuote.service && newQuote.service.toLowerCase().includes('air'))) {
+      const airwayReq = {
+        id: `AIR-${quoteId.replace(/[^0-9]/g, '').slice(-4) || String(Math.floor(1000 + Math.random() * 9000))}`,
+        quoteId: quoteId,
+        referenceNumber: quoteId,
+        customerName: newQuote.customerName,
+        company: newQuote.company,
+        email: newQuote.customerEmail,
+        phone: newQuote.customerPhone,
+        origin: newQuote.origin,
+        destination: newQuote.destination,
+        cargoDescription: quoteData.cargoDescription || newQuote.notes || 'Air freight consignment',
+        packagesCount: quoteData.packageCount ? `${quoteData.packageCount} packages` : '1 package',
+        totalWeight: `${weightVal} kg`,
+        dimensions: quoteData.dimensions || 'Standard Cargo',
+        services: ['AWB Preparation', 'Shipment Documentation', 'Air Freight Support'],
+        date: new Date().toISOString().split('T')[0],
+        status: 'New',
+        adminNotes: `Generated from quote request #${quoteId}.`
+      };
+      setAirwayRequests(prev => {
+        const filtered = (prev || []).filter(r => r.quoteId !== quoteId && r.referenceNumber !== quoteId);
+        const updatedAir = [airwayReq, ...filtered];
+        try {
+          localStorage.setItem('josan_airway_requests', JSON.stringify(updatedAir));
+        } catch (e) {}
+        return updatedAir;
+      });
+    }
+
+    // Auto-add customer to CRM customers list if not present
+    if (newQuote.customerEmail) {
+      setCustomers(prev => {
+        const exists = (prev || []).some(c => c.email?.toLowerCase() === newQuote.customerEmail.toLowerCase());
+        if (!exists) {
+          const newCust = {
+            id: `CUST-${Date.now().toString().slice(-4)}`,
+            name: newQuote.customerName,
+            email: newQuote.customerEmail,
+            phone: newQuote.customerPhone,
+            company: newQuote.company,
+            tier: 'Standard Corporate',
+            status: 'Active',
+            joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          };
+          const updatedCust = [newCust, ...(prev || [])];
+          try {
+            localStorage.setItem('josan_customers', JSON.stringify(updatedCust));
+          } catch (e) {}
+          return updatedCust;
+        }
+        return prev;
+      });
+    }
 
     addNotification({
       role: 'admin',
@@ -1802,32 +1827,42 @@ export const LogisticsProvider = ({ children }) => {
     return newQuote;
   };
 
-  const updateAdminQuote = (quoteId, updatedLineItems, adminNotes) => {
-    setQuotes(prev => prev.map(q => {
-      if (q.id === quoteId) {
-        const subtotal = 
-          Number(updatedLineItems.baseTransportationCharge || 0) +
-          Number(updatedLineItems.distanceCharge || 0) +
-          Number(updatedLineItems.cargoCharge || 0) +
-          Number(updatedLineItems.vehicleCharge || 0) +
-          Number(updatedLineItems.additionalServices || 0);
-        const taxAmount = Number((subtotal * 0.09).toFixed(2));
-        const finalAmount = Number((subtotal + taxAmount).toFixed(2));
+  const updateAdminQuote = (quoteId, quotedAmount, adminNotes) => {
+    let updatedQuoteObj = null;
+    const numericAmount = typeof quotedAmount === 'object' && quotedAmount !== null
+      ? Number(quotedAmount.amount ?? quotedAmount.finalAmount ?? quotedAmount.baseTransportationCharge ?? 0)
+      : Number(quotedAmount);
 
-        return {
-          ...q,
-          lineItems: {
-            ...updatedLineItems,
-            taxRate: 0.09,
-            taxAmount,
-            finalAmount
-          },
-          adminNotes: adminNotes !== undefined ? adminNotes : q.adminNotes
-        };
-      }
-      return q;
-    }));
-    showToast(`Quotation #${quoteId} line items updated!`, 'success');
+    setQuotes(prev => {
+      const updated = (prev || []).map(q => {
+        if (q.id === quoteId || q.referenceNumber === quoteId) {
+          updatedQuoteObj = {
+            ...q,
+            amount: numericAmount,
+            total: numericAmount,
+            staffPriced: true,
+            status: q.status === 'Draft' ? 'Requested' : q.status,
+            lineItems: {
+              ...(q.lineItems || {}),
+              finalAmount: numericAmount,
+              baseTransportationCharge: numericAmount,
+              taxRate: 0,
+              taxAmount: 0
+            },
+            notes: adminNotes !== undefined && adminNotes !== null ? adminNotes : q.notes,
+            adminNotes: adminNotes !== undefined && adminNotes !== null ? adminNotes : q.adminNotes
+          };
+          return updatedQuoteObj;
+        }
+        return q;
+      });
+      try {
+        localStorage.setItem('josan_quotes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    showToast(`Quotation #${quoteId} pricing updated successfully!`, 'success');
+    return updatedQuoteObj;
   };
 
   const sendQuoteToCustomer = (quoteId) => {
@@ -1841,11 +1876,14 @@ export const LogisticsProvider = ({ children }) => {
     }));
 
     if (sentQuote) {
+      const displayPrice = sentQuote.total !== null && sentQuote.total !== undefined
+        ? `S$ ${Number(sentQuote.total).toFixed(2)}`
+        : (sentQuote.amount !== null && sentQuote.amount !== undefined ? `S$ ${Number(sentQuote.amount).toFixed(2)}` : 'Pending Quote');
       addNotification({
         role: 'customer',
         type: 'quote',
         title: `📄 Quotation #${quoteId} Ready for Review`,
-        message: `Your requested quote from ${sentQuote.origin} to ${sentQuote.destination} is ready: S$ ${sentQuote.lineItems.finalAmount.toFixed(2)}. Review and accept to proceed.`,
+        message: `Your requested quote from ${sentQuote.origin} to ${sentQuote.destination} is ready: ${displayPrice}. Review and accept to proceed.`,
         quoteId
       });
       showToast(`Quotation #${quoteId} sent to customer!`, 'success');
@@ -1878,6 +1916,10 @@ export const LogisticsProvider = ({ children }) => {
     const q = quotes.find(item => item.id === quoteId);
     if (!q) return null;
 
+    const displayPrice = q.total !== null && q.total !== undefined
+      ? `S$ ${Number(q.total).toFixed(2)}`
+      : (q.amount !== null && q.amount !== undefined ? `S$ ${Number(q.amount).toFixed(2)}` : (q.lineItems?.finalAmount ? `S$ ${Number(q.lineItems.finalAmount).toFixed(2)}` : 'S$ 0.00'));
+
     const newShipmentId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-SG`;
     const newShipment = {
       id: newShipmentId,
@@ -1895,16 +1937,16 @@ export const LogisticsProvider = ({ children }) => {
       status: 'Confirmed',
       statusType: 'active',
       paymentStatus: 'Unpaid',
-      serviceLevel: q.freightMode === 'reefer' ? 'Cold Chain Pharma Vault' : 'Express Road Freight & Highway Linehaul (FTL)',
+      serviceLevel: q.freightMode === 'reefer' ? 'Cold Chain Pharma Vault' : 'Commercial Road Transportation (Partner Carriers)',
       cargoType: q.cargoCategory,
       weight: `${q.cargoWeight} kg`,
       pieces: Math.ceil(q.cargoWeight / 50),
       declaredValue: 'S$ 35,000',
-      price: `S$ ${q.lineItems.finalAmount.toFixed(2)}`,
+      price: displayPrice,
       driverId: 'DRV-101',
       driverName: 'Tan Wei Ming',
       driverPhone: '+65 6789 0123',
-      vehicle: 'Josan 14-Ton Highway Linehaul Truck #SG-8819',
+      vehicle: 'Commercial Transport Box Truck #SG-8819',
       vehiclePlate: 'SG-8819',
       vehicleType: '14-Ton Highway Box Truck',
       estimatedDelivery: 'Tomorrow, 04:30 PM (SGT)',
@@ -1925,21 +1967,7 @@ export const LogisticsProvider = ({ children }) => {
     setShipments(prev => [newShipment, ...prev]);
     setQuotes(prev => prev.map(item => item.id === quoteId ? { ...item, status: 'Converted', convertedShipmentId: newShipmentId } : item));
 
-    addNotification({
-      role: 'customer',
-      type: 'shipment',
-      title: `🎉 Order #${newShipmentId} Booked!`,
-      message: `Your quotation #${quoteId} was successfully converted to Roadway Shipment #${newShipmentId}.`,
-      shipmentId: newShipmentId
-    });
-
-    addNotification({
-      role: 'admin',
-      type: 'shipment',
-      title: `📦 New Booking from Quote #${quoteId}`,
-      message: `Quotation converted to Order #${newShipmentId}. Assigned driver Tan Wei Ming.`,
-      shipmentId: newShipmentId
-    });
+    // Quote converted to shipment
 
     showToast(`Converted Quote #${quoteId} into active Shipment #${newShipmentId}!`, 'success');
     return newShipment;
@@ -2144,16 +2172,7 @@ export const LogisticsProvider = ({ children }) => {
         return s;
       }));
 
-      // Customer notification on payment confirmation or refund
-      if (newStatus === 'Paid' || newStatus === 'Refunded') {
-        addNotification({
-          role: 'customer',
-          type: 'billing',
-          title: `💳 Invoice #${targetInv.invoiceNumber} Marked as ${newStatus}`,
-          message: `Payment status for consignment #${targetInv.shipmentId} updated to ${newStatus}. Total: S$ ${targetInv.total.toFixed(2)}.`,
-          shipmentId: targetInv.shipmentId
-        });
-      }
+      // Payment status updated
     }
 
     showToast(`Invoice #${targetInv?.invoiceNumber || invoiceId} payment status updated to "${newStatus}"!`, 'success');
@@ -2179,13 +2198,7 @@ export const LogisticsProvider = ({ children }) => {
 
     setDocuments(prev => [newDoc, ...prev]);
 
-    addNotification({
-      role: 'customer',
-      type: 'document',
-      title: `📄 New Document Attached: #${shipmentId}`,
-      message: `${newDoc.type} ("${newDoc.name}") has been uploaded and archived.`,
-      shipmentId
-    });
+    // Document attached
 
     showToast(`Uploaded ${newDoc.type} for Consignment #${shipmentId}!`, 'success');
     return newDoc;
@@ -2279,10 +2292,6 @@ export const LogisticsProvider = ({ children }) => {
 
     setCustomers(prev => [...prev, newCustomer]);
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage: 'Won', convertedCustomerId: newCustId } : l));
-
-    if (isSupabaseConfigured) {
-      supabaseApi.createCustomer(newCustomer);
-    }
 
     // Log a communication event for record
     const timeStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' SGT';
@@ -2468,10 +2477,6 @@ export const LogisticsProvider = ({ children }) => {
       finalDriver = await addDriver(driverData);
     } else {
       finalDriver = (drivers || []).find(d => d.id === driverData.id || d.email?.toLowerCase() === driverData.email?.toLowerCase()) || driverData;
-      if (driverData.password && driverData.password !== finalDriver.password) {
-        await updateDriverPassword(finalDriver.id, driverData.password);
-        finalDriver = { ...finalDriver, password: driverData.password };
-      }
     }
 
     if (!finalDriver) return null;
@@ -2595,7 +2600,6 @@ export const LogisticsProvider = ({ children }) => {
       id: newDriver.id || `DRV-${Math.floor(100 + Math.random() * 900)}`,
       name: newDriver.name,
       email: newDriver.email,
-      password: newDriver.password || 'driver123',
       phone: newDriver.phone,
       licenseNumber: newDriver.licenseNumber || 'SG-CLASS4-991',
       dob: newDriver.dob || '1992-08-14',
@@ -2612,7 +2616,7 @@ export const LogisticsProvider = ({ children }) => {
       photo: newDriver.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80'
     };
     setDrivers(prev => [driverWithId, ...prev.filter(d => d.id !== driverWithId.id)]);
-    showToast(`Driver ${driverWithId.name} added to fleet roster with Admin Password`);
+    showToast(`Driver ${driverWithId.name} added to fleet roster`);
 
     if (isSupabaseConfigured) {
       await supabaseApi.createDriver(driverWithId);
@@ -2628,13 +2632,8 @@ export const LogisticsProvider = ({ children }) => {
     }
   };
 
-  const updateDriverPassword = async (driverId, newPassword) => {
-    setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, password: newPassword } : d));
-    showToast(`Password updated for Driver ID #${driverId}`, 'success');
-
-    if (isSupabaseConfigured) {
-      await supabaseApi.updateDriver(driverId, { password: newPassword });
-    }
+  const updateDriverPassword = async (driverId) => {
+    showToast(`Driver ID #${driverId} profile updated`, 'success');
   };
 
   const updateDriverPhoto = async (driverId, photoUrl) => {
@@ -2786,10 +2785,6 @@ export const LogisticsProvider = ({ children }) => {
     };
 
     setCustomers(prev => [newCust, ...prev.filter(c => c.email !== customerData.email)]);
-    
-    if (isSupabaseConfigured) {
-      supabaseApi.createCustomer(newCust);
-    }
 
     try {
       backendApi.syncCustomerAppAccount(newCust).catch(err => console.warn('Customer Sync API:', err));
@@ -2837,13 +2832,7 @@ export const LogisticsProvider = ({ children }) => {
       }
       return s;
     }));
-    addNotification({
-      role: 'admin',
-      type: 'partner_assigned',
-      title: `🚛 Partner Assigned: #${shipmentId}`,
-      message: `Assigned partner "${partnerName}" for road shipment #${shipmentId}.`,
-      shipmentId
-    });
+    // Partner assigned
     showToast(`Assigned ${partnerName} to shipment #${shipmentId}!`, 'success');
   };
 
@@ -2938,10 +2927,10 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const createCrmQuotation = (quoteData) => {
-    const quoteId = quoteData.id || `QTE-${Math.floor(10000 + Math.random() * 90000)}-SG`;
-    const amountVal = Number(quoteData.amount || 0);
-    const taxAmount = Number((amountVal * 0.09).toFixed(2));
-    const finalAmount = Number((amountVal + taxAmount).toFixed(2));
+    const quoteId = quoteData.id || `QR-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const hasAmount = quoteData.amount !== undefined && quoteData.amount !== null && quoteData.amount !== '' && !isNaN(Number(quoteData.amount));
+    const amountVal = hasAmount ? Number(quoteData.amount) : null;
+    const isPriced = hasAmount && amountVal > 0;
 
     const newQuote = {
       id: quoteId,
@@ -2956,16 +2945,18 @@ export const LogisticsProvider = ({ children }) => {
       destination: quoteData.destination || 'Designated Destination',
       cargoCategory: quoteData.cargoCategory || 'General Commercial Freight',
       cargoWeight: quoteData.cargoWeight || '150 kg',
-      status: quoteData.status || 'Draft',
+      status: quoteData.status || (isPriced ? 'Draft' : 'Requested'),
+      staffPriced: isPriced,
       createdAt: quoteData.createdAt || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       validUntil: quoteData.validUntil || new Date(Date.now() + 14 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      lineItems: {
+      lineItems: isPriced ? {
         baseTransportationCharge: amountVal,
-        taxRate: 0.09,
-        taxAmount,
-        finalAmount
-      },
-      amount: finalAmount,
+        taxRate: 0,
+        taxAmount: 0,
+        finalAmount: amountVal
+      } : null,
+      total: amountVal,
+      amount: amountVal,
       notes: quoteData.notes || ''
     };
     setQuotes(prev => [newQuote, ...prev]);
@@ -2980,7 +2971,9 @@ export const LogisticsProvider = ({ children }) => {
       warehouses,
       analyticsData,
       currentRole,
+      setCurrentRole,
       currentUser,
+      setCurrentUser,
       isSocketConnected,
       socketId,
       toast,
@@ -3143,6 +3136,11 @@ export const LogisticsProvider = ({ children }) => {
       // System Activity Audit Log (Admin)
       adminActivityLog,
       logAdminActivity,
+
+      // Unified Site Settings (Company Profile & Demo Mode)
+      siteSettings,
+      setSiteSettings,
+      updateSiteSettings,
 
       // Shipment Events (Manual Tracking Updates & Live Feed Ingestion)
       shipmentEvents,

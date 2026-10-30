@@ -6,7 +6,8 @@ import { openLegalDialog } from '../components/LegalDialog';
 import { attachChatToSubmission } from '../services/chatStorageService';
 
 export const ContactPage = ({ setActiveTab }) => {
-  const { showToast, addLead, createSupportTicket, addNotification } = useLogistics();
+  const { showToast, addLead, createSupportTicket, addNotification, websiteContent } = useLogistics();
+  const contactContent = websiteContent?.contact || {};
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,6 +27,31 @@ export const ContactPage = ({ setActiveTab }) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(emailStr.trim());
   };
+
+  const defaultFaqs = [
+    {
+      q: 'How do I get a quote?',
+      a: 'Use the Get a Quote button, or send us a message with your cargo details.'
+    },
+    {
+      q: 'How can I track my shipment?',
+      a: 'Use Track Shipment with your tracking number; status updates are entered by our operations team and show a "Last updated" time.'
+    },
+    {
+      q: 'What information do you need to prepare an Air Waybill?',
+      a: 'Shipper and consignee details, cargo description, weight and dimensions, commercial invoice and packing list.'
+    },
+    {
+      q: 'Do you own the trucks?',
+      a: 'We coordinate road transportation through our partner operators.'
+    },
+    {
+      q: 'Can you help with shipping documents?',
+      a: 'Yes. We help prepare and organise shipment documents such as the Air Waybill, commercial invoice and packing list. We do not provide customs clearance or act as a customs broker. Required documents vary by cargo, origin and destination.'
+    }
+  ];
+
+  const faqs = (websiteContent?.faqs && websiteContent.faqs.length > 0) ? websiteContent.faqs : defaultFaqs;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -152,29 +178,6 @@ export const ContactPage = ({ setActiveTab }) => {
       consent: false
     });
   };
-
-  const faqs = [
-    {
-      q: 'How do I get a quote?',
-      a: 'Use the Get a Quote button, or send us a message with your cargo details.'
-    },
-    {
-      q: 'How can I track my shipment?',
-      a: 'Use Track Shipment with your tracking number; status updates are entered by our operations team and show a "Last updated" time.'
-    },
-    {
-      q: 'What information do you need to prepare an Air Waybill?',
-      a: 'Shipper and consignee details, cargo description, weight and dimensions, commercial invoice and packing list.'
-    },
-    {
-      q: 'Do you own the trucks?',
-      a: 'We coordinate road transportation through our partner operators.'
-    },
-    {
-      q: 'Can you help with shipping documents?',
-      a: 'Yes. We help prepare and organise shipment documents such as the Air Waybill, commercial invoice and packing list. We do not provide customs clearance or act as a customs broker. Required documents vary by cargo, origin and destination.'
-    }
-  ];
 
   return (
     <div className="space-y-16 pb-20">
@@ -472,13 +475,13 @@ export const ContactPage = ({ setActiveTab }) => {
                   <div>
                     <p className="font-bold text-white text-sm">Head Office</p>
                     <p className="text-[#B6C2D1] mt-1 leading-relaxed text-sm">
-                      10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438
+                      {contactContent.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}
                     </p>
                   </div>
 
                   <div className="pt-1">
                     <a
-                      href="https://maps.google.com/?q=10+Pasir+Panjang+Road,+%2312-01+Mapletree+Business+City,+Singapore+117438"
+                      href={`https://maps.google.com/?q=${encodeURIComponent(contactContent.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center space-x-1.5 text-xs font-bold text-orange-400 hover:text-orange-300 transition-colors"
@@ -494,9 +497,9 @@ export const ContactPage = ({ setActiveTab }) => {
                     <p className="flex items-center space-x-2">
                       <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>Email:{' '}
-                        <a href="mailto:contact@josanlogistics.com.sg" className="text-white font-semibold hover:text-orange-400 transition-colors underline">
-                          contact@josanlogistics.com.sg
-                        </a>
+                      <a href={`mailto:${contactContent.email || 'contact@josanlogistics.com.sg'}`} className="text-white font-semibold hover:text-orange-400 transition-colors underline">
+                        {contactContent.email || 'contact@josanlogistics.com.sg'}
+                      </a>
                       </span>
                     </p>
                   </div>
@@ -512,23 +515,23 @@ export const ContactPage = ({ setActiveTab }) => {
                 </div>
                 <div>
                   <h4 className="font-extrabold text-[#0B1F3A] text-sm">Call Us</h4>
-                  <a href="tel:+6567890123" className="text-[#0B1F3A] font-extrabold text-lg sm:text-xl font-mono tracking-tight hover:text-[#FF6B00] transition-colors">
-                    +65 6789 0123
+                  <a href={`tel:${(contactContent.phone || '+6567890123').replace(/\s+/g, '')}`} className="text-[#0B1F3A] font-extrabold text-lg sm:text-xl font-mono tracking-tight hover:text-[#FF6B00] transition-colors">
+                    {contactContent.phone || '+65 6789 0123'}
                   </a>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                 <a
-                  href="tel:+6567890123"
+                  href={`tel:${(contactContent.phone || '+6567890123').replace(/\s+/g, '')}`}
                   className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-[#0B1F3A] hover:bg-[#1E3A5F] text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
-                  title="Call Josan Logistics (+65 6789 0123)"
+                  title={`Call Josan Logistics (${contactContent.phone || '+65 6789 0123'})`}
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>Call</span>
                 </a>
                 <a
-                  href="https://wa.me/6567890123"
+                  href={`https://wa.me/${(contactContent.phone || '6567890123').replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
@@ -551,7 +554,7 @@ export const ContactPage = ({ setActiveTab }) => {
                 <div>
                   <h4 className="font-extrabold text-[#0B1F3A] text-sm">Contact Hours</h4>
                   <p className="text-slate-800 font-bold text-sm tracking-tight">
-                    [ENTER HOURS]
+                    {contactContent.operatingHours || 'Mon - Fri: 08:00 AM - 07:00 PM (SGT) | Sat: 08:00 AM - 01:00 PM'}
                   </p>
                 </div>
               </div>

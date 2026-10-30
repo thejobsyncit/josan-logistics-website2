@@ -12,8 +12,10 @@ export const TurnstileCaptcha = ({ onVerify, onExpire, isVerified, error, isInvi
   const [usingFallback, setUsingFallback] = useState(false);
   const [fallbackChecked, setFallbackChecked] = useState(false);
 
-  // Cloudflare Turnstile Site Key (Default is Cloudflare's official always-pass testing key)
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
+  // Cloudflare Turnstile Site Key:
+  // - Real configured site key: '0x4AAAAAAFmLhrkkzxASAbau'
+  // - Cloudflare test key (always passes): '1x00000000000000000000AA'
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAAFmLhrkkzxASAbau';
 
   useEffect(() => {
     let isMounted = true;

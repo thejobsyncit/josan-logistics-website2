@@ -5,10 +5,15 @@ import {
   Send, 
   Printer, 
   Check, 
-  X 
+  X,
+  TrendingUp,
+  Save,
+  Edit3
 } from 'lucide-react';
+import { useLogistics } from '../../context/LogisticsContext';
 
 export const QUOTE_STATUS_OPTIONS = [
+  'Requested',
   'Draft',
   'Sent',
   'Accepted',
@@ -18,39 +23,22 @@ export const QUOTE_STATUS_OPTIONS = [
 ];
 
 /**
- * Calculates Base Amount, 9% GST, and Total Quoted Amount consistently
+ * Calculates Base Amount and Total Quoted Amount (without automatic GST)
  */
 export const calculateQuoteAmounts = (quote) => {
-  if (!quote) return { baseAmount: 0, gst: 0, totalAmount: 0 };
+  if (!quote) return { baseAmount: null, marketSurcharge: 0, gst: 0, totalAmount: null, staffPriced: false };
 
-  const lineItems = quote.lineItems || {};
-  let baseAmount = 0;
-  let gst = 0;
-  let totalAmount = 0;
-
-  if (lineItems.finalAmount !== undefined && lineItems.finalAmount !== null && !isNaN(Number(lineItems.finalAmount))) {
-    totalAmount = Number(lineItems.finalAmount);
-    if (lineItems.taxAmount !== undefined && !isNaN(Number(lineItems.taxAmount))) {
-      gst = Number(lineItems.taxAmount);
-      baseAmount = Number((totalAmount - gst).toFixed(2));
-    } else {
-      baseAmount = Number((totalAmount / 1.09).toFixed(2));
-      gst = Number((totalAmount - baseAmount).toFixed(2));
-    }
-  } else if (lineItems.baseTransportationCharge !== undefined && !isNaN(Number(lineItems.baseTransportationCharge))) {
-    baseAmount = Number(lineItems.baseTransportationCharge);
-    gst = Number((baseAmount * 0.09).toFixed(2));
-    totalAmount = Number((baseAmount + gst).toFixed(2));
-  } else if (quote.amount !== undefined && quote.amount !== null && !isNaN(Number(quote.amount))) {
-    baseAmount = Number(quote.amount);
-    gst = Number((baseAmount * 0.09).toFixed(2));
-    totalAmount = Number((baseAmount + gst).toFixed(2));
-  }
+  const staffPriced = Boolean(quote.staffPriced);
+  const total = staffPriced && (quote.total !== null || quote.amount !== null)
+    ? Number(quote.total ?? quote.amount ?? 0)
+    : null;
 
   return {
-    baseAmount,
-    gst,
-    totalAmount
+    baseAmount: total,
+    marketSurcharge: 0,
+    gst: 0,
+    totalAmount: total,
+    staffPriced
   };
 };
 
@@ -62,13 +50,13 @@ export const generateUniqueQuoteId = (existingQuotes = []) => {
     existingQuotes.map(q => (q.id || '').toString().toUpperCase())
   );
   for (let attempt = 0; attempt < 25; attempt++) {
-    const randomSuffix = Math.floor(10000 + Math.random() * 90000);
-    const candidate = `QTE-${randomSuffix}-SG`;
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const candidate = `QR-${randomSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
     if (!existingSet.has(candidate)) {
       return candidate;
     }
   }
-  return `QTE-${Date.now().toString().slice(-5)}-SG`;
+  return `QR-${Date.now().toString().slice(-4)}-${Math.floor(1000 + Math.random() * 9000)}`;
 };
 
 export const CrmQuotationsTab = ({
@@ -80,8 +68,10 @@ export const CrmQuotationsTab = ({
   onSendQuote,
   onUpdateQuoteStatus,
   onConvertQuote,
+  onUpdateQuotePricing,
   selectedQuoteFromSearch = null
 }) => {
+  const { siteSettings, updateAdminQuote, showToast } = useLogistics?.() || {};
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [serviceFilter, setServiceFilter] = useState('All');
@@ -92,6 +82,10 @@ export const CrmQuotationsTab = ({
   const [viewingQuote, setViewingQuote] = useState(selectedQuoteFromSearch);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // Staff Price Editing State (Single "Quoted amount (S$)" saved by staff)
+  const [quotedAmountInput, setQuotedAmountInput] = useState('');
+  const [staffNotesInput, setStaffNotesInput] = useState('');
+
   // Sync selectedQuoteFromSearch whenever the prop changes
   useEffect(() => {
     if (selectedQuoteFromSearch) {
@@ -99,15 +93,55 @@ export const CrmQuotationsTab = ({
     }
   }, [selectedQuoteFromSearch]);
 
-  // Sync viewingQuote status if quotes array is updated by parent
+  // Sync viewingQuote status and amounts if quotes array is updated by parent
   useEffect(() => {
     if (viewingQuote) {
       const fresh = quotes.find(q => q.id === viewingQuote.id);
-      if (fresh && fresh.status !== viewingQuote.status) {
+      if (fresh && (fresh.status !== viewingQuote.status || fresh.amount !== viewingQuote.amount || fresh.staffPriced !== viewingQuote.staffPriced)) {
         setViewingQuote(fresh);
       }
     }
   }, [quotes, viewingQuote]);
+
+  // Sync quoted amount input when viewingQuote changes
+  useEffect(() => {
+    if (viewingQuote) {
+      const isPriced = Boolean(viewingQuote.staffPriced);
+      const currentPrice = isPriced && (viewingQuote.total !== null || viewingQuote.amount !== null)
+        ? (viewingQuote.total ?? viewingQuote.amount)
+        : '';
+      setQuotedAmountInput(currentPrice !== '' ? String(currentPrice) : '');
+      setStaffNotesInput(viewingQuote.notes || viewingQuote.adminNotes || '');
+    }
+  }, [viewingQuote?.id, viewingQuote?.staffPriced, viewingQuote?.total, viewingQuote?.amount]);
+
+  const handleSaveStaffPrice = () => {
+    if (!viewingQuote) return;
+    const amountVal = Number(quotedAmountInput);
+    if (isNaN(amountVal) || amountVal <= 0) {
+      if (showToast) showToast('Please enter a valid quoted amount above 0', 'error');
+      return;
+    }
+
+    if (typeof updateAdminQuote === 'function') {
+      updateAdminQuote(viewingQuote.id, amountVal, staffNotesInput);
+    } else if (typeof onUpdateQuotePricing === 'function') {
+      onUpdateQuotePricing(viewingQuote.id, amountVal, staffNotesInput);
+    }
+
+    setViewingQuote(prev => ({
+      ...prev,
+      amount: amountVal,
+      total: amountVal,
+      staffPriced: true,
+      notes: staffNotesInput,
+      adminNotes: staffNotesInput
+    }));
+
+    if (showToast) {
+      showToast(`Quotation #${viewingQuote.id} price saved: S$ ${amountVal.toFixed(2)}`, 'success');
+    }
+  };
 
   // New Quote Form State
   const [newQuoteData, setNewQuoteData] = useState({
@@ -138,6 +172,8 @@ export const CrmQuotationsTab = ({
       (q.id && q.id.toLowerCase().includes(term)) ||
       refNum.includes(term) ||
       customer.includes(term) ||
+      (q.customerEmail && q.customerEmail.toLowerCase().includes(term)) ||
+      (q.customerPhone && q.customerPhone.toLowerCase().includes(term)) ||
       reqId.includes(term) ||
       service.includes(term) ||
       notes.includes(term);
@@ -149,7 +185,8 @@ export const CrmQuotationsTab = ({
         : q.status === statusFilter;
     const matchesService = serviceFilter === 'All' || q.service === serviceFilter ||
       (serviceFilter === 'Airway' && (q.service?.toLowerCase().includes('air') || q.cargoCategory?.toLowerCase().includes('air'))) ||
-      (serviceFilter === 'Road' && (q.service?.toLowerCase().includes('road') || q.freightMode === 'ftl' || q.freightMode === 'ltl'));
+      (serviceFilter === 'Road' && (q.service?.toLowerCase().includes('road') || q.freightMode === 'ftl' || q.freightMode === 'ltl')) ||
+      (serviceFilter === 'Documentation' && (q.service?.toLowerCase().includes('doc') || q.cargoCategory?.toLowerCase().includes('doc')));
 
     return matchesSearch && matchesStatus && matchesService;
   });
@@ -171,6 +208,7 @@ export const CrmQuotationsTab = ({
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Sent':
         return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Requested':
       case 'Draft':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Rejected':
@@ -218,8 +256,7 @@ export const CrmQuotationsTab = ({
     if (!newQuoteData.customerName.trim()) return;
 
     const baseVal = Number(newQuoteData.amount) || 0;
-    const gstVal = Number((baseVal * 0.09).toFixed(2));
-    const totalVal = Number((baseVal + gstVal).toFixed(2));
+    const isPriced = baseVal > 0;
     const quoteId = generateUniqueQuoteId(quotes);
 
     const quoteToCreate = {
@@ -227,13 +264,16 @@ export const CrmQuotationsTab = ({
       id: quoteId,
       company: newQuoteData.company || newQuoteData.customerName,
       createdAt: newQuoteData.quotationDate,
-      amount: totalVal,
-      lineItems: {
+      staffPriced: isPriced,
+      total: isPriced ? baseVal : null,
+      amount: isPriced ? baseVal : null,
+      status: isPriced ? (newQuoteData.status || 'Draft') : 'Requested',
+      lineItems: isPriced ? {
         baseTransportationCharge: baseVal,
-        taxRate: 0.09,
-        taxAmount: gstVal,
-        finalAmount: totalVal
-      }
+        taxRate: 0,
+        taxAmount: 0,
+        finalAmount: baseVal
+      } : null
     };
 
     if (typeof onCreateQuotation === 'function') {
@@ -259,7 +299,9 @@ export const CrmQuotationsTab = ({
   // Dedicated Print handler that prints ONLY the quotation
   const handlePrintQuotation = (q) => {
     if (!q) return;
-    const { baseAmount, gst, totalAmount } = calculateQuoteAmounts(q);
+    const isPriced = Boolean(q.staffPriced) && (q.total !== null || q.amount !== null);
+    const totalDisplay = isPriced ? `S$ ${Number(q.total ?? q.amount).toFixed(2)}` : 'Not quoted yet';
+    const statusDisplay = !q.staffPriced || q.status === 'Draft' ? 'Requested' : q.status;
     const printWindow = window.open('', '_blank', 'width=800,height=700');
     if (!printWindow) {
       window.print();
@@ -276,7 +318,7 @@ export const CrmQuotationsTab = ({
             .header { border-bottom: 2px solid #2463EB; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
             .company { font-size: 20px; font-weight: 900; color: #0B1F5B; margin: 0; }
             .subtext { font-size: 11px; color: #64748b; margin: 4px 0 0 0; }
-            .qte-title { font-size: 16px; font-weight: 800; color: #2463EB; margin: 0; text-align: right; }
+            .quote-title { font-size: 16px; font-weight: 800; color: #2463EB; margin: 0; text-align: right; }
             .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; text-transform: uppercase; background: #f1f5f9; border: 1px solid #cbd5e1; margin-top: 4px; }
             .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 24px; font-size: 12px; }
             .grid-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
@@ -295,14 +337,17 @@ export const CrmQuotationsTab = ({
         <body>
           <div class="header">
             <div>
-              <h1 class="company">JOSAN LOGISTICS PTE LTD</h1>
-              <p class="subtext">UEN: 202412345K • GST Registered: M90384721</p>
-              <p class="subtext">Changi Air Cargo Logistics Hub • Singapore</p>
+              <h1 class="company">${(siteSettings?.company_name || 'JOSAN LOGISTICS PTE LTD').toUpperCase()}</h1>
+              <p class="subtext">${[
+                siteSettings?.uen && siteSettings.uen !== '202412345K' ? `UEN: ${siteSettings.uen}` : 'UEN: [Pending]',
+                'Non-GST Registered'
+              ].join(' • ')}</p>
+              <p class="subtext">${siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</p>
             </div>
             <div>
-              <div class="qte-title">OFFICIAL QUOTATION</div>
+              <div class="quote-title">OFFICIAL QUOTATION</div>
               <div style="font-family: monospace; font-weight: bold; text-align: right;">#${q.id}</div>
-              <div style="text-align: right;"><span class="badge">${q.status || 'Draft'}</span></div>
+              <div style="text-align: right;"><span class="badge">${statusDisplay}</span></div>
             </div>
           </div>
 
@@ -334,27 +379,19 @@ export const CrmQuotationsTab = ({
                   <strong>${q.service || 'Logistics Coordination & Handling'}</strong>
                   <div style="font-size: 11px; color: #64748b;">Consignment freight handling, documentation SLA & operational coordination</div>
                 </td>
-                <td style="text-align: right; font-family: monospace; font-weight: bold;">S$ ${baseAmount.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td style="text-align: right; color: #64748b;">Subtotal</td>
-                <td style="text-align: right; font-family: monospace; font-weight: bold;">S$ ${baseAmount.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td style="text-align: right; color: #64748b;">Singapore GST (9%)</td>
-                <td style="text-align: right; font-family: monospace; font-weight: bold;">S$ ${gst.toFixed(2)}</td>
+                <td style="text-align: right; font-family: monospace; font-weight: bold;">${totalDisplay}</td>
               </tr>
               <tr class="total-row">
                 <td style="text-align: right;">Total Quoted Amount</td>
-                <td style="text-align: right; font-family: monospace;">S$ ${totalAmount.toFixed(2)}</td>
+                <td style="text-align: right; font-family: monospace;">${totalDisplay}</td>
               </tr>
             </tbody>
           </table>
 
-          ${q.notes ? `
+          ${q.notes || q.adminNotes ? `
             <div class="notes">
               <strong>Notes & Special Conditions:</strong><br />
-              ${q.notes}
+              ${q.notes || q.adminNotes}
             </div>
           ` : ''}
 
@@ -368,8 +405,10 @@ export const CrmQuotationsTab = ({
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
+      try {
+        printWindow.print();
+        printWindow.close();
+      } catch (e) {}
     }, 250);
   };
 
@@ -392,7 +431,7 @@ export const CrmQuotationsTab = ({
         <button
           type="button"
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Create Quotation</span>
@@ -433,6 +472,7 @@ export const CrmQuotationsTab = ({
             <option value="All">All Services</option>
             <option value="Airway">Air Freight Services</option>
             <option value="Road">Road Transportation</option>
+            <option value="Documentation">Shipment Documentation</option>
           </select>
 
           {(search || statusFilter !== 'All' || serviceFilter !== 'All') && (
@@ -491,7 +531,7 @@ export const CrmQuotationsTab = ({
 
                       {/* Request ID */}
                       <td className="p-4 font-mono font-bold text-slate-600">
-                        {q.requestId || (q.notes?.includes('JOS') ? q.notes.split('JOS')[1].slice(0, 10) : 'Direct Intake')}
+                        {q.requestId || q.referenceNumber || (q.notes?.includes('JOS') ? q.notes.split('JOS')[1].slice(0, 10) : 'Direct Intake')}
                       </td>
 
                       {/* Service Scope */}
@@ -506,7 +546,11 @@ export const CrmQuotationsTab = ({
 
                       {/* Amount */}
                       <td className="p-4 font-mono font-black text-slate-900 text-sm">
-                        S$ {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {q.staffPriced && (q.total !== null || q.amount !== null) ? (
+                          `S$ ${Number(q.total ?? q.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        ) : (
+                          <span className="text-slate-400 font-sans font-medium text-xs">Not quoted yet</span>
+                        )}
                       </td>
 
                       {/* Status */}
@@ -516,8 +560,8 @@ export const CrmQuotationsTab = ({
                             Test
                           </span>
                         ) : (
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(q.status)}`}>
-                            {q.status || 'Draft'}
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(!q.staffPriced && q.status !== 'Test' ? 'Requested' : q.status)}`}>
+                            {!q.staffPriced || q.status === 'Draft' ? 'Requested' : q.status}
                           </span>
                         )}
                       </td>
@@ -529,16 +573,20 @@ export const CrmQuotationsTab = ({
 
                       {/* Actions */}
                       <td className="p-4 text-right space-x-1.5">
-                        {q.status === 'Draft' && (
-                          <button
-                            type="button"
-                            onClick={() => handleSendQuote(q.id)}
-                            className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
-                            title="Send to Customer"
-                          >
-                            Send
-                          </button>
-                        )}
+                        {(q.status === 'Draft' || q.status === 'Requested') && (() => {
+                          const isPriced = Boolean(q.staffPriced) && Number(q.total || q.amount || 0) > 0;
+                          return (
+                            <button
+                              type="button"
+                              disabled={!isPriced}
+                              onClick={() => handleSendQuote(q.id)}
+                              className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-50"
+                              title={!isPriced ? "Enter a price first" : "Mark as sent"}
+                            >
+                              Mark as sent
+                            </button>
+                          );
+                        })()}
                         {q.status === 'Sent' && (
                           <button
                             type="button"
@@ -598,18 +646,18 @@ export const CrmQuotationsTab = ({
       {/* MODAL 1: VIEW ITEMIZED QUOTATION                                        */}
       {/* ======================================================================= */}
       {viewingQuote && (() => {
-        const { baseAmount, gst, totalAmount } = calculateQuoteAmounts(viewingQuote);
+        const { baseAmount, marketSurcharge, gst, totalAmount } = calculateQuoteAmounts(viewingQuote);
 
         return (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-fade-in space-y-6 text-xs text-slate-700">
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-fade-in space-y-5 text-xs text-slate-700 max-h-[92vh] overflow-y-auto my-auto">
               {/* Header */}
               <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                 <div>
                   <div className="flex items-center space-x-2">
                     <span className="font-mono text-sm font-black text-[#2463EB]">#{viewingQuote.id}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(viewingQuote.status)}`}>
-                      {viewingQuote.status || 'Draft'}
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(!viewingQuote.staffPriced && viewingQuote.status !== 'Test' ? 'Requested' : viewingQuote.status)}`}>
+                      {viewingQuote.isTest || viewingQuote.status === 'Test' ? 'Test' : (!viewingQuote.staffPriced || viewingQuote.status === 'Draft' ? 'Requested' : viewingQuote.status)}
                     </span>
                   </div>
                   <h3 className="font-black text-base text-slate-900 font-heading mt-1">Official Quotation Proposal</h3>
@@ -644,27 +692,92 @@ export const CrmQuotationsTab = ({
                 </div>
               </div>
 
-              {/* Itemized Pricing */}
-              <div className="space-y-2 border-t border-b border-slate-100 py-3">
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>Base Logistics & Transportation Fee</span>
-                  <span className="font-mono font-bold">S$ {baseAmount.toFixed(2)}</span>
+              {/* Quoted Amount & Staff Pricing */}
+              <div className="border border-slate-200 bg-slate-50/70 rounded-2xl p-4 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                  <div>
+                    <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider">
+                      Quotation Pricing
+                    </h4>
+                    <p className="text-[10px] text-slate-500">
+                      Enter the price for this quotation. No automatic GST is added.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Quoted Amount</span>
+                    <span className="font-mono text-sm font-black text-[#2463EB]">
+                      {viewingQuote.staffPriced && (viewingQuote.total !== null || viewingQuote.amount !== null) ? (
+                        `S$ ${Number(viewingQuote.total ?? viewingQuote.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      ) : (
+                        <span className="text-slate-400 font-sans font-medium text-xs">Not quoted yet</span>
+                      )}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>Singapore GST (9%)</span>
-                  <span className="font-mono font-bold">S$ {gst.toFixed(2)}</span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Quoted amount (S$)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 font-mono text-slate-400 text-xs">S$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={quotedAmountInput}
+                        onChange={(e) => setQuotedAmountInput(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB] outline-hidden"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Staff Notes / Remarks
+                    </label>
+                    <input
+                      type="text"
+                      value={staffNotesInput}
+                      onChange={(e) => setStaffNotesInput(e.target.value)}
+                      placeholder="e.g. Rate confirmed with haulier"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB] outline-hidden"
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between font-black text-sm text-slate-900 pt-2 border-t border-slate-200">
-                  <span>Total Quoted Amount</span>
-                  <span className="font-mono text-base text-[#2463EB]">S$ {totalAmount.toFixed(2)}</span>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] text-slate-400">
+                    * No automatic GST added (GST registration pending).
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSaveStaffPrice}
+                    className="px-4 py-1.5 bg-[#2463EB] hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs active:scale-95 flex items-center space-x-1.5 cursor-pointer text-xs transition-all"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save Quoted Amount</span>
+                  </button>
                 </div>
               </div>
 
               {/* Notes */}
-              {viewingQuote.notes && (
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600">
-                  <span className="font-bold text-slate-700 block mb-0.5">Notes:</span>
-                  {viewingQuote.notes}
+              {(viewingQuote.notes || viewingQuote.adminNotes) && (
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                  {viewingQuote.notes && (
+                    <div>
+                      <span className="font-bold text-slate-700 block mb-0.5">Customer / Shipment Notes:</span>
+                      {viewingQuote.notes}
+                    </div>
+                  )}
+                  {viewingQuote.adminNotes && viewingQuote.adminNotes !== viewingQuote.notes && (
+                    <div className="pt-1 border-t border-slate-200">
+                      <span className="font-bold text-amber-800 block mb-0.5">Staff & Operations Notes:</span>
+                      {viewingQuote.adminNotes}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -678,7 +791,7 @@ export const CrmQuotationsTab = ({
                   Close
                 </button>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <button
                     type="button"
                     onClick={() => handlePrintQuotation(viewingQuote)}
@@ -688,17 +801,28 @@ export const CrmQuotationsTab = ({
                     <span>Print</span>
                   </button>
 
-                  {/* Status transitions: Draft -> Sent */}
-                  {viewingQuote.status === 'Draft' && (
-                    <button
-                      type="button"
-                      onClick={() => handleSendQuote(viewingQuote.id)}
-                      className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold shadow-sm flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Send to Customer</span>
-                    </button>
-                  )}
+                  {/* Status transitions: Draft/Requested -> Sent */}
+                  {(viewingQuote.status === 'Draft' || viewingQuote.status === 'Requested') && (() => {
+                    const isPriced = Boolean(viewingQuote.staffPriced) && Number(viewingQuote.total || viewingQuote.amount || 0) > 0;
+                    return (
+                      <div className="flex flex-col items-end">
+                        <button
+                          type="button"
+                          disabled={!isPriced}
+                          onClick={() => handleSendQuote(viewingQuote.id)}
+                          className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold shadow-md shadow-orange-500/20 active:scale-95 flex items-center space-x-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#FF6B00]"
+                          title={!isPriced ? "Enter a price first" : "Mark as sent"}
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Mark as sent</span>
+                        </button>
+                        {!isPriced && (
+                          <span className="text-[10px] text-amber-600 font-semibold mt-1">Enter a price first</span>
+                        )}
+                        <span className="text-[10px] text-slate-400 mt-0.5">Email is not connected yet</span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Status transitions: Sent -> Accepted or Rejected */}
                   {viewingQuote.status === 'Sent' && (
@@ -819,7 +943,7 @@ export const CrmQuotationsTab = ({
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
                 >
                   <option value="Air Freight Services (AWB Preparation, Billing & Documentation)">Air Freight Services (AWB Preparation, Billing & Documentation)</option>
-                  <option value="Road Transportation Linehaul (FTL)">Road Transportation Linehaul (FTL)</option>
+                  <option value="Commercial Road Transportation (Partner Carriers)">Commercial Road Transportation (Partner Carriers)</option>
                   <option value="Consolidated Road Haulage (LTL)">Consolidated Road Haulage (LTL)</option>
                   <option value="Airport Transfer & Cargo Feeder">Airport Transfer & Cargo Feeder</option>
                   <option value="Shipment Documentation Support">Shipment Documentation Support</option>
@@ -891,7 +1015,7 @@ export const CrmQuotationsTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Create Proposal
                 </button>

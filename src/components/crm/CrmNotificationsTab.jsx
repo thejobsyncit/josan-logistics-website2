@@ -167,7 +167,7 @@ export const CrmNotificationsTab = ({
             )}
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Operational alerts stream across airway service intakes, road partner dispatches, customer quotation approvals, and invoice remittances.
+            Alerts about quote requests, contact messages and account activity.
           </p>
         </div>
 

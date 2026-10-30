@@ -20,7 +20,8 @@ import { openLegalDialog } from './LegalDialog';
 import { openCookiePreferences } from './CookieBanner';
 
 export const Footer = ({ setActiveTab }) => {
-  const { showToast, currentUser, resetShipmentScope, setIsAuthModalOpen, setAuthRedirectTab } = useLogistics();
+  const { showToast, currentUser, resetShipmentScope, setIsAuthModalOpen, setAuthRedirectTab, websiteContent, managedServices, siteSettings } = useLogistics();
+  const contactInfo = websiteContent?.contact || {};
   const [legalModal, setLegalModal] = useState(null); // 'privacy' | 'terms' | 'sla' | null
 
   const quickLinks = ['Home', 'About Us', 'Track Shipment', 'Get a Quote', 'Contact Us'];
@@ -108,42 +109,48 @@ export const Footer = ({ setActiveTab }) => {
             <div>
               <h4 className="text-white text-base font-bold mb-4 font-sans border-b border-[#1E3A5F] pb-2">Our Solutions</h4>
               <ul className="space-y-2.5 text-sm">
-                <li>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('air-freight');
-                      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-                    }}
-                    className="hover:text-white transition-colors cursor-pointer text-[#B6C2D1] block text-left"
-                  >
-                    Air Freight Services
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('road-freight');
-                      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-                    }}
-                    className="hover:text-white transition-colors cursor-pointer text-[#B6C2D1] block text-left"
-                  >
-                    Commercial Road Transportation
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('shipment-documentation-support');
-                      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-                    }}
-                    className="hover:text-white transition-colors cursor-pointer text-[#B6C2D1] block text-left"
-                  >
-                    Shipment Documentation Support
-                  </button>
-                </li>
+                {managedServices?.airway?.active !== false && (
+                  <li>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('air-freight');
+                        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                      }}
+                      className="hover:text-white transition-colors cursor-pointer text-[#B6C2D1] block text-left"
+                    >
+                      Air Freight Services
+                    </button>
+                  </li>
+                )}
+                {managedServices?.road?.active !== false && (
+                  <li>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('road-freight');
+                        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                      }}
+                      className="hover:text-white transition-colors cursor-pointer text-[#B6C2D1] block text-left"
+                    >
+                      Commercial Road Transportation
+                    </button>
+                  </li>
+                )}
+                {managedServices?.documentation?.active !== false && (
+                  <li>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('shipment-documentation-support');
+                        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                      }}
+                      className="hover:text-white transition-colors cursor-pointer text-[#B6C2D1] block text-left"
+                    >
+                      Shipment Documentation Support
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
 
@@ -158,10 +165,12 @@ export const Footer = ({ setActiveTab }) => {
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center space-x-1.5">
                       <Phone className="w-3.5 h-3.5 text-[#F26B21] shrink-0" />
-                      <a href="tel:+6567890123" className="text-white font-extrabold text-sm hover:text-[#F26B21] transition-colors">+65 6789 0123</a>
+                      <a href={`tel:${(contactInfo.phone || '+6567890123').replace(/\s+/g, '')}`} className="text-white font-extrabold text-sm hover:text-[#F26B21] transition-colors">
+                        {contactInfo.phone || '+65 6789 0123'}
+                      </a>
                     </div>
                     <a
-                      href="https://wa.me/6567890123"
+                      href={`https://wa.me/${(contactInfo.phone || '6567890123').replace(/[^0-9]/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center space-x-1 text-emerald-400 hover:text-emerald-300 font-bold text-xs transition-colors"
@@ -177,12 +186,14 @@ export const Footer = ({ setActiveTab }) => {
 
                 <div className="flex items-start space-x-2 pt-1">
                   <MapPin className="w-4 h-4 text-[#B6C2D1] shrink-0 mt-0.5" />
-                  <span className="text-slate-200 font-medium">Head Office: 10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438</span>
+                  <span className="text-slate-200 font-medium">Head Office: {contactInfo.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</span>
                 </div>
                 
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4 text-[#B6C2D1] shrink-0" />
-                  <a href="mailto:contact@josanlogistics.com.sg" className="text-slate-300 hover:text-white transition-colors font-medium">contact@josanlogistics.com.sg</a>
+                  <a href={`mailto:${contactInfo.email || 'contact@josanlogistics.com.sg'}`} className="text-slate-300 hover:text-white transition-colors font-medium">
+                    {contactInfo.email || 'contact@josanlogistics.com.sg'}
+                  </a>
                 </div>
               </div>
             </div>
@@ -340,39 +351,39 @@ export const Footer = ({ setActiveTab }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">3. Who We Share Data With</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">3. Third-Party Service Providers Policy</h4>
                     <p>
-                      We share data on a need-to-know basis with: our transport partners and airlines for your shipment, service providers such as email and hosting, Cloudflare for spam protection, and authorities where required by law.
+                      Josan Logistics Pte. Ltd. may share personal data with authorised third-party service providers, including transport partners, airlines, freight handlers, cloud hosting providers, email service providers, and technology vendors, where necessary to deliver our services under strict confidentiality and PDPA compliance.
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <h4 className="text-slate-900 font-bold text-sm sm:text-base">4. Overseas Transfers</h4>
                     <p>
-                      Our services are intended for customers in Singapore. Some service providers may process data outside Singapore (such as our email and cloud hosting infrastructure). Where data is processed overseas, we ensure comparable PDPA standards of protection.
+                      Our services are intended for customers in Singapore. Where international air freight requires processing data outside Singapore, we ensure service providers maintain comparable PDPA standards of protection.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">5. How Long We Keep Data</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">5. Data Retention and Secure Deletion Policy</h4>
                     <p>
-                      Shipping and billing records are retained for <strong>5 years</strong>. Enquiries and stored chats are deleted after <strong>30 days</strong>. Regular chats are kept only in the browser session and deleted when the session ends.
+                      Personal data is retained only as long as necessary. Commercial, tax, and accounting records are retained for <strong>five to seven years</strong>. Website enquiries and chatbot communication logs are deleted after <strong>30 days</strong>. Expired data is securely deleted or anonymised.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">6. Your Rights &amp; DPO Contact</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">6. Consent, Preferences &amp; Children's Privacy</h4>
                     <p>
-                      You may request access to, correction of, or withdraw consent for your data. Contact our Data Protection Officer at <a href="mailto:privacy@josanlogistics.com.sg" className="text-[#F26B21] font-bold hover:underline">privacy@josanlogistics.com.sg</a>. We aim to respond within 30 days.
+                      Individuals may withdraw consent by contacting our DPO (essential service updates may continue where necessary). Our services are intended for adults and commercial businesses; we do not knowingly collect personal data from children.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. JOSAN AI &amp; Cookies</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. Complaints, Dispute Resolution &amp; DPO Contact</h4>
                     <p>
-                      We store the name and the description of the quote to calculate and deliver quotations. Chat messages are kept in browser session storage and deleted when the session ends, unless attached to a quote or enquiry submission, or sent to our team. Stored chats are deleted after <strong>30 days</strong> and are visible to admin staff only. We use <strong>only essential cookies</strong> (login, security and chat); we do not use analytics or advertising cookies.
+                      Contact our Data Protection Officer for inquiries, consent withdrawal, or complaints at <a href={`mailto:${siteSettings?.contact_email || contactInfo.email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || contactInfo.email || 'contact@josanlogistics.com.sg'}</a> or call <strong>{siteSettings?.phone || contactInfo.phone || '+65 6789 0123'}</strong>. Address: {siteSettings?.registered_office || contactInfo.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}. Unresolved matters may be referred to the Personal Data Protection Commission (PDPC).
                     </p>
-                    <p className="text-xs text-slate-400 font-mono pt-1">Last updated: 26 October 2026</p>
+                    <p className="text-xs text-slate-400 font-mono pt-1">Effective Date: 29 October 2026</p>
                   </div>
                 </>
               )}
@@ -441,19 +452,20 @@ export const Footer = ({ setActiveTab }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. Limit of Liability <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1 rounded ml-1">[LAWYER TO CONFIRM]</span></h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. Limit of Liability &amp; Force Majeure</h4>
                     <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
-                      <li>Standard carriage liability for loss or damage is limited according to applicable statutory freight carriage regulations and conventions <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1 rounded ml-1">[LAWYER]</span>.</li>
-                      <li>Cargo insurance is not included unless arranged in writing before dispatch. <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER TO CONFIRM]</span></li>
-                      <li>Josan Logistics shall not be liable for consequential losses, commercial loss of profits, or force majeure events <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1 rounded ml-1">[LAWYER]</span>.</li>
+                      <li>Standard carriage liability for loss or damage is limited according to applicable statutory freight carriage regulations and conventions.</li>
+                      <li>Cargo insurance is not included unless arranged in writing before dispatch.</li>
+                      <li>Neither party is liable for failure or delay caused by Force Majeure events (natural disasters, weather, epidemics, strikes, war, government restrictions).</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">8. Use of the Website &amp; Changes to Terms</h4>
+                    <h4 className="text-slate-900 font-bold text-sm sm:text-base">8. Surcharges, Prohibited Goods &amp; Termination</h4>
                     <p>
-                      The website and JOSAN AI chatbot are for legitimate logistics inquiries only; automated scraping and crawler extraction are strictly prohibited. We may update these terms periodically, with changes taking effect upon publication with an updated "Last Updated" date.
+                      Additional charges apply for weight/dimension variances, fuel, waiting time, or storage. Prohibited or hazardous goods must be fully declared or will be refused. Either party may suspend or terminate services for material breach. All terms governed by Singapore Law.
                     </p>
+                    <p className="text-xs text-slate-400 font-mono pt-1">Effective Date: 29 October 2026</p>
                   </div>
                 </>
               )}
@@ -484,7 +496,7 @@ export const Footer = ({ setActiveTab }) => {
                   <div className="space-y-2">
                     <h4 className="text-slate-900 font-bold text-sm sm:text-base">1. Chain of Custody &amp; Tamper-Evident Transit</h4>
                     <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
-                      <li><strong className="text-slate-800">Serialized Security Seals:</strong> All full-truckload (FTL) and bonded airway transfers are secured with serialized tamper-evident bolt or cable seals recorded in the digital manifest.</li>
+                      <li><strong className="text-slate-800">Serialized Security Seals:</strong> All full-truckload and bonded airway transfers are secured with serialized tamper-evident bolt or cable seals recorded in the digital manifest.</li>
                       <li><strong className="text-slate-800">Digital Handover Verification:</strong> Consignments require dual-party identity verification and time-stamped digital signatures upon physical delivery.</li>
                       <li><strong className="text-slate-800">Established Partner Operators:</strong> Commercial road transportation is coordinated with established partner carriers committed to vehicle roadworthiness and transit safety.</li>
                     </ul>

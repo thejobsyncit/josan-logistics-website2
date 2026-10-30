@@ -52,7 +52,7 @@ async function runTests() {
   }
   users = getAllStaffUsers();
   admin = users.find(u => (u.role || '').toLowerCase() === 'admin');
-  assert(admin !== undefined, 'First admin account exists in data/staff_users.json');
+  assert(admin !== undefined, 'First admin account exists');
   assert(admin.email === 'admin@josanlogistics.com.sg', 'Admin work email is admin@josanlogistics.com.sg');
   assert(admin.mustChangePassword === true, 'Admin account has mustChangePassword: true');
   assert(admin.passwordHash && admin.passwordHash.startsWith('$2'), 'Password stored as bcrypt hash, never plain text');
