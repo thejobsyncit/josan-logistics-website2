@@ -139,7 +139,7 @@ export const CrmTransportationPartnersTab = ({
         <button
           type="button"
           onClick={() => setIsAddOpen(true)}
-          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Add Transportation Partner</span>
@@ -284,7 +284,7 @@ export const CrmTransportationPartnersTab = ({
                   <button
                     type="button"
                     onClick={() => setAssigningPartner(partner)}
-                    className="px-3 py-1.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold text-xs shadow-sm flex items-center space-x-1 cursor-pointer transition-all"
+                    className="px-3 py-1.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold text-xs shadow-md shadow-orange-500/20 active:scale-95 flex items-center space-x-1 cursor-pointer transition-all"
                   >
                     <span>Assign Road Request</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -352,7 +352,7 @@ export const CrmTransportationPartnersTab = ({
                       className={`px-3 py-1.5 rounded-xl font-bold text-xs shrink-0 cursor-pointer ${
                         isCurrentlyAssigned
                           ? 'bg-emerald-600 text-white'
-                          : 'bg-[#2463EB] hover:bg-[#1D4ED8] text-white shadow-sm'
+                          : 'bg-[#FF6B00] hover:bg-[#e05e00] text-white shadow-sm'
                       }`}
                     >
                       {isCurrentlyAssigned ? 'Assigned ✓' : 'Assign to Route'}
@@ -393,7 +393,7 @@ export const CrmTransportationPartnersTab = ({
                   required
                   value={newPartnerData.name}
                   onChange={(e) => setNewPartnerData({ ...newPartnerData, name: e.target.value })}
-                  placeholder="e.g. Woodlands Linehaul Logistics Pte Ltd"
+                  placeholder="e.g. Woodlands Roadways Logistics Pte Ltd"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>
@@ -491,7 +491,7 @@ export const CrmTransportationPartnersTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Register Partner
                 </button>
@@ -606,7 +606,7 @@ export const CrmTransportationPartnersTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Save Changes
                 </button>

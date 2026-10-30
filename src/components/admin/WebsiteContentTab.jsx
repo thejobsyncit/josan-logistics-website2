@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Globe, 
   FileText, 
@@ -14,6 +14,7 @@ import {
   Sliders,
   X
 } from 'lucide-react';
+import { useLogistics } from '../../context/LogisticsContext';
 
 export const WebsiteContentTab = ({
   websiteContent = {},
@@ -22,6 +23,7 @@ export const WebsiteContentTab = ({
   onUpdateFaq,
   onDeleteFaq
 }) => {
+  const { siteSettings, updateSiteSettings } = useLogistics?.() || {};
   const [activeSection, setActiveSection] = useState('hero');
 
   // Form states initialized from websiteContent
@@ -38,6 +40,13 @@ export const WebsiteContentTab = ({
 
   const handleSaveSection = (sectionKey, data) => {
     onUpdateContent(sectionKey, data);
+    if (sectionKey === 'contact' && updateSiteSettings) {
+      updateSiteSettings({
+        phone: data.phone || siteSettings?.phone,
+        contact_email: data.email || siteSettings?.contact_email,
+        registered_office: data.address || siteSettings?.registered_office
+      });
+    }
   };
 
   const handleOpenAddFaq = () => {
@@ -126,21 +135,12 @@ export const WebsiteContentTab = ({
 
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-700 uppercase">Top Badge Text</label>
-                <input
-                  type="text"
-                  value={heroForm.badge || ''}
-                  onChange={(e) => setHeroForm({ ...heroForm, badge: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20"
-                />
-              </div>
-
-              <div className="space-y-1">
                 <label className="text-[11px] font-bold text-slate-700 uppercase">Main Headline Title</label>
                 <input
                   type="text"
                   value={heroForm.title || ''}
                   onChange={(e) => setHeroForm({ ...heroForm, title: e.target.value })}
+                  placeholder="Reliable Logistics Solutions For Every Journey"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20"
                 />
               </div>
@@ -151,36 +151,27 @@ export const WebsiteContentTab = ({
                   rows="3"
                   value={heroForm.subtitle || ''}
                   onChange={(e) => setHeroForm({ ...heroForm, subtitle: e.target.value })}
+                  placeholder="From Air Waybill preparation and shipment documentation to commercial road transportation, we provide reliable logistics support for businesses moving goods from one location to another."
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-700 uppercase">Primary CTA Button Label</label>
-                  <input
-                    type="text"
-                    value={heroForm.ctaPrimary || ''}
-                    onChange={(e) => setHeroForm({ ...heroForm, ctaPrimary: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-700 uppercase">Secondary CTA Button Label</label>
-                  <input
-                    type="text"
-                    value={heroForm.ctaSecondary || ''}
-                    onChange={(e) => setHeroForm({ ...heroForm, ctaSecondary: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 uppercase">Primary CTA Button Label</label>
+                <input
+                  type="text"
+                  value={heroForm.ctaPrimary || ''}
+                  onChange={(e) => setHeroForm({ ...heroForm, ctaPrimary: e.target.value, ctaSecondary: '' })}
+                  placeholder="Get a Freight Quote"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20"
+                />
               </div>
             </div>
 
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 cursor-pointer"
+                className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Homepage Content</span>
@@ -235,7 +226,7 @@ export const WebsiteContentTab = ({
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 cursor-pointer"
+                className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save About Content</span>
@@ -308,7 +299,7 @@ export const WebsiteContentTab = ({
 
               {/* Documentation */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <span className="text-xs font-black uppercase text-slate-900 block">3. Customs & Shipment Documentation Support</span>
+                <span className="text-xs font-black uppercase text-slate-900 block">3. Shipment Documentation Support</span>
                 <input
                   type="text"
                   value={servicesForm.documentation?.title || ''}
@@ -316,7 +307,7 @@ export const WebsiteContentTab = ({
                     ...servicesForm,
                     documentation: { ...servicesForm.documentation, title: e.target.value }
                   })}
-                  placeholder="Service Title"
+                  placeholder="Shipment Documentation Support"
                   className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
                 />
                 <textarea
@@ -326,7 +317,7 @@ export const WebsiteContentTab = ({
                     ...servicesForm,
                     documentation: { ...servicesForm.documentation, shortDesc: e.target.value }
                   })}
-                  placeholder="Short summary description"
+                  placeholder="Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance."
                   className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                 />
               </div>
@@ -335,7 +326,7 @@ export const WebsiteContentTab = ({
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 cursor-pointer"
+                className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Service Descriptions</span>
@@ -352,7 +343,7 @@ export const WebsiteContentTab = ({
           >
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Contact & Support Information</h3>
-              <p className="text-xs text-slate-500">Corporate phone numbers, dispatch desk email, headquarters address, and operating hours.</p>
+              <p className="text-xs text-slate-500">Phone number, email, office address and opening hours.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -360,40 +351,24 @@ export const WebsiteContentTab = ({
                 <label className="text-[11px] font-bold text-slate-700 uppercase">Headquarters Telephone</label>
                 <input
                   type="text"
-                  value={contactForm.phone || ''}
+                  value={contactForm.phone || siteSettings?.phone || '+65 6789 0123'}
                   onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                  placeholder="+65 6789 0123"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                 />
+                <span className="text-[10px] text-slate-400 block">Single site phone from site_settings.</span>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-700 uppercase">Operations Desk Email</label>
+                <label className="text-[11px] font-bold text-slate-700 uppercase">General Enquiries Email</label>
                 <input
                   type="email"
-                  value={contactForm.email || ''}
+                  value={contactForm.email || siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}
                   onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  placeholder="contact@josanlogistics.com.sg"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-700 uppercase">Customer Support Email</label>
-                <input
-                  type="email"
-                  value={contactForm.supportEmail || ''}
-                  onChange={(e) => setContactForm({ ...contactForm, supportEmail: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-700 uppercase">Emergency Operations Hotline</label>
-                <input
-                  type="text"
-                  value={contactForm.emergencyHotline || ''}
-                  onChange={(e) => setContactForm({ ...contactForm, emergencyHotline: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
-                />
+                <span className="text-[10px] text-slate-400 block">Single site contact email from site_settings (.com.sg).</span>
               </div>
             </div>
 
@@ -401,8 +376,9 @@ export const WebsiteContentTab = ({
               <label className="text-[11px] font-bold text-slate-700 uppercase">Physical Office Address</label>
               <input
                 type="text"
-                value={contactForm.address || ''}
+                value={contactForm.address || siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}
                 onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
+                placeholder="10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438"
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
               />
             </div>
@@ -411,16 +387,18 @@ export const WebsiteContentTab = ({
               <label className="text-[11px] font-bold text-slate-700 uppercase">Operating Hours</label>
               <input
                 type="text"
-                value={contactForm.operatingHours || ''}
+                value={contactForm.operatingHours || '[ENTER REAL HOURS]'}
                 onChange={(e) => setContactForm({ ...contactForm, operatingHours: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                placeholder="[ENTER REAL HOURS]"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 font-mono"
               />
+              <span className="text-[10px] text-slate-400 block">Operating hours: [ENTER REAL HOURS].</span>
             </div>
 
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 cursor-pointer"
+                className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Contact Info</span>
@@ -440,7 +418,7 @@ export const WebsiteContentTab = ({
               <button
                 type="button"
                 onClick={handleOpenAddFaq}
-                className="px-3.5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add FAQ</span>
@@ -493,10 +471,10 @@ export const WebsiteContentTab = ({
                 id="bannerActive"
                 checked={bannerForm.active || false}
                 onChange={(e) => setBannerForm({ ...bannerForm, active: e.target.checked })}
-                className="w-4 h-4 text-[#2463EB] rounded focus:ring-[#2463EB] cursor-pointer"
+                className="w-4 h-4 text-[#FF6B00] rounded focus:ring-[#FF6B00] cursor-pointer"
               />
               <label htmlFor="bannerActive" className="text-xs font-bold text-slate-800 cursor-pointer">
-                Display Announcement Banner on Public Website
+                Display Announcement Banner on Public Website (Keep Disabled)
               </label>
             </div>
 
@@ -504,8 +482,9 @@ export const WebsiteContentTab = ({
               <label className="text-[11px] font-bold text-slate-700 uppercase">Banner Message Text</label>
               <input
                 type="text"
-                value={bannerForm.text || ''}
+                value={bannerForm.text || 'Air freight documentation support and road transportation coordination in Singapore.'}
                 onChange={(e) => setBannerForm({ ...bannerForm, text: e.target.value })}
+                placeholder="Air freight documentation support and road transportation coordination in Singapore."
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
               />
             </div>
@@ -513,7 +492,7 @@ export const WebsiteContentTab = ({
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 cursor-pointer"
+                className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Banner Settings</span>
@@ -569,7 +548,7 @@ export const WebsiteContentTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#2463EB] text-white rounded-xl text-xs font-bold shadow-sm"
+                  className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 active:scale-95 transition-all cursor-pointer"
                 >
                   Save FAQ
                 </button>

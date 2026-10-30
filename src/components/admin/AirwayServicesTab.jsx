@@ -224,14 +224,14 @@ export const AirwayServicesTab = ({
                 <span>Airway Operations</span>
               </span>
               <span className="text-xs font-bold text-slate-500 font-mono bg-slate-100 px-2.5 py-1 rounded-full">
-                {airwayRequests.length} Airway Requests
+                {airwayRequests.length} Air Freight Requests
               </span>
             </div>
             <h1 className="text-2xl font-black text-slate-900 mt-2 tracking-tight">
-              Airway Requests & AWB Services
+              Air Freight Requests &amp; AWB Services
             </h1>
             <p className="text-xs text-slate-500 max-w-2xl mt-1 leading-relaxed">
-              Manage inbound Airway Service Requests (AWB preparation, billing, shipment documentation, and airport transportation support). Review cargo specifications, customer uploaded documents, and advance the coordination pipeline.
+              Manage inbound Air Freight Quote Requests (AWB preparation, billing, shipment documentation, and airport transportation support). Review cargo specifications, customer uploaded documents, and advance the coordination pipeline.
             </p>
           </div>
 
@@ -300,7 +300,7 @@ export const AirwayServicesTab = ({
               <span>Shipment Documentation</span>
             </div>
             <p className="text-[11px] text-slate-600 mt-1.5 font-medium leading-relaxed">
-              Commercial invoice, packing list, certificate of origin, and Singapore TradeNet customs clearance.
+              Commercial invoice, packing list, checklists, and air shipment documentation support.
             </p>
           </div>
 
@@ -935,7 +935,7 @@ export const AirwayServicesTab = ({
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleSaveModalChanges}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center space-x-1.5"
+                  className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center space-x-1.5"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Changes</span>

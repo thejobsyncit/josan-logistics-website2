@@ -40,8 +40,8 @@ export const DocumentationTab = ({
     'Commercial Invoice',
     'Packing List',
     'AWB',
-    'Certificate of Origin',
-    'Customs-related Documents',
+    'Shipment Checklist',
+    'Documentation Records',
     'Insurance Documents',
     'Other Shipment Documents'
   ];
@@ -50,12 +50,12 @@ export const DocumentationTab = ({
 
   const filtered = documents.filter(d => {
     // Map legacy types or match directly
-    const normalizedType = d.type?.includes('Customs') ? 'Customs-related Documents'
+    const normalizedType = d.type?.includes('Customs') ? 'Documentation Records'
       : d.type?.includes('Insurance') ? 'Insurance Documents'
       : d.type?.includes('Invoice') ? 'Commercial Invoice'
       : d.type?.includes('Packing') ? 'Packing List'
       : d.type?.includes('AWB') ? 'AWB'
-      : d.type?.includes('Origin') ? 'Certificate of Origin'
+      : d.type?.includes('Origin') ? 'Other Shipment Documents'
       : d.type || 'Other Shipment Documents';
 
     if (typeFilter !== 'All' && normalizedType !== typeFilter) return false;
@@ -113,7 +113,7 @@ export const DocumentationTab = ({
       pdf.line(20, 84, 190, 84);
       pdf.setFontSize(11);
       pdf.setTextColor(15, 23, 42);
-      pdf.text('Certified authentic commercial logistics documentation under Singapore TradeNet.', 20, 95);
+      pdf.text('Certified authentic commercial logistics documentation and shipment records.', 20, 95);
     });
   };
 

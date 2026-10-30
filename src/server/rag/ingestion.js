@@ -70,26 +70,16 @@ export async function ingestDocument({ fileBuffer, fileName, fileType, title, ca
   // 4. Save Master Document Record & Chunks in Supabase if available
   if (isSupabaseConfigured) {
     try {
-      // Insert Master Document
+      // Insert Master Document into knowledge_base_documents
       const { error: docErr } = await supabase
-        .from('documents')
+        .from('knowledge_base_documents')
         .insert([{
-          id: documentId,
-          file_name: fileName,
-          file_type: fileType || 'txt',
           title: docTitle,
-          description: description || `Ingested ${chunks.length} chunks from ${fileName}`,
-          category,
-          chunk_count: chunks.length,
-          status: 'COMPLETED',
-          metadata: {
-            total_characters: text.length,
-            chunk_size: 600,
-            source,
-            date,
-            isOfficialJosan,
-            ingested_at: new Date().toISOString()
-          }
+          content: text,
+          source: source || fileName,
+          owner_name: 'Josan Logistics Team',
+          status: 'Approved',
+          created_at: new Date().toISOString()
         }]);
 
       if (docErr) {
@@ -253,9 +243,9 @@ Requirements vary depending on the shipment, cargo nature, mode of transport, an
   },
   {
     fileName: 'General_Reference_Singapore_Customs.txt',
-    title: 'Singapore Customs & TradeNet Overview (General Reference)',
+    title: 'Singapore Customs Permit Overview (General Reference)',
     category: 'General Reference',
-    description: 'General industry reference on TradeNet permit types and authority requirements. Not Josan Logistics policy.',
+    description: 'General industry reference on Singapore Customs permit types and authority requirements. Not Josan Logistics policy.',
     source: 'Singapore Customs Public Guidance (General Reference)',
     date: '2026-01-01',
     isOfficialJosan: false,
@@ -265,8 +255,8 @@ Date: 1 January 2026
 
 Notice: This document is provided solely as general industry reference. Josan Logistics is a freight coordinator and does not provide customs clearance, customs broking, permit declarations, tariff advice, or GST guidance. Importers and exporters must consult Singapore Customs (www.customs.gov.sg) or their licensed customs agent directly.
 
-1. OVERVIEW OF TRADENET PERMITS:
-Commercial shipments moving through Singapore typically require permits declared via Singapore Customs TradeNet:
+1. OVERVIEW OF CUSTOMS PERMITS:
+Commercial shipments moving through Singapore typically require permits declared via Singapore Customs:
 - In-Payment (GST) Permit: For non-dutiable commercial imports subject to Singapore GST.
 - In-Non-Payment Permit: For goods entering licensed warehouses or approved trade schemes.
 - Out Permit: For commercial export shipments leaving Singapore.

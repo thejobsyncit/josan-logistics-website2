@@ -186,7 +186,7 @@ export const KnowledgeBaseTab = () => {
             </h2>
           </div>
           <p className="text-xs text-slate-300 max-w-2xl">
-            Upload policies, customs guides, and freight documentation. Documents are converted into vector embeddings and stored in Supabase pgvector for real-time grounded chatbot answers.
+            Upload policies, regulatory guides, and freight documentation. Documents are converted into vector embeddings and stored in Supabase pgvector for real-time grounded chatbot answers.
           </p>
         </div>
 
@@ -261,7 +261,7 @@ export const KnowledgeBaseTab = () => {
               <label className="block text-xs font-bold text-slate-700 mb-1">Document Title</label>
               <input
                 type="text"
-                placeholder="e.g. Singapore Customs TradeNet Procedure"
+                placeholder="e.g. Air Freight Document Checklists Procedure"
                 value={docTitle}
                 onChange={(e) => setDocTitle(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:border-[#FF6B00] focus:bg-white focus:outline-none"
@@ -277,7 +277,7 @@ export const KnowledgeBaseTab = () => {
               >
                 <option value="Air Freight">Air Freight</option>
                 <option value="Road Freight">Road Freight</option>
-                <option value="Customs">Customs Clearance</option>
+                <option value="Documentation">Shipment Documentation</option>
                 <option value="International Trade">International Trade (Incoterms)</option>
                 <option value="Services & Rates">Services & Rates</option>
                 <option value="General">General FAQ</option>
@@ -358,7 +358,7 @@ export const KnowledgeBaseTab = () => {
             {[
               { label: 'Services Summary', q: 'What freight coordination and documentation services do you provide?' },
               { label: 'Rates & Quote Action', q: 'How much does road freight cost per kg?' },
-              { label: 'Customs Policy Check', q: 'Can you help clear Singapore customs for my shipment?' },
+              { label: 'Documentation Policy Check', q: 'What documentation assistance is provided for air freight?' },
               { label: 'Below Threshold / Out-of-Scope', q: 'What is quantum entanglement in logistics?' }
             ].map((chip, idx) => (
               <button

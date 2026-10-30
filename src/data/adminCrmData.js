@@ -9,7 +9,7 @@ export const initialCargoPricing = [
     basePricePerKg: 3.50,
     minimumCharge: 50.00,
     weightSlabs: [
-      { minWeight: 0, maxWeight: 100, pricePerKg: 3.80 },
+      { minWeight: 0, maxWeight: 100, pricePerKg: 3.50 },
       { minWeight: 101, maxWeight: 500, pricePerKg: 3.50 },
       { minWeight: 501, maxWeight: 999999, pricePerKg: 3.00 }
     ]
@@ -36,11 +36,11 @@ export const initialCargoPricing = [
     category: 'Perishable',
     description: 'Fresh seafood, agricultural produce, cut flowers and short shelf-life commercial goods.',
     active: true,
-    basePricePerKg: 5.50,
+    basePricePerKg: 5.00,
     minimumCharge: 90.00,
     weightSlabs: [
       { minWeight: 0, maxWeight: 100, pricePerKg: 6.00 },
-      { minWeight: 101, maxWeight: 500, pricePerKg: 5.50 },
+      { minWeight: 101, maxWeight: 500, pricePerKg: 5.00 },
       { minWeight: 501, maxWeight: 999999, pricePerKg: 4.90 }
     ]
   },
@@ -97,7 +97,7 @@ export const initialSystemUsers = [
     name: 'Alexander Josan',
     email: 'admin@josanlogistics.com',
     role: 'admin',
-    roleTitle: 'Chief Administrator',
+    roleTitle: 'Admin',
     status: 'Active',
     phone: '+65 6789 0100',
     company: 'Josan Logistics HQ',
@@ -109,36 +109,48 @@ export const initialSystemUsers = [
     name: 'Jessica Tan',
     email: 'jessica.tan@josanlogistics.com',
     role: 'crm_manager',
-    roleTitle: 'CRM Operations Lead',
+    roleTitle: 'Operations Manager',
     status: 'Active',
     phone: '+65 6789 0123',
     company: 'Josan Logistics Operations',
     lastLogin: '2026-10-06 08:30 AM',
-    permissions: ['customers', 'airway_requests', 'road_shipments', 'cargo_pricing', 'documents', 'quotations', 'billing', 'transportation_partners', 'reports']
+    permissions: ['customers', 'airway_requests', 'road_shipments', 'documents', 'quotations', 'billing', 'transportation_partners', 'reports']
   },
   {
     id: 'USR-OPS-003',
     name: 'David Ng',
     email: 'david.ng@josanlogistics.com',
     role: 'crm_ops',
-    roleTitle: 'Logistics Dispatch Coordinator',
+    roleTitle: 'Coordinator',
     status: 'Active',
     phone: '+65 8234 5678',
     company: 'Singapore Operations Hub',
     lastLogin: '2026-10-05 04:45 PM',
-    permissions: ['airway_requests', 'road_shipments', 'cargo_pricing', 'documents', 'transportation_partners']
+    permissions: ['airway_requests', 'road_shipments', 'documents', 'transportation_partners']
   },
   {
     id: 'USR-FIN-004',
     name: 'Priya Sharma',
     email: 'priya.sharma@josanlogistics.com',
     role: 'crm_finance',
-    roleTitle: 'Billing & Commercial Accounts',
+    roleTitle: 'Finance',
     status: 'Active',
     phone: '+65 9876 5432',
     company: 'Josan Finance Department',
     lastLogin: '2026-10-05 02:10 PM',
     permissions: ['customers', 'quotations', 'billing', 'reports']
+  },
+  {
+    id: 'USR-VIEW-006',
+    name: 'Michael Lim',
+    email: 'michael.lim@josanlogistics.com',
+    role: 'viewer',
+    roleTitle: 'Read-only',
+    status: 'Active',
+    phone: '+65 6789 0199',
+    company: 'Compliance & Audit SG',
+    lastLogin: '2026-10-05 11:30 AM',
+    permissions: ['dashboard', 'customers', 'airway_requests', 'road_shipments', 'documents', 'quotations', 'transportation_partners', 'notifications', 'reports']
   },
   {
     id: 'USR-CUST-005',
@@ -160,7 +172,6 @@ export const initialCrmRolePermissions = {
     customers: true,
     airway_requests: true,
     road_shipments: true,
-    cargo_pricing: true,
     documents: true,
     quotations: true,
     billing: true,
@@ -174,7 +185,6 @@ export const initialCrmRolePermissions = {
     customers: true,
     airway_requests: true,
     road_shipments: true,
-    cargo_pricing: true,
     documents: true,
     quotations: true,
     billing: true,
@@ -188,7 +198,6 @@ export const initialCrmRolePermissions = {
     customers: true,
     airway_requests: true,
     road_shipments: true,
-    cargo_pricing: true,
     documents: true,
     quotations: false,
     billing: false,
@@ -202,7 +211,6 @@ export const initialCrmRolePermissions = {
     customers: true,
     airway_requests: false,
     road_shipments: false,
-    cargo_pricing: true,
     documents: true,
     quotations: true,
     billing: true,
@@ -216,7 +224,6 @@ export const initialCrmRolePermissions = {
     customers: true,
     airway_requests: true,
     road_shipments: true,
-    cargo_pricing: true,
     documents: true,
     quotations: true,
     billing: false,
@@ -229,76 +236,80 @@ export const initialCrmRolePermissions = {
 
 export const initialWebsiteContent = {
   hero: {
-    badge: 'IATA & ACRA Compliant Commercial Logistics',
-    title: 'Precision Airway & Commercial Road Freight Logistics',
-    subtitle: 'Streamlining Singapore cargo transport with dedicated master AWB preparation, customs documentation, TradeNet declarations, and haulage partner coordination.',
-    ctaPrimary: 'Request Air Freight Service',
-    ctaSecondary: 'Book Road Consignment'
+    badge: '',
+    title: 'Reliable Logistics Solutions For Every Journey',
+    subtitle: 'From Air Waybill preparation and shipment documentation to commercial road transportation, we provide reliable logistics support for businesses moving goods from one location to another.',
+    ctaPrimary: 'Get a Freight Quote',
+    ctaSecondary: ''
   },
   about: {
-    tagline: 'Singapore Commercial Logistics Specialist',
-    mission: 'Providing transparent, high-integrity air freight documentation and third-party road transportation dispatch for Singapore enterprises.',
-    vision: 'To be the most reliable documentation and commercial road freight coordinator across Singapore industrial corridors.',
+    tagline: 'Air freight documentation and road transportation coordination in Singapore',
+    mission: 'To provide dependable, practical logistics support that helps businesses move their goods through suitable transportation and documentation solutions.',
+    vision: 'To build a trusted logistics service focused on reliable transportation coordination, accurate documentation and professional customer support.',
     highlights: [
-      'Comprehensive Master Air Waybill (AWB) preparation & airline billing',
-      'End-to-end commercial road freight via trusted 3rd-party haulage partners',
-      'TradeNet export/import documentation & Certificate of Origin processing',
-      'Real-time status transparency across all operational milestones'
+      'Air Waybill (AWB) preparation and airline billing coordination',
+      'Commercial road transportation via trusted partner transport operators',
+      'Shipment checklists and document preparation support for air freight',
+      'Clear shipment status updates and responsive communication'
     ],
     stats: [
-      { label: 'Active Enterprise Clients', value: '450+' },
-      { label: 'Monthly Consignments Coordinated', value: '2,800+' },
-      { label: 'Documentation Compliance Rate', value: '99.8%' },
-      { label: 'Singapore Industrial Corridors', value: '100%' }
+      { label: 'Reliable Support', value: '100%' },
+      { label: 'Commercial Cargo Coverage', value: 'Singapore' },
+      { label: 'Shipment Tracking', value: 'Real-Time' },
+      { label: 'Commercial Focus', value: 'B2B Cargo' }
     ]
   },
   services: {
     airway: {
-      title: 'Air Freight Services & AWB Preparation',
-      shortDesc: 'Master AWB documentation, airline coordination, and airport feeder transportation support for Changi Air Cargo Complex.'
+      title: 'Air Freight Services',
+      shortDesc: 'Air Waybill preparation, billing and shipment documentation support for commercial air freight.'
     },
     road: {
       title: 'Commercial Road Transportation',
-      shortDesc: 'Domestic linehaul trucking, FTL container movements, and dedicated partner dispatches across Singapore industrial zones.'
+      shortDesc: 'Commercial road transportation coordinated through partner carriers, based on your shipment requirements.'
     },
     documentation: {
-      title: 'Customs & Shipment Documentation Support',
-      shortDesc: 'TradeNet export/import declarations, commercial invoice generation, packing lists, and Certificates of Origin.'
+      title: 'Shipment Documentation Support',
+      shortDesc: 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.'
     }
   },
   contact: {
     phone: '+65 6789 0123',
-    email: 'operations@josanlogistics.com',
-    supportEmail: 'support@josanlogistics.com',
+    email: 'contact@josanlogistics.com.sg',
     address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
-    operatingHours: 'Mon - Fri: 08:00 AM - 07:00 PM (SGT) | Sat: 08:00 AM - 01:00 PM',
-    emergencyHotline: '+65 6789 0123'
+    description: 'Phone number, email, office address and opening hours.',
+    operatingHours: '[ENTER REAL HOURS]'
   },
   faqs: [
     {
       id: 'faq-1',
-      q: 'Does Josan Logistics own aircraft or airline terminals?',
-      a: 'No. Josan Logistics provides Air Waybill (AWB) preparation, AWB billing, shipment documentation, and airport feeder transportation support in coordination with scheduled commercial air carriers.'
+      q: 'How do I get a quote?',
+      a: 'Use the Get a Quote button, or send us a message with your cargo details.'
     },
     {
       id: 'faq-2',
-      q: 'Does Josan Logistics operate its own private vehicle fleet?',
-      a: 'Josan coordinates commercial road transportation through contracted, third-party logistics and haulage partner carriers across Singapore industrial corridors.'
+      q: 'How can I track my shipment?',
+      a: 'Use Track Shipment with your tracking number; status updates are entered by our operations team and show a "Last updated" time.'
     },
     {
       id: 'faq-3',
-      q: 'How are freight quotes calculated?',
-      a: 'Quotes are calculated based on shipment route, cargo type, dimensions, weight, and partner availability after you submit a quote request. We reply with a formal quote, and payment is arranged only after you accept.'
+      q: 'What information do you need to prepare an Air Waybill?',
+      a: 'Shipper and consignee details, cargo description, weight and dimensions, commercial invoice and packing list.'
     },
     {
       id: 'faq-4',
-      q: 'What documentation assistance is provided?',
-      a: 'We assist with Commercial Invoices, Packing Lists, Certificates of Origin, and Air Waybills. We provide documentation support only and do not provide customs clearance or act as a customs broker.'
+      q: 'Do you own the trucks?',
+      a: 'We coordinate road transportation through our partner operators.'
+    },
+    {
+      id: 'faq-5',
+      q: 'Can you help with shipping documents?',
+      a: 'Yes. We help prepare and organise shipment documents such as the Air Waybill, commercial invoice and packing list. We do not provide customs clearance or act as a customs broker. Required documents vary by cargo, origin and destination.'
     }
   ],
   banner: {
     active: false,
-    text: 'Standardized Air Freight Documentation & Domestic Linehaul Support available across all Singapore hubs.',
+    text: 'Air freight documentation support and road transportation coordination in Singapore.',
     type: 'info'
   }
 };
@@ -307,49 +318,27 @@ export const initialManagedServices = {
   airway: {
     id: 'airway',
     name: 'Air Freight Services',
-    description: 'Master AWB documentation, airline coordination, and airport feeder transportation support.',
+    description: 'Air Waybill preparation, billing and shipment documentation support for commercial air freight.',
     badge: 'AWB Preparation & Billing',
     active: true
   },
   road: {
     id: 'road',
-    name: 'Road Transportation',
-    description: 'Commercial domestic trucking, FTL & LTL linehaul via 3rd-party logistics partner carriers.',
-    badge: 'Third-Party Linehaul',
+    name: 'Commercial Road Transportation',
+    description: 'Commercial road transportation coordinated through partner carriers, based on your shipment requirements.',
+    badge: 'Partner Carriers',
     active: true
   },
   documentation: {
     id: 'documentation',
-    name: 'Customs & Shipment Documentation Support',
-    description: 'TradeNet clearance declarations, commercial invoices, packing lists, and certificate of origin.',
-    badge: 'TradeNet Ready',
+    name: 'Shipment Documentation Support',
+    description: 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.',
+    badge: 'Documentation Only',
     active: true
   }
 };
 
-export const initialAdminActivityLog = [
-  {
-    id: 'act-101',
-    action: 'System Initialized',
-    details: 'Admin Portal & CRM separation verified with unified logistics database.',
-    timestamp: '2026-10-06 09:00 AM',
-    user: 'Alexander Josan'
-  },
-  {
-    id: 'act-102',
-    action: 'Cargo Pricing Verified',
-    details: 'CRM Cargo & Pricing module initialized with 6 standardized cargo classifications.',
-    timestamp: '2026-10-06 09:30 AM',
-    user: 'System'
-  },
-  {
-    id: 'act-103',
-    action: 'Public Services Active',
-    details: 'Air Freight Services, Road Transportation, and Documentation Support set to active status.',
-    timestamp: '2026-10-06 10:00 AM',
-    user: 'Alexander Josan'
-  }
-];
+export const initialAdminActivityLog = [];
 
 export const calculateCargoPricingHelper = (cargoItem, weightKg = 0) => {
   const weight = Math.max(0, Number(weightKg) || 0);

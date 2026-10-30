@@ -7,7 +7,8 @@ import roadFreightImg from '../assets/road_truck_highway.jpg';
 import docsHeroImg from '../assets/shipment_documentation_desk.jpg';
 
 export const ServicesPage = ({ setActiveTab }) => {
-  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast, websiteContent, managedServices } = useLogistics();
+  const servicesContent = websiteContent?.services || {};
 
   const handleNavigate = (path, tabId) => {
     if (setActiveTab) {
@@ -33,11 +34,12 @@ export const ServicesPage = ({ setActiveTab }) => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
-  const services = [
+  const allServices = [
     {
       id: 'air-freight',
-      title: 'Air Freight Services',
-      desc: 'Air Waybill preparation, billing coordination and air shipment documentation support.',
+      active: managedServices?.airway?.active !== false,
+      title: servicesContent.airway?.title || 'Air Freight Services',
+      desc: servicesContent.airway?.shortDesc || 'Air Waybill preparation, billing and shipment documentation support for commercial air freight.',
       image: airFreightImg,
       fallbackUrl: '/assets/air_freight_unbranded.jpg',
       path: '/services/air-freight',
@@ -45,8 +47,9 @@ export const ServicesPage = ({ setActiveTab }) => {
     },
     {
       id: 'road-transportation',
-      title: 'Commercial Road Transportation',
-      desc: 'Commercial goods and freight transportation coordinated through our network of established transport partners.',
+      active: managedServices?.road?.active !== false,
+      title: servicesContent.road?.title || 'Commercial Road Transportation',
+      desc: servicesContent.road?.shortDesc || 'Commercial road transportation coordinated through partner carriers, based on your shipment requirements.',
       image: roadFreightImg,
       fallbackUrl: '/assets/road_truck_highway.jpg',
       path: '/services/road-transportation',
@@ -54,14 +57,17 @@ export const ServicesPage = ({ setActiveTab }) => {
     },
     {
       id: 'documentation',
-      title: 'Shipment Documentation Support',
-      desc: 'Help preparing and organising shipment documents, commercial invoices and packing lists.',
+      active: managedServices?.documentation?.active !== false,
+      title: servicesContent.documentation?.title || 'Shipment Documentation Support',
+      desc: servicesContent.documentation?.shortDesc || 'Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance.',
       image: docsHeroImg,
       fallbackUrl: '/assets/shipment_documentation_desk.jpg',
       path: '/services/documentation',
       tabId: 'shipment-documentation-support'
     }
   ];
+
+  const services = allServices.filter(s => s.active);
 
   return (
     <div className="w-full space-y-16 sm:space-y-20 pb-20">

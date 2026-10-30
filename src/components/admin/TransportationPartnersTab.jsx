@@ -98,7 +98,7 @@ export const TransportationPartnersTab = ({
         <div className="flex items-center space-x-2.5">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span className="text-slate-700">
-            Josan engages contracted Transportation Partners for all linehaul and commercial road distribution, ensuring optimal capacity without fleet ownership overhead.
+            Josan engages contracted Transportation Partners for all commercial road transportation and freight distribution, ensuring optimal capacity without fleet ownership overhead.
           </span>
         </div>
       </div>

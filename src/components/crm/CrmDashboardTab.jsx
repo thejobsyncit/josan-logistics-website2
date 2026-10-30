@@ -58,6 +58,16 @@ export const CrmDashboardTab = ({
 
   // Compile unified recent activity timeline from all modules:
   const recentActivities = [
+    ...quotes.map(q => ({
+      id: `act-quote-${q.id}`,
+      type: 'quote',
+      title: `Quotation #${q.id} (${q.status})`,
+      subtitle: `${q.company || q.customerName} • S$ ${Number(q.amount || q.lineItems?.finalAmount || 0).toLocaleString()}`,
+      date: q.createdAt?.split(' ')[0] || 'Recent',
+      status: q.status,
+      badgeColor: 'bg-purple-100 text-purple-700 border-purple-200',
+      raw: q
+    })),
     ...airwayRequests.map(r => ({
       id: `act-air-${r.id}`,
       type: 'airway',
@@ -78,16 +88,6 @@ export const CrmDashboardTab = ({
       badgeColor: 'bg-emerald-100 text-emerald-700 border-emerald-200',
       raw: s
     })),
-    ...quotes.map(q => ({
-      id: `act-quote-${q.id}`,
-      type: 'quote',
-      title: `Quotation #${q.id} (${q.status})`,
-      subtitle: `${q.customerName} • S$ ${Number(q.amount || q.lineItems?.finalAmount || 0).toLocaleString()}`,
-      date: q.createdAt?.split(' ')[0] || 'Recent',
-      status: q.status,
-      badgeColor: 'bg-purple-100 text-purple-700 border-purple-200',
-      raw: q
-    })),
     ...invoices.map(i => ({
       id: `act-inv-${i.id}`,
       type: 'billing',
@@ -98,7 +98,7 @@ export const CrmDashboardTab = ({
       badgeColor: i.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200',
       raw: i
     }))
-  ].slice(0, 8);
+  ].slice(0, 10);
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
@@ -163,7 +163,7 @@ export const CrmDashboardTab = ({
           className="bg-white p-4 rounded-2xl border border-[#DCE5F0]/90 shadow-2xs hover:shadow-md hover:border-[#2463EB]/40 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#0B1F5B]">Airway Requests</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#0B1F5B]">Air Freight Requests</span>
             <div className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center group-hover:scale-110 transition-transform">
               <Plane className="w-4 h-4" />
             </div>
@@ -180,7 +180,7 @@ export const CrmDashboardTab = ({
           className="bg-white p-4 rounded-2xl border border-emerald-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">Road Shipments</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">Road Coordination</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Truck className="w-4 h-4" />
             </div>
@@ -197,7 +197,7 @@ export const CrmDashboardTab = ({
           className="bg-white p-4 rounded-2xl border border-purple-200/90 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-purple-800">Documents</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-purple-800">Shipment Documents</span>
             <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <FileText className="w-4 h-4" />
             </div>

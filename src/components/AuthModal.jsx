@@ -109,23 +109,11 @@ export const AuthModal = ({ setActiveTab }) => {
         }
       } else {
         try {
-          // Attempt customer record sync to Supabase public.customers DB table
-          if (role.toLowerCase().includes('customer')) {
-            await supabaseApi.createCustomer({
-              name: fullName || email.split('@')[0],
-              email: email.trim(),
-              phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
-              company: '',
-              password: password,
-            }).catch(e => console.warn('[AuthModal] Remote customer sync notice:', e));
-          }
-
           const sbRes = await supabaseApi.signUp({
             email: email.trim(),
             password,
             fullName,
             phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
-            role,
           });
 
           if (sbRes?.error) {
@@ -255,7 +243,7 @@ export const AuthModal = ({ setActiveTab }) => {
                 {role === 'driver' ? '🚛 Driver Provisioned Login:' : '👤 Customer Login:'}
               </span>
               <span className="font-bold text-slate-900">
-                {role === 'driver' ? 'tan.weiming@josanlogistics.com / driver123' : 'Any valid email & password'}
+                {role === 'driver' ? 'tan.weiming@josanlogistics.com' : 'Any valid email & password'}
               </span>
             </div>
           )}

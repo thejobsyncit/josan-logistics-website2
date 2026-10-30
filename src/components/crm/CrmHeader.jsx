@@ -189,11 +189,12 @@ export const CrmHeader = ({
         </div>
 
         {/* Quick Action Dropdown */}
+        {/* Quick Action Dropdown */}
         <div className="relative" ref={quickActionRef}>
           <button
             type="button"
             onClick={toggleQuickAction}
-            className="flex items-center space-x-1.5 px-3 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+            className="flex items-center space-x-1.5 px-3 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Intake</span>
@@ -206,32 +207,32 @@ export const CrmHeader = ({
                 Logistics Workflows
               </div>
 
-              {/* 1. Airway Request */}
+              {/* 1. Air Freight Request */}
               <button
                 type="button"
                 onClick={() => handleSelectQuickAction(onOpenNewAirway)}
-                className="w-full px-3 py-2 text-left hover:bg-[#EAF2FF] hover:text-[#0B1F5B] flex items-center space-x-2 transition-colors cursor-pointer"
+                className="w-full px-3 py-2 text-left hover:bg-orange-50 hover:text-orange-950 flex items-center space-x-2 transition-colors cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
                   <Plane className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Airway Request</p>
-                  <p className="text-[10px] text-slate-500 font-medium">AWB, docs & airport transfer</p>
+                  <p className="font-extrabold text-slate-900 leading-tight">Air Freight Request</p>
+                  <p className="text-[10px] text-slate-500 font-medium">AWB, docs &amp; airport transfer</p>
                 </div>
               </button>
 
-              {/* 2. Road Shipment */}
+              {/* 2. Road Coordination */}
               <button
                 type="button"
                 onClick={() => handleSelectQuickAction(onOpenNewRoad)}
-                className="w-full px-3 py-2 text-left hover:bg-blue-50 hover:text-blue-700 flex items-center space-x-2 transition-colors cursor-pointer"
+                className="w-full px-3 py-2 text-left hover:bg-emerald-50 hover:text-emerald-950 flex items-center space-x-2 transition-colors cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                   <Truck className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Road Shipment</p>
+                  <p className="font-extrabold text-slate-900 leading-tight">Road Coordination</p>
                   <p className="text-[10px] text-slate-500 font-medium">Book commercial roadway</p>
                 </div>
               </button>
@@ -268,7 +269,7 @@ export const CrmHeader = ({
                 </div>
               </button>
 
-              {/* 5. Upload Document */}
+              {/* 5. Shipment Documents */}
               <button
                 type="button"
                 onClick={() => handleSelectQuickAction(onOpenUploadDoc)}
@@ -278,8 +279,8 @@ export const CrmHeader = ({
                   <FileText className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Upload Document</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Invoices, packing lists & AWB</p>
+                  <p className="font-extrabold text-slate-900 leading-tight">Shipment Documents</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Invoices, packing lists &amp; AWB</p>
                 </div>
               </button>
             </div>
@@ -373,17 +374,25 @@ export const CrmHeader = ({
         </button>
 
         {/* CRM Operator Profile Pill */}
-        <div className="flex items-center space-x-2 pl-1 border-l border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0B1F5B] to-slate-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-            {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
-          </div>
-          <div className="hidden lg:block leading-tight">
-            <p className="text-xs font-black text-slate-900 truncate max-w-[120px]">
-              {currentUser?.name || 'CRM Manager'}
-            </p>
-            <p className="text-[10px] font-bold text-[#2463EB]">Operations Suite</p>
-          </div>
-        </div>
+        {(() => {
+          const staffName = currentUser?.name || currentUser?.fullName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Staff Member');
+          const staffRole = currentUser?.displayRole || (currentUser?.role === 'admin' ? 'Administrator' : 'CRM Operations');
+          const staffInitial = (staffName.charAt(0) || currentUser?.email?.charAt(0) || 'S').toUpperCase();
+
+          return (
+            <div className="flex items-center space-x-2 pl-1 border-l border-slate-200">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0B1F5B] to-slate-700 text-white flex items-center justify-center font-bold text-xs shadow-xs" title={staffName}>
+                {staffInitial}
+              </div>
+              <div className="hidden lg:block leading-tight">
+                <p className="text-xs font-black text-slate-900 truncate max-w-[140px]" title={staffName}>
+                  {staffName}
+                </p>
+                <p className="text-[10px] font-bold text-[#2463EB]">{staffRole}</p>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </header>
   );

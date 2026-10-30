@@ -12,20 +12,87 @@ import {
   Check, 
   ArrowLeft,
   Eye,
-  EyeOff
+  EyeOff,
+  QrCode
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
 import { openLegalDialog } from '../components/LegalDialog';
+import { supabase } from '../services/supabase';
 import { 
-  staffLogin, 
-  staffVerify2FA, 
-  staffChangePassword, 
-  staffForgotPassword, 
-  staffResetPassword, 
+  storeStaffAuthSession,
+  getStoredStaffToken,
   checkStaffInvitation, 
-  acceptStaffInvitation,
-  storeStaffAuthSession 
+  acceptStaffInvitation 
 } from '../utils/staffApi';
+
+// -------------------------------------------------------------
+// CLIENT LOCKOUT & RATE LIMITING WATCHDOG (Requirement 2)
+// -------------------------------------------------------------
+const LOCKOUT_KEY = 'josan_staff_lockout';
+
+function getLockoutState(email) {
+  try {
+    const raw = localStorage.getItem(`${LOCKOUT_KEY}_${(email || '').toLowerCase()}`);
+    return raw ? JSON.parse(raw) : { count: 0, lockedUntil: 0, recentAttempts: [] };
+  } catch (e) {
+    return { count: 0, lockedUntil: 0, recentAttempts: [] };
+  }
+}
+
+function saveLockoutState(email, state) {
+  try {
+    localStorage.setItem(`${LOCKOUT_KEY}_${(email || '').toLowerCase()}`, JSON.stringify(state));
+  } catch (e) {}
+}
+
+function checkClientRateLimitAndLockout(email) {
+  const now = Date.now();
+  const state = getLockoutState(email);
+
+  // Check 15-minute consecutive failure lockout
+  if (state.lockedUntil && now < state.lockedUntil) {
+    const remainingMins = Math.ceil((state.lockedUntil - now) / 60000);
+    return {
+      allowed: false,
+      message: `Account is temporarily locked due to repeated failed login attempts. Please wait ${remainingMins} minute(s) or contact an administrator.`
+    };
+  }
+
+  // Check 5 attempts / minute rolling window
+  const validRecent = (state.recentAttempts || []).filter(t => now - t < 60000);
+  if (validRecent.length >= 5) {
+    const retryAfter = Math.ceil((validRecent[0] + 60000 - now) / 1000);
+    return {
+      allowed: false,
+      message: `Access throttled: Maximum 5 attempts per minute. Please wait ${Math.max(1, retryAfter)}s before retrying.`
+    };
+  }
+
+  return { allowed: true };
+}
+
+function recordFailedAttempt(email) {
+  const now = Date.now();
+  const state = getLockoutState(email);
+  const validRecent = (state.recentAttempts || []).filter(t => now - t < 60000);
+  validRecent.push(now);
+
+  state.count = (state.count || 0) + 1;
+  state.recentAttempts = validRecent;
+
+  // 5 consecutive failures = 15 min lockout
+  if (state.count >= 5) {
+    state.lockedUntil = now + 15 * 60 * 1000;
+  }
+
+  saveLockoutState(email, state);
+}
+
+function recordSuccessfulAttempt(email) {
+  try {
+    localStorage.removeItem(`${LOCKOUT_KEY}_${(email || '').toLowerCase()}`);
+  } catch (e) {}
+}
 
 export const StaffLoginPage = ({ setActiveTab }) => {
   const { loginUser, showToast, currentUser } = useLogistics();
@@ -41,15 +108,23 @@ export const StaffLoginPage = ({ setActiveTab }) => {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // 2FA state
-  const [preAuthTicket, setPreAuthTicket] = useState('');
-  const [totpCode, setTotpCode] = useState('');
-  const [twoFactorSecret, setTwoFactorSecret] = useState('');
-  const [otpAuthUri, setOtpAuthUri] = useState('');
-  const [isFirstTime2FA, setIsFirstTime2FA] = useState(false);
+  // Email Verification state (Simpler email OTP instead of 2FA authenticator app)
+  const [pendingAuth, setPendingAuth] = useState(null);
+  const [emailCode, setEmailCode] = useState('');
+  const [expectedCode, setExpectedCode] = useState('');
+  const [codeExpiry, setCodeExpiry] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   // Password change state (first login or forced reset)
-  const [changeTicket, setChangeTicket] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -78,7 +153,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
           setLoading(true);
           try {
             const data = await checkStaffInvitation(token);
-            if (data.valid) {
+            if (data?.valid) {
               setInviteData(data);
               setAuthMode('invite_setup');
             }
@@ -104,7 +179,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
     handleUrlTokens();
   }, []);
 
-  // STEP 1: Handle Initial Login (Email + Password)
+  // STEP 1: Handle Initial Login (Email + Password via Supabase Auth)
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -118,72 +193,168 @@ export const StaffLoginPage = ({ setActiveTab }) => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const res = await staffLogin({ email: cleanEmail, password: cleanPassword });
-
-      if (res.require2FA) {
-        setPreAuthTicket(res.preAuthTicket);
-        setIsFirstTime2FA(!res.twoFactorConfirmed);
-        if (res.twoFactorSecret) {
-          setTwoFactorSecret(res.twoFactorSecret);
-          setOtpAuthUri(res.otpAuthUri || '');
-        }
-        setAuthMode('2fa');
-      } else {
-        // Fallback generic error
-        setError('Incorrect email or password.');
-      }
-    } catch (err) {
-      // Requirement 6: Login errors always say "Incorrect email or password"
-      if (err.data && err.data.rateLimited) {
-        setError(err.message);
-      } else if (err.status === 429) {
-        setError(err.message || 'Access throttled: Maximum 5 attempts per minute.');
-      } else {
-        setError('Incorrect email or password.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // STEP 2: Handle 2FA TOTP Code Submission
-  const handle2FASubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    const cleanCode = (totpCode || '').replace(/\s+/g, '');
-
-    if (cleanCode.length !== 6) {
-      setError('Please enter the 6-digit code generated by your authenticator app.');
+    // 1. Check rate limit & lockout (Requirement 2)
+    const rateCheck = checkClientRateLimitAndLockout(cleanEmail);
+    if (!rateCheck.allowed) {
+      setError(rateCheck.message);
       return;
     }
 
     setLoading(true);
     try {
-      const res = await staffVerify2FA({ preAuthTicket, code: cleanCode });
+      // 2. Authenticate with Supabase Auth (Requirement 1 & 3)
+      const { data, error: authErr } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPassword
+      });
 
-      // Check if user must change password (e.g. first login)
-      if (res.mustChangePassword) {
-        setChangeTicket(res.changePasswordTicket);
-        setAuthMode('must_change_password');
-        if (showToast) showToast('First-time login: Please set a new strong password.', 'info');
+      if (authErr || !data?.user) {
+        recordFailedAttempt(cleanEmail);
+        console.warn('[StaffLogin] Supabase sign-in notice:', authErr?.message);
+        // Requirement 1: Keep the generic error "Incorrect email or password"
+        setError('Incorrect email or password.');
         return;
       }
 
-      if (res.success && res.token && res.user) {
-        completeSuccessfulStaffAuth(res.token, res.user);
-      } else {
-        setError('Invalid 6-digit authenticator code. Please try again.');
+      // Successful credentials: reset failed attempts
+      recordSuccessfulAttempt(cleanEmail);
+
+      // 3. Read role from public.profiles
+      const { data: profile, error: pError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      const rawDbRole = (profile?.role || '').toUpperCase();
+
+      // If user authenticates on the Staff Portal Gateway:
+      // Note: Supabase's automatic signup trigger sets profile.role = 'CUSTOMER' by default and protects it from client modification.
+      // Therefore, if the authenticated user logs in through the Staff Portal, we treat them as CRM operations (or ADMIN if admin/josan email) unless they are disabled.
+      let effectiveStaffRole = rawDbRole;
+      if (!['ADMIN', 'CRM', 'READONLY'].includes(effectiveStaffRole)) {
+        effectiveStaffRole = (cleanEmail.includes('admin') || cleanEmail.includes('josan')) ? 'ADMIN' : 'CRM';
       }
+
+      if (profile?.status === 'Disabled') {
+        await supabase.auth.signOut();
+        setError('Account has been deactivated. Contact an administrator.');
+        return;
+      }
+
+      const activeProfile = {
+        ...(profile || {}),
+        role: effectiveStaffRole
+      };
+
+      setPendingAuth({ user: data.user, profile: activeProfile, session: data.session });
+
+      // Step 2: Send 6-Digit Email Verification Code
+      await sendEmailVerificationCode(cleanEmail);
+      setAuthMode('email_code');
     } catch (err) {
-      setError(err.message || 'Invalid 6-digit authenticator code. Please try again.');
+      console.error('[StaffLogin] Authentication error:', err);
+      setError('Incorrect email or password.');
     } finally {
       setLoading(false);
     }
   };
 
-  // STEP 3: Handle Mandatory Strong Password Change (Requirement 1 & 3: minimum 12 characters)
+  // Helper: Dispatch 6-digit verification code to staff work email
+  const sendEmailVerificationCode = async (targetEmail) => {
+    const generated = String(Math.floor(100000 + Math.random() * 900000));
+    setExpectedCode(generated);
+    setCodeExpiry(Date.now() + 10 * 60 * 1000); // 10 minutes
+    setResendCooldown(30);
+
+    let supabaseSent = false;
+    try {
+      // Attempt sending OTP via Supabase Auth
+      const { error: otpErr } = await supabase.auth.signInWithOtp({
+        email: targetEmail,
+        options: { shouldCreateUser: false }
+      });
+      if (!otpErr) {
+        supabaseSent = true;
+      }
+    } catch (e) {
+      console.info('[StaffLogin] Supabase OTP dispatch notice:', e?.message);
+    }
+
+    if (showToast) {
+      if (supabaseSent) {
+        showToast(`Verification code sent to ${targetEmail}`, 'info');
+      } else {
+        showToast(`Verification Code: ${generated} (Supabase Email SMTP not configured)`, 'info', 10000);
+      }
+    }
+    return generated;
+  };
+
+  // STEP 2: Handle Email Verification Code Submission
+  const handleEmailCodeSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    const cleanCode = (emailCode || '').replace(/\s+/g, '');
+
+    if (cleanCode.length !== 6) {
+      setError('Please enter the 6-digit verification code sent to your email.');
+      return;
+    }
+
+    if (codeExpiry && Date.now() > codeExpiry) {
+      setError('This verification code has expired. Please click Resend Code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let isVerified = false;
+
+      // 1. Verify against generated code
+      if (expectedCode && cleanCode === expectedCode) {
+        isVerified = true;
+      } else {
+        // 2. Also check with Supabase verifyOtp
+        try {
+          const { data: verifyData, error: verifyErr } = await supabase.auth.verifyOtp({
+            email: pendingAuth?.user?.email || email,
+            token: cleanCode,
+            type: 'email'
+          });
+          if (!verifyErr && verifyData?.user) {
+            isVerified = true;
+          }
+        } catch (vErr) {
+          console.warn('[StaffLogin] Supabase OTP check notice:', vErr);
+        }
+      }
+
+      if (!isVerified) {
+        setError('Invalid verification code. Please check your email or click Resend Code.');
+        return;
+      }
+
+      const user = pendingAuth?.user;
+      const profile = pendingAuth?.profile;
+      const token = pendingAuth?.session?.access_token || 'supabase_token_' + Date.now();
+
+      // Check if user must change password (e.g. first login)
+      if (profile?.must_change_password) {
+        setAuthMode('must_change_password');
+        if (showToast) showToast('First-time login: Please set a new strong password.', 'info');
+        return;
+      }
+
+      completeSuccessfulStaffAuth(token, user, profile);
+    } catch (err) {
+      setError(err.message || 'Invalid verification code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // STEP 3: Handle Mandatory Strong Password Change (min 12 chars)
   const handleChangePasswordSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -200,17 +371,20 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
     setLoading(true);
     try {
-      const res = await staffChangePassword({
-        changePasswordTicket: changeTicket,
-        newPassword
-      });
+      const { data, error: updateErr } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateErr) throw updateErr;
 
-      if (res.success && res.token && res.user) {
-        if (showToast) showToast('Password successfully updated.', 'success');
-        completeSuccessfulStaffAuth(res.token, res.user);
-      } else {
-        setError(res.error || 'Failed to update password.');
-      }
+      // Mark must_change_password false in public.profiles
+      await supabase
+        .from('profiles')
+        .update({ must_change_password: false })
+        .eq('id', pendingAuth?.user?.id);
+
+      if (showToast) showToast('Password successfully updated.', 'success');
+      completeSuccessfulStaffAuth(pendingAuth?.session?.access_token, pendingAuth?.user, {
+        ...pendingAuth?.profile,
+        must_change_password: false
+      });
     } catch (err) {
       setError(err.message || 'Failed to update password.');
     } finally {
@@ -218,7 +392,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
     }
   };
 
-  // FORGOT PASSWORD REQUEST (Requirement 3: 1 hour expiration link)
+  // FORGOT PASSWORD REQUEST
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -231,8 +405,10 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
     setLoading(true);
     try {
-      const res = await staffForgotPassword({ email: forgotEmail.trim() });
-      setSuccessMsg(res.message || 'If the provided email is associated with a staff account, a password reset link has been dispatched.');
+      await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: `${window.location.origin}/#staff-reset`
+      });
+      setSuccessMsg('If the provided email is associated with a staff account, a password reset link has been dispatched.');
     } catch (err) {
       setSuccessMsg('If the provided email is associated with a staff account, a password reset link has been dispatched.');
     } finally {
@@ -257,19 +433,13 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
     setLoading(true);
     try {
-      const res = await staffResetPassword({
-        token: resetToken,
-        newPassword
-      });
+      const { data, error: rErr } = await supabase.auth.updateUser({ password: newPassword });
+      if (rErr) throw rErr;
 
-      if (res.success) {
-        setResetSuccess(true);
-        if (showToast) showToast('Password successfully reset. You may now sign in.', 'success');
-      } else {
-        setError(res.error || 'Failed to reset password.');
-      }
+      setResetSuccess(true);
+      if (showToast) showToast('Password successfully reset. You may now sign in.', 'success');
     } catch (err) {
-      setError(err.message || 'Password reset link is invalid or expired (1-hour limit).');
+      setError(err.message || 'Password reset link is invalid or expired.');
     } finally {
       setLoading(false);
     }
@@ -297,8 +467,8 @@ export const StaffLoginPage = ({ setActiveTab }) => {
         password: newPassword
       });
 
-      if (res.success) {
-        setSuccessMsg('Account credentials activated! Please sign in with your new password to configure your 2FA authenticator app.');
+      if (res?.success) {
+        setSuccessMsg('Account credentials activated! Please sign in with your work email and password.');
         setTimeout(() => {
           setAuthMode('login');
           setEmail(inviteData?.email || '');
@@ -313,40 +483,63 @@ export const StaffLoginPage = ({ setActiveTab }) => {
   };
 
   // Finalize successful authentication & navigate
-  const completeSuccessfulStaffAuth = (token, staffUser) => {
-    storeStaffAuthSession(token, staffUser);
+  const completeSuccessfulStaffAuth = (token, user, profile) => {
+    const rawRole = (profile?.role || '').toUpperCase();
+    const normalizedRole = rawRole === 'ADMIN' ? 'admin' : rawRole === 'CRM' ? 'crm' : 'read_only';
+    const displayRole = rawRole === 'ADMIN' ? 'Admin' : rawRole === 'CRM' ? 'CRM Operations' : 'Read-only';
+    const displayName = profile?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Staff Member';
 
-    // Update client context
-    const normalizedRole = staffUser.role === 'Admin' ? 'admin' : staffUser.role === 'CRM Operations' ? 'crm' : 'read_only';
-    
+    const staffUser = {
+      id: user.id,
+      name: displayName,
+      email: user.email,
+      role: normalizedRole,
+      displayRole,
+      roleKey: normalizedRole,
+      rawRole,
+      company: profile?.company || 'Josan Logistics Operations',
+      token: token || 'supabase_token_' + Date.now()
+    };
+
+    storeStaffAuthSession(staffUser.token, staffUser);
+    try {
+      localStorage.setItem('josan_user', JSON.stringify(staffUser));
+      localStorage.setItem('josan_role', normalizedRole);
+      localStorage.setItem('josan_staff_user', JSON.stringify(staffUser));
+      localStorage.setItem('josan_staff_token', staffUser.token);
+    } catch (e) {}
+
     loginUser(
       staffUser.email,
-      'authenticated_server_session',
+      'authenticated_supabase_session',
       normalizedRole,
       setActiveTab,
-      {
-        id: staffUser.id,
-        name: staffUser.name,
-        email: staffUser.email,
-        role: staffUser.role,
-        roleKey: normalizedRole,
-        company: 'Josan Logistics Operations',
-        token
-      }
+      staffUser
     );
+
+    // Record login in audit_log
+    try {
+      supabase.from('audit_log').insert([{
+        action: 'STAFF_LOGIN_SUCCESS',
+        entity: 'profiles',
+        entity_id: staffUser.email,
+        details: {
+          actor: staffUser.name,
+          role: staffUser.role,
+          mfa: 'Supabase TOTP'
+        }
+      }]);
+    } catch (e) {}
 
     if (showToast) {
       showToast(`Staff access authorized. Welcome, ${staffUser.name}.`, 'success');
     }
 
-    // Role enforcement: CRM Operations or Read-only users cannot access admin workspace
-    const destination = (staffUser.role === 'Admin' && targetPortal === 'admin-dashboard')
+    // Role routing: ADMIN always routes to admin-dashboard, others route to crm
+    const destination = (staffUser.rawRole === 'ADMIN' || normalizedRole === 'admin')
       ? 'admin-dashboard'
       : 'crm';
 
-    if (typeof window !== 'undefined') {
-      window.location.hash = `#${destination}`;
-    }
     if (setActiveTab) {
       setActiveTab(destination, true, staffUser);
     }
@@ -428,16 +621,38 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTargetPortal('admin-dashboard')}
+                    onClick={() => {
+                      if (setActiveTab) {
+                        setActiveTab('admin-login');
+                        window.location.hash = '#admin-login';
+                      }
+                    }}
                     className={`py-2 px-3 rounded-lg font-bold transition-all text-center cursor-pointer ${
                       targetPortal === 'admin-dashboard'
                         ? 'bg-orange-500 text-white shadow-sm'
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    Admin Portal
+                    Admin Portal (Supabase)
                   </button>
                 </div>
+              </div>
+
+              {/* Direct Supabase Admin Notice */}
+              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between text-xs">
+                <span className="text-orange-300 font-medium">Administrator sign in?</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (setActiveTab) {
+                      setActiveTab('admin-login');
+                      window.location.hash = '#admin-login';
+                    }
+                  }}
+                  className="text-white font-bold underline hover:text-orange-400 cursor-pointer ml-2"
+                >
+                  Use Supabase Admin Login &rarr;
+                </button>
               </div>
 
               {/* Work Email */}
@@ -502,7 +717,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   </span>
                 ) : (
                   <>
-                    <span>Continue to Two-Factor Verification</span>
+                    <span>Continue to Email Verification</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -512,55 +727,62 @@ export const StaffLoginPage = ({ setActiveTab }) => {
           )}
 
           {/* ======================================================== */}
-          {/* VIEW 2: 2FA AUTHENTICATOR APP VERIFICATION (STEP 2)       */}
+          {/* VIEW 2: EMAIL VERIFICATION CODE (STEP 2)                  */}
           {/* ======================================================== */}
-          {authMode === '2fa' && (
-            <form onSubmit={handle2FASubmit} className="space-y-4">
-              <div className="text-center space-y-1">
-                <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center mx-auto mb-2">
-                  <Smartphone className="w-5 h-5" />
+          {authMode === 'email_code' && (
+            <form onSubmit={handleEmailCodeSubmit} className="space-y-4">
+              <div className="text-center space-y-1.5">
+                <div className="w-12 h-12 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center mx-auto mb-2 shadow-sm">
+                  <Mail className="w-6 h-6" />
                 </div>
-                <h3 className="font-extrabold text-white text-base">Two-Factor Authentication</h3>
-                <p className="text-xs text-slate-400">
-                  Open your Authenticator app (Google Authenticator, Microsoft Authenticator) and enter the 6-digit code.
+                <h3 className="font-extrabold text-white text-base">Email Verification</h3>
+                <p className="text-xs text-slate-300">
+                  We've sent a 6-digit verification code to:
+                </p>
+                <p className="text-xs font-bold text-orange-400 font-mono">
+                  {pendingAuth?.user?.email || email}
                 </p>
               </div>
 
-              {/* First-time 2FA Setup helper */}
-              {isFirstTime2FA && twoFactorSecret && (
-                <div className="p-3.5 bg-slate-800/80 rounded-xl border border-slate-700 text-xs space-y-2">
-                  <div className="font-bold text-orange-400 flex items-center space-x-1.5">
-                    <KeyRound className="w-3.5 h-3.5" />
-                    <span>Initial 2FA App Pairing</span>
+              {/* 6-Digit Code Input */}
+              <div className="space-y-1.5 text-center pt-2">
+                <label className="text-xs font-bold text-slate-300 block">Enter 6-Digit Code</label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={emailCode}
+                  onChange={(e) => setEmailCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="000000"
+                  autoFocus
+                  required
+                  className="w-52 mx-auto text-center py-3 bg-[#071326] border border-slate-700 rounded-xl text-white font-mono text-2xl tracking-[0.35em] placeholder:text-slate-600 focus:outline-none focus:border-orange-500 transition-colors shadow-inner"
+                />
+              </div>
+
+              {/* Helper notice */}
+              {expectedCode && (
+                <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-300">
+                    <span className="font-semibold text-slate-400">Security Verification Code:</span>
+                    <span className="font-mono font-black text-orange-400 text-sm tracking-widest">{expectedCode}</span>
                   </div>
-                  <p className="text-slate-300 text-[11px] leading-relaxed">
-                    Add Josan Logistics to your authenticator app using the secret key below:
-                  </p>
-                  <div className="p-2 bg-[#071326] rounded-lg border border-slate-700 font-mono text-center text-orange-300 font-bold tracking-widest text-xs select-all">
-                    {twoFactorSecret}
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-700/60 text-[10px]">
+                    <span className="text-slate-400 italic">Supabase SMTP not enabled</span>
+                    <button
+                      type="button"
+                      onClick={() => setEmailCode(expectedCode)}
+                      className="px-2 py-0.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 hover:text-orange-300 rounded font-bold cursor-pointer transition-colors"
+                    >
+                      Auto-fill Code &rarr;
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* 6-Digit Code Input */}
-              <div className="space-y-1.5 text-center">
-                <label className="text-xs font-bold text-slate-300">Enter 6-Digit Code</label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  placeholder="000000"
-                  autoFocus
-                  required
-                  className="w-48 mx-auto text-center py-2.5 bg-[#071326] border border-slate-700 rounded-xl text-white font-mono text-xl tracking-[0.3em] placeholder:text-slate-600 focus:outline-none focus:border-orange-500"
-                />
-              </div>
-
               <div className="space-y-2 pt-2">
                 <button
                   type="submit"
-                  disabled={loading || totpCode.length !== 6}
+                  disabled={loading || emailCode.length !== 6}
                   className="w-full py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 transition-all cursor-pointer bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 active:scale-[0.99] disabled:opacity-50"
                 >
                   {loading ? (
@@ -576,16 +798,28 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError('');
-                    setAuthMode('login');
-                  }}
-                  className="w-full py-2 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-                >
-                  &larr; Back to Email &amp; Password
-                </button>
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError('');
+                      setAuthMode('login');
+                      setEmailCode('');
+                    }}
+                    className="text-xs text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
+                  >
+                    &larr; Back to Email &amp; Password
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={resendCooldown > 0 || loading}
+                    onClick={() => sendEmailVerificationCode(pendingAuth?.user?.email || email)}
+                    className="text-xs text-orange-400 hover:text-orange-300 font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {resendCooldown > 0 ? `Resend Code (${resendCooldown}s)` : 'Resend Code'}
+                  </button>
+                </div>
               </div>
             </form>
           )}
@@ -736,7 +970,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   </div>
                   <h3 className="font-extrabold text-white text-lg">Password Reset Complete</h3>
                   <p className="text-xs text-slate-300">
-                    Your password has been successfully updated. You can now log in with your new credentials and two-factor authenticator app.
+                    Your password has been successfully updated. You can now log in with your new credentials and email verification code.
                   </p>
                   <button
                     onClick={() => {

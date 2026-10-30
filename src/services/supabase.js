@@ -10,9 +10,8 @@ const getEnvVar = (key) => {
   return '';
 };
 
-// Retrieve credentials from Vite env or process env or fallback
-const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') || 'https://xewecflkzxgnczukaana.supabase.co';
-const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || 'your-supabase-anon-key';
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL') || 'https://tofavoanzvbzdcveqivd.supabase.co';
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZmF2b2FuenZiemRjdmVxaXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODEzNTMsImV4cCI6MjEwODc1NzM1M30.dAUKtAKvlwhFkDf6xMkTEnodC0VmH04u6-DRWknZwfo';
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 

@@ -289,7 +289,7 @@ export const CrmCustomersTab = ({
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Customer</span>
@@ -354,9 +354,9 @@ export const CrmCustomersTab = ({
                 <th className="p-4">Customer & Company</th>
                 <th className="p-4">Contact Details</th>
                 <th className="p-4">Account Tier</th>
-                <th className="p-4 text-center">Airway Req.</th>
-                <th className="p-4 text-center">Road Shipments</th>
-                <th className="p-4 text-center">Docs</th>
+                <th className="p-4 text-center">Air Freight Req.</th>
+                <th className="p-4 text-center">Road Coordination</th>
+                <th className="p-4 text-center">Shipment Documents</th>
                 <th className="p-4">Billing History</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -554,9 +554,9 @@ export const CrmCustomersTab = ({
               <div className="bg-slate-100 p-2 border-b border-slate-200 flex flex-wrap gap-1.5 text-xs font-bold shrink-0">
                 {[
                   { id: 'overview', label: 'Account Overview' },
-                  { id: 'airway', label: `Airway Requests (${relations.airway.length})` },
-                  { id: 'road', label: `Road Shipments (${relations.road.length})` },
-                  { id: 'docs', label: `Documents (${relations.docs.length})` },
+                  { id: 'airway', label: `Air Freight Requests (${relations.airway.length})` },
+                  { id: 'road', label: `Road Coordination (${relations.road.length})` },
+                  { id: 'docs', label: `Shipment Documents (${relations.docs.length})` },
                   { id: 'billing', label: `Billing History (${relations.invs.length})` },
                   { id: 'notes', label: 'Notes & Activity' }
                 ].map((tab) => (
@@ -588,15 +588,15 @@ export const CrmCustomersTab = ({
                         </p>
                       </div>
                       <div className="p-4 bg-[#EAF2FF]/80 rounded-2xl border border-[#DCE5F0] text-center">
-                        <span className="text-[10px] uppercase font-bold text-[#0B1F5B]">Airway Requests</span>
+                        <span className="text-[10px] uppercase font-bold text-[#0B1F5B]">Air Freight Requests</span>
                         <p className="text-lg font-black font-mono text-[#2463EB] mt-1">{relations.airway.length}</p>
                       </div>
                       <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 text-center">
-                        <span className="text-[10px] uppercase font-bold text-emerald-800">Road Shipments</span>
+                        <span className="text-[10px] uppercase font-bold text-emerald-800">Road Coordination</span>
                         <p className="text-lg font-black font-mono text-emerald-600 mt-1">{relations.road.length}</p>
                       </div>
                       <div className="p-4 bg-purple-50/80 rounded-2xl border border-purple-200 text-center">
-                        <span className="text-[10px] uppercase font-bold text-purple-800">Total Documents</span>
+                        <span className="text-[10px] uppercase font-bold text-purple-800">Shipment Documents</span>
                         <p className="text-lg font-black font-mono text-purple-600 mt-1">{relations.docs.length}</p>
                       </div>
                     </div>
@@ -631,10 +631,10 @@ export const CrmCustomersTab = ({
                 {/* 2. Airway Requests Tab */}
                 {customerModalTab === 'airway' && (
                   <div className="space-y-3">
-                    <h4 className="font-extrabold text-slate-900">Linked Airway Service Requests</h4>
+                    <h4 className="font-extrabold text-slate-900">Linked Air Freight Requests</h4>
                     {relations.airway.length === 0 ? (
                       <p className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
-                        No airway service requests submitted yet for this customer.
+                        No air freight requests submitted yet for this customer.
                       </p>
                     ) : (
                       relations.airway.map(r => (
@@ -659,10 +659,10 @@ export const CrmCustomersTab = ({
                 {/* 3. Road Shipments Tab */}
                 {customerModalTab === 'road' && (
                   <div className="space-y-3">
-                    <h4 className="font-extrabold text-slate-900">Linked Road Consignments</h4>
+                    <h4 className="font-extrabold text-slate-900">Linked Road Coordination</h4>
                     {relations.road.length === 0 ? (
                       <p className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
-                        No road haulage shipments booked yet for this customer.
+                        No road coordination shipments booked yet for this customer.
                       </p>
                     ) : (
                       relations.road.map(s => (
@@ -687,7 +687,7 @@ export const CrmCustomersTab = ({
                 {/* 4. Documents Tab */}
                 {customerModalTab === 'docs' && (
                   <div className="space-y-3">
-                    <h4 className="font-extrabold text-slate-900">Document Vault</h4>
+                    <h4 className="font-extrabold text-slate-900">Shipment Documents</h4>
                     {relations.docs.length === 0 ? (
                       <p className="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
                         No documents uploaded for this customer.
@@ -766,7 +766,7 @@ export const CrmCustomersTab = ({
                       <button
                         type="button"
                         onClick={handleSaveNotes}
-                        className="px-4 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                        className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm"
                       >
                         Save Notes
                       </button>
@@ -906,7 +906,7 @@ export const CrmCustomersTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Create Account
                 </button>
@@ -1027,7 +1027,7 @@ export const CrmCustomersTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Save Changes
                 </button>

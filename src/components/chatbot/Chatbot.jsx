@@ -9,6 +9,16 @@ export const Chatbot = () => {
 
   const toggleOpen = () => setIsOpen(prev => !prev);
 
+  // Hide chatbot on all /admin and /crm routes
+  const isExcludedRoute = typeof window !== 'undefined' && (
+    window.location.pathname.startsWith('/admin') ||
+    window.location.pathname.startsWith('/crm') ||
+    window.location.hash.includes('admin') ||
+    window.location.hash.includes('crm')
+  );
+
+  if (isExcludedRoute) return null;
+
   return (
     <div className="z-[110] pointer-events-auto">
       {/* Floating Chat Panel: Fullscreen on mobile, ~400px on desktop */}

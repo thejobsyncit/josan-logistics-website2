@@ -24,10 +24,9 @@ import {
 export const CRM_TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'customers', label: 'Customers', icon: Users, badgeKey: 'customers' },
-  { id: 'airway-requests', label: 'Airway Requests', icon: Plane, badgeKey: 'airway' },
-  { id: 'road-shipments', label: 'Road Shipments', icon: Truck, badgeKey: 'road' },
-  { id: 'cargo-pricing', label: 'Cargo & Pricing', icon: Tag, badgeKey: 'cargo' },
-  { id: 'documents', label: 'Documents', icon: FileText, badgeKey: 'docs' },
+  { id: 'airway-requests', label: 'Air Freight Requests', icon: Plane, badgeKey: 'airway' },
+  { id: 'road-shipments', label: 'Road Coordination', icon: Truck, badgeKey: 'road' },
+  { id: 'documents', label: 'Shipment Documents', icon: FileText, badgeKey: 'docs' },
   { id: 'quotations', label: 'Quotations', icon: FileSpreadsheet, badgeKey: 'quotes' },
   { id: 'billing', label: 'Billing', icon: Receipt, badgeKey: 'billing' },
   { id: 'transportation-partners', label: 'Transportation Partners', icon: Handshake, badgeKey: 'partners' },
@@ -186,32 +185,42 @@ export const CrmSidebar = ({
           </button>
 
           {/* Current Staff User */}
-          <div className={`flex items-center justify-between pt-1 ${isCollapsed ? 'flex-col gap-2' : ''}`}>
-            <div className="flex items-center space-x-2.5 truncate">
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-[#FF6B00] shrink-0">
-                {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'C'}
-              </div>
-              {!isCollapsed && (
-                <div className="truncate leading-tight">
-                  <p className="text-xs font-extrabold text-white truncate">
-                    {currentUser?.name || 'CRM Operations'}
-                  </p>
-                  <p className="text-[10px] text-slate-400 truncate">
-                    {currentUser?.email || 'crm@josanlogistics.com'}
-                  </p>
-                </div>
-              )}
-            </div>
+          {(() => {
+            const staffName = currentUser?.name || currentUser?.fullName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Staff Member');
+            const staffEmail = currentUser?.email || '';
+            const staffInitial = (staffName.charAt(0) || staffEmail.charAt(0) || 'S').toUpperCase();
 
-            <button
-              type="button"
-              onClick={onLogout}
-              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer shrink-0"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+            return (
+              <div className={`flex items-center justify-between pt-1 ${isCollapsed ? 'flex-col gap-2' : ''}`}>
+                <div className="flex items-center space-x-2.5 truncate">
+                  <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-[#FF6B00] shrink-0">
+                    {staffInitial}
+                  </div>
+                  {!isCollapsed && (
+                    <div className="truncate leading-tight">
+                      <p className="text-xs font-extrabold text-white truncate" title={staffName}>
+                        {staffName}
+                      </p>
+                      {staffEmail && (
+                        <p className="text-[10px] text-slate-400 truncate font-mono" title={staffEmail}>
+                          {staffEmail}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer shrink-0"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          })()}
         </div>
       </aside>
     </>

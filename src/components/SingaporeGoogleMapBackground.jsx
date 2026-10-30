@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { RealTruckGraphic } from './RealTruckGraphic';
+import { Truck } from 'lucide-react';
 
 export const SingaporeGoogleMapBackground = ({
   origin = 'Changi Air Cargo Complex',
@@ -299,8 +299,10 @@ export const SingaporeGoogleMapBackground = ({
             }}
           >
             <div className="relative flex items-center justify-center">
-              <span className="absolute w-24 h-24 rounded-full bg-[#2463EB]/40 animate-ping"></span>
-              <RealTruckGraphic />
+              <span className="absolute w-12 h-12 rounded-full bg-[#2463EB]/40 animate-ping"></span>
+              <div className="w-8 h-8 rounded-full bg-[#2463EB] text-white flex items-center justify-center shadow-lg border border-white">
+                <Truck className="w-4 h-4" />
+              </div>
             </div>
             <span className="mt-1 bg-slate-900/95 text-[#2463EB] font-mono font-extrabold text-[11px] px-3.5 py-0.5 rounded-full border border-[#2463EB]/80 shadow-2xl whitespace-nowrap">
               📍 {Math.round(safeProgress)}% EN ROUTE (PIE Expressway)

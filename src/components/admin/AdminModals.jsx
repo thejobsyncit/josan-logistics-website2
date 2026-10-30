@@ -33,7 +33,7 @@ export const ShipmentDetailsModal = ({
     shipment.mode === 'Air';
 
   const customerName = shipment.customer || shipment.customerName || shipment.sender || 'Corporate Account';
-  const partnerName = shipment.transportationPartner || shipment.carrier || (isAir ? 'Singapore Airlines Cargo (SQ)' : 'Woodlands Linehaul Logistics Pte Ltd');
+  const partnerName = shipment.transportationPartner || shipment.carrier || (isAir ? 'Singapore Airlines Cargo (SQ)' : 'Woodlands Roadways Logistics Pte Ltd');
 
   const statuses = ['New', 'Documentation', 'Processing', 'In Transit', 'Delivered', 'Completed'];
 
@@ -297,7 +297,7 @@ export const CreateShipmentModal = ({
     cargoType: 'Commercial Electronics',
     weight: '1,200 kg',
     price: 'S$ 650.00',
-    transportationPartner: 'Woodlands Linehaul Logistics Pte Ltd',
+    transportationPartner: 'Woodlands Roadways Logistics Pte Ltd',
     vehiclePlate: 'SG-8819',
     driverName: 'Tan Wei Ming',
     awbNumber: '',
@@ -393,7 +393,7 @@ export const CreateShipmentModal = ({
                   onChange={(e) => setFormData({ ...formData, transportationPartner: e.target.value })}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue cursor-pointer"
                 >
-                  <option value="Woodlands Linehaul Logistics Pte Ltd">Woodlands Linehaul Logistics</option>
+                  <option value="Woodlands Roadways Logistics Pte Ltd">Woodlands Roadways Logistics</option>
                   <option value="Apex Prime Haulage Pte Ltd">Apex Prime Haulage</option>
                   <option value="Island Freight Express Partners">Island Freight Express Partners</option>
                   <option value="Changi Feeder Transport Co.">Changi Feeder Transport Co.</option>

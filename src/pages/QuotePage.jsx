@@ -141,17 +141,43 @@ export const QuotePage = ({ setActiveTab }) => {
     requestQuote, 
     addLead,
     addNotification,
+    addAirwayRequest,
+    addCustomer,
     cargoPricing = [],
-    calculateCargoPrice
+    calculateCargoPrice,
+    managedServices = {}
   } = useLogistics();
+
+  const isAirActive = managedServices?.airway?.active !== false;
+  const isRoadActive = managedServices?.road?.active !== false;
+  const isDocActive = managedServices?.documentation?.active !== false;
 
   // Form State: 3 Service Options
   // 'air-freight' (Air Freight Documentation Support)
   // 'road-transport' (Commercial Road Transportation Coordination)
   // 'documentation' (Shipment Documentation Support)
-  const [serviceCategory, setServiceCategory] = useState('air-freight');
-  const [roadLoadType, setRoadLoadType] = useState('ltl'); // 'ltl' (Consolidated) | 'ftl' (Dedicated)
+  const [serviceCategory, setServiceCategory] = useState(() => {
+    if (isAirActive) return 'air-freight';
+    if (isRoadActive) return 'road-transport';
+    if (isDocActive) return 'documentation';
+    return 'air-freight';
+  });
+  const [roadLoadType, setRoadLoadType] = useState('ltl'); // 'ltl' (Consolidated) | 'ftl' (Full Vehicle)
   const [includeDocumentation, setIncludeDocumentation] = useState(false);
+
+  // Auto-switch to first available active service if the selected service gets paused
+  useEffect(() => {
+    if (serviceCategory === 'air-freight' && !isAirActive) {
+      if (isRoadActive) setServiceCategory('road-transport');
+      else if (isDocActive) setServiceCategory('documentation');
+    } else if (serviceCategory === 'road-transport' && !isRoadActive) {
+      if (isAirActive) setServiceCategory('air-freight');
+      else if (isDocActive) setServiceCategory('documentation');
+    } else if (serviceCategory === 'documentation' && !isDocActive) {
+      if (isAirActive) setServiceCategory('air-freight');
+      else if (isRoadActive) setServiceCategory('road-transport');
+    }
+  }, [isAirActive, isRoadActive, isDocActive, serviceCategory]);
 
   // Shipment Specifications - Empty Defaults (Placeholders only)
   const [cargoWeight, setCargoWeight] = useState('');
@@ -286,12 +312,12 @@ export const QuotePage = ({ setActiveTab }) => {
     // 3. Commercial Road Transportation Coordination
     if (serviceCategory === 'road-transport') {
       const isDedicated = roadLoadType === 'ftl';
-      const ratePerKg = isDedicated ? 5.50 : 3.80;
+      const ratePerKg = 0;
       const minCharge = isDedicated ? 150.00 : 50.00;
       const serviceName = isDedicated 
-        ? 'Commercial Road Transportation Coordination (Dedicated Freight)' 
+        ? 'Commercial Road Transportation Coordination (Full Vehicle)' 
         : 'Commercial Road Transportation Coordination (Consolidated Freight)';
-      const rateText = `S$ ${ratePerKg.toFixed(2)} / kg`;
+      const rateText = 'Quote upon request';
 
       if (!cargoWeight || parsedActualWeight <= 0) {
         return {
@@ -351,7 +377,7 @@ export const QuotePage = ({ setActiveTab }) => {
     if (cat === 'air-freight') return 'Air Freight Documentation Support';
     if (cat === 'road-transport') {
       return load === 'ftl' 
-        ? 'Commercial Road Transportation Coordination (Dedicated Freight)' 
+        ? 'Commercial Road Transportation Coordination (Full Vehicle)' 
         : 'Commercial Road Transportation Coordination (Consolidated Freight)';
     }
     if (cat === 'documentation') return 'Shipment Documentation Support';
@@ -524,8 +550,10 @@ export const QuotePage = ({ setActiveTab }) => {
       requestQuote({
         id: refId,
         referenceNumber: refId,
+        requestId: refId,
         isTest: isTestSubmission,
-        status: isTestSubmission ? 'Test' : 'Draft',
+        status: isTestSubmission ? 'Test' : 'Requested',
+        service: requestRecord.service,
         serviceCategory,
         roadLoadType: serviceCategory === 'road-transport' ? roadLoadType : null,
         includeDocumentation: serviceCategory !== 'documentation' && includeDocumentation,
@@ -541,29 +569,51 @@ export const QuotePage = ({ setActiveTab }) => {
         contactName: requestRecord.contactName,
         contactEmail: requestRecord.contactEmail,
         contactCompany: requestRecord.contactCompany,
-        contactPhone: fullContactPhone,
-        subtotal: requestRecord.estimateSubtotal,
-        gst: requestRecord.estimateGst,
-        grandTotal: requestRecord.estimateTotal
+        contactPhone: fullContactPhone
       });
     }
 
-    // 3. Store in Admin LocalStorage Archive
+    // 3. Store in Admin LocalStorage Archive & sync to josan_quotes directly
     try {
       const existingArchive = JSON.parse(localStorage.getItem('josan_admin_quote_requests') || '[]');
-      localStorage.setItem('josan_admin_quote_requests', JSON.stringify([requestRecord, ...existingArchive]));
+      const filteredArchive = existingArchive.filter(item => item.id !== refId && item.referenceNumber !== refId);
+      localStorage.setItem('josan_admin_quote_requests', JSON.stringify([requestRecord, ...filteredArchive]));
     } catch (e) {
       console.warn('Could not save to local storage archive', e);
     }
 
-    // 4. Admin Notification with Quote Reference
-    if (addNotification) {
-      addNotification({
-        role: 'admin',
-        type: 'quote_request',
-        title: isTestSubmission ? `🧪 [TEST] New Quote Request #${refId}` : `📥 New Quote Request #${refId}`,
-        message: `Quote request #${refId} received from ${requestRecord.contactName} (${requestRecord.contactCompany}) • ${requestRecord.service}`,
-        quoteId: refId
+    // 4. If Air Freight, ensure it is added to Airway Requests in CRM
+    if (serviceCategory === 'air-freight' && addAirwayRequest) {
+      addAirwayRequest({
+        id: `AIR-${refId.replace(/[^0-9]/g, '').slice(-4) || String(Math.floor(1000 + Math.random() * 9000))}`,
+        quoteId: refId,
+        referenceNumber: refId,
+        customerName: requestRecord.contactName,
+        company: requestRecord.contactCompany,
+        email: requestRecord.contactEmail,
+        phone: fullContactPhone,
+        origin: requestRecord.pickupAddress,
+        destination: requestRecord.deliveryAddress,
+        cargoDescription: requestRecord.cargoDescription,
+        packagesCount: requestRecord.packageCount,
+        totalWeight: requestRecord.cargoWeight,
+        dimensions: requestRecord.dimensions,
+        approximateValue: 'SGD 15,000',
+        services: ['AWB Preparation', 'Shipment Documentation', 'Air Freight Support'],
+        documents: [],
+        date: new Date().toISOString().split('T')[0],
+        status: 'New',
+        adminNotes: `New airway quote request received: Ref #${refId}`
+      });
+    }
+
+    // 5. Auto-register in CRM Customers if not present
+    if (addCustomer && requestRecord.contactEmail) {
+      addCustomer({
+        name: requestRecord.contactName,
+        email: requestRecord.contactEmail,
+        phone: fullContactPhone,
+        company: requestRecord.contactCompany || requestRecord.contactName
       });
     }
 
@@ -838,108 +888,132 @@ export const QuotePage = ({ setActiveTab }) => {
                     1. Select Service Type *
                   </label>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Option 1: Air Freight Documentation Support */}
-                    <button
-                      type="button"
-                      onClick={() => setServiceCategory('air-freight')}
-                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
-                        serviceCategory === 'air-freight'
-                          ? 'bg-[#F26B21] text-white border-[#F26B21] shadow-md ring-2 ring-[#F26B21]/30'
-                          : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Plane className={`w-4 h-4 ${serviceCategory === 'air-freight' ? 'text-white' : 'text-[#F26B21]'}`} />
-                          <span className="font-extrabold text-xs block leading-snug">
-                            Air Freight Documentation Support
-                          </span>
-                        </div>
+                  {(!isAirActive && !isRoadActive && !isDocActive) ? (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs flex items-center space-x-3">
+                      <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                      <div>
+                        <p className="font-bold">Online quote requests are temporarily paused for scheduled maintenance.</p>
+                        <p className="text-[11px] text-amber-700 mt-0.5">Please contact our team directly at contact@josanlogistics.com.sg or call +65 6789 0123.</p>
                       </div>
-                      <p className={`text-[11px] leading-relaxed ${
-                        serviceCategory === 'air-freight' ? 'text-orange-50' : 'text-slate-500'
-                      }`}>
-                        Air freight coordination and cargo documentation with established airline and handling partners.
-                      </p>
-                      <span className={`text-xs font-mono font-bold pt-1 inline-block ${
-                        serviceCategory === 'air-freight' ? 'text-white' : 'text-[#F26B21]'
-                      }`}>
-                        Quote upon request
-                      </span>
-                    </button>
+                    </div>
+                  ) : (
+                    <div className={`grid gap-3 ${
+                      (isAirActive && isRoadActive && isDocActive)
+                        ? 'grid-cols-1 sm:grid-cols-3'
+                        : ([isAirActive, isRoadActive, isDocActive].filter(Boolean).length === 2)
+                        ? 'grid-cols-1 sm:grid-cols-2'
+                        : 'grid-cols-1 max-w-md'
+                    }`}>
+                      {/* Option 1: Air Freight Documentation Support */}
+                      {isAirActive && (
+                        <button
+                          type="button"
+                          onClick={() => setServiceCategory('air-freight')}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                            serviceCategory === 'air-freight'
+                              ? 'bg-[#F26B21] text-white border-[#F26B21] shadow-md ring-2 ring-[#F26B21]/30'
+                              : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Plane className={`w-4 h-4 ${serviceCategory === 'air-freight' ? 'text-white' : 'text-[#F26B21]'}`} />
+                              <span className="font-extrabold text-xs block leading-snug">
+                                Air Freight Documentation Support
+                              </span>
+                            </div>
+                          </div>
+                          <p className={`text-[11px] leading-relaxed ${
+                            serviceCategory === 'air-freight' ? 'text-orange-50' : 'text-slate-500'
+                          }`}>
+                            Air freight coordination and cargo documentation with established airline and handling partners.
+                          </p>
+                          <span className={`text-xs font-mono font-bold pt-1 inline-block ${
+                            serviceCategory === 'air-freight' ? 'text-white' : 'text-[#F26B21]'
+                          }`}>
+                            Quote upon request
+                          </span>
+                        </button>
+                      )}
 
-                    {/* Option 2: Commercial Road Transportation Coordination */}
-                    <button
-                      type="button"
-                      onClick={() => setServiceCategory('road-transport')}
-                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
-                        serviceCategory === 'road-transport'
-                          ? 'bg-[#F26B21] text-white border-[#F26B21] shadow-md ring-2 ring-[#F26B21]/30'
-                          : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Truck className={`w-4 h-4 ${serviceCategory === 'road-transport' ? 'text-white' : 'text-[#F26B21]'}`} />
-                          <span className="font-extrabold text-xs block leading-snug">
-                            Commercial Road Transportation Coordination
+                      {/* Option 2: Commercial Road Transportation Coordination */}
+                      {isRoadActive && (
+                        <button
+                          type="button"
+                          onClick={() => setServiceCategory('road-transport')}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                            serviceCategory === 'road-transport'
+                              ? 'bg-[#F26B21] text-white border-[#F26B21] shadow-md ring-2 ring-[#F26B21]/30'
+                              : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Truck className={`w-4 h-4 ${serviceCategory === 'road-transport' ? 'text-white' : 'text-[#F26B21]'}`} />
+                              <span className="font-extrabold text-xs block leading-snug">
+                                Commercial Road Transportation Coordination
+                              </span>
+                            </div>
+                          </div>
+                          <p className={`text-[11px] leading-relaxed ${
+                            serviceCategory === 'road-transport' ? 'text-orange-50' : 'text-slate-500'
+                          }`}>
+                            Commercial road transportation coordinated through partner carriers.
+                          </p>
+                          <span className={`text-xs font-mono font-bold pt-1 inline-block ${
+                            serviceCategory === 'road-transport' ? 'text-white' : 'text-[#F26B21]'
+                          }`}>
+                            Quote upon request
                           </span>
-                        </div>
-                      </div>
-                      <p className={`text-[11px] leading-relaxed ${
-                        serviceCategory === 'road-transport' ? 'text-orange-50' : 'text-slate-500'
-                      }`}>
-                        Arranging commercial road freight from origin to destination via established transport partners.
-                      </p>
-                      <span className={`text-xs font-mono font-bold pt-1 inline-block ${
-                        serviceCategory === 'road-transport' ? 'text-white' : 'text-[#F26B21]'
-                      }`}>
-                        {SHOW_PRICE_ESTIMATE ? 'From S$ 3.80 / kg' : 'Quote upon request'}
-                      </span>
-                    </button>
+                        </button>
+                      )}
 
-                    {/* Option 3: Shipment Documentation Support */}
-                    <button
-                      type="button"
-                      onClick={() => setServiceCategory('documentation')}
-                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
-                        serviceCategory === 'documentation'
-                          ? 'bg-[#F26B21] text-white border-[#F26B21] shadow-md ring-2 ring-[#F26B21]/30'
-                          : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <FileText className={`w-4 h-4 ${serviceCategory === 'documentation' ? 'text-white' : 'text-[#F26B21]'}`} />
-                          <span className="font-extrabold text-xs block leading-snug">
-                            Shipment Documentation Support
+                      {/* Option 3: Shipment Documentation Support */}
+                      {isDocActive && (
+                        <button
+                          type="button"
+                          onClick={() => setServiceCategory('documentation')}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                            serviceCategory === 'documentation'
+                              ? 'bg-[#F26B21] text-white border-[#F26B21] shadow-md ring-2 ring-[#F26B21]/30'
+                              : 'bg-white text-slate-800 border-slate-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-2">
+                              <FileText className={`w-4 h-4 ${serviceCategory === 'documentation' ? 'text-white' : 'text-[#F26B21]'}`} />
+                              <span className="font-extrabold text-xs block leading-snug">
+                                Shipment Documentation Support
+                              </span>
+                            </div>
+                          </div>
+                          <p className={`text-[11px] leading-relaxed ${
+                            serviceCategory === 'documentation' ? 'text-orange-50' : 'text-slate-500'
+                          }`}>
+                            Help preparing and organising shipment documents. No customs clearance.
+                          </p>
+                          <span className={`text-xs font-mono font-bold pt-1 inline-block ${
+                            serviceCategory === 'documentation' ? 'text-white' : 'text-[#F26B21]'
+                          }`}>
+                            Fee confirmed in quote
                           </span>
-                        </div>
-                      </div>
-                      <p className={`text-[11px] leading-relaxed ${
-                        serviceCategory === 'documentation' ? 'text-orange-50' : 'text-slate-500'
-                      }`}>
-                        Help preparing and organising your shipment documents, including Air Waybill details, invoices and packing lists. We do not provide customs clearance.
-                      </p>
-                      <span className={`text-xs font-mono font-bold pt-1 inline-block ${
-                        serviceCategory === 'documentation' ? 'text-white' : 'text-[#F26B21]'
-                      }`}>
-                        Fee confirmed in quote
-                      </span>
-                    </button>
-                  </div>
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Documentation Support Clarification Note */}
-                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-orange-950 text-[11px] flex items-start space-x-2">
-                    <AlertCircle className="w-4 h-4 text-[#F26B21] shrink-0 mt-0.5" />
-                    <span>
-                      <strong>Documentation Support:</strong> Documentation support is charged separately. We will confirm the fee in your quote.
-                    </span>
-                  </div>
+                  {isDocActive && (serviceCategory === 'documentation' || includeDocumentation) && (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-orange-950 text-[11px] flex items-start space-x-2">
+                      <AlertCircle className="w-4 h-4 text-[#F26B21] shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Documentation Support:</strong> Documentation support is charged separately. We will confirm the fee in your quote.
+                      </span>
+                    </div>
+                  )}
 
                   {/* Road Transport Sub-options (Only for Commercial Road Transportation Coordination) */}
-                  {serviceCategory === 'road-transport' && (
+                  {isRoadActive && serviceCategory === 'road-transport' && (
                     <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 animate-fade-in">
                       <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider block">
                         Road Load Arrangement
@@ -967,7 +1041,7 @@ export const QuotePage = ({ setActiveTab }) => {
                               : 'bg-white/60 border-slate-200 hover:border-slate-300'
                           }`}
                         >
-                          <span className="font-bold text-xs text-slate-900 block">Dedicated Road Freight</span>
+                          <span className="font-bold text-xs text-slate-900 block">Full Vehicle Road Freight</span>
                           <span className="text-[10px] text-slate-500 block">A vehicle arranged for your shipment alone</span>
                         </button>
                       </div>
@@ -975,7 +1049,7 @@ export const QuotePage = ({ setActiveTab }) => {
                   )}
 
                   {/* Optional documentation add-on for transport modes */}
-                  {serviceCategory !== 'documentation' && (
+                  {isDocActive && serviceCategory !== 'documentation' && (
                     <label className="flex items-center space-x-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
                       <input
                         type="checkbox"

@@ -28,11 +28,6 @@ export const AirFreightPage = ({ setActiveTab }) => {
     showToast 
   } = useLogistics();
 
-  const handleAirwayRequestClick = () => {
-    setActiveTab('airway-request');
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-  };
-
   const handleQuoteClick = () => {
     if (!currentUser) {
       if (setAuthRedirectTab) setAuthRedirectTab('quote');
@@ -41,17 +36,6 @@ export const AirFreightPage = ({ setActiveTab }) => {
       return;
     }
     setActiveTab('quote');
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-  };
-
-  const handleBookClick = () => {
-    if (!currentUser) {
-      if (setAuthRedirectTab) setAuthRedirectTab('book');
-      setIsAuthModalOpen(true);
-      if (showToast) showToast('Please sign in or create an account to book a shipment.', 'warning');
-      return;
-    }
-    setActiveTab('book');
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 

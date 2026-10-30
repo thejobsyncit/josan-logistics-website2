@@ -62,7 +62,7 @@ export const CrmRoadShipmentsTab = ({
     packages: 4,
     weight: '450 kg',
     transportationPartnerId: '',
-    serviceLevel: 'Commercial Road Freight & Highway Linehaul (FTL)',
+    serviceLevel: 'Commercial Road Transportation (Partner Carriers)',
     price: 'S$ 550.00',
     notes: ''
   });
@@ -171,7 +171,7 @@ export const CrmRoadShipmentsTab = ({
       packages: 4,
       weight: '450 kg',
       transportationPartnerId: '',
-      serviceLevel: 'Commercial Road Freight & Highway Linehaul (FTL)',
+      serviceLevel: 'Commercial Road Transportation (Partner Carriers)',
       price: 'S$ 550.00',
       notes: ''
     });
@@ -200,7 +200,7 @@ export const CrmRoadShipmentsTab = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
         <div>
           <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-black text-slate-900 font-heading">Road Transportation Shipments</h2>
+            <h2 className="text-xl font-black text-slate-900 font-heading">Road Coordination</h2>
             <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-700">
               {shipments.length} Total
             </span>
@@ -213,7 +213,7 @@ export const CrmRoadShipmentsTab = ({
         <button
           type="button"
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Book Road Consignment</span>
@@ -433,7 +433,7 @@ export const CrmRoadShipmentsTab = ({
                   Customer: {activeShipmentModal.sender || activeShipmentModal.customerName}
                 </p>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Service Level: {activeShipmentModal.serviceLevel || 'Express Roadway Linehaul'}
+                  Service Level: {activeShipmentModal.serviceLevel || 'Commercial Road Transportation'}
                 </p>
               </div>
 
@@ -762,7 +762,7 @@ export const CrmRoadShipmentsTab = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#2463EB] hover:bg-[#1D4ED8] text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
                 >
                   Confirm Booking
                 </button>

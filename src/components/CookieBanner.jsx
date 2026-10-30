@@ -185,6 +185,16 @@ export const CookieBanner = () => {
     saveConsent({ preferences: preferencesToggle });
   };
 
+  // Hide cookie banner and floating icon on all /admin and /crm routes
+  const isExcludedRoute = typeof window !== 'undefined' && (
+    window.location.pathname.startsWith('/admin') ||
+    window.location.pathname.startsWith('/crm') ||
+    window.location.hash.includes('admin') ||
+    window.location.hash.includes('crm')
+  );
+
+  if (isExcludedRoute) return null;
+
   return (
     <>
       {/* ===================================================================== */}

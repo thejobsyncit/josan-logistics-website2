@@ -78,7 +78,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
       doc.setFontSize(8);
       doc.setTextColor(71, 85, 105);
       doc.text(`Ref: ${shipment.referenceNumber || shipment.id}`, 20, 59);
-      doc.text(`Mode: ${shipment.serviceLevel || 'Roadway Linehaul'}`, 80, 59);
+      doc.text(`Mode: ${shipment.serviceLevel || 'Commercial Road Transportation'}`, 80, 59);
       doc.text(`Security Token: SEC-POD-${shipment.id.replace(/[^0-9]/g, '')}`, 140, 59);
 
       // Route Section
@@ -130,7 +130,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
       doc.text(`Assigned Driver: ${shipment.driverName || 'Tan Wei Ming'} (${shipment.driverPhone || '+65 6789 0123'})`, 18, 126);
-      doc.text(`Operating Vehicle: ${shipment.vehicle || 'Josan Linehaul Truck'} | Plate: ${shipment.vehiclePlate || 'SG-8819'}`, 18, 132);
+      doc.text(`Operating Vehicle: ${shipment.vehicle || 'Commercial Transport Vehicle'} | Plate: ${shipment.vehiclePlate || 'SG-8819'}`, 18, 132);
       doc.text(`Cargo Description: ${shipment.cargoType || 'General Freight'} | Weight: ${shipment.weight || '500 kg'}`, 18, 138);
 
       // Proof of Delivery Section
@@ -223,7 +223,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
     { key: 'Booking Confirmed', label: 'Booking Confirmed', desc: 'Air cargo space confirmed' },
     { key: 'Cargo Pickup', label: 'Cargo Pickup', desc: 'Picked up from origin' },
     { key: 'Warehouse Received', label: 'Warehouse Received', desc: 'Received at airfreight terminal' },
-    { key: 'Documentation', label: 'Documentation', desc: 'TradeNet & e-AWB verified' },
+    { key: 'Documentation', label: 'Documentation', desc: 'Documentation & e-AWB verified' },
     { key: 'Export Customs', label: 'Export Customs', desc: 'Cleared outbound inspection' },
     { key: 'Airport Handling', label: 'Airport Handling', desc: 'ULD build & apron weigh-in' },
     { key: 'Flight Departed', label: 'Flight Departed', desc: 'Freighter airborne en route' },
@@ -319,7 +319,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
               Shipment #{shipment.id}
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 mt-1">
-              Service: <span className="text-white font-medium">{shipment.serviceLevel || (isAirShipment ? 'Express Air Freight' : 'Roadway Highway Linehaul (FTL)')}</span> &bull; Last Updated: <span className="text-orange">{shipment.lastUpdatedTime || 'Just now'}</span>
+              Service: <span className="text-white font-medium">{shipment.serviceLevel || (isAirShipment ? 'Express Air Freight' : 'Commercial Road Transportation')}</span> &bull; Last Updated: <span className="text-orange">{shipment.lastUpdatedTime || 'Just now'}</span>
             </p>
           </div>
 

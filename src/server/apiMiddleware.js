@@ -13,6 +13,7 @@ import {
   generateShipmentTrackingNumberServer 
 } from './referenceGenerator.js';
 import {
+  supabaseAdmin,
   authenticateStaffStep1,
   verifyStaff2FAStep2,
   changeStaffPasswordRequired,
@@ -494,6 +495,51 @@ export async function handleApiRequest(req, res, path) {
     }));
   }
 
+  // 5b. POST /api/track-shipment & /functions/v1/track-shipment (Calls database function track_shipment via service role)
+  if ((path === '/api/track-shipment' || path === '/functions/v1/track-shipment') && req.method === 'POST') {
+    const forwarded = req.headers['x-forwarded-for'];
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
+
+    const rateCheck = checkIpTrackingRateLimit(clientIp, 10, 60000);
+    if (!rateCheck.allowed) {
+      res.statusCode = 429;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Retry-After', String(rateCheck.retryAfter));
+      return res.end(JSON.stringify({
+        error: `Rate limit reached. Maximum 10 tracking queries per minute allowed. Please wait ${rateCheck.retryAfter}s before trying again.`,
+        retryAfter: rateCheck.retryAfter
+      }));
+    }
+
+    const trackingNum = (body.tracking_number || body.trackingNumber || '').trim();
+    if (!trackingNum) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Tracking number is required', data: null }));
+    }
+
+    try {
+      const { data, error } = await supabaseAdmin.rpc('track_shipment', {
+        p_tracking: trackingNum
+      });
+
+      if (error) {
+        console.error('[ApiMiddleware] track_shipment RPC error:', error.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ error: error.message, data: null }));
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ data: data || null }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: err.message, data: null }));
+    }
+  }
+
   // 6. POST /api/reference/quote (Server-only cryptographically secure quote reference)
   if ((path === '/api/reference/quote' || path === '/api/reference') && req.method === 'POST') {
     const { isTest = false, contactEmail = '', isStaff = false, siteMode = 'live' } = body;
@@ -536,11 +582,11 @@ export async function handleApiRequest(req, res, path) {
   // =========================================================================
 
   // Helper: Extract and authenticate staff session
-  const getAuthStaff = () => {
+  const getAuthStaff = async () => {
     const authHeader = req.headers.authorization || '';
     if (authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      return verifyStaffSession(token);
+      return await verifyStaffSession(token);
     }
     return null;
   };
@@ -677,12 +723,12 @@ export async function handleApiRequest(req, res, path) {
   // =========================================================================
 
   // Helper guard: Admin role enforcement
-  const requireAdminAuth = () => {
-    const authStaff = getAuthStaff();
+  const requireAdminAuth = async () => {
+    const authStaff = await getAuthStaff();
     if (!authStaff) {
       return { error: 'Unauthorized: Session invalid or expired.', status: 401 };
     }
-    if (authStaff.role !== 'Admin') {
+    if ((authStaff.role || '').toLowerCase() !== 'admin') {
       return { error: 'Forbidden: Insufficient privileges. Admin access required.', status: 403 };
     }
     return { authStaff };
@@ -690,14 +736,15 @@ export async function handleApiRequest(req, res, path) {
 
   // 16. GET /api/staff/users (Admin only: view staff users list)
   if (path === '/api/staff/users' && req.method === 'GET') {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: guard.error }));
     }
 
-    const users = getAllStaffUsers().map(sanitizeStaffUser);
+    const rawUsers = await getAllStaffUsers();
+    const users = (rawUsers || []).map(sanitizeStaffUser);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({ users }));
@@ -705,14 +752,14 @@ export async function handleApiRequest(req, res, path) {
 
   // 17. POST /api/staff/invite (Admin only: invite new staff member)
   if (path === '/api/staff/invite' && req.method === 'POST') {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: guard.error }));
     }
 
-    const result = createStaffInvitation({
+    const result = await createStaffInvitation({
       name: body.name,
       email: body.email,
       role: body.role,
@@ -726,14 +773,14 @@ export async function handleApiRequest(req, res, path) {
 
   // 18. POST /api/staff/toggle-status (Admin only: deactivate/activate user)
   if (path === '/api/staff/toggle-status' && req.method === 'POST') {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: guard.error }));
     }
 
-    const result = toggleUserStatus({
+    const result = await toggleUserStatus({
       userId: body.userId,
       status: body.status,
       actor: guard.authStaff
@@ -746,14 +793,14 @@ export async function handleApiRequest(req, res, path) {
 
   // 19. POST /api/staff/delete-user (Admin only: delete staff user)
   if (path === '/api/staff/delete-user' && req.method === 'POST') {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: guard.error }));
     }
 
-    const result = deleteStaffUser({
+    const result = await deleteStaffUser({
       userId: body.userId,
       actor: guard.authStaff
     });
@@ -765,14 +812,14 @@ export async function handleApiRequest(req, res, path) {
 
   // 20. POST /api/staff/force-reset (Admin only: force password reset)
   if (path === '/api/staff/force-reset' && req.method === 'POST') {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: guard.error }));
     }
 
-    const result = forcePasswordReset({
+    const result = await forcePasswordReset({
       userId: body.userId,
       actor: guard.authStaff
     });
@@ -784,14 +831,14 @@ export async function handleApiRequest(req, res, path) {
 
   // 21. POST /api/staff/force-logout (Admin only: force logout / invalidate sessions)
   if (path === '/api/staff/force-logout' && req.method === 'POST') {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: guard.error }));
     }
 
-    const result = forceLogoutStaffUser({
+    const result = await forceLogoutStaffUser({
       userId: body.userId,
       actor: guard.authStaff
     });
@@ -803,14 +850,14 @@ export async function handleApiRequest(req, res, path) {
 
   // 22. GET /api/staff/audit-log (Admin only: audit log of logins, account changes, pw resets)
   if (path === '/api/staff/audit-log' && req.method === 'GET') {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: guard.error }));
     }
 
-    const result = getAuditLogs(guard.authStaff);
+    const result = await getAuditLogs(guard.authStaff);
     res.statusCode = result.status || 200;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify(result));
@@ -818,7 +865,7 @@ export async function handleApiRequest(req, res, path) {
 
   // 23. Server-side role guard for all generic /api/admin/* endpoints
   if (path.startsWith('/api/admin/')) {
-    const guard = requireAdminAuth();
+    const guard = await requireAdminAuth();
     if (guard.error) {
       res.statusCode = guard.status;
       res.setHeader('Content-Type', 'application/json');

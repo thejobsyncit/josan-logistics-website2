@@ -1,14 +1,14 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { customersService } from './customers';
 
 export const authService = {
   /**
-   * Sign up user via Supabase Auth and upsert user profile record.
+   * Sign up user via Supabase Auth.
+   * Public sign-up always creates a CUSTOMER role via the database trigger.
+   * The database trigger on auth.users automatically creates the profile row.
    */
-  signUp: async ({ email, password, fullName, phone, company, role = 'CUSTOMER' }) => {
+  signUp: async ({ email, password, fullName, phone, company }) => {
     if (!isSupabaseConfigured) return { error: 'Supabase is not configured' };
 
-    const formattedRole = role.toUpperCase();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -17,43 +17,19 @@ export const authService = {
           full_name: fullName,
           phone,
           company,
-          role: formattedRole,
         },
       },
     });
 
     if (error) return { error: error.message };
 
-    if (data?.user) {
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        user_id: data.user.id,
-        name: fullName || email.split('@')[0],
-        email,
-        phone,
-        company: company || '',
-        role: formattedRole,
-        status: 'Active',
-      });
-
-      // Also sync into customers table if customer role
-      if (formattedRole.includes('CUSTOMER')) {
-        await customersService.createCustomer({
-          id: data.user.id,
-          name: fullName || email.split('@')[0],
-          email,
-          phone: phone || '',
-          company: company || '',
-          password: password,
-        });
-      }
-    }
-
     return { data };
   },
 
   /**
    * Sign in user with email & password.
+   * Read the role from profiles after login, only for UI display.
+   * Permissions are strictly enforced by Supabase database rules (RLS).
    */
   signIn: async ({ email, password }) => {
     if (!isSupabaseConfigured) return { error: 'Supabase is not configured' };
@@ -65,14 +41,14 @@ export const authService = {
 
     if (error) return { error: error.message };
 
-    // Fetch profile role if user exists
+    // Read profile role for display only. Do not trust client-side role for permissions.
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
-        .single();
-        
+        .maybeSingle();
+
       if (profile) {
         data.user.role = profile.role;
         data.user.profile = profile;
