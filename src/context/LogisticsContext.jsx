@@ -25,7 +25,6 @@ import {
   initialAdminActivityLog,
   calculateCargoPricingHelper
 } from '../data/adminCrmData';
-import { backendApi } from '../services/api';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
 import { fetchServerShipmentReference } from '../utils/referenceApi';
@@ -2846,9 +2845,6 @@ export const LogisticsProvider = ({ children }) => {
       await supabaseApi.assignDriver(shipmentId, selectedDriver.id, selectedDriver.name, selectedDriver.phone, selectedDriver.vehicleType || 'Box Truck');
     }
 
-    try {
-      backendApi.assignDriverToTrip(shipmentId, driverId).catch(err => console.warn('Dispatch API:', err));
-    } catch (e) {}
 
     showToast(`Driver ${selectedDriver.name} assigned & dispatched to shipment #${shipmentId}!`, 'success');
     return true;
@@ -2871,9 +2867,6 @@ export const LogisticsProvider = ({ children }) => {
 
     setCustomers(prev => [newCust, ...prev.filter(c => c.email !== customerData.email)]);
 
-    try {
-      backendApi.syncCustomerAppAccount(newCust).catch(err => console.warn('Customer Sync API:', err));
-    } catch (e) {}
 
     showToast(`Account ${newCust.name} synced with Customer App!`, 'success');
     return newCust;

@@ -13,24 +13,32 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://tofavoanzvbzdcveqivd.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+function getSupabaseAdminClient() {
+  const url = process.env.SUPABASE_URL;
+  if (!url) {
+    throw new Error('[StaffAuthService] Missing required server environment variable: SUPABASE_URL');
+  }
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!key) {
+    throw new Error('[StaffAuthService] Missing required server environment variable: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY');
+  }
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
 
-// Server-side Supabase client with service-role privileges (bypasses RLS for admin user provisioning)
-export const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY
-  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
+let _supabaseAdminInstance = null;
+export const supabaseAdmin = new Proxy({}, {
+  get(target, prop) {
+    if (!_supabaseAdminInstance) {
+      _supabaseAdminInstance = getSupabaseAdminClient();
+    }
+    return _supabaseAdminInstance[prop];
+  }
+});
 
 // In-memory rate limiting and lockout state
 // key: identifier (ip or ip:email) -> { count, lastAttemptAt, lockedUntil, alerted }
@@ -507,6 +515,10 @@ export function resetStaffPasswordWithToken() {
 }
 
 export function generateStaffSessionToken(user) {
+  const secret = process.env.STAFF_SESSION_SECRET;
+  if (!secret) {
+    throw new Error('[StaffAuthService] Missing required server environment variable: STAFF_SESSION_SECRET');
+  }
   const payload = {
     userId: user?.id,
     email: user?.email,
@@ -516,7 +528,7 @@ export function generateStaffSessionToken(user) {
     expiresAt: Date.now() + 12 * 60 * 60 * 1000
   };
   const jsonStr = JSON.stringify(payload);
-  const hmac = crypto.createHmac('sha256', 'JosanLogisticsStaffSessionSecret_2026!').update(jsonStr).digest('hex');
+  const hmac = crypto.createHmac('sha256', secret).update(jsonStr).digest('hex');
   return Buffer.from(jsonStr).toString('base64url') + '.' + hmac;
 }
 

@@ -24,24 +24,11 @@ import {
   ShieldAlert,
   Ban
 } from 'lucide-react';
-import { generateLegalPdf } from '../utils/legalPdfGenerator';
 import { useLogistics } from '../context/LogisticsContext';
 
 export const TermsOfServicePage = ({ setActiveTab }) => {
   const { siteSettings } = useLogistics?.() || {};
-  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = () => {
-    try {
-      setIsDownloading(true);
-      generateLegalPdf('terms', siteSettings);
-    } catch (err) {
-      console.error('PDF error:', err);
-      window.print();
-    } finally {
-      setTimeout(() => setIsDownloading(false), 800);
-    }
-  };
 
   const handlePrint = () => {
     window.print();
@@ -67,20 +54,6 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
 
             {/* Download & Print Actions */}
             <div className="flex items-center space-x-2.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={isDownloading}
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#F26B21] hover:bg-[#D95A13] text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-75"
-                title="Download Terms of Service as PDF"
-              >
-                {isDownloading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-                <span>{isDownloading ? 'Generating...' : 'Download PDF'}</span>
-              </button>
 
               <button
                 type="button"

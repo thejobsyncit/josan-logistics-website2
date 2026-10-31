@@ -1,3 +1,4 @@
+// Disabled. Needs lawyer review. Contains unapproved liability wording.
 import { jsPDF } from 'jspdf';
 import { safeDownloadPdf } from './pdfDownload.js';
 
