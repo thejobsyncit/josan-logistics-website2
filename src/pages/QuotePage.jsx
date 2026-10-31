@@ -140,7 +140,7 @@ export const QuotePage = ({ setActiveTab }) => {
     currentUser, 
     requestQuote, 
     addLead,
-    addNotification,
+
     addAirwayRequest,
     addCustomer,
     cargoPricing = [],

@@ -30,6 +30,69 @@ import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
 import { fetchServerShipmentReference } from '../utils/referenceApi';
 
+// Helper to deduplicate notifications and strip seed/test data
+export const deduplicateNotifications = (list) => {
+  if (!Array.isArray(list)) return [];
+
+  const seenQuotes = new Set();
+  const seenAirwayRoutes = new Set();
+  const seenExact = new Set();
+  const result = [];
+
+  for (const n of list) {
+    if (!n) continue;
+
+    const title = (n.title || '').trim();
+    const msg = (n.message || '').trim();
+    const id = (n.id || '').toLowerCase();
+
+    // 1. Filter out legacy or invalid test/seeded notifications
+    if (
+      id.startsWith('notif-0') ||
+      title.toLowerCase().includes('test') ||
+      msg.toLowerCase().includes('test')
+    ) {
+      continue;
+    }
+
+    // 2. Extract quote reference (e.g. #QR-AV8X-4VDM, QR-AV8X-4VDM, or n.quoteId)
+    const quoteMatch = (n.quoteId || (title + ' ' + msg)).match(/#?([A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+|[A-Z0-9]+-[0-9]{4,})/i);
+    const quoteKey = quoteMatch ? quoteMatch[1].toUpperCase() : (n.quoteId ? String(n.quoteId).toUpperCase() : null);
+
+    if (quoteKey) {
+      if (seenQuotes.has(quoteKey)) {
+        continue; // duplicate quote notification
+      }
+      seenQuotes.add(quoteKey);
+    }
+
+    // 3. Airway vs Quote route duplicate matching (e.g. identical route and customer)
+    const arrowParts = msg.split(/→|->|to/i);
+    if (arrowParts.length >= 2) {
+      const orig = arrowParts[0].slice(-25).trim().toLowerCase();
+      const dest = arrowParts[1].slice(0, 25).trim().toLowerCase();
+      if (orig.length > 3 && dest.length > 3) {
+        const routeKey = orig + ':::' + dest;
+        if (seenAirwayRoutes.has(routeKey)) {
+          continue; // duplicate submission across airway & quote
+        }
+        seenAirwayRoutes.add(routeKey);
+      }
+    }
+
+    // 4. Exact duplicate check (title + message)
+    const exactKey = title + ':::' + msg;
+    if (seenExact.has(exactKey)) {
+      continue;
+    }
+    seenExact.add(exactKey);
+
+    result.push(n);
+  }
+
+  return result;
+};
+
 const LogisticsContext = createContext();
 
 export const LogisticsProvider = ({ children }) => {
@@ -264,17 +327,7 @@ export const LogisticsProvider = ({ children }) => {
       const saved = localStorage.getItem('josan_notifications');
       if (saved) {
         const parsed = JSON.parse(saved);
-          // Filter out any legacy or invalid test notifications
-          const isSeeded = (n) => {
-            const title = (n.title || '').toLowerCase();
-            const msg = (n.message || '').toLowerCase();
-            const id = (n.id || '').toLowerCase();
-            return (
-              id.startsWith('notif-0') ||
-              title.includes('test') || msg.includes('test')
-            );
-          };
-          return parsed.filter(n => !isSeeded(n));
+          return deduplicateNotifications(parsed);
       }
       return [];
     } catch (e) {
@@ -1700,7 +1753,35 @@ export const LogisticsProvider = ({ children }) => {
       timestamp: 'Just now',
       read: false
     };
-    setNotifications(prev => [newNotif, ...prev]);
+    setNotifications(prev => {
+      const currentList = Array.isArray(prev) ? prev : [];
+
+      // Extract quote reference if available
+      const incomingQuoteMatch = (quoteId || (title + ' ' + message)).match(/#?([A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+|[A-Z0-9]+-[0-9]{4,})/i);
+      const incomingQuoteRef = incomingQuoteMatch ? incomingQuoteMatch[1].toUpperCase() : (quoteId ? String(quoteId).toUpperCase() : null);
+
+      // Check if duplicate exists
+      const isDuplicate = currentList.some(n => {
+        if (!n) return false;
+        if (n.title === title && n.message === message) return true;
+        if (incomingQuoteRef) {
+          const existingQuoteMatch = (n.quoteId || (n.title + ' ' + n.message)).match(/#?([A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+|[A-Z0-9]+-[0-9]{4,})/i);
+          const existingQuoteRef = existingQuoteMatch ? existingQuoteMatch[1].toUpperCase() : (n.quoteId ? String(n.quoteId).toUpperCase() : null);
+          if (existingQuoteRef && existingQuoteRef === incomingQuoteRef) {
+            return true;
+          }
+        }
+        if (shipmentId && n.shipmentId === shipmentId && n.type === type) {
+          return true;
+        }
+        return false;
+      });
+
+      if (isDuplicate) {
+        return currentList;
+      }
+      return [newNotif, ...currentList];
+    });
     return newNotif;
   };
 
@@ -2011,7 +2092,8 @@ export const LogisticsProvider = ({ children }) => {
 
     setAirwayRequests(prev => [newRequest, ...prev]);
 
-    addNotification({
+    if (!requestData.quoteId && !requestData.referenceNumber) {
+      addNotification({
       role: 'admin',
       type: 'airway_request',
       title: `✈️ New Airway Service Request (${formattedId})`,
@@ -2019,6 +2101,7 @@ export const LogisticsProvider = ({ children }) => {
       timestamp: 'Just Now',
       read: false
     });
+    }
 
     showToast(`Airway Service Request #${formattedId} submitted successfully!`, 'success');
     return newRequest;
