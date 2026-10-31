@@ -1,33 +1,37 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
-// Standard CORS resolution helper
-function getCorsHeaders(req: Request) {
-  const allowedOriginEnv = Deno.env.get("ALLOWED_ORIGIN") || "*";
-  const requestOrigin = req.headers.get("origin") || "";
-
-  let matchedOrigin = "*";
-  if (allowedOriginEnv !== "*") {
-    const allowedList = allowedOriginEnv.split(",").map((o) => o.trim());
-    if (allowedList.includes(requestOrigin)) {
-      matchedOrigin = requestOrigin;
-    } else {
-      matchedOrigin = allowedList[0] || "*";
-    }
-  }
-
-  return {
-    "Access-Control-Allow-Origin": matchedOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
-}
-
 // Simple email regex validation
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 serve(async (req: Request) => {
-  const corsHeaders = getCorsHeaders(req);
+  // 1. Check ALLOWED_ORIGIN configuration (fail closed if missing or empty)
+  const allowedOriginEnv = (Deno.env.get("ALLOWED_ORIGIN") || "").trim();
+  if (!allowedOriginEnv) {
+    console.error("[submit-quote] Server error: ALLOWED_ORIGIN not configured in environment");
+    return new Response(
+      JSON.stringify({ error: "Service unavailable" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  // 2. Validate Origin against comma-separated list
+  const allowedList = allowedOriginEnv.split(",").map((o) => o.trim()).filter(Boolean);
+  const requestOrigin = (req.headers.get("origin") || "").trim();
+
+  // 3. Reject if Origin not in list: HTTP 403 and NO Access-Control-Allow-Origin header
+  if (!requestOrigin || !allowedList.includes(requestOrigin)) {
+    return new Response(
+      JSON.stringify({ error: "Forbidden" }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": requestOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
 
   // 1. Accept only POST and OPTIONS
   if (req.method === "OPTIONS") {
