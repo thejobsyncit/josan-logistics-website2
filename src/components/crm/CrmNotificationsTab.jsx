@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { deduplicateNotifications } from '../../context/LogisticsContext';
 import { 
   Bell, 
   Search, 
@@ -76,7 +77,7 @@ export const CrmNotificationsTab = ({
   const [filter, setFilter] = useState('All'); // 'All' | 'Unread' | 'Airway' | 'Road' | 'Quotes' | 'Billing'
   const [search, setSearch] = useState('');
 
-  const safeNotifications = Array.isArray(notifications) ? notifications : [];
+  const safeNotifications = deduplicateNotifications(notifications);
 
   const filteredNotifications = safeNotifications.filter(n => {
     if (!n) return false;
