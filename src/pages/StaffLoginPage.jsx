@@ -210,9 +210,15 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
       if (authErr || !data?.user) {
         recordFailedAttempt(cleanEmail);
-        console.warn('[StaffLogin] Supabase sign-in notice:', authErr?.message);
-        // Requirement 1: Keep the generic error "Incorrect email or password"
-        setError('Incorrect email or password.');
+        console.warn('[StaffLogin] Supabase sign-in notice:', authErr?.message, authErr?.code);
+        const msg = (authErr?.message || '').toLowerCase();
+        if (msg.includes('email not confirmed') || authErr?.code === 'email_not_confirmed') {
+          setError('Email address not confirmed in Supabase Auth. In your Supabase Dashboard, go to Authentication > Users, click "..." next to this email and select "Confirm email".');
+        } else if (msg.includes('user not found') || authErr?.code === 'user_not_found') {
+          setError('User not found in Supabase Auth. If this account was only added to a database table, please add it under Authentication > Users > Add user.');
+        } else {
+          setError('Incorrect email or password.');
+        }
         return;
       }
 
