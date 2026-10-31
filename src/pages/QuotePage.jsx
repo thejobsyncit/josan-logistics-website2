@@ -22,8 +22,6 @@ import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
 import { openLegalDialog } from '../components/LegalDialog';
-import { attachChatToSubmission } from '../services/chatStorageService';
-import { fetchServerQuoteReference } from '../utils/referenceApi';
 
 // ============================================================================
 // PRICE ESTIMATE VISIBILITY & PRE-LAUNCH INTEGRITY CHECK
@@ -73,27 +71,12 @@ export const formatPackageCount = (count) => {
 };
 
 /**
- * Generate sequential reference number in format: QR-YYYY-0001
+ * Generate reference number fallback
  */
 export const generateQuoteReference = () => {
   const currentYear = new Date().getFullYear();
-  let maxSeq = 0;
-  try {
-    const archive = JSON.parse(localStorage.getItem('josan_admin_quote_requests') || '[]');
-    archive.forEach(item => {
-      if (item && item.id) {
-        const match = item.id.match(/^QR-(\d{4})-(\d+)$/);
-        if (match && parseInt(match[1], 10) === currentYear) {
-          const seq = parseInt(match[2], 10);
-          if (seq > maxSeq) maxSeq = seq;
-        }
-      }
-    });
-  } catch (e) {
-    console.warn('Error reading quote requests archive for ref sequence', e);
-  }
-  const nextSeq = String(maxSeq + 1).padStart(4, '0');
-  return `QR-${currentYear}-${nextSeq}`;
+  const randomSeq = String(Math.floor(1000 + Math.random() * 9000));
+  return `QR-${currentYear}-${randomSeq}`;
 };
 
 /**
@@ -138,11 +121,6 @@ export const QuotePage = ({ setActiveTab }) => {
   const { 
     showToast, 
     currentUser, 
-    requestQuote, 
-    addLead,
-
-    addAirwayRequest,
-    addCustomer,
     cargoPricing = [],
     calculateCargoPrice,
     managedServices = {}
@@ -206,6 +184,22 @@ export const QuotePage = ({ setActiveTab }) => {
   // Cloudflare Turnstile protection state
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [captchaError, setCaptchaError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileKey, setTurnstileKey] = useState(0);
+  const [websiteHoneypot, setWebsiteHoneypot] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const resetTurnstile = () => {
+    setTurnstileToken('');
+    setCaptchaVerified(false);
+    setCaptchaError('');
+    setTurnstileKey(prev => prev + 1);
+    if (typeof window !== 'undefined' && window.turnstile && typeof window.turnstile.reset === 'function') {
+      try {
+        window.turnstile.reset();
+      } catch (_) {}
+    }
+  };
 
   const parseInitialPhone = (rawPhone) => {
     if (!rawPhone) return { code: '+65', digits: '' };
@@ -391,7 +385,7 @@ export const QuotePage = ({ setActiveTab }) => {
     }
     setEstimateEmailed(true);
     if (showToast) {
-      showToast(`Copy of request successfully sent to ${contactEmail.trim()}!`, 'success');
+      showToast(`Copy of request successfully sent to ${maskEmail(contactEmail)}!`, 'success');
     }
   };
 
@@ -405,6 +399,11 @@ export const QuotePage = ({ setActiveTab }) => {
 
     if (!deliveryAddress.trim()) {
       if (showToast) showToast('Please enter a delivery address.', 'warning');
+      return;
+    }
+
+    if (!preferredPickupDate) {
+      if (showToast) showToast('Please select a preferred pickup date.', 'warning');
       return;
     }
 
@@ -422,7 +421,7 @@ export const QuotePage = ({ setActiveTab }) => {
     const minDigits = Math.max(6, maxDigits - 1);
     if (!quotePhoneDigits || quotePhoneDigits.length < minDigits) {
       if (showToast) {
-        showToast(`Please enter a valid phone number.`, 'warning');
+        showToast('Please enter a valid phone number.', 'warning');
       }
       return;
     }
@@ -436,7 +435,7 @@ export const QuotePage = ({ setActiveTab }) => {
     }
 
     // Cloudflare Turnstile protection verification
-    if (!captchaVerified) {
+    if (!captchaVerified || !turnstileToken) {
       setCaptchaError('Please complete the Cloudflare Turnstile verification.');
       if (showToast) {
         showToast('Please verify with Cloudflare Turnstile before sending your request.', 'warning');
@@ -446,234 +445,149 @@ export const QuotePage = ({ setActiveTab }) => {
 
     const fullContactPhone = `${quoteCountryCode} ${quotePhoneDigits}`.trim();
 
-    // Determine if request is test (test mode, staff test account, or obviously fake data)
-    const isStaffAccount = Boolean(
-      currentUser && (
-        currentUser.role === 'staff' || 
-        currentUser.role === 'admin' || 
-        currentUser.email?.endsWith('@josanlogistics.com')
-      )
-    );
-    const isFake = isObviouslyFakeData({
-      contactName: contactName.trim(),
-      contactEmail: contactEmail.trim(),
-      contactCompany: contactCompany.trim(),
-      cargoDescription: cargoDescription.trim(),
-      pickupAddress: pickupAddress.trim(),
-      deliveryAddress: deliveryAddress.trim()
-    });
-    const isSiteTestMode = localStorage.getItem('josan_test_mode') === 'true';
-    const isTestCandidate = Boolean(isStaffAccount || isFake || isSiteTestMode || (contactEmail && contactEmail.includes('test')));
+    // Map service category to server service_type enum
+    let serviceTypeEnum = 'AIR_FREIGHT_DOCS';
+    if (serviceCategory === 'road-transport') {
+      serviceTypeEnum = 'ROAD_TRANSPORT';
+    } else if (serviceCategory === 'documentation') {
+      serviceTypeEnum = 'SHIPMENT_DOCS';
+    }
 
-    // 1. Fetch automatic random reference number generated on the server only:
-    // Format: QR-XXXX-XXXX for real quotes, TQ-XXXX-XXXX for test quotes (cryptographically secure)
-    const serverRef = await fetchServerQuoteReference({
-      isTest: isTestCandidate,
-      contactEmail: contactEmail.trim(),
-      isStaff: isStaffAccount
-    });
+    // Parse numeric dimensions and weight safely
+    const parsedPackages = packageCount ? parseInt(packageCount, 10) : null;
+    const parsedGrossWeight = cargoWeight ? parseFloat(cargoWeight) : null;
+    const parsedLength = lengthCm ? parseFloat(lengthCm) : null;
+    const parsedWidth = widthCm ? parseFloat(widthCm) : null;
+    const parsedHeight = heightCm ? parseFloat(heightCm) : null;
 
-    const refId = serverRef.reference;
-    const isTestSubmission = serverRef.isTest;
-    const realRecipientEmail = 'contact@josanlogistics.com.sg';
-    const teamSenderEmail = 'system@josanlogistics.com.sg';
-    const customerSenderEmail = 'quotes@josanlogistics.com.sg';
-
-    const formattedPackages = serviceCategory !== 'documentation'
-      ? (packageCount ? formatPackageCount(packageCount) : 'Pending specification')
-      : 'N/A';
-
-    const isConsolidated = serviceCategory === 'road-transport' && roadLoadType === 'ltl';
-
-    // Formatted request record for Admin and Real Email dispatch
-    const requestRecord = {
-      id: refId,
-      referenceNumber: refId,
-      timestamp: new Date().toISOString(),
-      singaporeTime: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' }),
-      recipientEmail: realRecipientEmail,
-      service: getServiceName(serviceCategory, roadLoadType),
-      serviceCategory,
-      roadLoadType: serviceCategory === 'road-transport' ? roadLoadType : null,
-      isConsolidatedFreight: isConsolidated,
-      isDocumentationOnly: serviceCategory === 'documentation',
-      includeDocumentation: serviceCategory !== 'documentation' && includeDocumentation,
-      cargoCategory,
-      cargoDescription: cargoDescription.trim() || 'Standard consignment',
-      cargoWeight: serviceCategory !== 'documentation' ? (cargoWeight ? `${cargoWeight} kg` : 'Pending specification') : 'N/A',
-      packageCount: formattedPackages,
-      dimensions: (serviceCategory !== 'documentation' && lengthCm && widthCm && heightCm) ? `${lengthCm} × ${widthCm} × ${heightCm} cm` : 'N/A',
-      pickupAddress: pickupAddress.trim(),
-      deliveryAddress: deliveryAddress.trim(),
-      preferredPickupDate: preferredPickupDate || 'Earliest available schedule',
-      contactName: contactName.trim(),
-      contactEmail: contactEmail.trim(),
-      contactCompany: contactCompany.trim() || 'N/A',
-      contactPhone: fullContactPhone,
-      estimateSubtotal: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? `S$ ${pricingDetails.subtotal.toFixed(2)}` : 'Quote Pending Review',
-      estimateGst: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? `S$ ${pricingDetails.gst.toFixed(2)}` : 'Quote Pending Review',
-      estimateTotal: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? `S$ ${pricingDetails.total.toFixed(2)}` : 'Quote Pending Review',
-      emailMeCopy: emailEstimateToMe,
-      isTest: isTestSubmission,
-      status: isTestSubmission ? 'Test' : 'Quote Requested'
+    const payload = {
+      service_type: serviceTypeEnum,
+      road_load_type: serviceCategory === 'road-transport' ? (roadLoadType || 'ltl') : null,
+      add_documentation: serviceCategory !== 'documentation' ? Boolean(includeDocumentation) : false,
+      pickup_location: pickupAddress.trim(),
+      delivery_location: deliveryAddress.trim(),
+      preferred_pickup_date: preferredPickupDate,
+      cargo_classification: cargoCategory || 'General Commercial Goods',
+      cargo_description: cargoDescription.trim() || 'General Commercial Consignment',
+      packages: parsedPackages,
+      gross_weight_kg: parsedGrossWeight,
+      length_cm: parsedLength,
+      width_cm: parsedWidth,
+      height_cm: parsedHeight,
+      contact_name: contactName.trim(),
+      contact_email: contactEmail.trim(),
+      contact_phone: fullContactPhone,
+      company_name: contactCompany.trim() || null,
+      consent_given: Boolean(consentAgreed),
+      copy_to_customer: Boolean(emailEstimateToMe),
+      turnstile_token: turnstileToken,
+      website: websiteHoneypot || ''
     };
 
-    setSubmittedSummary(requestRecord);
+    setIsSubmitting(true);
 
-    // 1. Store in Admin CRM Leads (mark test if test submission)
-    if (addLead) {
-      addLead({
-        name: requestRecord.contactName,
-        company: requestRecord.contactCompany,
-        email: requestRecord.contactEmail,
-        phone: requestRecord.contactPhone,
-        source: 'Website Quote Form',
-        stage: isTestSubmission ? 'Test' : 'Quote Requested',
-        estimatedValue: (SHOW_PRICE_ESTIMATE && pricingDetails.isCalculable) ? pricingDetails.total : 0,
-        tags: [
-          isTestSubmission ? 'Test Submission' : 'Website Quote Request',
-          `Reference: ${refId}`,
-          `Recipient: ${realRecipientEmail}`,
-          serviceCategory === 'documentation' 
-            ? 'DOCUMENTATION_SUPPORT' 
-            : serviceCategory === 'air-freight'
-              ? 'AIR_FREIGHT_DOCS'
-              : `ROAD_TRANSPORT_${roadLoadType.toUpperCase()}`,
-          cargoCategory
-        ].filter(Boolean),
-        notes: `[Status: ${isTestSubmission ? 'TEST REQUEST' : 'REAL'}]\nReference: ${refId}\nRouted to ${realRecipientEmail}\nService: ${requestRecord.service}\nPickup: ${requestRecord.pickupAddress}\nDelivery: ${requestRecord.deliveryAddress}\nDate: ${requestRecord.preferredPickupDate}\nCargo: ${requestRecord.cargoDescription}`
+    try {
+      const supabaseUrl = (import.meta.env?.VITE_SUPABASE_URL || '').replace(/\/+$/, '');
+      const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
+      const endpoint = `${supabaseUrl}/functions/v1/submit-quote`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey
+        },
+        body: JSON.stringify(payload)
       });
-    }
 
-    // 2. Store in Admin Quotations Store (with isTest flag and server refId)
-    if (requestQuote) {
-      requestQuote({
-        id: refId,
-        referenceNumber: refId,
-        requestId: refId,
-        isTest: isTestSubmission,
-        status: isTestSubmission ? 'Test' : 'Requested',
-        service: requestRecord.service,
+      if (response.status === 429) {
+        resetTurnstile();
+        if (showToast) {
+          showToast('Too many requests. Please try again later.', 'error');
+        }
+        return;
+      }
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => null);
+        const errMsg = errJson?.error || 'Unable to submit quote request. Please try again.';
+        resetTurnstile();
+        if (showToast) {
+          showToast(errMsg, 'error');
+        }
+        return;
+      }
+
+      const resData = await response.json().catch(() => null);
+      const referenceId = resData?.reference;
+
+      if (!referenceId) {
+        resetTurnstile();
+        if (showToast) {
+          showToast('Failed to retrieve reference number. Please try again.', 'error');
+        }
+        return;
+      }
+
+      // Reset turnstile after attempt
+      resetTurnstile();
+
+      const formattedPackages = serviceCategory !== 'documentation'
+        ? (packageCount ? formatPackageCount(packageCount) : 'Pending specification')
+        : 'N/A';
+
+      const isConsolidated = serviceCategory === 'road-transport' && roadLoadType === 'ltl';
+
+      // Set confirmation summary for display strictly in React state (no localStorage or sessionStorage)
+      setSubmittedSummary({
+        id: referenceId,
+        referenceNumber: referenceId,
+        service: getServiceName(serviceCategory, roadLoadType),
         serviceCategory,
         roadLoadType: serviceCategory === 'road-transport' ? roadLoadType : null,
+        isConsolidatedFreight: isConsolidated,
+        isDocumentationOnly: serviceCategory === 'documentation',
         includeDocumentation: serviceCategory !== 'documentation' && includeDocumentation,
         cargoCategory,
-        cargoDescription,
-        cargoWeight: serviceCategory !== 'documentation' ? parsedActualWeight : 0,
-        chargeableWeight: serviceCategory !== 'documentation' ? chargeableWeight : 0,
-        packageCount: serviceCategory !== 'documentation' ? parsedPackages : 1,
-        dimensions: (serviceCategory !== 'documentation' && lengthCm && widthCm && heightCm) ? `${lengthCm}x${widthCm}x${heightCm} cm` : '',
-        originAddress: pickupAddress.trim(),
-        destinationAddress: deliveryAddress.trim(),
-        preferredPickupDate,
-        contactName: requestRecord.contactName,
-        contactEmail: requestRecord.contactEmail,
-        contactCompany: requestRecord.contactCompany,
+        cargoDescription: cargoDescription.trim() || 'General Commercial Consignment',
+        cargoWeight: serviceCategory !== 'documentation' ? (cargoWeight ? `${cargoWeight} kg` : 'Pending specification') : 'N/A',
+        packageCount: formattedPackages,
+        dimensions: (serviceCategory !== 'documentation' && lengthCm && widthCm && heightCm) ? `${lengthCm} × ${widthCm} × ${heightCm} cm` : 'N/A',
+        pickupAddress: pickupAddress.trim(),
+        deliveryAddress: deliveryAddress.trim(),
+        preferredPickupDate: preferredPickupDate || 'Earliest available schedule',
+        contactName: contactName.trim(),
+        contactEmail: contactEmail.trim(),
+        contactCompany: contactCompany.trim() || 'N/A',
         contactPhone: fullContactPhone
       });
+
+      setGeneratedQuoteRef(referenceId);
+      setQuoteSubmitted(true);
+
+      if (showToast) {
+        showToast('Thank you. We have received your request and will send you a quote by email or phone. No payment is required now.', 'success');
+      }
+
+      window.scrollTo({ top: 120, behavior: 'smooth' });
+    } catch (networkError) {
+      resetTurnstile();
+      if (showToast) {
+        showToast('Network error while submitting request. Please try again.', 'error');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // 3. Store in Admin LocalStorage Archive & sync to josan_quotes directly
-    try {
-      const existingArchive = JSON.parse(localStorage.getItem('josan_admin_quote_requests') || '[]');
-      const filteredArchive = existingArchive.filter(item => item.id !== refId && item.referenceNumber !== refId);
-      localStorage.setItem('josan_admin_quote_requests', JSON.stringify([requestRecord, ...filteredArchive]));
-    } catch (e) {
-      console.warn('Could not save to local storage archive', e);
-    }
-
-    // 4. If Air Freight, ensure it is added to Airway Requests in CRM
-    if (serviceCategory === 'air-freight' && addAirwayRequest) {
-      addAirwayRequest({
-        id: `AIR-${refId.replace(/[^0-9]/g, '').slice(-4) || String(Math.floor(1000 + Math.random() * 9000))}`,
-        quoteId: refId,
-        referenceNumber: refId,
-        customerName: requestRecord.contactName,
-        company: requestRecord.contactCompany,
-        email: requestRecord.contactEmail,
-        phone: fullContactPhone,
-        origin: requestRecord.pickupAddress,
-        destination: requestRecord.deliveryAddress,
-        cargoDescription: requestRecord.cargoDescription,
-        packagesCount: requestRecord.packageCount,
-        totalWeight: requestRecord.cargoWeight,
-        dimensions: requestRecord.dimensions,
-        approximateValue: 'SGD 15,000',
-        services: ['AWB Preparation', 'Shipment Documentation', 'Air Freight Support'],
-        documents: [],
-        date: new Date().toISOString().split('T')[0],
-        status: 'New',
-        adminNotes: `New airway quote request received: Ref #${refId}`
-      });
-    }
-
-    // 5. Auto-register in CRM Customers if not present
-    if (addCustomer && requestRecord.contactEmail) {
-      addCustomer({
-        name: requestRecord.contactName,
-        email: requestRecord.contactEmail,
-        phone: fullContactPhone,
-        company: requestRecord.contactCompany || requestRecord.contactName
-      });
-    }
-
-    // 5. Customer email and team notification (with quote reference in subject and body)
-    console.info(`[Email Service] Customer confirmation email sent for Quote #${refId}:
-- Sender: ${customerSenderEmail} (Josan Logistics Quotation Services)
-- Recipient: ${requestRecord.contactEmail}
-- Subject: Quote Request Received - Ref ${refId}
-- Body:
-  Thank you. We have received your request.
-  Reference Number: ${refId}
-  We will send you a quote by email or phone. No payment is required now.
-  Our team will review your request and reply by email or phone. Please keep your reference number.`);
-
-    console.info(`[Email Service] Internal team notification sent for Quote #${refId}:
-- Sender: ${teamSenderEmail} (Josan Automated System)
-- Recipient: ${realRecipientEmail} (Singapore Operations Desk)
-- Subject: ${isTestSubmission ? '[TEST] ' : ''}New Quote Request Ref ${refId}
-- Body:
-  New quote request received.
-  Reference: ${refId}
-  Status: ${isTestSubmission ? 'TEST SUBMISSION' : 'REAL QUOTE REQUEST'}
-  Customer: ${requestRecord.contactName} (${requestRecord.contactCompany})
-  Contact: ${requestRecord.contactEmail} • ${fullContactPhone}
-  Service: ${requestRecord.service}`);
-
-    if (emailEstimateToMe && requestRecord.contactEmail) {
-      setEstimateEmailed(true);
-    }
-
-    // 6. Attach active chat session to quote reference number if user interacted with AI chat
-    try {
-      attachChatToSubmission(refId, {
-        name: requestRecord.contactName,
-        email: requestRecord.contactEmail,
-        phone: fullContactPhone,
-        company: requestRecord.contactCompany
-      });
-    } catch (e) {
-      console.warn('[QuotePage] Failed to attach chat to quote submission:', e);
-    }
-
-    setGeneratedQuoteRef(refId);
-    setQuoteSubmitted(true);
-
-    // Exact required confirmation toast
-    if (showToast) {
-      showToast('Thank you. We have received your request and will send you a quote by email or phone. No payment is required now.', 'success');
-    }
-
-    window.scrollTo({ top: 120, behavior: 'smooth' });
   };
 
   const handleResetForm = () => {
     setQuoteSubmitted(false);
     setGeneratedQuoteRef('');
     setSubmittedSummary(null);
-    setCaptchaVerified(false);
-    setCaptchaError('');
+    resetTurnstile();
     setEstimateEmailed(false);
+    setWebsiteHoneypot('');
     setCargoWeight('');
     setPackageCount('');
     setLengthCm('');
@@ -881,6 +795,32 @@ export const QuotePage = ({ setActiveTab }) => {
               </div>
 
               <form onSubmit={handleQuoteSubmit} className="space-y-6 text-xs">
+              {/* Honeypot field for anti-spam protection (hidden from people & screen readers) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '-9999px',
+                  top: '-9999px',
+                  width: '1px',
+                  height: '1px',
+                  opacity: 0,
+                  overflow: 'hidden',
+                  pointerEvents: 'none'
+                }}
+                aria-hidden="true"
+                tabIndex={-1}
+              >
+                <label htmlFor="website-honeypot">Website</label>
+                <input
+                  id="website-honeypot"
+                  type="text"
+                  name="website"
+                  value={websiteHoneypot}
+                  onChange={(e) => setWebsiteHoneypot(e.target.value)}
+                  autoComplete="off"
+                  tabIndex={-1}
+                />
+              </div>
                 
                 {/* 1. Select Service Type */}
                 <div className="space-y-3">
@@ -1413,12 +1353,15 @@ export const QuotePage = ({ setActiveTab }) => {
                 {/* Cloudflare Turnstile Protection */}
                 <div className="pt-2">
                   <TurnstileCaptcha
+                    key={turnstileKey}
                     isVerified={captchaVerified}
-                    onVerify={() => {
+                    onVerify={(token) => {
+                      setTurnstileToken(token || '');
                       setCaptchaVerified(true);
                       setCaptchaError('');
                     }}
                     onExpire={() => {
+                      setTurnstileToken('');
                       setCaptchaVerified(false);
                     }}
                     error={captchaError}
@@ -1429,10 +1372,20 @@ export const QuotePage = ({ setActiveTab }) => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-3.5 bg-[#F26B21] hover:bg-[#D95A13] text-white rounded-xl font-extrabold text-sm shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+                    disabled={isSubmitting}
+                    className="w-full py-3.5 bg-[#F26B21] hover:bg-[#D95A13] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-extrabold text-sm shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Send Quote Request</span>
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Submitting Request...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Quote Request</span>
+                      </>
+                    )}
                   </button>
                   <p className="text-[11px] text-slate-500 text-center font-medium mt-2 leading-relaxed max-w-xl mx-auto">
                     After you send your request, we will reply with a quote. Payment is arranged after you accept the quote, and we will send you an invoice with payment details.
