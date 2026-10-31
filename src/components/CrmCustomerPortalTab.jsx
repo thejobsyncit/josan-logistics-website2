@@ -64,7 +64,7 @@ export default function CrmCustomerPortalTab() {
   // Calculate live customer portal stats
   const totalCustomers = customers.length;
   const totalActiveShipments = shipments.filter(s => s.status !== 'Delivered' && s.status !== 'Cancelled').length;
-  const pendingQuotesCount = quotes.filter(q => q.status === 'Draft' || q.status === 'Sent').length;
+  const pendingQuotesCount = quotes.filter(q => ['Requested', 'Draft', 'Sent', 'Pending', 'New'].includes(q.status) || !q.staffPriced).length;
   const openSupportTicketsCount = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
 
   const handleOpenProvisionModal = (lead = null) => {

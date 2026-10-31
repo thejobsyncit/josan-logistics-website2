@@ -40,7 +40,7 @@ export const CrmDashboardTab = ({
   const newAirwayRequests = airwayRequests.filter(r => r.status === 'New' || r.status == 'Under review').length;
   const activeRoadShipments = shipments.filter(s => !['Delivered', 'Completed', 'Cancelled'].includes(s.status)).length;
   const pendingDocuments = documents.filter(d => d.status === 'Pending' || d.status === 'Pending Review' || d.status === 'Draft').length;
-  const pendingQuotations = quotes.filter(q => q.status === 'Draft' || q.status === 'Sent' || q.status === 'Pending').length;
+  const pendingQuotations = quotes.filter(q => ['Requested', 'Draft', 'Sent', 'Pending', 'New'].includes(q.status) || !q.staffPriced).length;
   const pendingBilling = invoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Pending').length;
 
   // Completed requests: airway completed + road delivered
