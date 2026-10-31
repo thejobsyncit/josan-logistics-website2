@@ -111,7 +111,6 @@ export const StaffLoginPage = ({ setActiveTab }) => {
   // Email Verification state (Simpler email OTP instead of 2FA authenticator app)
   const [pendingAuth, setPendingAuth] = useState(null);
   const [emailCode, setEmailCode] = useState('');
-  const [expectedCode, setExpectedCode] = useState('');
   const [codeExpiry, setCodeExpiry] = useState(0);
   const [resendCooldown, setResendCooldown] = useState(0);
 
@@ -266,35 +265,41 @@ export const StaffLoginPage = ({ setActiveTab }) => {
     }
   };
 
-  // Helper: Dispatch 6-digit verification code to staff work email
+  // Helper: Dispatch 6-digit verification code to staff work email via Supabase Auth
   const sendEmailVerificationCode = async (targetEmail) => {
-    const generated = String(Math.floor(100000 + Math.random() * 900000));
-    setExpectedCode(generated);
     setCodeExpiry(Date.now() + 10 * 60 * 1000); // 10 minutes
     setResendCooldown(30);
 
     let supabaseSent = false;
+    let dispatchErrMsg = '';
+
     try {
-      // Attempt sending OTP via Supabase Auth
+      // Dispatch 6-digit OTP code directly to staff email via Supabase Auth
       const { error: otpErr } = await supabase.auth.signInWithOtp({
         email: targetEmail,
         options: { shouldCreateUser: false }
       });
+
       if (!otpErr) {
         supabaseSent = true;
+      } else {
+        dispatchErrMsg = otpErr.message;
+        console.warn('[StaffLogin] Supabase OTP dispatch error:', otpErr.message);
       }
     } catch (e) {
-      console.info('[StaffLogin] Supabase OTP dispatch notice:', e?.message);
+      dispatchErrMsg = e?.message || 'Network exception';
+      console.warn('[StaffLogin] Supabase OTP dispatch exception:', e?.message);
     }
 
     if (showToast) {
       if (supabaseSent) {
-        showToast(`Verification code sent to ${targetEmail}`, 'info');
+        showToast(`A 6-digit verification code has been sent to ${targetEmail}. Please check your inbox and spam folder.`, 'success', 8000);
+      } else if (dispatchErrMsg.toLowerCase().includes('rate limit')) {
+        showToast('Supabase email hourly limit reached. Please wait a few minutes or configure custom SMTP in Supabase.', 'warning', 8000);
       } else {
-        showToast(`Verification Code: ${generated} (Supabase Email SMTP not configured)`, 'info', 10000);
+        showToast(`Verification code requested for ${targetEmail}. Please check your email inbox.`, 'info', 8000);
       }
     }
-    return generated;
   };
 
   // STEP 2: Handle Email Verification Code Submission
@@ -317,23 +322,20 @@ export const StaffLoginPage = ({ setActiveTab }) => {
     try {
       let isVerified = false;
 
-      // 1. Verify against generated code
-      if (expectedCode && cleanCode === expectedCode) {
-        isVerified = true;
-      } else {
-        // 2. Also check with Supabase verifyOtp
-        try {
-          const { data: verifyData, error: verifyErr } = await supabase.auth.verifyOtp({
-            email: pendingAuth?.user?.email || email,
-            token: cleanCode,
-            type: 'email'
-          });
-          if (!verifyErr && verifyData?.user) {
-            isVerified = true;
-          }
-        } catch (vErr) {
-          console.warn('[StaffLogin] Supabase OTP check notice:', vErr);
+      // Verify code strictly against Supabase Auth OTP
+      try {
+        const { data: verifyData, error: verifyErr } = await supabase.auth.verifyOtp({
+          email: pendingAuth?.user?.email || email,
+          token: cleanCode,
+          type: 'email'
+        });
+        if (!verifyErr && verifyData?.user) {
+          isVerified = true;
+        } else if (verifyErr) {
+          console.warn('[StaffLogin] Supabase OTP verification error:', verifyErr.message);
         }
+      } catch (vErr) {
+        console.warn('[StaffLogin] Supabase OTP check notice:', vErr);
       }
 
       if (!isVerified) {
@@ -765,25 +767,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                 />
               </div>
 
-              {/* Helper notice */}
-              {expectedCode && (
-                <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-slate-300">
-                    <span className="font-semibold text-slate-400">Security Verification Code:</span>
-                    <span className="font-mono font-black text-orange-400 text-sm tracking-widest">{expectedCode}</span>
-                  </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-700/60 text-[10px]">
-                    <span className="text-slate-400 italic">Supabase SMTP not enabled</span>
-                    <button
-                      type="button"
-                      onClick={() => setEmailCode(expectedCode)}
-                      className="px-2 py-0.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 hover:text-orange-300 rounded font-bold cursor-pointer transition-colors"
-                    >
-                      Auto-fill Code &rarr;
-                    </button>
-                  </div>
-                </div>
-              )}
+
 
               <div className="space-y-2 pt-2">
                 <button
