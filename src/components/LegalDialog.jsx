@@ -19,7 +19,6 @@ import {
   Loader2
 } from 'lucide-react';
 import { COOKIE_AUDIT_DATA, openCookiePreferences } from './CookieBanner';
-import { generateLegalPdf } from '../utils/legalPdfGenerator';
 import { useLogistics } from '../context/LogisticsContext';
 
 // Global helper function so any component can open the dialog without navigating or clearing form state
@@ -170,7 +169,6 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
 
   // Print Handler
 
-  const [isDownloading, setIsDownloading] = useState(false);
 
   // Print Handler
   const handlePrint = () => {
@@ -179,18 +177,6 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
     }
   };
 
-  // Download PDF Handler: Generates clean, official PDF file
-  const handleDownloadPDF = () => {
-    try {
-      setIsDownloading(true);
-      generateLegalPdf(activeType, siteSettings);
-    } catch (err) {
-      console.error('PDF download error:', err);
-      window.print();
-    } finally {
-      setTimeout(() => setIsDownloading(false), 800);
-    }
-  };
 
   // Smooth scroll to a section inside the dialog
   const scrollToSection = (sectionId) => {
@@ -295,22 +281,6 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                 <span>Print</span>
               </button>
 
-              {/* Download PDF Button */}
-              <button
-                type="button"
-                onClick={handleDownloadPDF}
-                disabled={isDownloading}
-                className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#F26B21] hover:bg-[#D95A13] text-white text-xs font-bold transition-all cursor-pointer shadow-sm disabled:opacity-75"
-                title="Download official PDF document"
-                aria-label="Download legal document as PDF"
-              >
-                {isDownloading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Download className="w-3.5 h-3.5" />
-                )}
-                <span>{isDownloading ? 'Generating PDF...' : 'Download PDF'}</span>
-              </button>
 
               {/* Close Button (X) */}
               <button
@@ -355,16 +325,6 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
 
             {/* Mobile Download and Print Icons */}
             <div className="ml-auto sm:hidden flex items-center space-x-1.5">
-              <button
-                type="button"
-                onClick={handleDownloadPDF}
-                disabled={isDownloading}
-                className="p-1.5 rounded-lg bg-[#F26B21] text-white flex items-center justify-center"
-                title="Download PDF"
-                aria-label="Download PDF"
-              >
-                {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              </button>
               <button
                 type="button"
                 onClick={handlePrint}
