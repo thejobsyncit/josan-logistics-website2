@@ -6,8 +6,6 @@
 
 export const initialShipments = [];
 
-export const initialQuotes = [];
-
 export const initialNotifications = [];
 
 export const initialDrivers = [];

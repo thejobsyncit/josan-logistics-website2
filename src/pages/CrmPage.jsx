@@ -99,7 +99,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
       airway: airwayRequests.filter(r => r.status === 'New' || r.status === 'Under Review').length,
       road: shipments.filter(s =>!['Delivered','Completed','Cancelled'].includes(s.status)).length,
       docs: documents.length,
-      quotes: quotes.filter(q => ['Requested', 'Draft', 'Sent', 'Pending', 'New'].includes(q.status) || !q.staffPriced).length,
+      quotes: quotes.filter(q => q.status === 'New').length,
       billing: invoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Pending').length,
       partners: transportationPartners.length,
       notifs: notifications.filter(n => !n.read).length
