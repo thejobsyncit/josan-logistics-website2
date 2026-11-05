@@ -4,7 +4,6 @@ import {
   initialDrivers, 
   initialWarehouses, 
   analyticsData,
-  initialQuotes,
   initialNotifications,
   initialCustomers,
   initialDocuments,
@@ -166,61 +165,8 @@ export const LogisticsProvider = ({ children }) => {
     }
   });
 
-  // Quotation Management State
-  const [quotes, setQuotes] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_quotes');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(q => ({
-            ...q,
-            staffPriced: q.staffPriced === true ? true : false,
-            total: q.staffPriced === true ? (q.total ?? q.amount) : null,
-            amount: q.staffPriced === true ? (q.amount ?? q.total) : null,
-            status: !q.staffPriced && q.status === 'Draft' ? 'Requested' : (q.status || 'Requested')
-          }));
-        }
-      }
-      // Fallback: check josan_admin_quote_requests archive
-      const archive = localStorage.getItem('josan_admin_quote_requests');
-      if (archive) {
-        const parsedArchive = JSON.parse(archive);
-        if (Array.isArray(parsedArchive) && parsedArchive.length > 0) {
-          return parsedArchive.map(req => ({
-            id: req.id || req.referenceNumber,
-            referenceNumber: req.referenceNumber || req.id,
-            requestId: req.referenceNumber || req.id,
-            customerName: req.contactName || 'Customer',
-            customerEmail: req.contactEmail || '',
-            customerPhone: req.contactPhone || '',
-            company: req.contactCompany || 'Commercial Shipper',
-            origin: req.pickupAddress || 'Singapore',
-            destination: req.deliveryAddress || 'Destination',
-            service: req.service || (req.serviceCategory === 'air-freight' ? 'Air Freight Documentation Support' : req.serviceCategory === 'road-transport' ? 'Commercial Road Transportation Coordination' : 'Shipment Documentation Support'),
-            cargoCategory: req.cargoCategory || 'General Commercial Cargo',
-            cargoWeight: req.cargoWeight || 100,
-            status: req.isTest ? 'Test' : 'Requested',
-            isTest: Boolean(req.isTest),
-            createdAt: req.singaporeTime || new Date().toLocaleString(),
-            staffPriced: false,
-            amount: null,
-            total: null,
-            lineItems: null
-          }));
-        }
-      }
-      return initialQuotes.map(q => ({ ...q, staffPriced: false, total: null, amount: null }));
-    } catch (e) {
-      return initialQuotes;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_quotes', JSON.stringify(quotes));
-    } catch (e) {}
-  }, [quotes]);
+  // Quotation Management State (Loaded from Supabase quote_requests table for logged-in staff)
+  const [quotes, setQuotes] = useState([]);
 
   // Airway Service Requests State (AWB Preparation, Billing, Documentation, Transportation Support)
   const [airwayRequests, setAirwayRequests] = useState(() => {
@@ -320,25 +266,8 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [airwayRequests]);
 
-  // Website Notification System State
-  const [notifications, setNotifications] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_notifications');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-          return deduplicateNotifications(parsed);
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_notifications', JSON.stringify(notifications));
-    } catch (e) {}
-  }, [notifications]);
+  // Website Notification System State (Loaded from Supabase notifications table for logged-in user)
+  const [notifications, setNotifications] = useState([]);
 
   // Phase 3: Customers Directory
   const [customers, setCustomers] = useState(() => {
@@ -1040,6 +969,107 @@ export const LogisticsProvider = ({ children }) => {
       }
     } catch (e) {}
   }, []);
+
+  // Load staff quotes from Supabase quote_requests table for logged-in staff
+  useEffect(() => {
+    const isStaff = Boolean(
+      currentUser && (
+        ['ADMIN', 'CRM', 'OPERATIONS', 'STAFF'].includes((currentUser.role || currentUser.rawRole || '').toUpperCase()) ||
+        currentUser.email?.endsWith('@josanlogistics.com') ||
+        currentUser.email?.endsWith('@josanlogistics.com.sg')
+      )
+    );
+    if (!isStaff) {
+      setQuotes([]);
+      return;
+    }
+
+    const loadStaffQuotes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('quote_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+          const mappedQuotes = data.map(row => ({
+            id: row.id,
+            reference: row.reference,
+            referenceNumber: row.reference,
+            requestId: row.reference,
+            service_type: row.service_type,
+            service: row.service_type === 'AIR_FREIGHT_DOCS'
+              ? 'Air Freight Documentation Support'
+              : row.service_type === 'ROAD_TRANSPORT'
+                ? 'Commercial Road Transportation Coordination'
+                : 'Shipment Documentation Support',
+            cargoCategory: row.cargo_classification || 'General Commercial Cargo',
+            cargoDescription: row.cargo_description || '',
+            contact_name: row.contact_name,
+            customerName: row.contact_name,
+            company_name: row.company_name,
+            company: row.company_name || row.contact_name || 'Commercial Shipper',
+            contact_email: row.contact_email,
+            customerEmail: row.contact_email,
+            contact_phone: row.contact_phone,
+            customerPhone: row.contact_phone,
+            pickup_location: row.pickup_location,
+            origin: row.pickup_location || 'Singapore',
+            delivery_location: row.delivery_location,
+            destination: row.delivery_location || 'Singapore',
+            preferred_pickup_date: row.preferred_pickup_date,
+            status: row.status || 'New',
+            quoted_amount: row.quoted_amount,
+            amount: row.quoted_amount,
+            total: row.quoted_amount,
+            staffPriced: row.quoted_amount !== null && row.quoted_amount !== undefined,
+            quoted_at: row.quoted_at,
+            created_at: row.created_at,
+            createdAt: row.created_at,
+            packages: row.packages,
+            gross_weight_kg: row.gross_weight_kg,
+            cargoWeight: row.gross_weight_kg,
+            length_cm: row.length_cm,
+            width_cm: row.width_cm,
+            height_cm: row.height_cm,
+            notes: row.cargo_description || '',
+            adminNotes: row.admin_notes || ''
+          }));
+          setQuotes(mappedQuotes);
+        }
+      } catch (err) {
+        console.warn('[LogisticsContext] Could not load quote_requests from Supabase:', err);
+      }
+    };
+
+    loadStaffQuotes();
+  }, [currentUser]);
+
+  // Load staff notifications from Supabase notifications table for logged-in user
+  useEffect(() => {
+    if (!currentUser?.id) {
+      setNotifications([]);
+      return;
+    }
+
+    const loadStaffNotifications = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+          setNotifications(data);
+        }
+      } catch (e) {
+        console.warn('[LogisticsContext] Could not load notifications from Supabase:', e);
+      }
+    };
+
+    loadStaffNotifications();
+  }, [currentUser?.id]);
 
   // Toast notification state
   const [toast, setToast] = useState(null);
@@ -1784,12 +1814,20 @@ export const LogisticsProvider = ({ children }) => {
     return newNotif;
   };
 
-  const markNotificationAsRead = (id) => {
+  const markNotificationAsRead = async (id) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    try {
+      await supabase.from('notifications').update({ read: true }).eq('id', id);
+    } catch (_) {}
   };
 
-  const markAllNotificationsAsRead = (role) => {
+  const markAllNotificationsAsRead = async (role) => {
     setNotifications(prev => prev.map(n => (!role || n.role === role) ? { ...n, read: true } : n));
+    if (currentUser?.id) {
+      try {
+        await supabase.from('notifications').update({ read: true }).eq('user_id', currentUser.id);
+      } catch (_) {}
+    }
     showToast('All notifications marked as read', 'info');
   };
 
@@ -1835,9 +1873,7 @@ export const LogisticsProvider = ({ children }) => {
     setQuotes(prev => {
       const filtered = (prev || []).filter(q => q.id !== quoteId && q.referenceNumber !== quoteId);
       const updated = [newQuote, ...filtered];
-      try {
-        localStorage.setItem('josan_quotes', JSON.stringify(updated));
-      } catch (e) {}
+      
       return updated;
     });
 
@@ -1909,42 +1945,35 @@ export const LogisticsProvider = ({ children }) => {
     return newQuote;
   };
 
-  const updateAdminQuote = (quoteId, quotedAmount, adminNotes) => {
-    let updatedQuoteObj = null;
-    const numericAmount = typeof quotedAmount === 'object' && quotedAmount !== null
-      ? Number(quotedAmount.amount ?? quotedAmount.finalAmount ?? quotedAmount.baseTransportationCharge ?? 0)
-      : Number(quotedAmount);
+  const updateAdminQuote = async (quoteId, quotedAmount, adminNotes) => {
+    const amountVal = Number(quotedAmount);
+    const nowIso = new Date().toISOString();
 
-    setQuotes(prev => {
-      const updated = (prev || []).map(q => {
-        if (q.id === quoteId || q.referenceNumber === quoteId) {
-          updatedQuoteObj = {
-            ...q,
-            amount: numericAmount,
-            total: numericAmount,
-            staffPriced: true,
-            status: q.status === 'Draft' ? 'Requested' : q.status,
-            lineItems: {
-              ...(q.lineItems || {}),
-              finalAmount: numericAmount,
-              baseTransportationCharge: numericAmount,
-              taxRate: 0,
-              taxAmount: 0
-            },
-            notes: adminNotes !== undefined && adminNotes !== null ? adminNotes : q.notes,
-            adminNotes: adminNotes !== undefined && adminNotes !== null ? adminNotes : q.adminNotes
-          };
-          return updatedQuoteObj;
-        }
-        return q;
-      });
-      try {
-        localStorage.setItem('josan_quotes', JSON.stringify(updated));
-      } catch (e) {}
-      return updated;
-    });
-    showToast(`Quotation #${quoteId} pricing updated successfully!`, 'success');
-    return updatedQuoteObj;
+    try {
+      const { error } = await supabase
+        .from('quote_requests')
+        .update({
+          quoted_amount: amountVal,
+          quoted_at: nowIso,
+          status: 'Quoted'
+        })
+        .eq('id', quoteId);
+
+      if (error) throw error;
+    } catch (e) {
+      console.warn('[LogisticsContext] updateAdminQuote Supabase error:', e);
+    }
+
+    setQuotes(prev => prev.map(q => q.id === quoteId ? {
+      ...q,
+      quoted_amount: amountVal,
+      amount: amountVal,
+      total: amountVal,
+      staffPriced: true,
+      quoted_at: nowIso,
+      status: 'Quoted',
+      adminNotes: adminNotes || q.adminNotes
+    } : q));
   };
 
   const sendQuoteToCustomer = (quoteId) => {

@@ -40,7 +40,7 @@ export const CrmDashboardTab = ({
   const newAirwayRequests = airwayRequests.filter(r => r.status === 'New' || r.status == 'Under review').length;
   const activeRoadShipments = shipments.filter(s => !['Delivered', 'Completed', 'Cancelled'].includes(s.status)).length;
   const pendingDocuments = documents.filter(d => d.status === 'Pending' || d.status === 'Pending Review' || d.status === 'Draft').length;
-  const pendingQuotations = quotes.filter(q => ['Requested', 'Draft', 'Sent', 'Pending', 'New'].includes(q.status) || !q.staffPriced).length;
+  const pendingQuotations = quotes.filter(q => q.status === 'New').length;
   const pendingBilling = invoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Pending').length;
 
   // Completed requests: airway completed + road delivered
@@ -59,12 +59,12 @@ export const CrmDashboardTab = ({
   // Compile unified recent activity timeline from all modules:
   const recentActivities = [
     ...quotes.map(q => ({
-      id: `act-quote-${q.id}`,
+      id: `act-quote-${q.id || q.reference}`,
       type: 'quote',
-      title: `Quotation #${q.id} (${q.status})`,
-      subtitle: `${q.company || q.customerName} • S$ ${Number(q.amount || q.lineItems?.finalAmount || 0).toLocaleString()}`,
-      date: q.createdAt?.split(' ')[0] || 'Recent',
-      status: q.status,
+      title: `Quotation #${q.reference || q.id} (${q.status || 'New'})`,
+      subtitle: `${q.company_name || q.contact_name || q.company || q.customerName || 'Commercial Client'} • ${q.quoted_amount ? `S$ ${Number(q.quoted_amount).toLocaleString()}` : 'Not quoted yet'}`,
+      date: q.created_at ? new Date(q.created_at).toLocaleDateString() : 'Recent',
+      status: q.status || 'New',
       badgeColor: 'bg-purple-100 text-purple-700 border-purple-200',
       raw: q
     })),

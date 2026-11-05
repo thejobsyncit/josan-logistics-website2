@@ -11,15 +11,15 @@ import {
   Edit3
 } from 'lucide-react';
 import { useLogistics } from '../../context/LogisticsContext';
+import { supabase } from '../../services/supabase';
 
 export const QUOTE_STATUS_OPTIONS = [
-  'Requested',
-  'Draft',
-  'Sent',
+  'New',
+  'In review',
+  'Quoted',
   'Accepted',
-  'Rejected',
-  'Expired',
-  'Test'
+  'Declined',
+  'Closed'
 ];
 
 /**
@@ -28,17 +28,15 @@ export const QUOTE_STATUS_OPTIONS = [
 export const calculateQuoteAmounts = (quote) => {
   if (!quote) return { baseAmount: null, marketSurcharge: 0, gst: 0, totalAmount: null, staffPriced: false };
 
-  const staffPriced = Boolean(quote.staffPriced);
-  const total = staffPriced && (quote.total !== null || quote.amount !== null)
-    ? Number(quote.total ?? quote.amount ?? 0)
-    : null;
+  const isPriced = quote.quoted_amount !== null && quote.quoted_amount !== undefined;
+  const total = isPriced ? Number(quote.quoted_amount) : (quote.total ?? quote.amount ?? null);
 
   return {
     baseAmount: total,
     marketSurcharge: 0,
     gst: 0,
     totalAmount: total,
-    staffPriced
+    staffPriced: isPriced
   };
 };
 
@@ -115,7 +113,7 @@ export const CrmQuotationsTab = ({
     }
   }, [viewingQuote?.id, viewingQuote?.staffPriced, viewingQuote?.total, viewingQuote?.amount]);
 
-  const handleSaveStaffPrice = () => {
+  const handleSaveStaffPrice = async () => {
     if (!viewingQuote) return;
     const amountVal = Number(quotedAmountInput);
     if (isNaN(amountVal) || amountVal <= 0) {
@@ -123,23 +121,45 @@ export const CrmQuotationsTab = ({
       return;
     }
 
-    if (typeof updateAdminQuote === 'function') {
-      updateAdminQuote(viewingQuote.id, amountVal, staffNotesInput);
-    } else if (typeof onUpdateQuotePricing === 'function') {
-      onUpdateQuotePricing(viewingQuote.id, amountVal, staffNotesInput);
-    }
+    try {
+      const nowIso = new Date().toISOString();
+      const { error } = await supabase
+        .from('quote_requests')
+        .update({
+          quoted_amount: amountVal,
+          quoted_at: nowIso,
+          status: 'Quoted'
+        })
+        .eq('id', viewingQuote.id);
 
-    setViewingQuote(prev => ({
-      ...prev,
-      amount: amountVal,
-      total: amountVal,
-      staffPriced: true,
-      notes: staffNotesInput,
-      adminNotes: staffNotesInput
-    }));
+      if (error) {
+        if (showToast) showToast('You do not have permission.', 'error');
+        return;
+      }
 
-    if (showToast) {
-      showToast(`Quotation #${viewingQuote.id} price saved: S$ ${amountVal.toFixed(2)}`, 'success');
+      setViewingQuote(prev => ({
+        ...prev,
+        quoted_amount: amountVal,
+        amount: amountVal,
+        total: amountVal,
+        staffPriced: true,
+        quoted_at: nowIso,
+        status: 'Quoted',
+        notes: staffNotesInput,
+        adminNotes: staffNotesInput
+      }));
+
+      if (typeof updateAdminQuote === 'function') {
+        updateAdminQuote(viewingQuote.id, amountVal, staffNotesInput);
+      } else if (typeof onUpdateQuotePricing === 'function') {
+        onUpdateQuotePricing(viewingQuote.id, amountVal, staffNotesInput);
+      }
+
+      if (showToast) {
+        showToast(`Quotation #${viewingQuote.reference || viewingQuote.id} price saved: S$ ${amountVal.toFixed(2)}`, 'success');
+      }
+    } catch (err) {
+      if (showToast) showToast('You do not have permission.', 'error');
     }
   };
 
@@ -204,19 +224,18 @@ export const CrmQuotationsTab = ({
 
   const getStatusBadge = (status) => {
     switch (status) {
+      case 'New':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'In review':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Quoted':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Accepted':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'Sent':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Requested':
-      case 'Draft':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'Rejected':
+      case 'Declined':
         return 'bg-rose-50 text-rose-700 border-rose-200';
-      case 'Expired':
-        return 'bg-slate-100 text-slate-500 border-slate-200';
-      case 'Test':
-        return 'bg-purple-50 text-purple-700 border-purple-300';
+      case 'Closed':
+        return 'bg-slate-100 text-slate-600 border-slate-200';
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
@@ -242,12 +261,28 @@ export const CrmQuotationsTab = ({
     }
   };
 
-  const handleStatusTransition = (quoteId, nextStatus) => {
-    if (typeof onUpdateQuoteStatus === 'function') {
-      onUpdateQuoteStatus(quoteId, nextStatus);
-    }
-    if (viewingQuote && viewingQuote.id === quoteId) {
-      setViewingQuote(prev => prev ? { ...prev, status: nextStatus } : null);
+  const handleStatusTransition = async (quoteId, nextStatus) => {
+    if (!QUOTE_STATUS_OPTIONS.includes(nextStatus)) return;
+    try {
+      const { error } = await supabase
+        .from('quote_requests')
+        .update({ status: nextStatus })
+        .eq('id', quoteId);
+
+      if (error) {
+        if (showToast) showToast('You do not have permission.', 'error');
+        return;
+      }
+
+      if (typeof onUpdateQuoteStatus === 'function') {
+        onUpdateQuoteStatus(quoteId, nextStatus);
+      }
+      if (viewingQuote && viewingQuote.id === quoteId) {
+        setViewingQuote(prev => prev ? { ...prev, status: nextStatus } : null);
+      }
+      if (showToast) showToast(`Status updated to ${nextStatus}`, 'success');
+    } catch (_) {
+      if (showToast) showToast('You do not have permission.', 'error');
     }
   };
 
@@ -546,8 +581,8 @@ export const CrmQuotationsTab = ({
 
                       {/* Amount */}
                       <td className="p-4 font-mono font-black text-slate-900 text-sm">
-                        {q.staffPriced && (q.total !== null || q.amount !== null) ? (
-                          `S$ ${Number(q.total ?? q.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        {q.quoted_amount !== null && q.quoted_amount !== undefined ? (
+                          `S$ ${Number(q.quoted_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                         ) : (
                           <span className="text-slate-400 font-sans font-medium text-xs">Not quoted yet</span>
                         )}
@@ -555,15 +590,9 @@ export const CrmQuotationsTab = ({
 
                       {/* Status */}
                       <td className="p-4">
-                        {q.isTest || q.status === 'Test' ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase border bg-purple-50 text-purple-700 border-purple-300">
-                            Test
-                          </span>
-                        ) : (
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(!q.staffPriced && q.status !== 'Test' ? 'Requested' : q.status)}`}>
-                            {!q.staffPriced || q.status === 'Draft' ? 'Requested' : q.status}
-                          </span>
-                        )}
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(q.status || 'New')}`}>
+                          {q.status || 'New'}
+                        </span>
                       </td>
 
                       {/* Date */}
@@ -573,30 +602,14 @@ export const CrmQuotationsTab = ({
 
                       {/* Actions */}
                       <td className="p-4 text-right space-x-1.5">
-                        {(q.status === 'Draft' || q.status === 'Requested') && (() => {
-                          const isPriced = Boolean(q.staffPriced) && Number(q.total || q.amount || 0) > 0;
-                          return (
-                            <button
-                              type="button"
-                              disabled={!isPriced}
-                              onClick={() => handleSendQuote(q.id)}
-                              className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-50"
-                              title={!isPriced ? "Enter a price first" : "Mark as sent"}
-                            >
-                              Mark as sent
-                            </button>
-                          );
-                        })()}
-                        {q.status === 'Sent' && (
-                          <button
-                            type="button"
-                            onClick={() => handleAcceptQuote(q.id)}
-                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
-                            title="Accept Quotation"
-                          >
-                            Accept
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          disabled={true}
+                          className="px-2.5 py-1 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-[11px] font-bold cursor-not-allowed opacity-50"
+                          title="Email is not connected yet"
+                        >
+                          Mark as sent
+                        </button>
                         <button
                           type="button"
                           onClick={() => setViewingQuote(q)}
@@ -656,8 +669,8 @@ export const CrmQuotationsTab = ({
                 <div>
                   <div className="flex items-center space-x-2">
                     <span className="font-mono text-sm font-black text-[#2463EB]">#{viewingQuote.id}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(!viewingQuote.staffPriced && viewingQuote.status !== 'Test' ? 'Requested' : viewingQuote.status)}`}>
-                      {viewingQuote.isTest || viewingQuote.status === 'Test' ? 'Test' : (!viewingQuote.staffPriced || viewingQuote.status === 'Draft' ? 'Requested' : viewingQuote.status)}
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(viewingQuote.status || 'New')}`}>
+                      {viewingQuote.status || 'New'}
                     </span>
                   </div>
                   <h3 className="font-black text-base text-slate-900 font-heading mt-1">Official Quotation Proposal</h3>
@@ -706,8 +719,8 @@ export const CrmQuotationsTab = ({
                   <div className="text-right">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Quoted Amount</span>
                     <span className="font-mono text-sm font-black text-[#2463EB]">
-                      {viewingQuote.staffPriced && (viewingQuote.total !== null || viewingQuote.amount !== null) ? (
-                        `S$ ${Number(viewingQuote.total ?? viewingQuote.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      {viewingQuote.quoted_amount !== null && viewingQuote.quoted_amount !== undefined ? (
+                        `S$ ${Number(viewingQuote.quoted_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                       ) : (
                         <span className="text-slate-400 font-sans font-medium text-xs">Not quoted yet</span>
                       )}
@@ -801,49 +814,31 @@ export const CrmQuotationsTab = ({
                     <span>Print</span>
                   </button>
 
-                  {/* Status transitions: Draft/Requested -> Sent */}
-                  {(viewingQuote.status === 'Draft' || viewingQuote.status === 'Requested') && (() => {
-                    const isPriced = Boolean(viewingQuote.staffPriced) && Number(viewingQuote.total || viewingQuote.amount || 0) > 0;
-                    return (
-                      <div className="flex flex-col items-end">
-                        <button
-                          type="button"
-                          disabled={!isPriced}
-                          onClick={() => handleSendQuote(viewingQuote.id)}
-                          className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold shadow-md shadow-orange-500/20 active:scale-95 flex items-center space-x-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#FF6B00]"
-                          title={!isPriced ? "Enter a price first" : "Mark as sent"}
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                          <span>Mark as sent</span>
-                        </button>
-                        {!isPriced && (
-                          <span className="text-[10px] text-amber-600 font-semibold mt-1">Enter a price first</span>
-                        )}
-                        <span className="text-[10px] text-slate-400 mt-0.5">Email is not connected yet</span>
-                      </div>
-                    );
-                  })()}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[11px] font-bold text-slate-500">Status:</span>
+                    <select
+                      value={viewingQuote.status || 'New'}
+                      onChange={(e) => handleStatusTransition(viewingQuote.id, e.target.value)}
+                      className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                    >
+                      {QUOTE_STATUS_OPTIONS.map(st => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                  {/* Status transitions: Sent -> Accepted or Rejected */}
-                  {viewingQuote.status === 'Sent' && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleStatusTransition(viewingQuote.id, 'Rejected')}
-                        className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold cursor-pointer transition-colors"
-                      >
-                        Reject
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleAcceptQuote(viewingQuote.id)}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-xs flex items-center space-x-1.5 cursor-pointer transition-colors"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Accept Proposal</span>
-                      </button>
-                    </>
-                  )}
+                  <div className="flex flex-col items-end">
+                    <button
+                      type="button"
+                      disabled={true}
+                      className="px-4 py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl font-bold flex items-center space-x-1.5 cursor-not-allowed opacity-60"
+                      title="Email is not connected yet"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Mark as sent</span>
+                    </button>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Email is not connected yet</span>
+                  </div>
                 </div>
               </div>
             </div>

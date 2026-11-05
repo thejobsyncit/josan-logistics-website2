@@ -40,6 +40,11 @@ export const supabaseApi = {
   createTransportPartner: transportPartnersService.createTransportPartner,
   updateTransportPartner: transportPartnersService.updateTransportPartner,
   deleteTransportPartner: transportPartnersService.deleteTransportPartner,
+  getDrivers: transportPartnersService.getTransportPartners,
+  createDriver: transportPartnersService.createTransportPartner,
+  updateDriver: transportPartnersService.updateTransportPartner,
+  deleteDriver: transportPartnersService.deleteTransportPartner,
+  updateDriverLocation: async () => null,
 
   // Customers (public.profiles with role = 'CUSTOMER')
   getCustomers: customersService.getCustomers,
