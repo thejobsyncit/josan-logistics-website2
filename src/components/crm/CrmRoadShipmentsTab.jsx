@@ -206,7 +206,7 @@ export const CrmRoadShipmentsTab = ({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Commercial transportation of goods dispatched through contracted logistics and haulage partners across Singapore.
+            Commercial transportation of goods coordinated through contracted logistics and haulage partners across Singapore.
           </p>
         </div>
 
@@ -526,7 +526,7 @@ export const CrmRoadShipmentsTab = ({
                 <textarea
                   value={tempNotes}
                   onChange={(e) => setTempNotes(e.target.value)}
-                  placeholder="Dispatch logs, driver partner arrangement notes, gate clearance permits..."
+                  placeholder="Transport logs, driver partner arrangement notes, gate clearance permits..."
                   rows={3}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-xs focus:outline-none focus:border-[#2463EB]"
                 />

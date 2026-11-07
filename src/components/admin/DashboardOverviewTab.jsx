@@ -65,7 +65,7 @@ export const DashboardOverviewTab = ({
         const { count: notifsCount } = await supabase
           .from('notifications')
           .select('id', { count: 'exact', head: true })
-          .eq('read', false);
+          .is('read_at', null);
 
         if (isMounted) {
           let staffList = [];
@@ -91,7 +91,7 @@ export const DashboardOverviewTab = ({
             activeCrmUsers: activeCrmUsersCount,
             totalAirwayInquiries: quotesCount !== null && quotesCount !== undefined ? quotesCount : airwayRequests.length,
             totalRoadBookings: shipmentsCount !== null && shipmentsCount !== undefined ? shipmentsCount : shipments.length,
-            unreadNotifications: notifsCount !== null && notifsCount !== undefined ? notifsCount : notifications.filter(n => !n.read).length,
+            unreadNotifications: notifsCount !== null && notifsCount !== undefined ? notifsCount : notifications.filter(n => !n.read_at).length,
             isLoaded: true
           });
         }
@@ -112,7 +112,7 @@ export const DashboardOverviewTab = ({
   const totalAirwayInquiries = dbCounts.totalAirwayInquiries !== null ? dbCounts.totalAirwayInquiries : airwayRequests.length;
   const totalRoadBookings = dbCounts.totalRoadBookings !== null ? dbCounts.totalRoadBookings : shipments.length;
   const totalWebsiteRequests = totalAirwayInquiries + totalRoadBookings;
-  const unreadNotifications = dbCounts.unreadNotifications !== null ? dbCounts.unreadNotifications : notifications.filter(n => !n.read).length;
+  const unreadNotifications = dbCounts.unreadNotifications !== null ? dbCounts.unreadNotifications : notifications.filter(n => !n.read_at).length;
 
   // 5. Real health endpoint telemetry check
   const [healthStatus, setHealthStatus] = React.useState({
@@ -204,7 +204,10 @@ export const DashboardOverviewTab = ({
         </div>
 
         {/* KPI 3: Website Requests Summary */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+        <div 
+          onClick={() => onNavigateTab && onNavigateTab('quotations')}
+          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Website Requests</span>
             <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center">

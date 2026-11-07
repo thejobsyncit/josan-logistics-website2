@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { normalizeRole, isStaffRole } from '../utils/roles';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
   Package, 
@@ -195,7 +196,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     const updated = {
       name: editName,
       phone: `${editCountryCode} ${cleanDigits}`,
-      company: activeRole === 'customer' ? editCompany : currentUser?.company,
+      company: (normalizeRole(activeRole) === 'CUSTOMER' || activeRole === 'customer') ? editCompany : currentUser?.company,
       licenseNumber: activeRole === 'driver' ? editLicense : currentUser?.licenseNumber,
       dob: activeRole === 'driver' ? editDob : currentUser?.dob,
       photo: editPhoto || currentUser?.photo
@@ -522,7 +523,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
                       <div className="mt-2">
                         <span className="inline-block px-2 py-0.5 bg-orange-500/15 text-orange-400 border border-orange-500/30 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                          {currentUser.role ? `${currentUser.role.toUpperCase()} PORTAL` : 'CUSTOMER PORTAL'}
+                          {currentUser.role ? `${normalizeRole(currentUser.role) || 'CUSTOMER'} PORTAL` : 'CUSTOMER PORTAL'}
                         </span>
                       </div>
                     </div>
@@ -564,7 +565,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       </button>
 
                       {/* Admin Portal Link if authenticated as Admin */}
-                      {(currentUser.role === 'admin' || currentRole === 'admin') && (
+                      {normalizeRole(currentUser?.role || currentRole) === 'ADMIN' && (
                         <button
                           type="button"
                           role="menuitem"
@@ -813,7 +814,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 </div>
 
                 {/* Separate Customer Dashboard Links on Mobile */}
-                {(currentUser.role === 'customer' || currentRole === 'customer') && (
+                {normalizeRole(currentUser?.role || currentRole) === 'CUSTOMER' && (
                   <div className="grid grid-cols-2 gap-1.5 pt-1 text-xs font-bold">
                     <button
                       onClick={() => handleCustomerDashboardNav('profile')}

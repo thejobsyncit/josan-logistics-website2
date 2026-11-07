@@ -10,8 +10,10 @@ import {
   Shield, 
   Globe, 
   Sliders,
-  ExternalLink
+  ExternalLink,
+  Clock
 } from 'lucide-react';
+import { formatNotificationTime } from '../../utils/dateTime';
 
 export const AdminHeader = ({
   searchQuery,
@@ -19,6 +21,8 @@ export const AdminHeader = ({
   onSelectSearchResult,
   notifications = [],
   onOpenNotifications,
+  onNotificationClick,
+  onMarkAllNotifsRead,
   onOpenSettings,
   onOpenOverview,
   currentUser,
@@ -27,19 +31,24 @@ export const AdminHeader = ({
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
   const searchContainerRef = useRef(null);
+  const notifContainerRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
         setIsSearchOpen(false);
       }
+      if (notifContainerRef.current && !notifContainerRef.current.contains(e.target)) {
+        setIsNotifDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const unreadNotifications = notifications.filter(n => !n.read);
+  const unreadNotifications = notifications.filter(n => !n.read_at);
 
   // Filter matching system records
   const q = (searchQuery || '').trim().toLowerCase();
@@ -139,17 +148,107 @@ export const AdminHeader = ({
         </a>
 
         {/* Notifications Bell */}
-        <button
-          type="button"
-          onClick={onOpenNotifications}
-          className="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-          title="System Notifications"
-        >
-          <Bell className="w-4 h-4" />
-          {unreadNotifications.length > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#2463EB] ring-2 ring-white" />
+        <div className="relative" ref={notifContainerRef}>
+          <button
+            type="button"
+            onClick={() => setIsNotifDropdownOpen(prev => !prev)}
+            className="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+            title="System Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadNotifications.length > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#2463EB] ring-2 ring-white" />
+            )}
+          </button>
+
+          {isNotifDropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-3xl border border-slate-200 shadow-2xl py-3 z-50 animate-fade-in">
+              <div className="px-4 pb-2.5 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-extrabold text-sm text-slate-900">System Notifications</h3>
+                  {unreadNotifications.length > 0 && (
+                    <span className="px-1.5 py-0.5 bg-[#EAF2FF] text-[#2463EB] rounded-full text-[10px] font-black">
+                      {unreadNotifications.length} new
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  {unreadNotifications.length > 0 && onMarkAllNotifsRead && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onMarkAllNotifsRead();
+                      }}
+                      className="text-[11px] font-bold text-[#2463EB] hover:text-[#1D4ED8] cursor-pointer"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  {onOpenNotifications && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsNotifDropdownOpen(false);
+                        onOpenNotifications();
+                      }}
+                      className="text-[11px] font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                    >
+                      View all
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 px-2 py-1">
+                {notifications.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400 font-medium">
+                    No system notifications
+                  </div>
+                ) : (
+                  notifications.slice(0, 8).map((n) => {
+                    const isRead = Boolean(n.read_at);
+                    const timeDisplay = formatNotificationTime(n.created_at || n.createdAt);
+
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          setIsNotifDropdownOpen(false);
+                          if (onNotificationClick) onNotificationClick(n);
+                          else if (onOpenNotifications) onOpenNotifications();
+                        }}
+                        className={`p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer flex items-start space-x-3 ${
+                          !isRead ? 'bg-[#EAF2FF]/40' : ''
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center shrink-0 mt-0.5">
+                          <Bell className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-extrabold text-slate-900 line-clamp-1">
+                            {n.title || 'Notification'}
+                          </p>
+                          {n.body && (
+                            <p className="text-[11px] text-slate-500 font-medium line-clamp-2 mt-0.5">
+                              {n.body}
+                            </p>
+                          )}
+                          <span className="text-[10px] text-slate-400 font-mono mt-1 flex items-center space-x-1">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            <span>{timeDisplay}</span>
+                          </span>
+                        </div>
+                        {!isRead && (
+                          <span className="w-2 h-2 rounded-full bg-[#2463EB] shrink-0 mt-1" />
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           )}
-        </button>
+        </div>
 
         {/* Settings Button */}
         <button

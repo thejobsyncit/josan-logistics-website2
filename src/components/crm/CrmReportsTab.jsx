@@ -347,7 +347,7 @@ export const CrmReportsTab = ({
         id: p.id,
         name: p.name ? p.name.split(' ')[0] : 'Partner',
         fullName: p.name || 'Contracted Partner',
-        dispatches: assignedCount,
+        shipments: assignedCount,
         registeredVehicles
       };
     }).filter(Boolean);
@@ -384,12 +384,12 @@ export const CrmReportsTab = ({
       ['Partners', 'Active Transport Partners', transportationPartners.length, timeRange, exportTimestamp]
     ];
 
-    // Partner dispatch performance entries
+    // Partner transport performance entries
     partnerPerformanceData.forEach(p => {
       rows.push([
-        'Partner Dispatch',
+        'Partner Transport',
         p.fullName,
-        `${p.dispatches} dispatches (${p.registeredVehicles} vehicles)`,
+        `${p.shipments || 0} shipments (${p.registeredVehicles} vehicles)`,
         timeRange,
         exportTimestamp
       ]);
@@ -461,7 +461,7 @@ export const CrmReportsTab = ({
         </div>
 
         <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Road Dispatches</span>
+          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Road Shipments</span>
           <p className="text-2xl font-black font-mono text-blue-600 mt-1">{filteredShipments.length} Consignments</p>
           <span className="text-[10px] text-slate-500 font-medium">{transportationPartners.length} Contracted Partners</span>
         </div>

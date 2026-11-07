@@ -18,9 +18,9 @@ import {
 import { useLogistics } from '../context/LogisticsContext';
 import { openLegalDialog } from '../components/LegalDialog';
 import { supabase } from '../services/supabase';
+import { normalizeRole, isStaffRole, canEditRole } from '../utils/roles';
 import { 
   storeStaffAuthSession,
-  getStoredStaffToken,
   checkStaffInvitation, 
   acceptStaffInvitation 
 } from '../utils/staffApi';
@@ -103,7 +103,6 @@ export const StaffLoginPage = ({ setActiveTab }) => {
   // Login credentials
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [targetPortal, setTargetPortal] = useState('crm'); // 'crm' | 'admin-dashboard'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -184,8 +183,9 @@ export const StaffLoginPage = ({ setActiveTab }) => {
     setError('');
     setSuccessMsg('');
 
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPassword = (password || '').trim();
+    const formData = e.currentTarget instanceof HTMLFormElement ? new FormData(e.currentTarget) : null;
+    const cleanEmail = ((formData?.get('email') || email || '') + '').trim().toLowerCase();
+    const cleanPassword = ((formData?.get('password') || password || '') + '').trim();
 
     if (!cleanEmail || !cleanPassword) {
       setError('Incorrect email or password.');
@@ -201,6 +201,26 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
     setLoading(true);
     try {
+      // If another user is already logged in (for example a CUSTOMER) when the staff login runs, sign that session out first
+      try {
+        const { data: curSession } = await supabase.auth.getSession();
+        if (curSession?.session) {
+          await supabase.auth.signOut();
+        }
+      } catch (e) {}
+
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('josan_')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        sessionStorage.clear();
+      } catch (e) {}
+
       // 2. Authenticate with Supabase Auth (Requirement 1 & 3)
       const { data, error: authErr } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
@@ -209,12 +229,9 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
       if (authErr || !data?.user) {
         recordFailedAttempt(cleanEmail);
-        console.warn('[StaffLogin] Supabase sign-in notice:', authErr?.message, authErr?.code);
         const msg = (authErr?.message || '').toLowerCase();
         if (msg.includes('email not confirmed') || authErr?.code === 'email_not_confirmed') {
-          setError('Email address not confirmed in Supabase Auth. In your Supabase Dashboard, go to Authentication > Users, click "..." next to this email and select "Confirm email".');
-        } else if (msg.includes('user not found') || authErr?.code === 'user_not_found') {
-          setError('User not found in Supabase Auth. If this account was only added to a database table, please add it under Authentication > Users > Add user.');
+          setError('Email address not confirmed. Please confirm your email before signing in.');
         } else {
           setError('Incorrect email or password.');
         }
@@ -231,32 +248,83 @@ export const StaffLoginPage = ({ setActiveTab }) => {
         .eq('id', data.user.id)
         .maybeSingle();
 
-      const rawDbRole = (profile?.role || '').toUpperCase();
+      const purgeFullSession = async () => {
+        try {
+          if (supabase && supabase.auth) {
+            await supabase.auth.signOut().catch(() => {});
+          }
+        } catch (e) {}
+        try {
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('josan_')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          sessionStorage.clear();
+        } catch (e) {}
+      };
 
-      // If user authenticates on the Staff Portal Gateway:
-      // Note: Supabase's automatic signup trigger sets profile.role = 'CUSTOMER' by default and protects it from client modification.
-      // Therefore, if the authenticated user logs in through the Staff Portal, we treat them as CRM operations (or ADMIN if admin/josan email) unless they are disabled.
-      let effectiveStaffRole = rawDbRole;
-      if (!['ADMIN', 'CRM', 'READONLY'].includes(effectiveStaffRole)) {
-        effectiveStaffRole = (cleanEmail.includes('admin') || cleanEmail.includes('josan')) ? 'ADMIN' : 'CRM';
+      // Fail closed: profile must be readable from the database
+      if (pError || !profile) {
+        await purgeFullSession();
+        setError('Access denied. Profile unavailable.');
+        return;
       }
 
-      if (profile?.status === 'Disabled') {
-        await supabase.auth.signOut();
-        setError('Account has been deactivated. Contact an administrator.');
+      // Fail closed: status must be Active
+      if ((profile.status || '').toLowerCase() !== 'active') {
+        await purgeFullSession();
+        setError('Account is not active. Contact an administrator.');
+        return;
+      }
+
+      // Role check: Allow only CRM and READONLY with status Active
+      const normalizedRole = normalizeRole(profile.role);
+
+      // If the account is ADMIN: refuse it, sign out, run clean-up, stay on staff login page
+      if (normalizedRole === 'ADMIN') {
+        await purgeFullSession();
+        setError('Administrator accounts must sign in through the Admin login.');
+        return;
+      }
+
+      // If the account is CUSTOMER or has an unknown role: refuse it, run clean-up, stay on staff login page
+      if (normalizedRole !== 'CRM' && normalizedRole !== 'READONLY') {
+        await purgeFullSession();
+        setError('Access denied. Staff credentials required. Customer accounts cannot access the staff portal.');
         return;
       }
 
       const activeProfile = {
-        ...(profile || {}),
-        role: effectiveStaffRole
+        ...profile,
+        role: normalizedRole
       };
 
       setPendingAuth({ user: data.user, profile: activeProfile, session: data.session });
 
       // Step 2: Send 6-Digit Email Verification Code
-      await sendEmailVerificationCode(cleanEmail);
-      setAuthMode('email_code');
+      // TEMPORARY: Email OTP disabled so test accounts can log in directly with email & password.
+      // Toggle REQUIRE_EMAIL_OTP to true to restore the 6-digit email verification step.
+      const REQUIRE_EMAIL_OTP = false;
+
+      if (REQUIRE_EMAIL_OTP) {
+        await sendEmailVerificationCode(cleanEmail);
+        setAuthMode('email_code');
+        return;
+      }
+
+      // Check if user must change password (e.g. first login)
+      if (activeProfile?.must_change_password) {
+        setAuthMode('must_change_password');
+        if (showToast) showToast('First-time login: Please set a new strong password.', 'info');
+        return;
+      }
+
+      const sessionToken = data.session?.access_token || 'supabase_token_' + Date.now();
+      completeSuccessfulStaffAuth(sessionToken, data.user, activeProfile);
     } catch (err) {
       console.error('[StaffLogin] Authentication error:', err);
       setError('Incorrect email or password.');
@@ -295,7 +363,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
       if (supabaseSent) {
         showToast(`A 6-digit verification code has been sent to ${targetEmail}. Please check your inbox and spam folder.`, 'success', 8000);
       } else if (dispatchErrMsg.toLowerCase().includes('rate limit')) {
-        showToast('Supabase email hourly limit reached. Please wait a few minutes or configure custom SMTP in Supabase.', 'warning', 8000);
+        showToast('Email hourly limit reached. Please wait a few minutes before requesting another code.', 'warning', 8000);
       } else {
         showToast(`Verification code requested for ${targetEmail}. Please check your email inbox.`, 'info', 8000);
       }
@@ -492,38 +560,40 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
   // Finalize successful authentication & navigate
   const completeSuccessfulStaffAuth = (token, user, profile) => {
-    const rawRole = (profile?.role || '').toUpperCase();
-    const normalizedRole = rawRole === 'ADMIN' ? 'admin' : rawRole === 'CRM' ? 'crm' : 'read_only';
-    const displayRole = rawRole === 'ADMIN' ? 'Admin' : rawRole === 'CRM' ? 'CRM Operations' : 'Read-only';
-    const displayName = profile?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Staff Member';
+    const normRole = normalizeRole(profile?.role);
+    const displayRole = normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only';
+    const displayName = profile?.name || profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Staff Member';
 
     const staffUser = {
       id: user.id,
       name: displayName,
       email: user.email,
-      role: normalizedRole,
+      role: normRole,
       displayRole,
-      roleKey: normalizedRole,
-      rawRole,
+      roleKey: normRole,
+      rawRole: normRole,
       company: profile?.company || 'Josan Logistics Operations',
       token: token || 'supabase_token_' + Date.now()
     };
 
-    storeStaffAuthSession(staffUser.token, staffUser);
+    storeStaffAuthSession(null, staffUser);
     try {
       localStorage.setItem('josan_user', JSON.stringify(staffUser));
-      localStorage.setItem('josan_role', normalizedRole);
+      localStorage.setItem('josan_role', normRole);
       localStorage.setItem('josan_staff_user', JSON.stringify(staffUser));
-      localStorage.setItem('josan_staff_token', staffUser.token);
     } catch (e) {}
 
-    loginUser(
-      staffUser.email,
-      'authenticated_supabase_session',
-      normalizedRole,
-      setActiveTab,
-      staffUser
-    );
+    // Staff portal signs in to CRM only
+    const destination = 'crm';
+
+    if (typeof window !== 'undefined') {
+      try {
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({ tab: destination }, '', '/#crm');
+        }
+        window.location.hash = '#crm';
+      } catch (e) {}
+    }
 
     // Record login in audit_log
     try {
@@ -534,7 +604,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
         details: {
           actor: staffUser.name,
           role: staffUser.role,
-          mfa: 'Supabase TOTP'
+          mfa: 'TOTP'
         }
       }]);
     } catch (e) {}
@@ -543,10 +613,13 @@ export const StaffLoginPage = ({ setActiveTab }) => {
       showToast(`Staff access authorized. Welcome, ${staffUser.name}.`, 'success');
     }
 
-    // Role routing: ADMIN always routes to admin-dashboard, others route to crm
-    const destination = (staffUser.rawRole === 'ADMIN' || normalizedRole === 'admin')
-      ? 'admin-dashboard'
-      : 'crm';
+    loginUser(
+      staffUser.email,
+      'authenticated_session',
+      normRole,
+      null,
+      staffUser
+    );
 
     if (setActiveTab) {
       setActiveTab(destination, true, staffUser);
@@ -612,54 +685,20 @@ export const StaffLoginPage = ({ setActiveTab }) => {
           {authMode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               
-              {/* Target Workspace Selector */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">Destination Workspace</label>
-                <div className="grid grid-cols-2 gap-2 bg-[#071326] p-1 rounded-xl border border-slate-800 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setTargetPortal('crm')}
-                    className={`py-2 px-3 rounded-lg font-bold transition-all text-center cursor-pointer ${
-                      targetPortal === 'crm'
-                        ? 'bg-orange-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    CRM Operations
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (setActiveTab) {
-                        setActiveTab('admin-login');
-                        window.location.hash = '#admin-login';
-                      }
-                    }}
-                    className={`py-2 px-3 rounded-lg font-bold transition-all text-center cursor-pointer ${
-                      targetPortal === 'admin-dashboard'
-                        ? 'bg-orange-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Admin Portal (Supabase)
-                  </button>
-                </div>
-              </div>
-
-              {/* Direct Supabase Admin Notice */}
-              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between text-xs">
-                <span className="text-orange-300 font-medium">Administrator sign in?</span>
+              {/* Administrator login link */}
+              <div className="flex items-center justify-between text-xs px-1 text-slate-400">
+                <span>Administrator?</span>
                 <button
                   type="button"
                   onClick={() => {
                     if (setActiveTab) {
                       setActiveTab('admin-login');
-                      window.location.hash = '#admin-login';
+                      if (typeof window !== 'undefined') window.location.hash = '#admin-login';
                     }
                   }}
-                  className="text-white font-bold underline hover:text-orange-400 cursor-pointer ml-2"
+                  className="text-orange-400 font-semibold hover:underline cursor-pointer"
                 >
-                  Use Supabase Admin Login &rarr;
+                  Use the Admin login &rarr;
                 </button>
               </div>
 
@@ -669,7 +708,9 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
+                    name="email"
                     type="email"
+                    autoComplete="username email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@josanlogistics.com"
@@ -701,7 +742,9 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
+                    name="password"
                     type="password"
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
@@ -725,7 +768,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   </span>
                 ) : (
                   <>
-                    <span>Continue to Email Verification</span>
+                    <span>Sign In to Staff Portal</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

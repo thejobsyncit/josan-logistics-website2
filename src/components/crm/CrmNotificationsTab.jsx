@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { deduplicateNotifications } from '../../context/LogisticsContext';
+import { formatNotificationTime } from '../../utils/dateTime';
 import { 
   Bell, 
   Search, 
@@ -72,7 +73,8 @@ export const CrmNotificationsTab = ({
   onMarkAsRead,
   onMarkAllAsRead,
   onClearNotifications,
-  onNavigateTab
+  onNavigateTab,
+  onNotificationClick
 }) => {
   const [filter, setFilter] = useState('All'); // 'All' | 'Unread' | 'Airway' | 'Road' | 'Quotes' | 'Billing'
   const [search, setSearch] = useState('');
@@ -84,6 +86,7 @@ export const CrmNotificationsTab = ({
     const term = search.trim().toLowerCase();
     const matchesSearch = !term ||
       (n.title && n.title.toLowerCase().includes(term)) ||
+      (n.body && n.body.toLowerCase().includes(term)) ||
       (n.message && n.message.toLowerCase().includes(term)) ||
       (n.type && n.type.toLowerCase().includes(term)) ||
       (n.shipmentId && String(n.shipmentId).toLowerCase().includes(term)) ||
@@ -93,7 +96,7 @@ export const CrmNotificationsTab = ({
     let matchesFilter = true;
     const category = getNotificationCategory(n);
 
-    if (filter === 'Unread') matchesFilter = !n.read;
+    if (filter === 'Unread') matchesFilter = !n.read_at;
     else if (filter === 'Airway') matchesFilter = category === 'airway';
     else if (filter === 'Road') matchesFilter = category === 'road';
     else if (filter === 'Billing') matchesFilter = category === 'billing';
@@ -128,7 +131,7 @@ export const CrmNotificationsTab = ({
     return null;
   };
 
-  const unreadCount = safeNotifications.filter(n => !n.read).length;
+  const unreadCount = safeNotifications.filter(n => !n.read_at).length;
 
   const handleMarkAsRead = (id) => {
     if (typeof onMarkAsRead === 'function') {
@@ -235,12 +238,23 @@ export const CrmNotificationsTab = ({
           filteredNotifications.map((n, idx) => {
             const destTab = getDestinationTab(n);
             const notifKey = n.id ? `notif-${n.id}` : `notif-${idx}`;
-            const isRead = Boolean(n.read);
+            const isRead = Boolean(n.read_at);
+            const timeDisplay = formatNotificationTime(n.created_at || n.createdAt);
+
+            const handleCardClick = () => {
+              if (typeof onNotificationClick === 'function') {
+                onNotificationClick(n);
+              } else {
+                if (!isRead) handleMarkAsRead(n.id);
+                if (destTab) handleNavigate(destTab);
+              }
+            };
 
             return (
               <div
                 key={notifKey}
-                className={`p-4 sm:p-5 flex items-start justify-between gap-4 transition-colors ${
+                onClick={handleCardClick}
+                className={`p-4 sm:p-5 flex items-start justify-between gap-4 transition-colors cursor-pointer ${
                   !isRead ? 'bg-[#EAF2FF]/30 hover:bg-[#EAF2FF]/50' : 'hover:bg-slate-50/80'
                 }`}
               >
@@ -259,12 +273,14 @@ export const CrmNotificationsTab = ({
                       )}
                     </div>
 
-                    <p className="text-slate-600 text-xs leading-relaxed">
-                      {n.message || 'Notification alert received.'}
-                    </p>
+                    {(n.body || n.message) && (
+                      <p className="text-slate-600 text-xs leading-relaxed break-words">
+                        {n.body || n.message}
+                      </p>
+                    )}
 
                     <div className="flex items-center space-x-3 text-[10px] text-slate-400 font-mono pt-0.5">
-                      <span>{n.timestamp || 'Recent'}</span>
+                      <span>{timeDisplay}</span>
                       {n.shipmentId && (
                         <span className="text-slate-500 font-bold">Consignment: #{n.shipmentId}</span>
                       )}
@@ -276,7 +292,7 @@ export const CrmNotificationsTab = ({
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center space-x-1.5 shrink-0">
+                <div className="flex items-center space-x-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                   {!isRead && (
                     <button
                       type="button"
@@ -287,10 +303,10 @@ export const CrmNotificationsTab = ({
                       <Check className="w-4 h-4" />
                     </button>
                   )}
-                  {destTab && (
+                  {(n.link || destTab) && (
                     <button
                       type="button"
-                      onClick={() => handleNavigate(destTab)}
+                      onClick={handleCardClick}
                       className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                     >
                       View

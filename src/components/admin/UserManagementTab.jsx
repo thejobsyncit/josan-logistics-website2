@@ -26,7 +26,7 @@ import {
 import { useLogistics } from '../../context/LogisticsContext';
 import { supabase } from '../../services/supabase';
 import { supabaseApi } from '../../services/supabaseApi';
-import { inviteStaffMember, getStoredStaffToken } from '../../utils/staffApi';
+import { inviteStaffMember } from '../../utils/staffApi';
 
 export const UserManagementTab = () => {
   const { currentUser, showToast, addNotification } = useLogistics();
@@ -233,7 +233,7 @@ export const UserManagementTab = () => {
 
       // Requirement 4: Create staff only through a server function that uses the service-role key (server only)
       // Never set a role directly from the browser!
-      const token = getStoredStaffToken() || (await supabase.auth.getSession())?.data?.session?.access_token;
+      const token = (await supabase.auth.getSession())?.data?.session?.access_token;
       
       const res = await inviteStaffMember(token, {
         name: cleanName,

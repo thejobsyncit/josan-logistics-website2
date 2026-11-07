@@ -1,12 +1,24 @@
 import React from 'react';
-import { Bell, CheckCheck, Trash2, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bell, CheckCheck, Clock, ExternalLink } from 'lucide-react';
+import { formatNotificationTime } from '../../utils/dateTime';
 
 export const NotificationsTab = ({
   notifications = [],
   onMarkAsRead,
   onMarkAllAsRead,
-  onClearNotifications
+  onClearNotifications,
+  onNotificationClick
 }) => {
+  const unreadAlertsCount = notifications.filter(n => !n.read_at).length;
+
+  const handleClickItem = (item) => {
+    if (typeof onNotificationClick === 'function') {
+      onNotificationClick(item);
+    } else if (typeof onMarkAsRead === 'function') {
+      onMarkAsRead(item.id);
+    }
+  };
+
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6 animate-fade-in">
       {/* Header */}
@@ -17,7 +29,7 @@ export const NotificationsTab = ({
               Operations Center
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
-              {notifications.filter(n => !n.read).length} Unread Alerts
+              {unreadAlertsCount} Unread Alerts
             </span>
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mt-1">Operational Alerts & Notifications</h2>
@@ -27,8 +39,9 @@ export const NotificationsTab = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {notifications.length > 0 && onMarkAllAsRead && (
+          {unreadAlertsCount > 0 && onMarkAllAsRead && (
             <button
+              type="button"
               onClick={onMarkAllAsRead}
               className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer"
             >
@@ -48,38 +61,56 @@ export const NotificationsTab = ({
             <p className="text-xs text-slate-400 mt-0.5">No unread operational alerts at this time.</p>
           </div>
         ) : (
-          notifications.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onMarkAsRead && onMarkAsRead(item.id)}
-              className={`p-4 rounded-2xl border transition-all flex items-start justify-between cursor-pointer ${
-                item.read 
-                  ? 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/60' 
-                  : 'bg-[#EAF2FF]/40 border-[#DCE5F0] hover:bg-[#EAF2FF]/80 shadow-2xs'
-              }`}
-            >
-              <div className="flex items-start space-x-3">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                  item.read ? 'bg-slate-200 text-slate-600' : 'bg-[#2463EB] text-white shadow-xs'
-                }`}>
-                  <Bell className="w-4 h-4" />
+          notifications.map((item) => {
+            const isRead = Boolean(item.read_at);
+            const timeDisplay = formatNotificationTime(item.created_at || item.createdAt);
+
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleClickItem(item)}
+                className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-3 cursor-pointer ${
+                  isRead 
+                    ? 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/60' 
+                    : 'bg-[#EAF2FF]/40 border-[#DCE5F0] hover:bg-[#EAF2FF]/80 shadow-2xs'
+                }`}
+              >
+                <div className="flex items-start space-x-3.5 flex-1 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                    isRead ? 'bg-slate-200 text-slate-600' : 'bg-[#2463EB] text-white shadow-xs'
+                  }`}>
+                    <Bell className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <p className={`text-xs ${isRead ? 'text-slate-700 font-medium' : 'text-slate-900 font-extrabold'}`}>
+                      {item.title || 'System Notification'}
+                    </p>
+                    {item.body && (
+                      <p className="text-xs text-slate-600 leading-relaxed break-words">
+                        {item.body}
+                      </p>
+                    )}
+                    <p className="text-[10px] text-slate-400 font-mono pt-0.5 flex items-center space-x-1">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      <span>{timeDisplay}</span>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className={`text-xs ${item.read ? 'text-slate-700 font-medium' : 'text-slate-900 font-extrabold'}`}>
-                    {item.title || item.message}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-mono mt-1 flex items-center space-x-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{item.time || item.timestamp || 'Just now'}</span>
-                  </p>
+
+                <div className="flex items-center space-x-2 shrink-0">
+                  {item.link && (
+                    <span className="text-[11px] font-bold text-[#2463EB] flex items-center space-x-1 hover:underline">
+                      <span>View</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </span>
+                  )}
+                  {!isRead && (
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2463EB] shrink-0" />
+                  )}
                 </div>
               </div>
-
-              {!item.read && (
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2463EB] shrink-0 mt-2" />
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

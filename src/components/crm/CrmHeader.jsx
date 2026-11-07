@@ -13,6 +13,8 @@ import {
   FileText, 
   ExternalLink
 } from 'lucide-react';
+import { canEditRole, normalizeRole } from '../../utils/roles';
+import { formatNotificationTime } from '../../utils/dateTime';
 
 export const CrmHeader = ({
   activeTab = 'dashboard',
@@ -95,7 +97,7 @@ export const CrmHeader = ({
   // Compute unread count reliably
   const unreadCount = typeof unreadNotifCount === 'number'
     ? unreadNotifCount
-    : (notifications || []).filter(n => !n.read).length;
+    : (notifications || []).filter(n => !n.read_at).length;
 
   const toggleQuickAction = () => {
     setIsQuickActionOpen(prev => {
@@ -188,104 +190,105 @@ export const CrmHeader = ({
           <span>{liveDate ? `${liveDate}, ${liveTime}` : 'Loading SGT...'}</span>
         </div>
 
-        {/* Quick Action Dropdown */}
-        {/* Quick Action Dropdown */}
-        <div className="relative" ref={quickActionRef}>
-          <button
-            type="button"
-            onClick={toggleQuickAction}
-            className="flex items-center space-x-1.5 px-3 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Intake</span>
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isQuickActionOpen ? 'rotate-180' : ''}`} />
-          </button>
+        {/* Quick Action Dropdown (Hidden for READONLY) */}
+        {canEditRole(currentUser?.role || currentUser?.rawRole) && (
+          <div className="relative" ref={quickActionRef}>
+            <button
+              type="button"
+              onClick={toggleQuickAction}
+              className="flex items-center space-x-1.5 px-3 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">New Intake</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isQuickActionOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-          {isQuickActionOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 animate-fade-in text-xs font-bold text-slate-700">
-              <div className="px-3 py-1.5 text-[10px] uppercase font-black tracking-wider text-slate-400">
-                Logistics Workflows
+            {isQuickActionOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 animate-fade-in text-xs font-bold text-slate-700">
+                <div className="px-3 py-1.5 text-[10px] uppercase font-black tracking-wider text-slate-400">
+                  Logistics Workflows
+                </div>
+
+                {/* 1. Air Freight Request */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectQuickAction(onOpenNewAirway)}
+                  className="w-full px-3 py-2 text-left hover:bg-orange-50 hover:text-orange-950 flex items-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                    <Plane className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900 leading-tight">Air Freight Request</p>
+                    <p className="text-[10px] text-slate-500 font-medium">AWB, docs &amp; airport transfer</p>
+                  </div>
+                </button>
+
+                {/* 2. Road Coordination */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectQuickAction(onOpenNewRoad)}
+                  className="w-full px-3 py-2 text-left hover:bg-emerald-50 hover:text-emerald-950 flex items-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Truck className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900 leading-tight">Road Coordination</p>
+                    <p className="text-[10px] text-slate-500 font-medium">Book commercial roadway</p>
+                  </div>
+                </button>
+
+                {/* 3. Create Quotation */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectQuickAction(onOpenNewQuote)}
+                  className="w-full px-3 py-2 text-left hover:bg-purple-50 hover:text-purple-700 flex items-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900 leading-tight">Create Quotation</p>
+                    <p className="text-[10px] text-slate-500 font-medium">Itemized customer quote</p>
+                  </div>
+                </button>
+
+                <div className="my-1 border-t border-slate-100"></div>
+
+                {/* 4. Add Customer */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectQuickAction(onOpenNewCustomer)}
+                  className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <Users className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900 leading-tight">Add Customer</p>
+                    <p className="text-[10px] text-slate-500 font-medium">New corporate account</p>
+                  </div>
+                </button>
+
+                {/* 5. Shipment Documents */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectQuickAction(onOpenUploadDoc)}
+                  className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <FileText className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900 leading-tight">Shipment Documents</p>
+                    <p className="text-[10px] text-slate-500 font-medium">Invoices, packing lists &amp; AWB</p>
+                  </div>
+                </button>
               </div>
-
-              {/* 1. Air Freight Request */}
-              <button
-                type="button"
-                onClick={() => handleSelectQuickAction(onOpenNewAirway)}
-                className="w-full px-3 py-2 text-left hover:bg-orange-50 hover:text-orange-950 flex items-center space-x-2 transition-colors cursor-pointer"
-              >
-                <div className="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                  <Plane className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Air Freight Request</p>
-                  <p className="text-[10px] text-slate-500 font-medium">AWB, docs &amp; airport transfer</p>
-                </div>
-              </button>
-
-              {/* 2. Road Coordination */}
-              <button
-                type="button"
-                onClick={() => handleSelectQuickAction(onOpenNewRoad)}
-                className="w-full px-3 py-2 text-left hover:bg-emerald-50 hover:text-emerald-950 flex items-center space-x-2 transition-colors cursor-pointer"
-              >
-                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Truck className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Road Coordination</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Book commercial roadway</p>
-                </div>
-              </button>
-
-              {/* 3. Create Quotation */}
-              <button
-                type="button"
-                onClick={() => handleSelectQuickAction(onOpenNewQuote)}
-                className="w-full px-3 py-2 text-left hover:bg-purple-50 hover:text-purple-700 flex items-center space-x-2 transition-colors cursor-pointer"
-              >
-                <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Create Quotation</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Itemized customer quote</p>
-                </div>
-              </button>
-
-              <div className="my-1 border-t border-slate-100"></div>
-
-              {/* 4. Add Customer */}
-              <button
-                type="button"
-                onClick={() => handleSelectQuickAction(onOpenNewCustomer)}
-                className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center space-x-2 transition-colors cursor-pointer"
-              >
-                <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                  <Users className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Add Customer</p>
-                  <p className="text-[10px] text-slate-500 font-medium">New corporate account</p>
-                </div>
-              </button>
-
-              {/* 5. Shipment Documents */}
-              <button
-                type="button"
-                onClick={() => handleSelectQuickAction(onOpenUploadDoc)}
-                className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center space-x-2 transition-colors cursor-pointer"
-              >
-                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <FileText className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="font-extrabold text-slate-900 leading-tight">Shipment Documents</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Invoices, packing lists &amp; AWB</p>
-                </div>
-              </button>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Notifications Bell */}
         <div className="relative" ref={notifRef}>
@@ -332,30 +335,40 @@ export const CrmHeader = ({
                     No active notifications
                   </div>
                 ) : (
-                  notifications.slice(0, 8).map((n) => (
-                    <div
-                      key={n.id}
-                      onClick={() => handleSelectNotification(n)}
-                      className={`p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer flex items-start space-x-3 ${
-                        !n.read ? 'bg-[#EAF2FF]/40' : ''
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center shrink-0 mt-0.5">
-                        <Bell className="w-4 h-4" />
+                  notifications.slice(0, 8).map((n) => {
+                    const isRead = Boolean(n.read_at);
+                    const timeDisplay = formatNotificationTime(n.created_at || n.createdAt);
+
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => handleSelectNotification(n)}
+                        className={`p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer flex items-start space-x-3 ${
+                          !isRead ? 'bg-[#EAF2FF]/40' : ''
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center shrink-0 mt-0.5">
+                          <Bell className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-extrabold text-slate-900 line-clamp-1">
+                            {n.title}
+                          </p>
+                          {(n.body || n.message) && (
+                            <p className="text-[11px] text-slate-500 font-medium line-clamp-2 mt-0.5">
+                              {n.body || n.message}
+                            </p>
+                          )}
+                          <span className="text-[10px] text-slate-400 font-mono mt-1 block">
+                            {timeDisplay}
+                          </span>
+                        </div>
+                        {!isRead && (
+                          <span className="w-2 h-2 rounded-full bg-[#2463EB] shrink-0 mt-1" />
+                        )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-extrabold text-slate-900 line-clamp-1">
-                          {n.title}
-                        </p>
-                        <p className="text-[11px] text-slate-500 font-medium line-clamp-2 mt-0.5">
-                          {n.message}
-                        </p>
-                        <span className="text-[10px] text-slate-400 font-mono mt-1 block">
-                          {n.timestamp || 'Recent'}
-                        </span>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -376,7 +389,8 @@ export const CrmHeader = ({
         {/* CRM Operator Profile Pill */}
         {(() => {
           const staffName = currentUser?.name || currentUser?.fullName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Staff Member');
-          const staffRole = currentUser?.displayRole || (currentUser?.role === 'admin' ? 'Administrator' : 'CRM Operations');
+          const normRole = normalizeRole(currentUser?.role || currentUser?.rawRole);
+          const staffRole = currentUser?.displayRole || (normRole === 'ADMIN' ? 'Administrator' : normRole === 'READONLY' ? 'Read-only' : 'CRM Operations');
           const staffInitial = (staffName.charAt(0) || currentUser?.email?.charAt(0) || 'S').toUpperCase();
 
           return (

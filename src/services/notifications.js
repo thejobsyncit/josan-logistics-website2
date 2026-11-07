@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { formatNotificationTime } from '../utils/dateTime';
 
 export const notificationsService = {
   /**
@@ -26,9 +27,11 @@ export const notificationsService = {
 
       return (data || []).map(n => ({
         ...n,
-        message: n.body || n.message,
+        body: n.body || '',
+        message: n.body || n.message || n.title,
         read: Boolean(n.read_at),
-        timestamp: n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'
+        read_at: n.read_at || null,
+        timestamp: formatNotificationTime(n.created_at)
       }));
     } catch (err) {
       console.warn('[NotificationsService] Error fetching notifications:', err);
