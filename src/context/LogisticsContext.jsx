@@ -27,6 +27,7 @@ import {
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
 import { fetchServerShipmentReference } from '../utils/referenceApi';
+import { normalizeRole, isStaffRole, canEditRole } from '../utils/roles';
 
 // Helper to deduplicate notifications and strip seed/test data
 export const deduplicateNotifications = (list) => {
@@ -963,23 +964,19 @@ export const LogisticsProvider = ({ children }) => {
         if (parsed?.isTest || parsed?.isDemo) {
           localStorage.removeItem('josan_user');
           localStorage.removeItem('josan_staff_user');
-          localStorage.removeItem('josan_staff_token');
           setCurrentUser(null);
         }
       }
     } catch (e) {}
   }, []);
 
-  // Load staff quotes from Supabase quote_requests table for logged-in staff
+  // Load quotes from Supabase quote_requests table for logged-in staff (ADMIN, CRM, READONLY)
   useEffect(() => {
-    const isStaff = Boolean(
-      currentUser && (
-        ['ADMIN', 'CRM', 'OPERATIONS', 'STAFF'].includes((currentUser.role || currentUser.rawRole || '').toUpperCase()) ||
-        currentUser.email?.endsWith('@josanlogistics.com') ||
-        currentUser.email?.endsWith('@josanlogistics.com.sg')
-      )
+    const canLoadQuotes = Boolean(
+      currentUser &&
+      isStaffRole(currentUser?.role || currentUser?.rawRole)
     );
-    if (!isStaff) {
+    if (!canLoadQuotes) {
       setQuotes([]);
       return;
     }
@@ -1061,7 +1058,13 @@ export const LogisticsProvider = ({ children }) => {
           .order('created_at', { ascending: false });
 
         if (!error && Array.isArray(data)) {
-          setNotifications(data);
+          setNotifications(data.map(n => ({
+            ...n,
+            body: n.body || '',
+            message: n.body || n.message || n.title,
+            read: Boolean(n.read_at),
+            read_at: n.read_at || null
+          })));
         }
       } catch (e) {
         console.warn('[LogisticsContext] Could not load notifications from Supabase:', e);
@@ -1213,7 +1216,8 @@ export const LogisticsProvider = ({ children }) => {
 
   // Auth login
   const loginUser = (email, password, role, setActiveTab, details = {}) => {
-    const userRole = role || (email.includes('admin') ? 'admin' : email.includes('driver') ? 'driver' : 'customer');
+    const normalizedInputRole = role ? normalizeRole(role) : null;
+    const userRole = normalizedInputRole || (role === 'driver' || (!role && email && email.includes('driver')) ? 'driver' : 'CUSTOMER');
     
     let matchedDriver = null;
     let matchedCustomer = null;
@@ -1229,25 +1233,26 @@ export const LogisticsProvider = ({ children }) => {
       if (!matchedDriver) {
         return { success: false, error: 'Driver account not found. Drivers must be provisioned by Admin in the Admin Control Portal first.' };
       }
-    } else if (userRole === 'admin' || userRole === 'crm' || userRole === 'read_only') {
+    } else if (isStaffRole(userRole)) {
       // Staff accounts authenticate through the secure server staff authentication endpoint
       // No plain text demo passwords accepted
-    } else if (userRole === 'customer') {
+    } else if (normalizeRole(userRole) === 'CUSTOMER' || userRole === 'customer') {
       const cleanEmail = (email || '').trim().toLowerCase();
       matchedCustomer = (customers || []).find(c => c.email && c.email.trim().toLowerCase() === cleanEmail);
     }
 
+    const normRole = normalizeRole(userRole);
     const userObj = {
       id: details.id || `USER-${Date.now()}`,
-      name: details.name || details.fullName || matchedDriver?.name || matchedCustomer?.name || (userRole === 'admin' 
+      name: details.name || details.fullName || matchedDriver?.name || matchedCustomer?.name || (normRole === 'ADMIN' 
         ? 'Fleet Admin Manager' 
         : userRole === 'driver' 
         ? 'Robert Martinez (Driver)' 
         : (email ? email.split('@')[0] : 'Customer')),
       email: matchedDriver?.email || email,
-      role: userRole,
-      displayRole: details.displayRole || (userRole === 'admin' ? 'Admin' : userRole === 'crm' ? 'CRM Operations' : 'Customer'),
-      company: details.company || matchedDriver?.assignedHub || matchedCustomer?.company || (userRole === 'admin' 
+      role: normRole || userRole,
+      displayRole: details.displayRole || (normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : normRole === 'READONLY' ? 'Read-only' : 'Customer'),
+      company: details.company || matchedDriver?.assignedHub || matchedCustomer?.company || (normRole === 'ADMIN' 
         ? 'Josan Logistics Operations' 
         : userRole === 'driver' 
         ? 'Josan Fleet Operations' 
@@ -1259,16 +1264,16 @@ export const LogisticsProvider = ({ children }) => {
       ...details
     };
     setCurrentUser(userObj);
-    setCurrentRole(userRole);
+    setCurrentRole(normRole || userRole);
     try {
       localStorage.setItem('josan_user', JSON.stringify(userObj));
-      localStorage.setItem('josan_role', userRole);
-      if (userRole === 'admin' || userRole === 'crm' || userRole === 'read_only' || userRole?.startsWith('crm_')) {
+      localStorage.setItem('josan_role', normRole || userRole);
+      if (isStaffRole(userRole)) {
         localStorage.setItem('josan_staff_user', JSON.stringify(userObj));
       }
     } catch (e) {}
 
-    if (userRole === 'customer') {
+    if (normRole === 'CUSTOMER' || userRole === 'customer') {
       const newCustObj = {
         id: matchedCustomer?.id || `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
         name: userObj.name,
@@ -1293,33 +1298,37 @@ export const LogisticsProvider = ({ children }) => {
 
     // Enforce Strict Portal Redirection
     if (setActiveTab) {
-      if (authRedirectTab && userRole === 'customer') {
+      if (authRedirectTab && (normRole === 'CUSTOMER' || userRole === 'customer')) {
         setActiveTab(authRedirectTab, true, userObj);
         setAuthRedirectTab(null);
-      } else if (wasForcedBookingModal && userRole === 'customer') {
+      } else if (wasForcedBookingModal && (normRole === 'CUSTOMER' || userRole === 'customer')) {
         setActiveTab('book', true, userObj);
-      } else if (userRole === 'admin') {
+      } else if (normRole === 'ADMIN') {
         setActiveTab('admin-dashboard', true, userObj);
-      } else if (userRole === 'crm' || userRole === 'read_only' || userRole === 'read-only' || userRole?.startsWith('crm_')) {
+      } else if (isStaffRole(userRole)) {
         setActiveTab('crm', true, userObj);
       } else {
         setActiveTab('customer-dashboard', true, userObj);
       }
     }
 
-    const portalName = userRole === 'admin' ? 'Admin Hub' : userRole === 'driver' ? 'Driver Portal' : 'Customer Portal';
+    const portalName = normRole === 'ADMIN' ? 'Admin Hub' : userRole === 'driver' ? 'Driver Portal' : isStaffRole(userRole) ? 'CRM Portal' : 'Customer Portal';
     showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
     return { success: true, user: userObj };
   };
 
   const logoutUser = (silent = false) => {
     setCurrentUser(null);
-    setCurrentRole('customer');
+    setCurrentRole('CUSTOMER');
     try {
-      localStorage.removeItem('josan_user');
-      localStorage.removeItem('josan_staff_user');
-      localStorage.removeItem('josan_staff_token');
-      localStorage.removeItem('josan_role');
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('josan_')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
     } catch (e) {}
 
@@ -1815,17 +1824,30 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const markNotificationAsRead = async (id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    if (!id) return;
+    const nowIso = new Date().toISOString();
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: n.read_at || nowIso, read: true } : n));
     try {
-      await supabase.from('notifications').update({ read: true }).eq('id', id);
+      if (currentUser?.id) {
+        await supabase
+          .from('notifications')
+          .update({ read_at: nowIso })
+          .eq('id', id)
+          .eq('user_id', currentUser.id);
+      }
     } catch (_) {}
   };
 
-  const markAllNotificationsAsRead = async (role) => {
-    setNotifications(prev => prev.map(n => (!role || n.role === role) ? { ...n, read: true } : n));
+  const markAllNotificationsAsRead = async () => {
+    const nowIso = new Date().toISOString();
+    setNotifications(prev => prev.map(n => ({ ...n, read_at: n.read_at || nowIso, read: true })));
     if (currentUser?.id) {
       try {
-        await supabase.from('notifications').update({ read: true }).eq('user_id', currentUser.id);
+        await supabase
+          .from('notifications')
+          .update({ read_at: nowIso })
+          .eq('user_id', currentUser.id)
+          .is('read_at', null);
       } catch (_) {}
     }
     showToast('All notifications marked as read', 'info');
@@ -1946,6 +1968,11 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const updateAdminQuote = async (quoteId, quotedAmount, adminNotes) => {
+    const rawRole = currentUser?.role || currentUser?.rawRole || currentRole;
+    if (!canEditRole(rawRole)) {
+      if (showToast) showToast('You do not have permission.', 'error');
+      return;
+    }
     const amountVal = Number(quotedAmount);
     const nowIso = new Date().toISOString();
 

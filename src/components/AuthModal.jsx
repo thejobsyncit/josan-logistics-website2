@@ -75,17 +75,27 @@ export const AuthModal = ({ setActiveTab }) => {
     e.preventDefault();
     setError('');
 
-    if (!email.trim()) {
+    const formData = e.currentTarget instanceof HTMLFormElement ? new FormData(e.currentTarget) : null;
+    const cleanEmail = ((formData?.get('email') || email || '') + '').trim().toLowerCase();
+    const cleanPassword = ((formData?.get('password') || password || '') + '');
+    const cleanConfirm = ((formData?.get('confirmPassword') || confirmPassword || '') + '');
+
+    if (!cleanEmail) {
       setError('Please enter your email address.');
       return;
     }
 
-    if (!validateEmail(email)) {
+    if (!validateEmail(cleanEmail)) {
       setError('Please enter a valid email format (e.g. user@company.com)');
       return;
     }
 
-    if (!isLogin && password !== confirmPassword) {
+    if (!cleanPassword) {
+      setError('Please enter your password.');
+      return;
+    }
+
+    if (!isLogin && cleanPassword !== cleanConfirm) {
       setError('Passwords do not match');
       return;
     }
@@ -99,7 +109,7 @@ export const AuthModal = ({ setActiveTab }) => {
     if (isSupabaseConfigured) {
       if (isLogin) {
         try {
-          const sbRes = await supabaseApi.signIn({ email: email.trim(), password });
+          const sbRes = await supabaseApi.signIn({ email: cleanEmail, password: cleanPassword });
           if (sbRes?.error) {
             console.warn('[AuthModal] Supabase auth sign-in notice:', sbRes.error);
             // Allow fallback to app authentication logic (loginUser) for demo/local profiles
@@ -110,8 +120,8 @@ export const AuthModal = ({ setActiveTab }) => {
       } else {
         try {
           const sbRes = await supabaseApi.signUp({
-            email: email.trim(),
-            password,
+            email: cleanEmail,
+            password: cleanPassword,
             fullName,
             phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
           });
@@ -143,8 +153,8 @@ export const AuthModal = ({ setActiveTab }) => {
     }
 
     const res = loginUser(
-      email.trim(),
-      password,
+      cleanEmail,
+      cleanPassword,
       role,
       setActiveTab,
       {
@@ -304,7 +314,9 @@ export const AuthModal = ({ setActiveTab }) => {
                     <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
                     <div className="relative">
                       <input
+                        name="email"
                         type="email"
+                        autoComplete="email"
                         pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                         title="Please enter a valid email address (e.g. user@company.com)"
                         value={email}
@@ -362,7 +374,9 @@ export const AuthModal = ({ setActiveTab }) => {
                   </label>
                   <div className="relative">
                     <input
+                      name="email"
                       type="text"
+                      autoComplete="username email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={role === 'driver' ? 'e.g. gurpreet@josanlogistics.com or +65 XXXX XXXX' : 'user@company.com'}
@@ -384,7 +398,9 @@ export const AuthModal = ({ setActiveTab }) => {
                 <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
                 <div className="relative">
                   <input
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete={isLogin ? 'current-password' : 'new-password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -410,7 +426,9 @@ export const AuthModal = ({ setActiveTab }) => {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Confirm Password</label>
                   <div className="relative">
                     <input
+                      name="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"

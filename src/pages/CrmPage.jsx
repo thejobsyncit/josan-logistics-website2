@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { supabase } from '../services/supabase';
 
 // Modular CRM Components
 import { CrmSidebar, CRM_TABS } from '../components/crm/CrmSidebar';
@@ -80,6 +81,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
   const [selectedCustomerModal, setSelectedCustomerModal] = useState(null);
   const [selectedInvoiceModal, setSelectedInvoiceModal] = useState(null);
   const [selectedDocModal, setSelectedDocModal] = useState(null);
+  const [selectedQuoteModal, setSelectedQuoteModal] = useState(null);
 
   // Global Quick Action triggers for header
   const [triggerNewAirway, setTriggerNewAirway] = useState(false);
@@ -102,7 +104,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
       quotes: quotes.filter(q => q.status === 'New').length,
       billing: invoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Pending').length,
       partners: transportationPartners.length,
-      notifs: notifications.filter(n => !n.read).length
+      notifs: notifications.filter(n => !n.read_at).length
     };
   }, [customers, airwayRequests, shipments, documents, quotes, invoices, transportationPartners, notifications]);
 
@@ -127,13 +129,59 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
     setActiveTab('billing');
   };
 
-  const handleNotificationClick = (n) => {
-    markNotificationAsRead(n.id);
-    if (n.type?.includes('airway')) setActiveTab('airway-requests');
-    else if (n.type?.includes('partner') || n.type?.includes('shipment')) setActiveTab('road-shipments');
-    else if (n.type?.includes('quote')) setActiveTab('quotations');
-    else if (n.type?.includes('billing')) setActiveTab('billing');
-    else setActiveTab('notifications');
+  const handleNotificationClick = async (n) => {
+    if (!n) return;
+    if (markNotificationAsRead) {
+      await markNotificationAsRead(n.id);
+    }
+    if (n.link) {
+      const match = (n.body || '').match(/Reference\s+([A-Za-z0-9-_]+)/i);
+      const ref = match ? match[1] : (n.quoteId || n.reference || null);
+      let targetQuote = quotes.find(q => (ref && (q.reference === ref || q.referenceNumber === ref || q.id === ref)) || (n.quoteId && q.id === n.quoteId));
+      if (!targetQuote && ref) {
+        try {
+          const { data: dbQuote } = await supabase
+            .from('quote_requests')
+            .select('*')
+            .or(`reference.eq.${ref},id.eq.${ref}`)
+            .maybeSingle();
+          if (dbQuote) {
+            targetQuote = {
+              id: dbQuote.id,
+              reference: dbQuote.reference,
+              referenceNumber: dbQuote.reference,
+              service: dbQuote.service_type === 'AIR_FREIGHT_DOCS'
+                ? 'Air Freight Documentation Support'
+                : dbQuote.service_type === 'ROAD_TRANSPORT'
+                  ? 'Commercial Road Transportation Coordination'
+                  : 'Shipment Documentation Support',
+              customerName: dbQuote.contact_name,
+              company: dbQuote.company_name || dbQuote.contact_name,
+              customerEmail: dbQuote.contact_email,
+              customerPhone: dbQuote.contact_phone,
+              origin: dbQuote.pickup_location || 'Singapore',
+              destination: dbQuote.delivery_location || 'Singapore',
+              status: dbQuote.status || 'New',
+              amount: dbQuote.quoted_amount,
+              quoted_amount: dbQuote.quoted_amount,
+              cargoCategory: dbQuote.cargo_classification,
+              notes: dbQuote.cargo_description,
+              adminNotes: dbQuote.admin_notes,
+              createdAt: dbQuote.created_at,
+              created_at: dbQuote.created_at
+            };
+          }
+        } catch (_) {}
+      }
+      setSelectedQuoteModal(targetQuote || { id: ref || 'quote', reference: ref || 'Quotation', status: 'New' });
+      setActiveTab('quotations');
+    } else {
+      if (n.type?.includes('airway')) setActiveTab('airway-requests');
+      else if (n.type?.includes('partner') || n.type?.includes('shipment')) setActiveTab('road-shipments');
+      else if (n.type?.includes('quote')) setActiveTab('quotations');
+      else if (n.type?.includes('billing')) setActiveTab('billing');
+      else setActiveTab('notifications');
+    }
   };
 
   const activeUser = currentUser || (() => {
@@ -146,7 +194,12 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
 
   // Guard against unauthenticated access
   useEffect(() => {
-    if (!activeUser) {
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user') || 'null');
+    } catch (e) {}
+    const effectiveStaff = activeUser || saved;
+    if (!effectiveStaff) {
       if (setParentActiveTab) {
         setParentActiveTab('staff-login');
       } else if (typeof window !== 'undefined') {
@@ -322,6 +375,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
               onUpdateQuoteStatus={customerRespondQuote}
               onUpdateQuotePricing={updateAdminQuote}
               onConvertQuote={() => {}}
+              selectedQuoteFromSearch={selectedQuoteModal}
             />
           )}
 
@@ -358,6 +412,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
               onMarkAllAsRead={markAllNotificationsAsRead}
               onClearNotifications={clearNotifications}
               onNavigateTab={setActiveTab}
+              onNotificationClick={handleNotificationClick}
             />
           )}
 

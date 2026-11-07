@@ -8,7 +8,8 @@ import {
   Bell, 
   BarChart3, 
   Settings, 
-  ArrowLeft 
+  ArrowLeft,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export const AdminSidebar = ({ 
@@ -19,6 +20,7 @@ export const AdminSidebar = ({
 }) => {
   const navItems = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'quotations', label: 'Quotations', icon: FileSpreadsheet, count: counts.quotes },
     { id: 'users', label: 'User Management', icon: Users, count: counts.users },
     { id: 'roles', label: 'Roles & Permissions', icon: ShieldCheck },
     { id: 'website_content', label: 'Website Content', icon: Globe },

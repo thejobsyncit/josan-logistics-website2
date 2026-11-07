@@ -216,15 +216,15 @@ export const CrmSettingsTab = ({
       {/* Operational Notification Preferences */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-4 text-xs font-bold">
         <div className="border-b border-slate-100 pb-3">
-          <h3 className="font-extrabold text-slate-900 text-sm">Automated Alerts & Dispatch Triggers</h3>
-          <p className="text-slate-500 font-medium">Configure real-time notification dispatches to operators</p>
+          <h3 className="font-extrabold text-slate-900 text-sm">Automated Alerts & Notification Triggers</h3>
+          <p className="text-slate-500 font-medium">Configure real-time notifications to operators</p>
         </div>
 
         <div className="space-y-3">
           {[
             { id: 'emailOnAirwayIntake', title: 'New Airway Service Intake', desc: 'Notify operations desk immediately when a customer submits Request Airway Service.' },
             { id: 'emailOnQuoteAccepted', title: 'Customer Quotation Approval', desc: 'Alert account managers when a proposal is accepted by shipper.' },
-            { id: 'smsOnPartnerAssigned', title: 'Road Partner Dispatch Alert', desc: 'Notify transportation partners upon road haulage consignment assignment.' },
+            { id: 'smsOnPartnerAssigned', title: 'Road Partner Assignment Alert', desc: 'Notify transportation partners upon road haulage consignment assignment.' },
             { id: 'alertOnDocumentUploaded', title: 'Document Vault Clearance Audit', desc: 'Queue compliance officer review upon document upload.' }
           ].map((item) => (
             <label key={item.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3 cursor-pointer">

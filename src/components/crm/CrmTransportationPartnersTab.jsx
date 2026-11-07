@@ -427,7 +427,7 @@ export const CrmTransportationPartnersTab = ({
                     type="email"
                     value={newPartnerData.email}
                     onChange={(e) => setNewPartnerData({ ...newPartnerData, email: e.target.value })}
-                    placeholder="dispatch@partner.sg"
+                    placeholder="contact@partner.sg"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   />
                 </div>

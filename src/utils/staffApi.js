@@ -3,16 +3,9 @@
  * Communicates with server endpoints in /api/staff/*
  */
 
-export const STAFF_TOKEN_KEY = 'josan_staff_token';
-export const STAFF_USER_KEY = 'josan_staff_user';
+import { supabase } from '../services/supabase';
 
-export function getStoredStaffToken() {
-  try {
-    return localStorage.getItem(STAFF_TOKEN_KEY) || '';
-  } catch (e) {
-    return '';
-  }
-}
+export const STAFF_USER_KEY = 'josan_staff_user';
 
 export function getStoredStaffUser() {
   try {
@@ -25,7 +18,6 @@ export function getStoredStaffUser() {
 
 export function storeStaffAuthSession(token, user) {
   try {
-    if (token) localStorage.setItem(STAFF_TOKEN_KEY, token);
     if (user) localStorage.setItem(STAFF_USER_KEY, JSON.stringify(user));
   } catch (e) {
     console.warn('[StaffApi] LocalStorage error:', e);
@@ -34,7 +26,6 @@ export function storeStaffAuthSession(token, user) {
 
 export function clearStoredStaffSession() {
   try {
-    localStorage.removeItem(STAFF_TOKEN_KEY);
     localStorage.removeItem(STAFF_USER_KEY);
   } catch (e) {
     // Ignore
@@ -42,7 +33,13 @@ export function clearStoredStaffSession() {
 }
 
 async function staffRequest(endpoint, options = {}) {
-  const token = options.token || getStoredStaffToken();
+  let token = options.token;
+  if (!token) {
+    try {
+      const { data } = await supabase.auth.getSession();
+      token = data?.session?.access_token || '';
+    } catch (e) {}
+  }
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {})

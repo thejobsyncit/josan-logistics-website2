@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { supabase } from '../services/supabase';
+import { normalizeRole } from '../utils/roles';
 import { 
   Lock, 
   Mail, 
@@ -22,16 +23,34 @@ export const AdminLoginPage = ({ setActiveTab }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [fullName, setFullName] = useState('System Administrator');
+
+  const performFullSignOutCleanup = async () => {
+    try {
+      if (supabase && supabase.auth) {
+        await supabase.auth.signOut().catch(() => {});
+      }
+    } catch (e) {}
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('josan_')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch (e) {}
+  };
 
   const handleAdminSignIn = async (e) => {
     if (e) e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
 
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPassword = (password || '').trim();
+    const formData = (e && e.currentTarget instanceof HTMLFormElement) ? new FormData(e.currentTarget) : null;
+    const cleanEmail = ((formData?.get('email') || email || '') + '').trim().toLowerCase();
+    const cleanPassword = ((formData?.get('password') || password || '') + '').trim();
 
     if (!cleanEmail || !cleanPassword) {
       setErrorMessage('Please enter both your admin email and password.');
@@ -41,28 +60,8 @@ export const AdminLoginPage = ({ setActiveTab }) => {
     setLoading(true);
 
     try {
-      if (isRegisterMode) {
-        // Sign up in Supabase (trigger assigns CUSTOMER role; admin role must be assigned by existing admin)
-        const { data, error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password: cleanPassword,
-          options: {
-            data: {
-              full_name: fullName
-            }
-          }
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        if (data?.user) {
-          setSuccessMessage('Account created in Supabase! Signing you in...');
-          loginAsAdminSession(data.user, data.session?.access_token, 'ADMIN');
-          return;
-        }
-      }
+      // Clear any pre-existing sessions first
+      await performFullSignOutCleanup();
 
       // 1. Authenticate with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -70,58 +69,73 @@ export const AdminLoginPage = ({ setActiveTab }) => {
         password: cleanPassword,
       });
 
-      if (error) {
-        if (error.message?.toLowerCase().includes('invalid login credentials')) {
+      if (error || !data?.user) {
+        await performFullSignOutCleanup();
+        if (error?.message?.toLowerCase().includes('invalid login credentials')) {
           setErrorMessage('Invalid email or password. Please verify your credentials.');
         } else {
-          setErrorMessage(error.message || 'Supabase authentication failed.');
+          setErrorMessage(error?.message || 'Authentication failed.');
         }
         setLoading(false);
         return;
       }
 
-      if (data?.user) {
-        setSuccessMessage('Authentication successful! Opening Admin Portal...');
-        loginAsAdminSession(data.user, data.session?.access_token, 'ADMIN');
-      } else {
-        setErrorMessage('Authentication succeeded but no user session was returned.');
+      // 2. Read role and status from public.profiles
+      const { data: profile, error: pError } = await supabase
+        .from('profiles')
+        .select('id, role, status, name, email, company')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (pError || !profile) {
+        await performFullSignOutCleanup();
+        setErrorMessage('Access denied. Administrator credentials required.');
         setLoading(false);
+        return;
       }
+
+      // Check status: must be Active
+      if ((profile.status || '').toLowerCase() !== 'active') {
+        await performFullSignOutCleanup();
+        setErrorMessage('Access denied. Administrator credentials required.');
+        setLoading(false);
+        return;
+      }
+
+      // Check role: must be ADMIN only
+      const normRole = normalizeRole(profile.role);
+      if (normRole !== 'ADMIN') {
+        await performFullSignOutCleanup();
+        setErrorMessage('Access denied. Administrator credentials required.');
+        setLoading(false);
+        return;
+      }
+
+      // Successful Admin Authentication
+      setSuccessMessage('Authentication successful! Opening Admin Portal...');
+      loginAsAdminSession(data.user, data.session?.access_token, profile);
     } catch (err) {
-      console.error('Admin Supabase Auth Error:', err);
-      setErrorMessage(err.message || 'Failed to authenticate with Supabase.');
+      await performFullSignOutCleanup();
+      setErrorMessage('Access denied. Administrator credentials required.');
       setLoading(false);
     }
   };
 
-  // If already authenticated as admin, automatically route to admin dashboard
-  React.useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('josan_user') || 'null');
-      if (saved && (saved.role || '').toLowerCase() === 'admin') {
-        if (typeof setActiveTab === 'function') {
-          setActiveTab('admin-dashboard', true, saved);
-        }
-      }
-    } catch (e) {}
-  }, []);
-
-  const loginAsAdminSession = (supabaseUser, token, displayRole = 'ADMIN') => {
+  const loginAsAdminSession = (supabaseUser, token, profile) => {
     const adminUser = {
-      id: supabaseUser?.id || `ADM-${Date.now()}`,
-      name: supabaseUser?.user_metadata?.full_name || fullName || 'System Administrator',
+      id: supabaseUser?.id || profile?.id || `ADM-${Date.now()}`,
+      name: profile?.name || supabaseUser?.user_metadata?.full_name || 'System Administrator',
       email: supabaseUser?.email || email,
-      role: 'admin',
+      role: 'ADMIN',
       displayRole: 'Admin',
-      company: 'Josan Logistics Operations',
+      company: profile?.company || 'Josan Logistics Operations',
       phone: supabaseUser?.user_metadata?.phone || '+65 6789 0123'
     };
 
     try {
       localStorage.setItem('josan_user', JSON.stringify(adminUser));
-      localStorage.setItem('josan_role', 'admin');
+      localStorage.setItem('josan_role', 'ADMIN');
       localStorage.setItem('josan_staff_user', JSON.stringify(adminUser));
-      localStorage.setItem('josan_staff_token', token || 'supabase_admin_token_' + Date.now());
     } catch (e) {
       console.warn('LocalStorage error:', e);
     }
@@ -130,7 +144,7 @@ export const AdminLoginPage = ({ setActiveTab }) => {
       setCurrentUser(adminUser);
     }
     if (typeof setCurrentRole === 'function') {
-      setCurrentRole('admin');
+      setCurrentRole('ADMIN');
     }
 
     if (showToast) {
@@ -172,12 +186,10 @@ export const AdminLoginPage = ({ setActiveTab }) => {
           </div>
 
           <h1 className="text-2xl font-black text-white tracking-tight pt-2">
-            {isRegisterMode ? 'Register Admin Account' : 'Admin Portal Sign In'}
+            Admin Portal Sign In
           </h1>
           <p className="text-xs text-slate-400">
-            {isRegisterMode 
-              ? 'Create your administrator credentials in Supabase'
-              : 'Direct authentication powered by Supabase Auth'}
+            Restricted administrative control portal for Josan Logistics operations
           </p>
         </div>
 
@@ -202,23 +214,6 @@ export const AdminLoginPage = ({ setActiveTab }) => {
 
           <form onSubmit={handleAdminSignIn} className="space-y-4">
             
-            {/* Full Name field if register mode */}
-            {isRegisterMode && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-                  Admin Name
-                </label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. System Administrator"
-                  className="w-full px-4 py-3 bg-[#132A4A] border border-[#1E3A5F] rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#F26B21] transition-colors"
-                  required
-                />
-              </div>
-            )}
-
             {/* Email Field */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
@@ -227,7 +222,9 @@ export const AdminLoginPage = ({ setActiveTab }) => {
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
+                  name="email"
                   type="email"
+                  autoComplete="username email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@josan.sg"
@@ -243,16 +240,13 @@ export const AdminLoginPage = ({ setActiveTab }) => {
                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                   Admin Password
                 </label>
-                {!isRegisterMode && (
-                  <span className="text-[11px] text-slate-400">
-                    Supabase Auth
-                  </span>
-                )}
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
@@ -279,33 +273,16 @@ export const AdminLoginPage = ({ setActiveTab }) => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Connecting to Supabase...</span>
+                  <span>Authenticating...</span>
                 </>
               ) : (
                 <>
-                  <span>{isRegisterMode ? 'Create Admin Account' : 'Sign In as Administrator'}</span>
+                  <span>Sign In as Administrator</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
-
-          {/* Toggle between Login and Register Mode */}
-          <div className="pt-2 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegisterMode(!isRegisterMode);
-                setErrorMessage('');
-                setSuccessMessage('');
-              }}
-              className="text-xs text-[#F26B21] hover:underline cursor-pointer font-semibold"
-            >
-              {isRegisterMode 
-                ? 'Already have an admin account in Supabase? Sign in here' 
-                : 'Need to create this admin account in your new Supabase project? Click here'}
-            </button>
-          </div>
         </div>
 
         {/* Back Link */}

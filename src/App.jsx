@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LogisticsProvider, useLogistics } from './context/LogisticsContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -27,6 +27,8 @@ import { AdminLoginPage } from './pages/AdminLoginPage';
 import { LegalDialog, openLegalDialog } from './components/LegalDialog';
 import { CookieBanner } from './components/CookieBanner';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
+import { normalizeRole, isStaffRole } from './utils/roles';
+import { supabase } from './services/supabase';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -98,7 +100,7 @@ const ToastNotification = () => {
 };
 
 const MainContent = () => {
-  const { currentRole, currentUser, loginUser, logoutUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentRole, setCurrentRole, currentUser, setCurrentUser, loginUser, logoutUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
 
   const validTabs = [
     'home', 
@@ -152,15 +154,16 @@ const MainContent = () => {
     ) {
       return 'staff-login';
     }
-    const currentRoleLower = (currentUser?.role || '').toLowerCase();
+
     if (
       path === '/crm' || 
       path.endsWith('/crm') || 
       rawHash === 'crm' || 
       rawHash === '/crm'
     ) {
-      return currentUser && (currentRoleLower === 'admin' || currentRoleLower === 'crm' || currentRoleLower.startsWith('crm_') || currentRoleLower === 'read-only' || currentRoleLower === 'read_only') ? 'crm' : 'staff-login';
+      return 'crm';
     }
+
     if (
       path === '/admin' || 
       path.endsWith('/admin') || 
@@ -168,7 +171,7 @@ const MainContent = () => {
       rawHash === '/admin' || 
       rawHash === 'admin-dashboard'
     ) {
-      return currentUser && currentRoleLower === 'admin' ? 'admin-dashboard' : 'admin-login';
+      return 'admin-dashboard';
     }
     if (
       path === '/privacy-policy' || 
@@ -227,55 +230,208 @@ const MainContent = () => {
     return validTabs.includes(rawHash) ? rawHash : 'home';
   });
 
-  // Strict protected role routes: redirect unauthenticated staff to /admin-login or /staff-login
+  const [isVerifyingRoute, setIsVerifyingRoute] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const rawHash = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
+    return (
+      path === '/crm' || path.endsWith('/crm') || rawHash === 'crm' || rawHash === '/crm' ||
+      path === '/admin' || path.endsWith('/admin') || rawHash === 'admin' || rawHash === '/admin' || rawHash === 'admin-dashboard'
+    );
+  });
+
+  const lastVerifiedTabRef = useRef(null);
+  const currentUserRef = useRef(currentUser);
+  const currentRoleRef = useRef(currentRole);
+
   useEffect(() => {
-    let savedUser = null;
-    let savedStaffUser = null;
+    currentUserRef.current = currentUser;
+    if (!currentUser) {
+      lastVerifiedTabRef.current = null;
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    currentRoleRef.current = currentRole;
+  }, [currentRole]);
+
+  // Security Route Guard:
+  // On every load and refresh of /crm and /admin, get Supabase session and read role & status from public.profiles.
+  // Allow /crm only for ADMIN, CRM, or READONLY with status Active; /admin only for ADMIN.
+  // Wrapped in try/catch/finally with an 8-second timeout. Fails closed on timeout or error.
+  const failClosedSignOut = async (destTab = 'staff-login', reasonMsg = 'Could not verify access. Please sign in again.') => {
     try {
-      savedUser = JSON.parse(localStorage.getItem('josan_user') || 'null');
-      savedStaffUser = JSON.parse(localStorage.getItem('josan_staff_user') || 'null');
-    } catch (e) {}
-    const activeUser = currentUser || savedStaffUser || savedUser;
-    const storedRole = (typeof window !== 'undefined' ? localStorage.getItem('josan_role') : '') || '';
-    const userRole = (activeUser?.role || currentRole || storedRole || '').toLowerCase();
-    const isStaff = Boolean(activeUser && (userRole === 'admin' || userRole === 'crm' || userRole?.startsWith('crm_') || userRole === 'read-only' || userRole === 'read_only'));
-
-    if (activeTab === 'crm' || activeTab === 'admin-dashboard') {
-      if (!isStaff) {
-        if (showToast) {
-          showToast('Staff authentication required to access this portal.', 'warning');
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('josan_')) {
+          keysToRemove.push(key);
         }
-        changeActiveTab(activeTab === 'crm' ? 'staff-login' : 'admin-login');
-        return;
       }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch (e) {}
 
-      // Requirement 5: A CRM user must not be able to open the Admin workspace
-      if (activeTab === 'admin-dashboard' && userRole !== 'admin') {
-        if (isStaff && (userRole === 'crm' || userRole === 'read-only' || userRole === 'read_only')) {
-          if (showToast) {
-            showToast('Access Denied: Only Administrator accounts can access the Admin workspace.', 'error');
-          }
-          changeActiveTab('crm');
-          return;
-        } else {
-          changeActiveTab('admin-login');
-          return;
-        }
+    try {
+      if (supabase && supabase.auth) {
+        await supabase.auth.signOut().catch(() => {});
+      }
+    } catch (e) {}
+
+    lastVerifiedTabRef.current = null;
+    if (setCurrentUser) setCurrentUser(null);
+    if (setCurrentRole) setCurrentRole('CUSTOMER');
+    setIsVerifyingRoute(false);
+    if (showToast && reasonMsg) {
+      showToast(reasonMsg, 'error');
+    }
+    setActiveTab(destTab);
+    if (typeof window !== 'undefined') {
+      window.location.hash = `#${destTab}`;
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({ tab: destTab }, '', `#${destTab}`);
       }
     }
+  };
 
-    // Automatically log out admin session when returning to public website pages
-    const isSpecialAdminPortalTab = 
-      activeTab === 'admin-dashboard' || 
-      activeTab === 'crm' || 
-      activeTab === 'staff-login' || 
-      activeTab === 'admin-login';
+  const performSecurityCheck = async (targetTab, marker) => {
+    let timeoutId = null;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('VERIFY_TIMEOUT'));
+      }, 8000);
+    });
 
-    if (!isSpecialAdminPortalTab && userRole === 'admin') {
-      logoutUser(true);
+    try {
+      await Promise.race([
+        (async () => {
+          if (!supabase || !supabase.auth) {
+            throw new Error('NO_SUPABASE');
+          }
+
+          // 1. Get Supabase session
+          const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+          if (marker.cancelled) return;
+
+          const session = sessionData?.session;
+          if (sessionErr || !session || !session.user) {
+            throw new Error('NO_SESSION');
+          }
+
+          // 2. Read role and status from public.profiles
+          const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('id, role, status, name, email, company')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          if (marker.cancelled) return;
+
+          if (profileErr || !profile) {
+            throw new Error('NO_PROFILE');
+          }
+
+          // 3. Status check: Active only
+          const status = (profile.status || '').toLowerCase();
+          if (status !== 'active') {
+            throw new Error('INACTIVE');
+          }
+
+          // 4. Normalize role
+          const normRole = normalizeRole(profile.role);
+
+          // Allow /crm only for ADMIN, CRM or READONLY with status Active
+          if (targetTab === 'crm') {
+            if (!isStaffRole(normRole)) {
+              throw new Error('UNAUTHORIZED_ROLE');
+            }
+          } else if (targetTab === 'admin-dashboard') {
+            if (normRole === 'ADMIN') {
+              // Authorized
+            } else if (isStaffRole(normRole)) {
+              // Staff account but not admin -> redirect to crm
+              if (marker.cancelled) return;
+              lastVerifiedTabRef.current = 'crm';
+              if (showToast) {
+                showToast('Access Denied: Only Administrator accounts can access the Admin workspace.', 'error');
+              }
+              setActiveTab('crm');
+              if (typeof window !== 'undefined') {
+                window.location.hash = '#crm';
+                if (window.history && window.history.replaceState) {
+                  window.history.replaceState({ tab: 'crm' }, '', '#crm');
+                }
+              }
+              return;
+            } else {
+              throw new Error('UNAUTHORIZED_ROLE');
+            }
+          }
+
+          if (marker.cancelled) return;
+
+          // Successfully verified
+          lastVerifiedTabRef.current = targetTab;
+
+          const verifiedUser = {
+            id: session.user.id,
+            name: profile.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Staff Member',
+            email: session.user.email,
+            role: normRole,
+            rawRole: normRole,
+            displayRole: normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only',
+            company: profile.company || 'Josan Logistics Operations',
+            status: profile.status
+          };
+          if (setCurrentUser) setCurrentUser(verifiedUser);
+          if (setCurrentRole) setCurrentRole(normRole);
+        })(),
+        timeoutPromise
+      ]);
+    } catch (err) {
+      if (marker.cancelled) return;
+      marker.cancelled = true;
+      await failClosedSignOut(
+        'staff-login',
+        'Could not verify access. Please sign in again.'
+      );
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!marker.cancelled) {
+        setIsVerifyingRoute(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'crm' && activeTab !== 'admin-dashboard') {
+      setIsVerifyingRoute(false);
+      lastVerifiedTabRef.current = null;
       return;
     }
 
+    // Run once per navigation; do not re-run if already verified for this tab
+    if (lastVerifiedTabRef.current === activeTab) {
+      setIsVerifyingRoute(false);
+      return;
+    }
+
+    setIsVerifyingRoute(true);
+
+    const marker = { cancelled: false };
+
+    // Run outside of any synchronous auth callback turn
+    const timer = setTimeout(() => {
+      performSecurityCheck(activeTab, marker);
+    }, 0);
+
+    return () => {
+      marker.cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [activeTab]);
+
+  // Customer protected routes check
+  useEffect(() => {
     if (!currentUser) {
       if (['customer-dashboard', 'my-shipments', 'manage-shipment', 'quote'].includes(activeTab)) {
         if (activeTab === 'quote' && setAuthRedirectTab) {
@@ -287,6 +443,18 @@ const MainContent = () => {
         }
         changeActiveTab('home');
       }
+    }
+
+    // Automatically log out admin session when returning to public website pages
+    const isSpecialAdminPortalTab = 
+      activeTab === 'admin-dashboard' || 
+      activeTab === 'crm' || 
+      activeTab === 'staff-login' || 
+      activeTab === 'admin-login';
+
+    const effectiveRole = normalizeRole(currentUser?.role || currentRole);
+    if (!isSpecialAdminPortalTab && effectiveRole === 'ADMIN') {
+      logoutUser(true);
     }
   }, [currentUser, activeTab]);
 
@@ -383,9 +551,10 @@ const MainContent = () => {
     }
     const savedLocalUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user') || 'null') : null;
     const effectiveUser = (userOverride !== null && userOverride !== undefined) ? userOverride : (currentUser || savedLocalUser);
-    const effectiveRole = (effectiveUser?.role || currentRole || savedLocalUser?.role || '').toLowerCase();
+    const effectiveRole = normalizeRole(effectiveUser?.role || currentRole || savedLocalUser?.role);
+    const isStaffAuth = Boolean(effectiveUser && isStaffRole(effectiveRole));
 
-    // Check authentication for protected pages
+    // Check authentication for protected customer pages
     if (!effectiveUser && (
       tab === 'customer-dashboard' || 
       tab === 'my-shipments' || 
@@ -407,40 +576,40 @@ const MainContent = () => {
       return;
     }
 
-    const userRoleLower = (effectiveRole || '').toLowerCase();
-    const isStaffAuth = effectiveUser && (userRoleLower === 'admin' || userRoleLower === 'crm' || userRoleLower?.startsWith('crm_') || userRoleLower === 'read-only' || userRoleLower === 'read_only');
-
-    // Protected CRM route check
-    if (tab === 'crm') {
-      if (!isStaffAuth) {
-        if (showToast) showToast('Staff sign in required for CRM Operations.', 'warning');
-        setActiveTab('staff-login');
-        window.location.hash = '#staff-login';
-        return;
+    // Protected CRM and Admin route checks: handled strictly by security route guard via database
+    if (tab === 'crm' || tab === 'admin-dashboard' || tab === 'admin') {
+      const dest = tab === 'admin' ? 'admin-dashboard' : tab;
+      if (lastVerifiedTabRef.current !== dest) {
+        setIsVerifyingRoute(true);
       }
-    }
-
-    // Protected Admin workspace route check (Requirement 5)
-    if (tab === 'admin-dashboard' || tab === 'admin') {
-      if (!effectiveUser || userRoleLower !== 'admin') {
-        if (effectiveUser && (userRoleLower === 'crm' || userRoleLower === 'read-only' || userRoleLower === 'read_only')) {
-          if (showToast) showToast('Access Denied: Only Administrator accounts can access the Admin workspace.', 'error');
-          setActiveTab('crm');
-          window.location.hash = '#crm';
-        } else {
-          setActiveTab('admin-login');
-          window.location.hash = '#admin-login';
+      setActiveTab(dest);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      const hash = `#${dest}`;
+      if (typeof window !== 'undefined') {
+        if (window.location.hash !== hash) {
+          window.location.hash = hash;
         }
-        return;
+        if (pushHistory && !window.location.hash.startsWith('#track-map-')) {
+          try {
+            window.history.pushState({ tab: dest }, '', hash);
+          } catch (e) {}
+        }
       }
+      return;
     }
 
     setActiveTab(tab);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const hash = `#${tab}`;
-    window.location.hash = hash;
-    if (pushHistory && !window.location.hash.startsWith('#track-map-')) {
-      window.history.pushState({ tab }, '', hash);
+    if (typeof window !== 'undefined') {
+      if (window.location.hash !== hash) {
+        window.location.hash = hash;
+      }
+      if (pushHistory && !window.location.hash.startsWith('#track-map-')) {
+        try {
+          window.history.pushState({ tab }, '', hash);
+        } catch (e) {}
+      }
     }
   };
 
@@ -448,69 +617,61 @@ const MainContent = () => {
   useEffect(() => {
     const syncHistoryState = (e) => {
       const path = window.location.pathname.toLowerCase();
-      const rawHash = window.location.hash.toLowerCase();
+      const rawHash = (window.location.hash || '').toLowerCase();
+      const cleanHash = rawHash.replace(/^#\/?/, '').toLowerCase();
       
-      // Protected staff login route
+      // Staff login route
       if (
         path === '/staff-login' || 
         path.endsWith('/staff-login') || 
         rawHash === '#staff-login' || 
         rawHash === '#/staff-login' ||
         rawHash === '#staff/login' ||
-        rawHash === '#/staff/login'
+        rawHash === '#/staff/login' ||
+        cleanHash === 'staff-login'
       ) {
         setActiveTab('staff-login');
         return;
       }
 
       // Privacy policy & Terms of service routes: open pop-up dialog without reloading or clearing form state
-      if (path === '/privacy-policy' || path === '/privacy' || rawHash === '#privacy-policy' || rawHash === '#/privacy-policy' || rawHash === '#privacy') {
+      if (path === '/privacy-policy' || path === '/privacy' || rawHash === '#privacy-policy' || rawHash === '#/privacy-policy' || rawHash === '#privacy' || cleanHash === 'privacy-policy' || cleanHash === 'privacy') {
         openLegalDialog('privacy');
         return;
       }
 
-      if (path === '/terms-of-service' || path === '/terms' || rawHash === '#terms-of-service' || rawHash === '#/terms-of-service' || rawHash === '#terms') {
+      if (path === '/terms-of-service' || path === '/terms' || rawHash === '#terms-of-service' || rawHash === '#/terms-of-service' || rawHash === '#terms' || cleanHash === 'terms-of-service' || cleanHash === 'terms') {
         openLegalDialog('terms');
         return;
       }
 
-      // Direct /crm route: requires staff login
-      if (path === '/crm' || path.endsWith('/crm') || rawHash === '#crm' || rawHash === '#/crm') {
-        let savedUser = null;
-        let savedStaffUser = null;
-        try {
-          savedUser = JSON.parse(localStorage.getItem('josan_user') || 'null');
-          savedStaffUser = JSON.parse(localStorage.getItem('josan_staff_user') || 'null');
-        } catch (e) {}
-        const activeStaffUser = currentUser || savedStaffUser || savedUser;
-        const storedRole = (typeof window !== 'undefined' ? localStorage.getItem('josan_role') : '') || '';
-        const userRole = (activeStaffUser?.role || currentRole || storedRole || '').toLowerCase();
-        if (activeStaffUser && (userRole === 'admin' || userRole === 'crm' || userRole?.startsWith('crm_') || userRole === 'read-only' || userRole === 'read_only')) {
-          setActiveTab('crm');
-        } else {
-          setActiveTab('staff-login');
-          if (showToast) showToast('Please authenticate with staff credentials to access CRM Operations.', 'warning');
+      // Direct /crm route: guarded by security route guard via database
+      if (path === '/crm' || path.endsWith('/crm') || rawHash === '#crm' || rawHash === '#/crm' || cleanHash === 'crm') {
+        if (lastVerifiedTabRef.current !== 'crm') {
+          setIsVerifyingRoute(true);
         }
+        setActiveTab('crm');
         return;
       }
 
-      // Secret /admin direct route: requires admin login
-      if (path === '/admin' || path.endsWith('/admin') || rawHash === '#admin' || rawHash === '#/admin' || rawHash === '#admin-dashboard' || rawHash === '#admin-login' || path === '/admin-login') {
-        const savedUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('josan_user') || 'null') : null;
-        const activeAdminUser = currentUser || savedUser;
-        const userRole = (activeAdminUser?.role || currentRole || '').toLowerCase();
-        if (activeAdminUser && userRole === 'admin') {
-          setActiveTab('admin-dashboard');
-        } else {
-          setActiveTab('admin-login');
+      // Direct /admin route: guarded by security route guard via database
+      if (path === '/admin-login' || rawHash === '#admin-login' || cleanHash === 'admin-login') {
+        setActiveTab('admin-login');
+        return;
+      }
+
+      if (path === '/admin' || path.endsWith('/admin') || rawHash === '#admin' || rawHash === '#/admin' || rawHash === '#admin-dashboard' || cleanHash === 'admin' || cleanHash === 'admin-dashboard') {
+        if (lastVerifiedTabRef.current !== 'admin-dashboard') {
+          setIsVerifyingRoute(true);
         }
+        setActiveTab('admin-dashboard');
         return;
       }
 
       // Protected /driver direct route check
       if (path === '/driver' || path.endsWith('/driver') || rawHash === '#driver' || rawHash === '#/driver' || rawHash === '#driver-dashboard') {
-        const userRole = currentUser?.role || currentRole;
-        if (currentUser && userRole === 'driver') {
+        const userRole = currentUserRef.current?.role || currentRoleRef.current;
+        if (currentUserRef.current && userRole === 'driver') {
           setActiveTab('driver-dashboard');
         } else {
           setIsAuthModalOpen(true);
@@ -526,7 +687,7 @@ const MainContent = () => {
       }
 
       if (rawHash === '#quote' || rawHash === '#/quote' || path === '/quote') {
-        if (!currentUser) {
+        if (!currentUserRef.current) {
           if (setAuthRedirectTab) setAuthRedirectTab('quote');
           setIsAuthModalOpen(true);
           if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
@@ -584,7 +745,6 @@ const MainContent = () => {
         return;
       }
 
-      const cleanHash = rawHash.replace('#', '');
       if (cleanHash && validTabs.includes(cleanHash)) {
         setActiveTab(cleanHash);
       } else if (cleanHash && document.getElementById(cleanHash)) {
@@ -604,14 +764,22 @@ const MainContent = () => {
       window.removeEventListener('popstate', syncHistoryState);
       window.removeEventListener('hashchange', syncHistoryState);
     };
-  }, [currentUser, currentRole]);
+  }, []);
 
   const renderPage = () => {
+    if (isVerifyingRoute && (activeTab === 'crm' || activeTab === 'admin-dashboard')) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
+          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-semibold text-slate-300">Verifying secure authorization...</p>
+        </div>
+      );
+    }
+
     const savedUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('josan_user') || 'null') : null;
     const activeAuthUser = currentUser || savedUser;
 
     if (!activeAuthUser && (
-      activeTab === 'admin-dashboard' || 
       activeTab === 'customer-dashboard' || 
       activeTab === 'my-shipments' || 
       activeTab === 'manage-shipment'

@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useLogistics } from '../../context/LogisticsContext';
 import { supabase } from '../../services/supabase';
+import { canEditRole, isStaffRole, normalizeRole } from '../../utils/roles';
+import { formatSingaporeDateTime } from '../../utils/dateTime';
 
 export const QUOTE_STATUS_OPTIONS = [
   'New',
@@ -69,7 +71,9 @@ export const CrmQuotationsTab = ({
   onUpdateQuotePricing,
   selectedQuoteFromSearch = null
 }) => {
-  const { siteSettings, updateAdminQuote, showToast } = useLogistics?.() || {};
+  const { siteSettings, updateAdminQuote, showToast, currentUser, currentRole } = useLogistics?.() || {};
+  const activeRole = currentUser?.role || currentUser?.rawRole || currentRole;
+  const isReadOnly = !canEditRole(activeRole);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [serviceFilter, setServiceFilter] = useState('All');
@@ -115,6 +119,10 @@ export const CrmQuotationsTab = ({
 
   const handleSaveStaffPrice = async () => {
     if (!viewingQuote) return;
+    if (isReadOnly) {
+      if (showToast) showToast('You do not have permission.', 'error');
+      return;
+    }
     const amountVal = Number(quotedAmountInput);
     if (isNaN(amountVal) || amountVal <= 0) {
       if (showToast) showToast('Please enter a valid quoted amount above 0', 'error');
@@ -263,6 +271,10 @@ export const CrmQuotationsTab = ({
 
   const handleStatusTransition = async (quoteId, nextStatus) => {
     if (!QUOTE_STATUS_OPTIONS.includes(nextStatus)) return;
+    if (isReadOnly) {
+      if (showToast) showToast('You do not have permission.', 'error');
+      return;
+    }
     try {
       const { error } = await supabase
         .from('quote_requests')
@@ -397,7 +409,7 @@ export const CrmQuotationsTab = ({
               <div class="grid-title">SERVICE SCOPE & REFERENCE</div>
               <p class="grid-val">${q.service || q.cargoCategory || 'Airway & Transportation'}</p>
               <p style="margin: 2px 0 0 0; color: #64748b;">Ref: #${q.requestId || 'DIRECT'}</p>
-              <p style="margin: 2px 0 0 0; color: #64748b;">Date: ${q.createdAt?.split(',')[0] || q.quotationDate || 'Recent'}</p>
+              <p style="margin: 2px 0 0 0; color: #64748b;">Date: ${formatSingaporeDateTime(q.created_at || q.createdAt || q.quotationDate) || 'Recent'}</p>
             </div>
           </div>
 
@@ -459,18 +471,20 @@ export const CrmQuotationsTab = ({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Prepare, review, dispatch, and track itemized pricing quotations for air freight services and commercial road transportation.
+            Prepare, review and track pricing quotations for air freight documentation support and commercial road transport coordination.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Quotation</span>
-        </button>
+        {!isReadOnly && (
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Quotation</span>
+          </button>
+        )}
       </div>
 
       {/* Filter and Search Bar */}
@@ -597,7 +611,7 @@ export const CrmQuotationsTab = ({
 
                       {/* Date */}
                       <td className="p-4 text-slate-500 font-mono text-[11px]">
-                        {q.createdAt?.split(',')[0] || q.quotationDate || 'Recent'}
+                        {formatSingaporeDateTime(q.created_at || q.createdAt || q.quotationDate) || 'Recent'}
                       </td>
 
                       {/* Actions */}
@@ -730,9 +744,14 @@ export const CrmQuotationsTab = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Quoted amount (S$)
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-700 block">
+                        Quoted amount (S$)
+                      </label>
+                      {isReadOnly && (
+                        <span className="text-[10px] text-amber-600 font-semibold">Read-only access</span>
+                      )}
+                    </div>
                     <div className="relative">
                       <span className="absolute left-3 top-2 font-mono text-slate-400 text-xs">S$</span>
                       <input
@@ -742,9 +761,13 @@ export const CrmQuotationsTab = ({
                         placeholder="0.00"
                         value={quotedAmountInput}
                         onChange={(e) => setQuotedAmountInput(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB] outline-hidden"
+                        disabled={isReadOnly}
+                        className={`w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB] outline-hidden ${isReadOnly ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-500' : ''}`}
                       />
                     </div>
+                    {isReadOnly && (
+                      <span className="text-[10px] text-slate-500 font-medium mt-1 block">Read-only access</span>
+                    )}
                   </div>
 
                   <div>
@@ -756,19 +779,27 @@ export const CrmQuotationsTab = ({
                       value={staffNotesInput}
                       onChange={(e) => setStaffNotesInput(e.target.value)}
                       placeholder="e.g. Rate confirmed with haulier"
-                      className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB] outline-hidden"
+                      disabled={isReadOnly}
+                      className={`w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB] outline-hidden ${isReadOnly ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-500' : ''}`}
                     />
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[10px] text-slate-400">
-                    * No automatic GST added (GST registration pending).
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] text-slate-400">
+                      * No automatic GST added (GST registration pending).
+                    </span>
+                    {isReadOnly && (
+                      <span className="text-[10px] text-amber-600 font-semibold">Read-only access</span>
+                    )}
+                  </div>
                   <button
                     type="button"
+                    disabled={isReadOnly}
                     onClick={handleSaveStaffPrice}
-                    className="px-4 py-1.5 bg-[#2463EB] hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs active:scale-95 flex items-center space-x-1.5 cursor-pointer text-xs transition-all"
+                    className={`px-4 py-1.5 bg-[#2463EB] hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs active:scale-95 flex items-center space-x-1.5 text-xs transition-all ${isReadOnly ? 'opacity-50 cursor-not-allowed hover:bg-[#2463EB]' : 'cursor-pointer'}`}
+                    title={isReadOnly ? "Read-only access" : "Save Quoted Amount"}
                   >
                     <Save className="w-3.5 h-3.5" />
                     <span>Save Quoted Amount</span>
@@ -818,8 +849,9 @@ export const CrmQuotationsTab = ({
                     <span className="text-[11px] font-bold text-slate-500">Status:</span>
                     <select
                       value={viewingQuote.status || 'New'}
+                      disabled={isReadOnly}
                       onChange={(e) => handleStatusTransition(viewingQuote.id, e.target.value)}
-                      className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                      className={`px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none ${isReadOnly ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-500' : 'cursor-pointer'}`}
                     >
                       {QUOTE_STATUS_OPTIONS.map(st => (
                         <option key={st} value={st}>{st}</option>
