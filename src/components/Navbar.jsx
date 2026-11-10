@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
 import { normalizeRole, isStaffRole } from '../utils/roles';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
@@ -330,7 +331,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
             className="flex items-center space-x-3 cursor-pointer group shrink-0 mr-10"
           >
             <img 
-              src="/assets/josan_logo.png" 
+              src={josanLogo} 
               alt="Josan Logistics Logo" 
               className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform duration-200" 
             />

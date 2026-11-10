@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
 import { X, Printer, Download, Truck, CheckCircle2, ShieldCheck, FileText, CreditCard, QrCode, Lock, Loader2, ExternalLink } from 'lucide-react';
 import { jsPDF } from 'jspdf';
@@ -55,7 +56,7 @@ export const InvoiceModal = () => {
       return;
     }
 
-    const logoUrl = `${window.location.origin}/assets/josan_logo.png`;
+    const logoUrl = josanLogo.startsWith('http') ? josanLogo : `${window.location.origin}${josanLogo}`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -581,7 +582,7 @@ export const InvoiceModal = () => {
             <div>
               <div className="flex items-center space-x-2 mb-1">
                 <div className="bg-[#0B1F5B] p-2 rounded-xl inline-block shadow-xs">
-                  <img src="/assets/josan_logo.png" alt="Josan Logistics Logo" className="h-9 w-auto object-contain" />
+                  <img src={josanLogo} alt="Josan Logistics Logo" className="h-9 w-auto object-contain" />
                 </div>
               </div>
               <p className="text-xs text-slate-500 font-semibold">Regional & Global Supply Chain Management</p>
