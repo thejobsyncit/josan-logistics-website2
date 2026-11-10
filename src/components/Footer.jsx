@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import josanLogo from '../assets/josan_logo.png';
 import { 
   Truck, 
   Mail, 
@@ -36,7 +37,7 @@ export const Footer = ({ setActiveTab }) => {
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
                 <img 
-                  src="/assets/josan_logo.png" 
+                  src={josanLogo} 
                   alt="Josan Logistics Logo" 
                   className="h-10 w-auto object-contain" 
                 />

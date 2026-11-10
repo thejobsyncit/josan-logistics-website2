@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { X, Lock, Mail, ArrowRight, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
@@ -201,7 +202,7 @@ export const AuthModal = ({ setActiveTab }) => {
         {/* Header Banner */}
         <div className="bg-[#10182D] p-5 text-white sticky top-0 z-10 flex items-center justify-between border-b border-slate-800 shadow-sm">
           <div className="flex items-center space-x-2.5">
-            <img src="/assets/josan_logo.png" alt="Josan Logistics" className="h-10 w-auto object-contain" />
+            <img src={josanLogo} alt="Josan Logistics" className="h-10 w-auto object-contain" />
             <div>
               <h3 className="text-base font-bold tracking-tight font-heading text-white">
                 {isLogin ? 'Sign In' : 'Create Account'}

@@ -1,4 +1,5 @@
 import React from 'react';
+import josanLogo from '../../assets/josan_logo.png';
 import { 
   LayoutDashboard, 
   Users, 
@@ -40,7 +41,7 @@ export const AdminSidebar = ({
           className="flex items-center space-x-3 cursor-pointer group px-2 py-1"
         >
           <img 
-            src="/assets/josan_logo.png" 
+            src={josanLogo} 
             alt="Josan Logistics Official Brand Logo" 
             className="h-10 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-200" 
           />

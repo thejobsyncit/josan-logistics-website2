@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
 import { supabase } from '../services/supabase';
 import { normalizeRole } from '../utils/roles';
@@ -171,7 +172,7 @@ export const AdminLoginPage = ({ setActiveTab }) => {
         <div className="text-center space-y-3">
           <div className="flex justify-center items-center space-x-3 pt-2">
             <img 
-              src="/assets/josan_logo.png" 
+              src={josanLogo} 
               alt="Josan Logistics" 
               className="h-12 w-auto object-contain"
             />

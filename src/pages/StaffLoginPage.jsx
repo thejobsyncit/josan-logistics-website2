@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import josanLogo from '../assets/josan_logo.png';
 import { 
   Shield, 
   Lock, 
@@ -644,7 +645,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
 
           <div className="flex justify-center">
             <img 
-              src="/assets/josan_logo.png" 
+              src={josanLogo} 
               alt="Josan Logistics Logo" 
               className="h-10 w-auto object-contain" 
             />

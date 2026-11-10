@@ -93,6 +93,11 @@ serve(async (req: Request) => {
     const turnstileResult = await turnstileRes.json().catch(() => ({ success: false }));
 
     if (!turnstileResult.success) {
+      const rawCodes = Array.isArray(turnstileResult["error-codes"]) ? turnstileResult["error-codes"] : [];
+      const codes = rawCodes
+        .filter((c: unknown): c is string => typeof c === "string" && c.length <= 40)
+        .slice(0, 5);
+      console.warn("[submit-quote] Turnstile failed:", codes.join(","));
       return new Response(
         JSON.stringify({ error: "Security verification failed. Please refresh and try again." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
