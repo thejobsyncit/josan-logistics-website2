@@ -638,7 +638,7 @@ export const QuotePage = ({ setActiveTab }) => {
             />
             <path 
               d="M0,25 C320,85 720,95 1120,55 C1260,40 1370,25 1440,15 L1440,100 L0,100 Z" 
-              fill="#FFFFFF" 
+              fill="var(--color-bg)" 
             />
           </svg>
         </div>

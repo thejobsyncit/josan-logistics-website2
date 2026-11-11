@@ -151,7 +151,7 @@ export const RoadFreightPage = ({ setActiveTab }) => {
   ];
 
   return (
-    <div className="bg-[#FFFFFF] min-h-screen text-slate-800 space-y-16 sm:space-y-20 pb-20">
+    <div className="bg-[var(--color-bg)] min-h-screen text-slate-800 space-y-16 sm:space-y-20 pb-20">
       
       {/* 1. HERO SECTION */}
       <section className="relative bg-[#0A101D] text-white pt-12 pb-16 sm:pt-14 sm:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -220,6 +220,8 @@ export const RoadFreightPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* 3. OUR ROAD TRANSPORTATION SERVICES */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-8">
         <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -283,7 +285,7 @@ export const RoadFreightPage = ({ setActiveTab }) => {
       </section>
 
       {/* 4. GOODS WE MOVE (Light Background) */}
-      <section className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8 border-y border-slate-200">
+      <section className="bg-[var(--color-bg)] py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-y border-[var(--color-divider)]">
         <div className="max-w-7xl mx-auto space-y-10 text-left">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-heading">
@@ -365,9 +367,11 @@ export const RoadFreightPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* 5B. WHAT WE NEED TO QUOTE YOUR SHIPMENT */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 sm:p-10 text-left space-y-6">
+        <div className="bg-[var(--color-bg-alt)] border border-[var(--color-border)] rounded-3xl p-8 sm:p-10 text-left space-y-6">
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-heading">
               What We Need to Quote Your Shipment
@@ -413,6 +417,8 @@ export const RoadFreightPage = ({ setActiveTab }) => {
           </div>
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* 6. DOCUMENTATION & AIR FREIGHT CARDS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -473,13 +479,15 @@ export const RoadFreightPage = ({ setActiveTab }) => {
 
       {/* 6B. WHERE WE OPERATE */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex items-center justify-center text-center space-x-2.5 text-slate-700 text-xs sm:text-sm font-medium">
+        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 sm:p-5 flex items-center justify-center text-center space-x-2.5 text-slate-700 text-xs sm:text-sm font-medium">
           <MapPin className="w-4 h-4 text-[#F26B21] shrink-0" />
           <span>
             <strong className="text-slate-900">Where We Operate:</strong> Singapore and selected regional routes.
           </span>
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* 6C. FREQUENTLY ASKED QUESTIONS */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-8">
@@ -546,6 +554,8 @@ export const RoadFreightPage = ({ setActiveTab }) => {
           })}
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* 7. BOTTOM QUOTE CTA BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

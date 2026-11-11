@@ -1,3 +1,5 @@
+import { COMPANY_INFO, SITE_CONTACT } from '../config/siteConfig';
+
 export const initialCargoPricing = [
   {
     id: 'cargo-gen-01',
@@ -244,8 +246,8 @@ export const initialWebsiteContent = {
   },
   about: {
     tagline: 'Air freight documentation and road transportation coordination in Singapore',
-    mission: 'To provide dependable, practical logistics support that helps businesses move their goods through suitable transportation and documentation solutions.',
-    vision: 'To build a trusted logistics service focused on reliable transportation coordination, accurate documentation and professional customer support.',
+    mission: 'We prepare air freight documents correctly and arrange road transport for businesses shipping from Singapore. We keep you informed at each step.',
+    vision: 'We want to be the company businesses in Singapore come back to for their air freight paperwork and road transport. We plan to grow our services as our customers ask for them.',
     highlights: [
       'Air Waybill (AWB) preparation and airline billing coordination',
       'Commercial road transportation via trusted partner transport operators',
@@ -257,7 +259,59 @@ export const initialWebsiteContent = {
       { label: 'Commercial Cargo Coverage', value: 'Singapore' },
       { label: 'Shipment Tracking', value: 'Real-Time' },
       { label: 'Commercial Focus', value: 'B2B Cargo' }
-    ]
+    ],
+    howWeWork: {
+      heading: 'How we work',
+      intro: 'The first three steps are the same for every job. What happens next depends on whether you need air freight documents or road transport.',
+      steps: [
+        {
+          number: '1',
+          title: 'Send your request',
+          desc: 'Tell us what you are shipping and what you need. We prepare a quote.'
+        },
+        {
+          number: '2',
+          title: 'We check your documents',
+          desc: 'A member of our team checks your shipment documents and emails you the confirmed details and the quote.'
+        },
+        {
+          number: '3',
+          title: 'You confirm and pay',
+          desc: 'Once you are happy with the quote, you pay by bank transfer or PayNow.'
+        }
+      ],
+      nextHeading: 'What happens next',
+      nextOptions: [
+        {
+          id: 'air',
+          title: 'Air freight',
+          desc: 'We prepare your Air Waybill and the billing and shipment documents, and contact you by email or phone call.'
+        },
+        {
+          id: 'road',
+          title: 'Road transport',
+          desc: 'We arrange the transport with our partner carriers and coordinate your shipment until it is delivered.'
+        }
+      ]
+    },
+    whereToFindUs: {
+      heading: 'Where to find us',
+      labels: {
+        address: 'Address',
+        businessHours: 'Business hours',
+        phone: 'Phone',
+        email: 'Email'
+      },
+      openInMapsLabel: 'Open in Google Maps',
+      mapTitlePrefix: 'Map showing Josan Logistics head office at',
+      mapUnavailableText: 'Google Maps embed could not load.'
+    },
+    closingCta: {
+      heading: 'Send us your shipment details and we will quote.',
+      subtext: 'Tell us what you are shipping and what you need: air freight documents, road transport, or both.',
+      primaryLabel: 'Get a quote',
+      secondaryLabel: 'Contact us'
+    }
   },
   services: {
     airway: {
@@ -274,11 +328,11 @@ export const initialWebsiteContent = {
     }
   },
   contact: {
-    phone: '+65 6789 0123',
-    email: 'contact@josanlogistics.com.sg',
-    address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+    phone: SITE_CONTACT.phoneDisplay,
+    email: SITE_CONTACT.email,
+    address: SITE_CONTACT.address,
     description: 'Phone number, email, office address and opening hours.',
-    operatingHours: '[ENTER REAL HOURS]'
+    operatingHours: `${COMPANY_INFO.businessHours} (${COMPANY_INFO.timezoneNote})`
   },
   faqs: [
     {

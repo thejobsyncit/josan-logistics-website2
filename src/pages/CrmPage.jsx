@@ -227,7 +227,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex w-full overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[var(--color-bg)] text-slate-900 flex w-full overflow-x-hidden font-sans">
       {/* 1. SEPARATE CRM SIDEBAR */}
       <CrmSidebar
         activeTab={activeTab}

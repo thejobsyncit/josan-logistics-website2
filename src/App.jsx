@@ -559,15 +559,12 @@ const MainContent = () => {
       tab === 'customer-dashboard' || 
       tab === 'my-shipments' || 
       tab === 'manage-shipment' ||
-      tab === 'track' ||
       tab === 'quote'
     )) {
       if (setAuthRedirectTab) setAuthRedirectTab(tab);
       setIsAuthModalOpen(true);
       if (showToast) {
-        if (tab === 'track') {
-          showToast('Please sign in to track road shipments.', 'warning');
-        } else if (tab === 'quote') {
+        if (tab === 'quote') {
           showToast('Please sign in or create an account to get an instant quote.', 'warning');
         } else {
           showToast('Please sign in or create an account to view your dashboard.', 'warning');
@@ -850,7 +847,7 @@ const MainContent = () => {
     ));
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 w-full overflow-x-hidden">
+    <div className="min-h-screen flex flex-col w-full overflow-x-hidden bg-[var(--color-bg)]">
       {!isAdminOrCrmView && <Navbar activeTab={activeTab} setActiveTab={changeActiveTab} />}
       <main className="flex-1 w-full overflow-x-hidden">
         <ErrorBoundary onReset={() => changeActiveTab('home')}>

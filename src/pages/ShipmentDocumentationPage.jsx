@@ -141,7 +141,7 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
   ];
 
   return (
-    <div className="space-y-16 pb-24 animate-fade-in bg-slate-50/50">
+    <div className="space-y-16 pb-24 animate-fade-in bg-[var(--color-bg)]">
 
       {/* Hero Section */}
       <section className="bg-[#0B1F3A] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-[#1E3A5F] relative overflow-hidden">
@@ -242,6 +242,8 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
           })}
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* Cargo Modes & Documents Required (Clean Tabbed Layout) */}
       <section id="cargo-modes" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
@@ -380,6 +382,8 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* How It Works (5 Steps in a Single Row) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-3 text-center max-w-3xl mx-auto mb-10">
@@ -423,6 +427,8 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
           })}
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -198,25 +198,19 @@ export const CookieBanner = () => {
   return (
     <>
       {/* ===================================================================== */}
-      {/* 1. SMALL BOTTOM-LEFT COOKIE NOTICE (DOES NOT OVERLAP JOSAN AI)        */}
+      {/* 1. SLIM BOTTOM COOKIE BAR (FIRST VISIT ONLY, NO FLOATING CIRCLE)      */}
       {/* ===================================================================== */}
       {isVisible && !showSettingsModal && (
-        <div 
-          role="region" 
-          aria-label="Cookie notice" 
-          className="fixed bottom-4 left-4 z-[90] max-w-sm sm:max-w-md w-[calc(100%-2rem)] sm:w-auto animate-fadeIn"
+        <div
+          role="region"
+          aria-label="Cookie notice"
+          className="fixed bottom-0 inset-x-0 z-[90] bg-[var(--color-navy)] text-[var(--color-on-navy)] border-t border-[var(--color-navy-border)]"
         >
-          <div className="bg-[#0B1F3A] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#1E3A5F] shadow-2xl backdrop-blur-md space-y-3.5">
-            {/* Header */}
-            <div className="flex items-center space-x-2 text-[#F26B21]">
-              <Cookie className="w-4 h-4 shrink-0" />
-              <span className="font-extrabold text-[11px] uppercase tracking-wider text-orange-400">
-                Cookie Notice
-              </span>
-            </div>
-
-            {/* Notice Text */}
-            <p className="text-xs text-slate-300 leading-relaxed">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 pr-16 sm:pr-20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p
+              className="text-xs sm:text-sm text-[var(--color-on-navy-muted)] leading-relaxed"
+              style={{ letterSpacing: 'normal' }}
+            >
               We use only the cookies needed to run this site, such as login, security and chat. You can review your choices at any time. See our{' '}
               <button
                 type="button"
@@ -224,27 +218,30 @@ export const CookieBanner = () => {
                   e.preventDefault();
                   openLegalDialog('privacy', e.currentTarget);
                 }}
-                className="text-[#F26B21] hover:underline font-bold inline cursor-pointer"
+                className="text-[var(--color-on-navy)] underline underline-offset-4 hover:text-[var(--color-on-navy-muted)] font-medium inline cursor-pointer rounded-[2px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-on-navy)]"
+                style={{ letterSpacing: 'normal' }}
                 title="Open Privacy Policy pop-up"
               >
                 Privacy Policy
               </button>.
             </p>
 
-            {/* Buttons: OK and Cookie settings */}
-            <div className="flex items-center gap-2 pt-1">
+            {/* Buttons: Accept and Cookie settings (4px corners) */}
+            <div className="flex items-center gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={handleOk}
-                className="flex-1 py-2 px-4 rounded-xl bg-[#F26B21] hover:bg-[#D95A13] text-white text-xs font-bold transition-all cursor-pointer text-center shadow-xs"
+                className="px-4 py-2 rounded-[var(--radius)] bg-[var(--color-surface)] hover:bg-[var(--color-bg)] text-[var(--color-navy)] text-xs sm:text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-on-navy)]"
+                style={{ letterSpacing: 'normal' }}
               >
-                OK
+                Accept
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowSettingsModal(true)}
-                className="py-2 px-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white border border-white/20 text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap"
+                className="px-4 py-2 rounded-[var(--radius)] bg-transparent hover:bg-[var(--color-navy-hover)] text-[var(--color-on-navy)] border border-[var(--color-on-navy-muted)] text-xs sm:text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-on-navy)]"
+                style={{ letterSpacing: 'normal' }}
               >
                 Cookie settings
               </button>
@@ -254,46 +251,33 @@ export const CookieBanner = () => {
       )}
 
       {/* ===================================================================== */}
-      {/* 2. FLOATING COOKIE BUTTON (BOTTOM-LEFT AFTER NOTICE DISMISSED)         */}
-      {/* ===================================================================== */}
-      {!isVisible && !showSettingsModal && (
-        <button
-          type="button"
-          onClick={() => setShowSettingsModal(true)}
-          className="fixed bottom-4 left-4 z-[80] w-9 h-9 rounded-full bg-[#0B1F3A] hover:bg-[#F26B21] text-white border border-[#1E3A5F] shadow-lg flex items-center justify-center transition-all cursor-pointer group hover:scale-105"
-          title="Cookie settings"
-          aria-label="Open Cookie Settings"
-        >
-          <Cookie className="w-4 h-4 text-orange-400 group-hover:text-white transition-colors" />
-        </button>
-      )}
-
-      {/* ===================================================================== */}
-      {/* 3. COOKIE SETTINGS DIALOG                                            */}
+      {/* 2. COOKIE SETTINGS DIALOG                                             */}
       {/* ===================================================================== */}
       {showSettingsModal && (
-        <div 
-          className="fixed inset-0 z-[110] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn"
+        <div
+          className="fixed inset-0 z-[110] bg-[var(--color-navy)]/75 flex items-center justify-center p-3 sm:p-4"
           onClick={() => setShowSettingsModal(false)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="cookie-settings-title"
         >
-          <div 
-            className="bg-white rounded-3xl max-w-xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto"
+          <div
+            className="bg-[var(--color-surface)] rounded-[var(--radius)] max-w-xl w-full p-5 sm:p-7 border border-[var(--color-border)] space-y-5 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
               <div className="flex items-center space-x-2.5">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-[#F26B21]">
-                  <Settings className="w-5 h-5" />
-                </div>
+                <Settings className="w-5 h-5 text-[var(--color-navy)] shrink-0" aria-hidden="true" />
                 <div>
-                  <h3 id="cookie-settings-title" className="text-slate-900 font-extrabold text-base sm:text-lg">
+                  <h3
+                    id="cookie-settings-title"
+                    className="text-[var(--color-text)] font-bold text-base sm:text-lg"
+                    style={{ letterSpacing: 'normal' }}
+                  >
                     Cookie settings
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[var(--color-text-muted)]" style={{ letterSpacing: 'normal' }}>
                     We use only the cookies and storage items needed to run this site.
                   </p>
                 </div>
@@ -301,10 +285,10 @@ export const CookieBanner = () => {
               <button
                 type="button"
                 onClick={() => setShowSettingsModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-[var(--radius)] bg-[var(--color-bg-alt)] hover:bg-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center justify-center transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
                 aria-label="Close settings"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 
@@ -312,48 +296,51 @@ export const CookieBanner = () => {
             <div className="space-y-3.5 text-xs">
               
               {/* SECTION: Strictly Necessary (Always On) */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+              <div className="p-4 bg-[var(--color-bg)] rounded-[var(--radius)] border border-[var(--color-border)] space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                    <ShieldCheck className="w-4 h-4 text-[var(--color-navy)]" aria-hidden="true" />
+                    <span className="font-bold text-[var(--color-text)] text-xs sm:text-sm" style={{ letterSpacing: 'normal' }}>
                       Strictly necessary
                     </span>
                   </div>
-                  <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span
+                    className="text-[11px] font-semibold text-[var(--color-navy)] bg-[var(--color-bg-alt)] border border-[var(--color-border)] px-2 py-0.5 rounded-[2px]"
+                    style={{ letterSpacing: 'normal' }}
+                  >
                     Always on
                   </span>
                 </div>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
+                <p className="text-[var(--color-text-muted)] text-[11px] leading-relaxed" style={{ letterSpacing: 'normal' }}>
                   These items are strictly required for core website operation, security, and customer service. They cannot be switched off:
                 </p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
-                  <li className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-start space-x-2">
-                    <span className="text-[#2463EB] font-bold">&bull;</span>
+                  <li className="bg-[var(--color-surface)] p-2.5 rounded-[var(--radius)] border border-[var(--color-border)] flex items-start space-x-2">
+                    <span className="text-[var(--color-navy)] font-bold">&bull;</span>
                     <div>
-                      <strong className="text-slate-900 block font-semibold">Login</strong>
-                      <span className="text-slate-500 text-[10px]">Session authentication tokens for portal access</span>
+                      <strong className="text-[var(--color-text)] block font-semibold">Login</strong>
+                      <span className="text-[var(--color-text-muted)] text-[10px]">Session authentication tokens for portal access</span>
                     </div>
                   </li>
-                  <li className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-start space-x-2">
-                    <span className="text-[#2463EB] font-bold">&bull;</span>
+                  <li className="bg-[var(--color-surface)] p-2.5 rounded-[var(--radius)] border border-[var(--color-border)] flex items-start space-x-2">
+                    <span className="text-[var(--color-navy)] font-bold">&bull;</span>
                     <div>
-                      <strong className="text-slate-900 block font-semibold">Security</strong>
-                      <span className="text-slate-500 text-[10px]">Anti-flood rate limits &amp; abuse mitigation</span>
+                      <strong className="text-[var(--color-text)] block font-semibold">Security</strong>
+                      <span className="text-[var(--color-text-muted)] text-[10px]">Anti-flood rate limits &amp; abuse mitigation</span>
                     </div>
                   </li>
-                  <li className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-start space-x-2">
-                    <span className="text-[#2463EB] font-bold">&bull;</span>
+                  <li className="bg-[var(--color-surface)] p-2.5 rounded-[var(--radius)] border border-[var(--color-border)] flex items-start space-x-2">
+                    <span className="text-[var(--color-navy)] font-bold">&bull;</span>
                     <div>
-                      <strong className="text-slate-900 block font-semibold">Cloudflare Turnstile</strong>
-                      <span className="text-slate-500 text-[10px]">Spam protection &amp; human verification</span>
+                      <strong className="text-[var(--color-text)] block font-semibold">Cloudflare Turnstile</strong>
+                      <span className="text-[var(--color-text-muted)] text-[10px]">Spam protection &amp; human verification</span>
                     </div>
                   </li>
-                  <li className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-start space-x-2">
-                    <span className="text-[#2463EB] font-bold">&bull;</span>
+                  <li className="bg-[var(--color-surface)] p-2.5 rounded-[var(--radius)] border border-[var(--color-border)] flex items-start space-x-2">
+                    <span className="text-[var(--color-navy)] font-bold">&bull;</span>
                     <div>
-                      <strong className="text-slate-900 block font-semibold">Chat session</strong>
-                      <span className="text-slate-500 text-[10px]">Conversation continuity with JOSAN AI chatbot</span>
+                      <strong className="text-[var(--color-text)] block font-semibold">Chat session</strong>
+                      <span className="text-[var(--color-text-muted)] text-[10px]">Conversation continuity with JOSAN AI chatbot</span>
                     </div>
                   </li>
                 </ul>
@@ -361,10 +348,10 @@ export const CookieBanner = () => {
 
               {/* SECTION: Preferences (Only shown if non-essential settings exist; otherwise no toggle) */}
               {HAS_NON_ESSENTIAL_PREFERENCES ? (
-                <div className="p-4 bg-white rounded-2xl border border-slate-200 flex items-start justify-between gap-3">
+                <div className="p-4 bg-[var(--color-surface)] rounded-[var(--radius)] border border-[var(--color-border)] flex items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <span className="font-bold text-slate-900 text-xs sm:text-sm block">Preferences</span>
-                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                    <span className="font-bold text-[var(--color-text)] text-xs sm:text-sm block">Preferences</span>
+                    <p className="text-[var(--color-text-muted)] text-[11px] leading-relaxed">
                       Remembers non-essential interface preferences on this device.
                     </p>
                   </div>
@@ -372,59 +359,60 @@ export const CookieBanner = () => {
                     type="checkbox" 
                     checked={preferencesToggle} 
                     onChange={(e) => setPreferencesToggle(e.target.checked)}
-                    className="w-4 h-4 text-[#F26B21] rounded cursor-pointer mt-1 focus:ring-[#F26B21]" 
+                    className="w-4 h-4 text-[var(--color-navy)] rounded-[2px] cursor-pointer mt-1 focus:ring-[var(--color-navy)]" 
                   />
                 </div>
               ) : null}
 
               {/* SECTION: Analytics & Marketing Note (No toggles because we don't use them) */}
-              <div className="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-1">
-                <span className="font-bold text-blue-900 text-[11px] block">
+              <div className="p-3.5 bg-[var(--color-bg)] rounded-[var(--radius)] border border-[var(--color-border)] space-y-1">
+                <span className="font-bold text-[var(--color-navy)] text-[11px] block" style={{ letterSpacing: 'normal' }}>
                   No Analytics or Marketing Trackers
                 </span>
-                <p className="text-blue-800 text-[10px] leading-relaxed">
+                <p className="text-[var(--color-text-muted)] text-[11px] leading-relaxed" style={{ letterSpacing: 'normal' }}>
                   We do not use Google Analytics, Meta Pixel, or marketing cookies. If non-essential tools are introduced in the future, they will remain blocked until your prior consent.
                 </p>
               </div>
 
               {/* SECTION: Audited Cookies & Storage Table */}
-              <div className="border border-slate-200 rounded-2xl overflow-hidden">
+              <div className="border border-[var(--color-border)] rounded-[var(--radius)] overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setShowInventoryTable(!showInventoryTable)}
-                  className="w-full p-3 bg-slate-50 hover:bg-slate-100 flex items-center justify-between text-xs font-bold text-slate-800 transition-colors cursor-pointer"
+                  className="w-full p-3 bg-[var(--color-bg)] hover:bg-[var(--color-bg-alt)] flex items-center justify-between text-xs font-bold text-[var(--color-text)] transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
+                  style={{ letterSpacing: 'normal' }}
                 >
                   <div className="flex items-center space-x-2">
-                    <Table className="w-4 h-4 text-[#F26B21]" />
+                    <Table className="w-4 h-4 text-[var(--color-navy)]" aria-hidden="true" />
                     <span>Cookies &amp; storage items in use ({COOKIE_AUDIT_DATA.length})</span>
                   </div>
-                  {showInventoryTable ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                  {showInventoryTable ? <ChevronUp className="w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" /> : <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" />}
                 </button>
 
                 {showInventoryTable && (
-                  <div className="p-3 bg-white overflow-x-auto text-[11px]">
+                  <div className="p-3 bg-[var(--color-surface)] overflow-x-auto text-[11px]">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px]">
-                          <th className="py-2 px-2 font-bold">Item Name</th>
-                          <th className="py-2 px-2 font-bold">Category</th>
-                          <th className="py-2 px-2 font-bold">Provider</th>
-                          <th className="py-2 px-2 font-bold">Duration</th>
-                          <th className="py-2 px-2 font-bold">Purpose</th>
+                        <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] text-[11px]" style={{ letterSpacing: 'normal' }}>
+                          <th className="py-2 px-2 font-semibold">Item Name</th>
+                          <th className="py-2 px-2 font-semibold">Category</th>
+                          <th className="py-2 px-2 font-semibold">Provider</th>
+                          <th className="py-2 px-2 font-semibold">Duration</th>
+                          <th className="py-2 px-2 font-semibold">Purpose</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                      <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text-muted)]">
                         {COOKIE_AUDIT_DATA.map((item) => (
-                          <tr key={item.name} className="hover:bg-slate-50/70">
-                            <td className="py-2 px-2 font-mono text-[10px] text-slate-900 font-semibold">{item.name}</td>
+                          <tr key={item.name} className="hover:bg-[var(--color-bg)]">
+                            <td className="py-2 px-2 font-mono text-[10px] text-[var(--color-text)] font-semibold">{item.name}</td>
                             <td className="py-2 px-2 whitespace-nowrap">
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              <span className="px-1.5 py-0.5 rounded-[2px] text-[10px] font-semibold bg-[var(--color-bg-alt)] text-[var(--color-navy)] border border-[var(--color-border)]">
                                 {item.category}
                               </span>
                             </td>
-                            <td className="py-2 px-2 whitespace-nowrap text-slate-600">{item.provider}</td>
-                            <td className="py-2 px-2 whitespace-nowrap text-slate-600">{item.duration}</td>
-                            <td className="py-2 px-2 text-slate-600 leading-snug">{item.purpose}</td>
+                            <td className="py-2 px-2 whitespace-nowrap text-[var(--color-text-muted)]">{item.provider}</td>
+                            <td className="py-2 px-2 whitespace-nowrap text-[var(--color-text-muted)]">{item.duration}</td>
+                            <td className="py-2 px-2 text-[var(--color-text-muted)] leading-snug">{item.purpose}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -436,17 +424,18 @@ export const CookieBanner = () => {
             </div>
 
             {/* Retention Note & Modal Actions */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
-              <span className="text-[11px] text-slate-400">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[var(--color-border)]">
+              <span className="text-[11px] text-[var(--color-text-muted)]" style={{ letterSpacing: 'normal' }}>
                 Notice acknowledgement saved for 12 months.
               </span>
               <button
                 type="button"
                 onClick={handleOk}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#F26B21] hover:bg-[#D95A13] text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 shadow-sm"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-[var(--radius)] bg-[var(--color-navy)] hover:bg-[var(--color-navy-hover)] text-[var(--color-on-navy)] text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center space-x-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
+                style={{ letterSpacing: 'normal' }}
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>OK</span>
+                <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+                <span>Accept</span>
               </button>
             </div>
 

@@ -4,10 +4,15 @@ import { Mail, Phone, MapPin, Send, HelpCircle, ChevronDown, Clock, Building2, G
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
 import { openLegalDialog } from '../components/LegalDialog';
 import { attachChatToSubmission } from '../services/chatStorageService';
+import { COMPANY_INFO, getPhoneLinks } from '../config/siteConfig';
 
 export const ContactPage = ({ setActiveTab }) => {
   const { showToast, addLead, createSupportTicket, addNotification, websiteContent } = useLogistics();
   const contactContent = websiteContent?.contact || {};
+  const sharedEmail = contactContent.email || COMPANY_INFO.email;
+  const sharedAddress = contactContent.address || COMPANY_INFO.address;
+  const sharedHours = contactContent.operatingHours || `${COMPANY_INFO.businessHours} (${COMPANY_INFO.timezoneNote})`;
+  const phoneLinks = getPhoneLinks(contactContent.phone);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -94,7 +99,7 @@ export const ContactPage = ({ setActiveTab }) => {
       id: `SUB-${Date.now().toString().slice(-6)}`,
       timestamp: new Date().toISOString(),
       singaporeTime: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' }),
-      recipientEmail: 'contact@josanlogistics.com.sg',
+      recipientEmail: sharedEmail,
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
@@ -116,7 +121,7 @@ export const ContactPage = ({ setActiveTab }) => {
         stage: 'New',
         estimatedValue: submissionData.subject === 'Request a Quote' ? 8000 : 2500,
         tags: ['Contact Form', submissionData.subject, submissionData.trackingId ? `Tracking: ${submissionData.trackingId}` : null].filter(Boolean),
-        notes: `Enquiry sent to contact@josanlogistics.com.sg\nMessage: ${submissionData.message}`
+        notes: `Enquiry sent to ${sharedEmail}\nMessage: ${submissionData.message}`
       });
     }
 
@@ -138,7 +143,7 @@ export const ContactPage = ({ setActiveTab }) => {
         role: 'admin',
         type: 'contact_enquiry',
         title: `📬 New Web Enquiry from ${submissionData.name}`,
-        message: `Routed to contact@josanlogistics.com.sg • Subject: "${submissionData.subject}" • Phone: ${submissionData.phone || 'N/A'}`
+        message: `Routed to ${sharedEmail} • Subject: "${submissionData.subject}" • Phone: ${submissionData.phone || 'N/A'}`
       });
     }
 
@@ -149,7 +154,7 @@ export const ContactPage = ({ setActiveTab }) => {
     } catch (e) {}
 
     // Simulated email dispatch log to REAL EMAIL
-    console.info('[Email Service] Transmission dispatched to contact@josanlogistics.com.sg:', submissionData);
+    console.info(`[Email Service] Transmission dispatched to ${sharedEmail}:`, submissionData);
 
     // 5. Attach active chat session to contact enquiry reference if user chatted with AI
     const enquiryRef = `ENQ-${Math.floor(10000 + Math.random() * 90000)}`;
@@ -211,7 +216,7 @@ export const ContactPage = ({ setActiveTab }) => {
             />
             <path 
               d="M0,25 C320,85 720,95 1120,55 C1260,40 1370,25 1440,15 L1440,100 L0,100 Z" 
-              fill="#FFFFFF" 
+              fill="var(--color-bg)" 
             />
           </svg>
         </div>
@@ -239,7 +244,7 @@ export const ContactPage = ({ setActiveTab }) => {
                     Thank you. We have received your message and will reply by email or phone as soon as we can.
                   </p>
                   <p className="text-xs text-emerald-700">
-                    A copy of this enquiry has been routed directly to our Singapore operations desk at contact@josanlogistics.com.sg.
+                    A copy of this enquiry has been routed directly to our Singapore operations desk at {sharedEmail}.
                   </p>
                   <button
                     type="button"
@@ -475,13 +480,13 @@ export const ContactPage = ({ setActiveTab }) => {
                   <div>
                     <p className="font-bold text-white text-sm">Head Office</p>
                     <p className="text-[#B6C2D1] mt-1 leading-relaxed text-sm">
-                      {contactContent.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}
+                      {sharedAddress}
                     </p>
                   </div>
 
                   <div className="pt-1">
                     <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(contactContent.address || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438')}`}
+                      href={`https://maps.google.com/?q=${encodeURIComponent(sharedAddress)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center space-x-1.5 text-xs font-bold text-orange-400 hover:text-orange-300 transition-colors"
@@ -497,8 +502,8 @@ export const ContactPage = ({ setActiveTab }) => {
                     <p className="flex items-center space-x-2">
                       <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>Email:{' '}
-                      <a href={`mailto:${contactContent.email || 'contact@josanlogistics.com.sg'}`} className="text-white font-semibold hover:text-orange-400 transition-colors underline">
-                        {contactContent.email || 'contact@josanlogistics.com.sg'}
+                      <a href={`mailto:${sharedEmail}`} className="text-white font-semibold hover:text-orange-400 transition-colors underline">
+                        {sharedEmail}
                       </a>
                       </span>
                     </p>
@@ -515,23 +520,23 @@ export const ContactPage = ({ setActiveTab }) => {
                 </div>
                 <div>
                   <h4 className="font-extrabold text-[#0B1F3A] text-sm">Call Us</h4>
-                  <a href={`tel:${(contactContent.phone || '+6567890123').replace(/\s+/g, '')}`} className="text-[#0B1F3A] font-extrabold text-lg sm:text-xl font-mono tracking-tight hover:text-[#FF6B00] transition-colors">
-                    {contactContent.phone || '+65 6789 0123'}
+                  <a href={phoneLinks.telHref} className="text-[#0B1F3A] font-extrabold text-lg sm:text-xl font-mono tracking-tight hover:text-[#FF6B00] transition-colors">
+                    {phoneLinks.display}
                   </a>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                 <a
-                  href={`tel:${(contactContent.phone || '+6567890123').replace(/\s+/g, '')}`}
+                  href={phoneLinks.telHref}
                   className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-[#0B1F3A] hover:bg-[#1E3A5F] text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
-                  title={`Call Josan Logistics (${contactContent.phone || '+65 6789 0123'})`}
+                  title={`Call Josan Logistics (${phoneLinks.display})`}
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>Call</span>
                 </a>
                 <a
-                  href={`https://wa.me/${(contactContent.phone || '6567890123').replace(/[^0-9]/g, '')}`}
+                  href={phoneLinks.whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
@@ -554,7 +559,7 @@ export const ContactPage = ({ setActiveTab }) => {
                 <div>
                   <h4 className="font-extrabold text-[#0B1F3A] text-sm">Contact Hours</h4>
                   <p className="text-slate-800 font-bold text-sm tracking-tight">
-                    {contactContent.operatingHours || 'Mon - Fri: 08:00 AM - 07:00 PM (SGT) | Sat: 08:00 AM - 01:00 PM'}
+                    {sharedHours}
                   </p>
                 </div>
               </div>
@@ -567,6 +572,8 @@ export const ContactPage = ({ setActiveTab }) => {
 
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* FAQ Accordion */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">

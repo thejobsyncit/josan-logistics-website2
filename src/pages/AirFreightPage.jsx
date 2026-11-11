@@ -160,7 +160,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
   ];
 
   return (
-    <div className="bg-[#FFFFFF] min-h-screen text-slate-800 space-y-16 sm:space-y-20 pb-20">
+    <div className="bg-[var(--color-bg)] min-h-screen text-slate-800 space-y-16 sm:space-y-20 pb-20">
       
       {/* 1. HERO SECTION */}
       <section className="relative bg-[#0A101D] text-white pt-12 pb-16 sm:pt-14 sm:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -228,6 +228,8 @@ export const AirFreightPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* 3. OUR AIR FREIGHT SERVICES */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-8">
         <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -285,7 +287,7 @@ export const AirFreightPage = ({ setActiveTab }) => {
       </section>
 
       {/* 4. CARGO WE SUPPORT */}
-      <section className="bg-slate-50 py-16 px-4 sm:px-6 lg:px-8 border-y border-slate-200">
+      <section className="bg-[var(--color-bg)] py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-y border-[var(--color-divider)]">
         <div className="max-w-7xl mx-auto space-y-10 text-left">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-heading">
@@ -367,9 +369,11 @@ export const AirFreightPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* 5B. WHAT WE NEED FROM YOU */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 sm:p-10 text-left space-y-6">
+        <div className="bg-[var(--color-bg-alt)] border border-[var(--color-border)] rounded-3xl p-8 sm:p-10 text-left space-y-6">
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-heading">
               What We Need From You
@@ -415,6 +419,8 @@ export const AirFreightPage = ({ setActiveTab }) => {
           </div>
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* 6. CUSTOMS & ROAD CONNECTIONS (Callouts) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -472,6 +478,8 @@ export const AirFreightPage = ({ setActiveTab }) => {
           </div>
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* 6B. FREQUENTLY ASKED QUESTIONS */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-8">
@@ -538,6 +546,8 @@ export const AirFreightPage = ({ setActiveTab }) => {
           })}
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* 7. BOTTOM QUOTE CTA BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
-import { getRateLimitStatus, recordRateLimitAttempt } from '../utils/rateLimiter';
 import { formatSingaporeDateTime } from '../utils/dateTime';
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
 import { 
@@ -16,6 +15,37 @@ import {
   RotateCw,
   Truck
 } from 'lucide-react';
+
+const RATE_LIMIT_STORAGE_KEY = 'josan_rate_limit_track_shipment';
+
+const getRateLimitStatus = (maxAttempts = 10, windowMs = 60000) => {
+  try {
+    const raw = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+    const now = Date.now();
+    let timestamps = raw ? JSON.parse(raw) : [];
+    timestamps = timestamps.filter(t => typeof t === 'number' && now - t < windowMs);
+
+    if (timestamps.length >= maxAttempts) {
+      const oldest = timestamps[0];
+      const retryAfter = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+      return { allowed: false, retryAfter };
+    }
+    return { allowed: true, retryAfter: 0 };
+  } catch (_e) {
+    return { allowed: true, retryAfter: 0 };
+  }
+};
+
+const recordRateLimitAttempt = (windowMs = 60000) => {
+  try {
+    const raw = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+    const now = Date.now();
+    let timestamps = raw ? JSON.parse(raw) : [];
+    timestamps = timestamps.filter(t => typeof t === 'number' && now - t < windowMs);
+    timestamps.push(now);
+    localStorage.setItem(RATE_LIMIT_STORAGE_KEY, JSON.stringify(timestamps));
+  } catch (_e) {}
+};
 
 export const TrackShipmentPage = ({ setActiveTab }) => {
   const { activeTrackingId, setActiveTrackingId } = useLogistics();
@@ -53,7 +83,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
   // Check client-side rate limit on component mount
   useEffect(() => {
-    const status = getRateLimitStatus('track_shipment', 10, 60000);
+    const status = getRateLimitStatus(10, 60000);
     if (!status.allowed) {
       setRateLimitSeconds(status.retryAfter);
       setRateLimitMessage('Rate limit reached: Maximum 10 tracking queries per minute allowed.');
@@ -87,14 +117,14 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     }
 
     // Enforce rate limiting: 10 attempts per minute per visitor
-    const status = getRateLimitStatus('track_shipment', 10, 60000);
+    const status = getRateLimitStatus(10, 60000);
     if (!status.allowed) {
       setRateLimitSeconds(status.retryAfter);
       setRateLimitMessage('Rate limit reached: Maximum 10 tracking queries per minute allowed.');
       return;
     }
 
-    recordRateLimitAttempt('track_shipment', 60000);
+    recordRateLimitAttempt(60000);
 
     setIsLoading(true);
     setNotFound(false);
@@ -232,51 +262,51 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     const s = (status || '').toUpperCase();
     if (s.includes('DELIVERED')) {
       return {
-        bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-        dot: 'bg-emerald-400',
+        bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        dot: 'bg-emerald-500',
         label: 'DELIVERED'
       };
     }
     if (s.includes('TRANSIT')) {
       return {
-        bg: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-        dot: 'bg-blue-400 animate-pulse',
+        bg: 'bg-blue-50 text-blue-700 border-blue-200',
+        dot: 'bg-blue-500 animate-pulse',
         label: 'IN TRANSIT'
       };
     }
     if (s.includes('DELAY')) {
       return {
-        bg: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-        dot: 'bg-amber-400',
+        bg: 'bg-amber-50 text-amber-800 border-amber-200',
+        dot: 'bg-amber-500',
         label: 'DELAYED'
       };
     }
     return {
-      bg: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30',
-      dot: 'bg-indigo-400',
+      bg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      dot: 'bg-indigo-500',
       label: s || 'BOOKED'
     };
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Page Header - No prohibited claims */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-navy)] text-xs font-semibold uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4" /> Secure Tracking Lookup
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--color-navy)] tracking-tight">
             Track Your Shipment
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-[var(--color-text-muted)] text-sm sm:text-base max-w-xl mx-auto">
             Enter your tracking number to see the latest status. Updates are entered by our team, and the time of the last update is shown.
           </p>
         </div>
 
         {/* Search Box */}
-        <div className="bg-[#121829] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl shadow-black/40 space-y-4">
+        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 sm:p-6 shadow-card space-y-4">
           <form 
             onSubmit={(e) => {
               e.preventDefault();
@@ -285,7 +315,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             className="space-y-4"
           >
             <div className="relative w-full">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Search className="w-5 h-5 text-[var(--color-text-muted)] absolute left-4 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchInput}
@@ -295,7 +325,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                 }}
                 placeholder="Enter tracking number"
                 disabled={isLoading || rateLimitSeconds > 0}
-                className="w-full bg-[#0D121F] border border-slate-700/80 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder-slate-500 text-sm sm:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors disabled:opacity-50"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl pl-12 pr-4 py-3.5 text-[var(--color-text)] placeholder-[var(--color-text-muted)] text-sm sm:text-base focus:bg-[var(--color-surface)] focus:outline-none focus:border-[var(--color-navy)] focus:ring-1 focus:ring-[var(--color-navy)] transition-colors disabled:opacity-50"
               />
             </div>
 
@@ -322,7 +352,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
               <button
                 type="submit"
                 disabled={isLoading || rateLimitSeconds > 0 || !captchaVerified || !turnstileToken}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 disabled:shadow-none cursor-pointer disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[var(--color-navy)] hover:bg-[var(--color-navy-hover)] disabled:bg-slate-200 disabled:text-slate-500 text-[var(--color-on-navy)] font-medium px-6 py-3.5 rounded-xl transition-all shadow-sm disabled:shadow-none cursor-pointer disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -341,19 +371,19 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
           {/* Rate Limiting Warning / 429 Message with countdown from Retry-After */}
           {rateLimitSeconds > 0 && (
-            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs sm:text-sm flex items-center gap-2">
-              <Clock className="w-4 h-4 flex-shrink-0" />
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4 flex-shrink-0 text-amber-600" />
               <span>
                 {rateLimitMessage || 'Too many lookups. Please try again later.'} Please wait{' '}
-                <strong className="font-semibold text-white">{rateLimitSeconds}s</strong> before querying again.
+                <strong className="font-semibold text-amber-950">{rateLimitSeconds}s</strong> before querying again.
               </span>
             </div>
           )}
 
           {/* Error Message (503 shown as it is) */}
           {errorMessage && rateLimitSeconds <= 0 && (
-            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs sm:text-sm flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs sm:text-sm flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 text-red-600" />
               <span>{errorMessage}</span>
             </div>
           )}
@@ -361,29 +391,29 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
         {/* Not Found Message (404 only) */}
         {notFound && (
-          <div className="bg-[#121829] border border-slate-800 rounded-2xl p-8 text-center">
-            <p className="text-base font-semibold text-white">Tracking number not found or unavailable.</p>
+          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-8 text-center shadow-card">
+            <p className="text-base font-semibold text-[var(--color-navy)]">Tracking number not found or unavailable.</p>
           </div>
         )}
 
         {/* Shipment Details Result Card - Showing ONLY required, non-sensitive fields */}
         {shipmentData && (
-          <div className="bg-[#121829] border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-8 shadow-2xl">
+          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 space-y-8 shadow-card">
             
             {/* Top Bar: Tracking Number, Status Badge & Last Updated (Singapore Time) */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--color-border)]">
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tracking Number</span>
+                <span className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Tracking Number</span>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl sm:text-2xl font-mono font-bold text-white tracking-wide">
+                  <h2 className="text-xl sm:text-2xl font-mono font-bold text-[var(--color-navy)] tracking-wide">
                     {shipmentData.tracking_number}
                   </h2>
                   <button
                     onClick={() => handleCopy(shipmentData.tracking_number)}
                     title="Copy tracking number"
-                    className="p-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg bg-[var(--color-bg)] hover:bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-navy)] transition-colors cursor-pointer"
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -399,8 +429,8 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   );
                 })()}
                 {/* Last updated: Singapore Time */}
-                <div className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
+                <div className="text-xs text-[var(--color-text-muted)] flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                   <span>
                     Last updated: {shipmentData.last_updated ? (formatSingaporeDateTime(shipmentData.last_updated) || 'Not available') : 'Not available'}
                   </span>
@@ -409,33 +439,33 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             </div>
 
             {/* Route & Service Overview: Origin city, Destination city, Service type */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-xl bg-[#0D121F] border border-slate-800/60">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)]">
               {/* Origin City / Area */}
               <div className="space-y-1">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-blue-400" /> Origin
+                <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-blue-600" /> Origin
                 </span>
-                <p className="text-base sm:text-lg font-semibold text-white">
+                <p className="text-base sm:text-lg font-semibold text-[var(--color-navy)]">
                   {shipmentData.origin || shipmentData.origin_city || 'Not specified'}
                 </p>
               </div>
 
               {/* Destination City / Area */}
               <div className="space-y-1">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Destination
+                <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" /> Destination
                 </span>
-                <p className="text-base sm:text-lg font-semibold text-white">
+                <p className="text-base sm:text-lg font-semibold text-[var(--color-navy)]">
                   {shipmentData.destination || shipmentData.destination_city || 'Not specified'}
                 </p>
               </div>
 
               {/* Service Type */}
               <div className="space-y-1">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" /> Service Type
+                <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" /> Service Type
                 </span>
-                <p className="text-base sm:text-lg font-semibold text-white">
+                <p className="text-base sm:text-lg font-semibold text-[var(--color-navy)]">
                   {shipmentData.service_type || 'Not specified'}
                 </p>
               </div>
@@ -443,23 +473,23 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
             {/* Shipment Events Timeline: Status text and time */}
             <div className="space-y-4 pt-2">
-              <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <Package className="w-4 h-4 text-blue-400" /> Tracking Events
+              <h3 className="text-sm font-semibold text-[var(--color-navy)] uppercase tracking-wider flex items-center gap-2">
+                <Package className="w-4 h-4 text-[var(--color-navy)]" /> Tracking Events
               </h3>
 
               {Array.isArray(shipmentData.events) && shipmentData.events.length > 0 ? (
-                <div className="relative pl-6 sm:pl-8 space-y-6 before:content-[''] before:absolute before:left-2 sm:before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+                <div className="relative pl-6 sm:pl-8 space-y-6 before:content-[''] before:absolute before:left-2 sm:before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--color-border)]">
                   {shipmentData.events.map((evt, idx) => (
                     <div key={idx} className="relative group">
-                      <div className="absolute -left-6 sm:-left-8 top-1 w-4 sm:w-5 h-4 sm:h-5 rounded-full bg-[#121829] border-2 border-blue-500 flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                      <div className="absolute -left-6 sm:-left-8 top-1 w-4 sm:w-5 h-4 sm:h-5 rounded-full bg-[var(--color-surface)] border-2 border-[var(--color-navy)] flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-navy)]" />
                       </div>
                       <div className="space-y-1">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <h4 className="text-sm sm:text-base font-semibold text-white">
+                          <h4 className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
                             {evt.status || evt.stage || 'Status Update'}
                           </h4>
-                          <span className="text-xs text-slate-400 font-mono">
+                          <span className="text-xs text-[var(--color-text-muted)] font-mono">
                             {formatSingaporeDateTime(evt.time || evt.occurred_at)}
                           </span>
                         </div>
@@ -468,7 +498,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   ))}
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-[#0D121F] border border-slate-800/60 text-slate-400 text-xs sm:text-sm">
+                <div className="p-4 rounded-xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-xs sm:text-sm">
                   Shipment is recorded in the network. Milestone updates will be posted here as they occur.
                 </div>
               )}
@@ -479,13 +509,13 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
         {/* Empty State Help Card */}
         {!shipmentData && !notFound && (
-          <div className="bg-[#121829]/60 border border-slate-800/80 rounded-2xl p-8 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mx-auto">
+          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-8 text-center space-y-4 shadow-card">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-navy)] flex items-center justify-center mx-auto">
               <Truck className="w-7 h-7" />
             </div>
             <div className="space-y-1.5">
-              <h3 className="text-base font-semibold text-white">Tracking Number Guidelines</h3>
-              <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
+              <h3 className="text-base font-semibold text-[var(--color-navy)]">Tracking Number Guidelines</h3>
+              <p className="text-[var(--color-text-muted)] text-xs sm:text-sm max-w-lg mx-auto">
                 Enter the consignment or reference number provided on your booking confirmation or transport document to view its current milestone.
               </p>
             </div>
@@ -494,11 +524,11 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
         {/* Footer Support Prompt */}
         <div className="text-center pt-4">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--color-text-muted)]">
             Need assistance with your consignment?{' '}
             <button
               onClick={() => setActiveTab && setActiveTab('contact')}
-              className="text-blue-400 hover:text-blue-300 font-medium underline transition-colors cursor-pointer"
+              className="text-[var(--color-navy)] hover:underline font-medium transition-colors cursor-pointer"
             >
               Contact operations support
             </button>

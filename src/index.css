@@ -6,32 +6,71 @@
 
 @layer base {
   :root {
+    /* Rollback block - Previous color variables prior to refined Option A pass:
+       --color-navy: #0B1F3A;
+       --navy-light: #132A4A;
+       --color-orange: #F26B21;
+       --orange-hover: #D95A13;
+       --white: #FFFFFF;
+       --muted-on-dark: #B6C2D1;
+       --bg-light: #F5F7FA;
+       --bg-services-old: #EEF2F7;
+       --text-dark: #1B2733;
+       --border-light: #E2E8F0;
+       --border-dark: #1E3A5F;
+       Logo sampled colors (src/assets/josan_logo.png): #1C1E1D (charcoal), #FE5001 (orange, hue 18.7 deg)
+       Option A proposed #D9531E scored 4.03:1 with white text (failed WCAG AA 4.5:1),
+       so --color-orange is darkened at the logo hue (18.7 deg) to #D04201 (4.71:1) and #B83A01 (5.76:1).
+    */
+
     /* Global Typography Variables */
     --font-heading: 'Montserrat', sans-serif;
     --font-body: 'Poppins', sans-serif;
 
-    /* Required Core Design System Variables */
-    --navy: #0B1F3A;
-    --navy-light: #132A4A;
-    --orange: #F26B21;
-    --orange-hover: #D95A13;
-    --white: #FFFFFF;
-    --muted-on-dark: #B6C2D1;
-    --bg-light: #F5F7FA;
-    --text-dark: #1B2733;
-    --border-light: #E2E8F0;
-    --border-dark: #1E3A5F;
+    /* Core Design System & Palette Variables (Homepage & Shared Tokens) */
+    --radius: 4px;
+    --color-navy: #0E2038;
+    --color-navy-hover: #173052;
+    --color-navy-border: #203A5C;
+    --color-on-navy: #FFFFFF;
+    --color-on-navy-muted: #C9CFDA;
+
+    --color-orange: #D04201;
+    --color-orange-hover: #B83A01;
+
+    --color-bg: #F4F7FB;
+    --color-bg-alt: #EDF2F8;
+    --color-surface: #FFFFFF;
+    --color-text: #1A1F2B;
+    --color-text-muted: #5A6170;
+    --color-border: #DCE4EE;
+    --color-divider: #E3E8F0;
+    --color-kraft: #E2641F;
+    --color-kraft-dark: #A84814;
+    --color-whatsapp: #128C5A;
+
+    /* Semantic aliases */
+    --navy: var(--color-navy);
+    --navy-light: var(--color-navy-hover);
+    --orange: var(--color-orange);
+    --orange-hover: var(--color-orange-hover);
+    --white: var(--color-surface);
+    --muted-on-dark: var(--color-on-navy-muted);
+    --bg-light: var(--color-bg);
+    --text-dark: var(--color-text);
+    --border-light: var(--color-border);
+    --border-dark: var(--color-navy-border);
 
     /* Backward compatibility aliases */
-    --brand-orange: var(--orange);
-    --brand-orange-hover: var(--orange-hover);
-    --brand-navy: var(--navy);
-    --brand-white: var(--white);
-    --brand-light: var(--bg-light);
-    --brand-soft: var(--bg-light);
-    --brand-text: var(--text-dark);
-    --brand-muted: var(--muted-on-dark);
-    --brand-border: var(--border-light);
+    --brand-orange: var(--color-orange);
+    --brand-orange-hover: var(--color-orange-hover);
+    --brand-navy: var(--color-navy);
+    --brand-white: var(--color-surface);
+    --brand-light: var(--color-bg);
+    --brand-soft: var(--color-bg-alt);
+    --brand-text: var(--color-text);
+    --brand-muted: var(--color-on-navy-muted);
+    --brand-border: var(--color-border);
     --brand-success: #16A34A;
     --brand-warning: #F59E0B;
     --brand-error: #DC2626;
@@ -118,9 +157,20 @@
     @apply bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-card hover:border-slate-300 transition-all duration-200;
   }
 
+  /* Subtle full-width section hairline divider on light backgrounds */
+  .section-divider {
+    @apply w-full border-t border-[var(--color-divider)];
+  }
+
   /* Standard Form Input */
   .input-standard {
     @apply h-11 sm:h-12 w-full px-4 rounded-lg sm:rounded-xl border border-[#E2E8F0] bg-white text-[#1B2733] placeholder:text-[#64748B] text-[15px] sm:text-base focus:outline-none focus:ring-2 focus:ring-[#0B1F3A] focus:border-[#0B1F3A] transition-all duration-200;
+  }
+
+  /* Flat even navy overlay (55% opacity) for hero section */
+  .hero-navy-overlay {
+    background-color: rgba(14, 32, 56, 0.55);
+    background-color: color-mix(in srgb, var(--color-navy) 55%, transparent);
   }
 }
 
@@ -130,14 +180,14 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: var(--color-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: var(--color-border);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: var(--color-text-muted);
 }
 
 /* Hide native up/down number input spinners */

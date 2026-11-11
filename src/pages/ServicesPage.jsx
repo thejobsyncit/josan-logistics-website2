@@ -157,6 +157,8 @@ export const ServicesPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* 3. SHORT FINAL CTA */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#0B1F3A] rounded-3xl p-8 sm:p-12 text-white text-center shadow-xl border border-[#1E3A5F] relative overflow-hidden space-y-6">

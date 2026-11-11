@@ -28,6 +28,12 @@ import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
 import { fetchServerShipmentReference } from '../utils/referenceApi';
 import { normalizeRole, isStaffRole, canEditRole } from '../utils/roles';
+import {
+  COMPANY_INFO,
+  PLACEHOLDER_PHONE,
+  LEGACY_PLACEHOLDER_ADDRESS,
+  LEGACY_PLACEHOLDER_HOURS,
+} from '../config/siteConfig';
 
 // Helper to deduplicate notifications and strip seed/test data
 export const deduplicateNotifications = (list) => {
@@ -632,14 +638,36 @@ export const LogisticsProvider = ({ children }) => {
             ...initialWebsiteContent.about,
             ...(parsed.about || {}),
             tagline: parsed.about?.tagline || initialWebsiteContent.about.tagline,
-            mission: parsed.about?.mission || initialWebsiteContent.about.mission,
-            vision: parsed.about?.vision || initialWebsiteContent.about.vision
+            mission: (!parsed.about?.mission ||
+              parsed.about.mission === 'To provide dependable, practical logistics support that helps businesses move their goods through suitable transportation and documentation solutions.' ||
+              parsed.about.mission === 'To provide dependable logistics and documentation support that simplifies commercial cargo movement.')
+              ? initialWebsiteContent.about.mission
+              : parsed.about.mission,
+            vision: (!parsed.about?.vision ||
+              parsed.about.vision === 'To build a trusted logistics service focused on reliable transportation coordination, accurate documentation and professional customer support.' ||
+              parsed.about.vision === 'To be a trusted logistics partner known for reliable transport coordination, accurate documentation, and responsive service.')
+              ? initialWebsiteContent.about.vision
+              : parsed.about.vision,
+            howWeWork: initialWebsiteContent.about.howWeWork,
+            whereToFindUs: initialWebsiteContent.about.whereToFindUs,
+            closingCta: initialWebsiteContent.about.closingCta
           },
           contact: {
             ...initialWebsiteContent.contact,
             ...(parsed.contact || {}),
+            phone: (!parsed.contact?.phone || parsed.contact.phone === PLACEHOLDER_PHONE)
+              ? COMPANY_INFO.phone
+              : parsed.contact.phone,
+            email: parsed.contact?.email || COMPANY_INFO.email,
+            address: (!parsed.contact?.address || parsed.contact.address === LEGACY_PLACEHOLDER_ADDRESS)
+              ? COMPANY_INFO.address
+              : parsed.contact.address,
             description: 'Phone number, email, office address and opening hours.',
-            operatingHours: parsed.contact?.operatingHours || '[ENTER REAL HOURS]'
+            operatingHours: (!parsed.contact?.operatingHours ||
+              parsed.contact.operatingHours === '[ENTER REAL HOURS]' ||
+              parsed.contact.operatingHours === LEGACY_PLACEHOLDER_HOURS)
+              ? `${COMPANY_INFO.businessHours} (${COMPANY_INFO.timezoneNote})`
+              : parsed.contact.operatingHours
           },
           faqs: (parsed.faqs && parsed.faqs.length > 0) ? parsed.faqs : initialWebsiteContent.faqs,
           banner: {
@@ -706,14 +734,14 @@ export const LogisticsProvider = ({ children }) => {
 
   // 5b. Unified Site Settings (Company Profile, UEN, GST, Registered Office, Demo Mode)
   const initialSiteSettings = {
-    company_name: 'Josan Logistics Pte. Ltd.',
-    uen: '',
+    company_name: COMPANY_INFO.legalName,
+    uen: COMPANY_INFO.uen,
     gst_reg: '',
-    phone: '+65 6789 0123',
-    whatsapp: '+65 6789 0123',
-    contact_email: 'contact@josanlogistics.com.sg',
-    registered_office: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
-    dpo_email: 'contact@josanlogistics.com.sg',
+    phone: COMPANY_INFO.phone,
+    whatsapp: COMPANY_INFO.phone,
+    contact_email: COMPANY_INFO.email,
+    registered_office: COMPANY_INFO.address,
+    dpo_email: COMPANY_INFO.email,
     show_price_estimate: 'false',
     demo_mode: true
   };
@@ -727,11 +755,13 @@ export const LogisticsProvider = ({ children }) => {
           ...initialSiteSettings,
           ...parsed,
           company_name: parsed.company_name || initialSiteSettings.company_name,
-          uen: parsed.uen === '201829481K' || parsed.uen === '202412345K' ? '' : (parsed.uen ?? ''),
+          uen: parsed.uen === '201829481K' || parsed.uen === '202412345K' || !parsed.uen ? COMPANY_INFO.uen : parsed.uen,
           gst_reg: parsed.gst_reg === 'M90382910X' || parsed.gst_reg === 'M90384721' ? '' : (parsed.gst_reg ?? ''),
-          phone: parsed.phone || initialSiteSettings.phone,
+          phone: (!parsed.phone || parsed.phone === PLACEHOLDER_PHONE) ? initialSiteSettings.phone : parsed.phone,
           contact_email: parsed.contact_email || initialSiteSettings.contact_email,
-          registered_office: parsed.registered_office || initialSiteSettings.registered_office,
+          registered_office: (!parsed.registered_office || parsed.registered_office === LEGACY_PLACEHOLDER_ADDRESS)
+            ? initialSiteSettings.registered_office
+            : parsed.registered_office,
           demo_mode: parsed.demo_mode !== false && parsed.demo_mode !== 'false'
         };
       }
@@ -748,11 +778,15 @@ export const LogisticsProvider = ({ children }) => {
           const merged = {
             ...prev,
             ...remoteSettings,
-            uen: remoteSettings.uen === '201829481K' || remoteSettings.uen === '202412345K' ? '' : (remoteSettings.uen ?? prev.uen ?? ''),
+            uen: remoteSettings.uen === '201829481K' || remoteSettings.uen === '202412345K' || !remoteSettings.uen
+              ? COMPANY_INFO.uen
+              : remoteSettings.uen,
             gst_reg: remoteSettings.gst_reg === 'M90382910X' || remoteSettings.gst_reg === 'M90384721' ? '' : (remoteSettings.gst_reg ?? prev.gst_reg ?? ''),
-            phone: remoteSettings.phone || prev.phone,
+            phone: (!remoteSettings.phone || remoteSettings.phone === PLACEHOLDER_PHONE) ? prev.phone : remoteSettings.phone,
             contact_email: remoteSettings.contact_email || prev.contact_email,
-            registered_office: remoteSettings.registered_office || prev.registered_office,
+            registered_office: (!remoteSettings.registered_office || remoteSettings.registered_office === LEGACY_PLACEHOLDER_ADDRESS)
+              ? prev.registered_office
+              : remoteSettings.registered_office,
             demo_mode: remoteSettings.demo_mode !== 'false' && remoteSettings.demo_mode !== false
           };
           try {
@@ -783,7 +817,11 @@ export const LogisticsProvider = ({ children }) => {
         email: newSettings.contact_email || prev.contact?.email || initialSiteSettings.contact_email,
         address: newSettings.registered_office || prev.contact?.address || initialSiteSettings.registered_office,
         description: 'Phone number, email, office address and opening hours.',
-        operatingHours: prev.contact?.operatingHours || '[ENTER REAL HOURS]'
+        operatingHours: (!prev.contact?.operatingHours ||
+          prev.contact.operatingHours === '[ENTER REAL HOURS]' ||
+          prev.contact.operatingHours === LEGACY_PLACEHOLDER_HOURS)
+          ? `${COMPANY_INFO.businessHours} (${COMPANY_INFO.timezoneNote})`
+          : prev.contact.operatingHours
       }
     }));
 
