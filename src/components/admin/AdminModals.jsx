@@ -352,7 +352,7 @@ export const CreateShipmentModal = ({
                 type="text"
                 value={formData.customer}
                 onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-                placeholder="e.g. Razer Asia-Pacific HQ"
+                placeholder="Company name"
                 required
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus-blue"
               />
@@ -366,7 +366,7 @@ export const CreateShipmentModal = ({
                 type="text"
                 value={formData.origin}
                 onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-                placeholder="e.g. Pasir Panjang Logistics Hub"
+                placeholder="e.g. Changi Air Cargo Hub"
                 required
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus-blue"
               />

@@ -43,7 +43,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(226, 232, 240);
       doc.text('Certified Electronic Proof of Delivery (e-POD) & Consignment Handover Record', 15, 22);
-      doc.text('Singapore Expressway Corridor | 24/7 Operations Command', 15, 27);
+      doc.text('Singapore | Josan Logistics', 15, 27);
       
       // POD Status Badge
       doc.setFillColor(255, 107, 0);
@@ -124,7 +124,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       doc.setTextColor(16, 24, 45);
-      doc.text('CARRIER & DISPATCH DETAILS', 18, 118.5);
+      doc.text('CARRIER DETAILS', 18, 118.5);
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
@@ -229,7 +229,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
     { key: 'Flight Departed', label: 'Flight Departed', desc: 'Freighter airborne en route' },
     { key: 'Flight Arrived', label: 'Flight Arrived', desc: 'Touchdown at destination' },
     { key: 'Import Customs', label: 'Import Customs', desc: 'Inbound customs cleared' },
-    { key: 'Out for Delivery', label: 'Out for Delivery', desc: 'Final leg delivery dispatch' },
+    { key: 'Out for Delivery', label: 'Out for Delivery', desc: 'Final delivery' },
     { key: 'Delivered', label: 'Delivered', desc: 'Consignee received & signed' }
   ];
 
@@ -380,9 +380,6 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
                 <Clock size={18} className="text-orange" />
                 Shipment Progress
               </h3>
-              <span className="text-xs text-slate-500 font-medium hidden sm:inline">
-                API-Ready Logistics Telematics
-              </span>
             </div>
 
             {/* Desktop Horizontal Tracker */}
@@ -467,7 +464,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
             </div>
           </div>
 
-          {/* Grid: Driver & Vehicle & Telematics */}
+          {/* Grid: Driver & Vehicle */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Transport Partner & Vehicle Details */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
@@ -519,7 +516,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
               </div>
             </div>
 
-            {/* Freight Specifications & Active Telematics */}
+            {/* Freight Specifications & Active Tracking */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
               <h3 className="text-base font-bold font-outfit text-[#10182D] flex items-center gap-2 border-b border-slate-100 pb-3">
                 <Navigation size={18} className="text-orange" />
@@ -545,7 +542,6 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
                 </div>
               </div>
 
-              {/* GPS Integration note */}
               <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
                 <div className="flex items-center gap-2 font-semibold text-[#10182D] mb-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -553,10 +549,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
                 </div>
                 <p>
                   Current waypoint: <strong className="text-[#10182D]">{shipment.currentLocation || 'Expressway Corridor'}</strong>. 
-                  Live telematics checkpoint updated at <strong>{shipment.lastUpdatedTime || 'Just now'}</strong>.
-                </p>
-                <p className="text-[11px] text-slate-400 mt-1 italic">
-                  *Structured for direct integration with regional GPS & IoT fleet telematics APIs.
+                  Last updated: {shipment.lastUpdatedTime || 'Not yet updated'}
                 </p>
               </div>
             </div>
@@ -693,7 +686,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
                 className="p-3.5 bg-white hover:bg-orange/5 border border-slate-200 hover:border-orange/40 rounded-xl text-left transition-all shadow-xs group"
               >
                 <div className="flex items-center justify-between text-xs font-bold text-[#10182D] group-hover:text-orange">
-                  <span>Tax Invoice & GST</span>
+                  <span>Invoice</span>
                   <ExternalLink size={14} />
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
@@ -721,7 +714,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
                 className="p-3.5 bg-white hover:bg-orange/5 border border-slate-200 hover:border-orange/40 rounded-xl text-left transition-all shadow-xs group block"
               >
                 <div className="flex items-center justify-between text-xs font-bold text-[#10182D] group-hover:text-orange">
-                  <span>Dispatch Support</span>
+                  <span>Operations Support</span>
                   <Headphones size={14} />
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
@@ -735,7 +728,7 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
         {/* Modal Footer */}
         <div className="bg-slate-50 border-t border-slate-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
           <div className="text-xs text-slate-500">
-            Josan Logistics Operations Platform &bull; ISO-9001 Road Freight Certified
+            Josan Logistics Operations Platform
           </div>
           <div className="flex items-center gap-3">
             <button

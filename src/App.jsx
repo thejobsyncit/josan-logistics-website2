@@ -5,7 +5,6 @@ import { Footer } from './components/Footer';
 import { AuthModal } from './components/AuthModal';
 import { InvoiceModal } from './components/InvoiceModal';
 import { ShipmentDetailsView } from './components/ShipmentDetailsView';
-import { SingaporeGoogleMapBackground } from './components/SingaporeGoogleMapBackground';
 import { Chatbot } from './components/chatbot/Chatbot';
 
 import { HomePage } from './pages/HomePage';
@@ -100,7 +99,7 @@ const ToastNotification = () => {
 };
 
 const MainContent = () => {
-  const { currentRole, setCurrentRole, currentUser, setCurrentUser, loginUser, logoutUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentRole, setCurrentRole, currentUser, setCurrentUser, logoutUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
 
   const validTabs = [
     'home', 
@@ -507,12 +506,12 @@ const MainContent = () => {
         description: 'Get in touch with Josan Logistics for air freight documentation, commercial road transport inquiries, and freight quotes.'
       },
       'track': {
-        title: 'Track Shipment | Josan Logistics',
-        description: 'Real-time shipment and Air Waybill (AWB) consignment tracking.'
+        title: 'Track road shipment | Josan Logistics',
+        description: 'Enter the tracking number we emailed you to see the status of your road shipment with Josan Logistics in Singapore.'
       },
       'quote': {
-        title: 'Request a Freight Quote | Josan Logistics',
-        description: 'Request competitive freight quotes for air freight services and commercial road transportation.'
+        title: 'Request a quote | Josan Logistics',
+        description: 'Send us your shipment details and we will email you a quote for air freight documents or road transport in Singapore.'
       },
       'privacy-policy': {
         title: 'Privacy Policy | Josan Logistics Pte. Ltd.',
@@ -549,10 +548,25 @@ const MainContent = () => {
     if (tab === 'track') {
       setTrackNavKey(prev => prev + 1);
     }
-    const savedLocalUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user') || 'null') : null;
-    const effectiveUser = (userOverride !== null && userOverride !== undefined) ? userOverride : (currentUser || savedLocalUser);
-    const effectiveRole = normalizeRole(effectiveUser?.role || currentRole || savedLocalUser?.role);
+    let savedStaffUser = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const parsedStaff = JSON.parse(localStorage.getItem('josan_staff_user') || 'null');
+        if (parsedStaff?.id && isStaffRole(parsedStaff?.role || parsedStaff?.rawRole)) {
+          savedStaffUser = parsedStaff;
+        }
+      } catch (e) {}
+    }
+    const effectiveUser = (userOverride !== null && userOverride !== undefined) ? userOverride : (currentUser || savedStaffUser);
+    const effectiveRole = normalizeRole(effectiveUser?.role || currentRole);
     const isStaffAuth = Boolean(effectiveUser && isStaffRole(effectiveRole));
+
+    if (userOverride !== null && userOverride !== undefined) {
+      currentUserRef.current = userOverride;
+      if (effectiveRole) {
+        currentRoleRef.current = effectiveRole;
+      }
+    }
 
     // Check authentication for protected customer pages
     if (!effectiveUser && (
@@ -773,13 +787,13 @@ const MainContent = () => {
       );
     }
 
-    const savedUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('josan_user') || 'null') : null;
-    const activeAuthUser = currentUser || savedUser;
+    const activeAuthUser = currentUser;
 
     if (!activeAuthUser && (
       activeTab === 'customer-dashboard' || 
       activeTab === 'my-shipments' || 
-      activeTab === 'manage-shipment'
+      activeTab === 'manage-shipment' ||
+      activeTab === 'quote'
     )) {
       return <HomePage setActiveTab={changeActiveTab} />;
     }

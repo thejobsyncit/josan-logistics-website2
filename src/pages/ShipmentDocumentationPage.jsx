@@ -100,7 +100,7 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
       documents: [
         { name: 'Commercial Invoice', desc: 'Details of the commercial transaction, buyer, seller and invoice value.' },
         { name: 'Packing List', desc: 'Package counts, cargo weights and cargo dimensions.' },
-        { name: 'Road Consignment Note (LR)', desc: 'Consignment transit receipt and dispatch acknowledgment for partner transport.' },
+        { name: 'Road Consignment Note (LR)', desc: 'Consignment transit receipt and pickup acknowledgment for partner transport.' },
         { name: 'Delivery Record', desc: 'Delivery confirmation record for the shipment.' }
       ]
     }

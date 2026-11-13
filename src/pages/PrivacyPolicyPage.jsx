@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { COOKIE_AUDIT_DATA, openCookiePreferences } from '../components/CookieBanner';
 import { useLogistics } from '../context/LogisticsContext';
+import { COMPANY_INFO } from '../config/siteConfig';
 
 export const PrivacyPolicyPage = ({ setActiveTab }) => {
   const { siteSettings } = useLogistics?.() || {};
@@ -47,7 +48,7 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-1">
               <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
-                Singapore PDPA 2012 Compliance
+                Singapore PDPA 2012
               </span>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight pt-2">
                 Privacy Policy
@@ -268,7 +269,7 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
                   <span className="text-slate-900 font-extrabold">Track Shipment</span>
                 </div>
                 <p className="text-slate-600 leading-relaxed">
-                  Stores and looks up your tracking number or Air Waybill (AWB) code to retrieve milestone logs entered by our dispatch team. We do not profile visitors or track browsing behavior across websites.
+                  Stores and looks up your tracking number or Air Waybill (AWB) code to retrieve milestone logs entered by our operations team. We do not profile visitors or track browsing behavior across websites.
                 </p>
               </div>
             </div>
@@ -391,7 +392,7 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
               <div className="pt-2 border-t border-slate-200 space-y-2">
                 <p className="flex items-start space-x-2">
                   <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                  <span><strong>Address:</strong> {siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</span>
+                  <span><strong>Address:</strong> {siteSettings?.registered_office || COMPANY_INFO.address}</span>
                 </p>
                 <p className="flex items-center space-x-2">
                   <Mail className="w-4 h-4 text-slate-500 shrink-0" />

@@ -11,6 +11,7 @@ import {
   X
 } from 'lucide-react';
 import { useLogistics } from '../../context/LogisticsContext';
+import { COMPANY_INFO } from '../../config/siteConfig';
 
 export const BILLING_PAYMENT_STATUSES = [
   'Paid',
@@ -119,7 +120,7 @@ export const generateInvoicePdf = (inv, customSiteSettings = null) => {
     uen ? `UEN: ${uen}` : 'UEN: [Pending]',
     gstReg ? `GST Reg: ${gstReg}` : 'Non-GST Registered'
   ].join('  |  ');
-  const registeredOffice = settings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438';
+  const registeredOffice = settings?.registered_office || COMPANY_INFO.address;
 
   doc.text(uenGstLine, 15, 22);
   doc.text(registeredOffice, 15, 28);
@@ -701,7 +702,7 @@ export const CrmBillingTab = ({
                     ].join(' • ')}
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    {siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}
+                    {siteSettings?.registered_office || COMPANY_INFO.address}
                   </p>
                 </div>
 
@@ -863,7 +864,7 @@ export const CrmBillingTab = ({
                       setNewInvData({ ...newInvData, customerName: val });
                     }
                   }}
-                  placeholder="e.g. Razer Asia-Pacific HQ"
+                  placeholder="Company name"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
                 <datalist id="billing-customer-datalist">

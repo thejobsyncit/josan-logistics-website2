@@ -470,7 +470,7 @@ export const AboutUsPage = ({ setActiveTab }) => {
               ) : (
                 <iframe
                   src={mapsEmbedUrl}
-                  title={`${whereToFindUs.mapTitlePrefix} ${officeAddress}`}
+                  title={whereToFindUs.mapTitle || initialWebsiteContent.about.whereToFindUs.mapTitle}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   onError={() => setMapEmbedFailed(true)}

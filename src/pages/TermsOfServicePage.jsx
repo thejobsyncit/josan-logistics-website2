@@ -25,6 +25,7 @@ import {
   Ban
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
+import { COMPANY_INFO } from '../config/siteConfig';
 
 export const TermsOfServicePage = ({ setActiveTab }) => {
   const { siteSettings } = useLogistics?.() || {};
@@ -145,7 +146,7 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
               <span>Cancellation and Changes</span>
             </h2>
             <p className="text-slate-600">
-              Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to vehicle dispatch. Cancellations made after a vehicle has been dispatched or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred.
+              Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to the carrier collecting the cargo. Cancellations made after a vehicle has been dispatched or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred.
             </p>
           </section>
 
@@ -167,7 +168,7 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
               <span>Tracking Information</span>
             </h2>
             <p className="text-slate-600">
-              Shipment progress updates displayed on our Track Shipment page are entered and updated by our operations dispatch team and are indicative only. Milestone timestamps reflect reported telematics and manual operational logs. For current status, always refer to the "Last updated" time displayed on the tracking screen. Josan Logistics is not liable for minor display latencies or partner telematics transmission delays.
+              Shipment updates are entered manually by our operations team, are indicative only, and show a Last updated time.
             </p>
           </section>
 
@@ -408,7 +409,7 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
             <p className="font-extrabold text-slate-900 text-sm">Commercial Enquiries &bull; {siteSettings?.company_name || 'Josan Logistics Pte. Ltd.'}</p>
             <p className="flex items-center space-x-2">
               <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>Registered Office: {siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</span>
+              <span>Registered Office: {siteSettings?.registered_office || COMPANY_INFO.address}</span>
             </p>
             <p className="flex items-center space-x-2">
               <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />

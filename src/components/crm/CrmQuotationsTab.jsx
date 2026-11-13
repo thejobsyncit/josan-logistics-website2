@@ -14,6 +14,7 @@ import { useLogistics } from '../../context/LogisticsContext';
 import { supabase } from '../../services/supabase';
 import { canEditRole, isStaffRole, normalizeRole } from '../../utils/roles';
 import { formatSingaporeDateTime } from '../../utils/dateTime';
+import { COMPANY_INFO } from '../../config/siteConfig';
 
 export const QUOTE_STATUS_OPTIONS = [
   'New',
@@ -389,7 +390,7 @@ export const CrmQuotationsTab = ({
                 siteSettings?.uen && siteSettings.uen !== '202412345K' ? `UEN: ${siteSettings.uen}` : 'UEN: [Pending]',
                 'Non-GST Registered'
               ].join(' • ')}</p>
-              <p class="subtext">${siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</p>
+              <p class="subtext">${siteSettings?.registered_office || COMPANY_INFO.address}</p>
             </div>
             <div>
               <div class="quote-title">OFFICIAL QUOTATION</div>
@@ -921,7 +922,7 @@ export const CrmQuotationsTab = ({
                       setNewQuoteData({ ...newQuoteData, customerName: val, company: val });
                     }
                   }}
-                  placeholder="e.g. Razer Asia-Pacific HQ"
+                  placeholder="Company name"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
                 <datalist id="crm-quote-customers">

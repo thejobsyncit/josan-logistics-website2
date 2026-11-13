@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { COOKIE_AUDIT_DATA, openCookiePreferences } from './CookieBanner';
 import { useLogistics } from '../context/LogisticsContext';
+import { COMPANY_INFO } from '../config/siteConfig';
 
 // Global helper function so any component can open the dialog without navigating or clearing form state
 export const openLegalDialog = (type = 'privacy', triggerElement = null) => {
@@ -404,7 +405,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                   <span className="w-6 h-6 rounded-lg bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">2</span>
                   <span>Information We Collect</span>
                 </h3>
-                <p>When you submit an enquiry, request a freight quote, or engage our services, we collect:</p>
+                <p>When you submit an enquiry, request a quote, or engage our services, we collect:</p>
                 <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600">
                   <li><strong className="text-slate-800">Contact Details:</strong> Your full name, company name, business or personal email address, and telephone number.</li>
                   <li><strong className="text-slate-800">Quote &amp; Consignment Data:</strong> Cargo descriptions, pickup and delivery addresses, package count, cargo dimensions, weight, and preferred schedule.</li>
@@ -548,7 +549,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                     <strong className="text-slate-800">JOSAN AI Chat &amp; Quotes:</strong> We store the <strong>name</strong> and the <strong>description of the quote</strong> so our operations team can accurately calculate, formulate, and deliver your quotation. Chat messages are kept only in your browser session (<code className="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">sessionStorage</code>) and deleted when the session ends, unless you submit a quote or contact request (attached to that reference number) or choose &quot;Send this chat to our team&quot;. Stored chats are deleted after <strong>30 days</strong> and are visible to admin staff only. Customers may request deletion of their chats at any time through our operations team or using the chat trash icon.
                   </p>
                   <p>
-                    <strong className="text-slate-800">Track Shipment Page:</strong> Stores and queries your tracking number or Air Waybill (AWB) code to retrieve milestone logs entered by our dispatch team. We do not profile visitors or track browsing behavior across websites.
+                    <strong className="text-slate-800">Track Shipment Page:</strong> Stores and queries your tracking number or Air Waybill (AWB) code to retrieve milestone logs entered by our operations team. We do not profile visitors or track browsing behavior across websites.
                   </p>
                 </div>
               </section>
@@ -659,7 +660,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                 <p>To exercise your data protection rights or contact our appointed DPO:</p>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2 text-slate-700">
                   <p><strong className="text-slate-900">Data Protection Officer &bull; {siteSettings?.company_name || 'Josan Logistics Pte. Ltd.'}</strong></p>
-                  <p><strong>Address:</strong> {siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</p>
+                  <p><strong>Address:</strong> {siteSettings?.registered_office || COMPANY_INFO.address}</p>
                   <p>
                     <strong>Email:</strong> <a href={`mailto:${siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}</a>
                   </p>
@@ -748,7 +749,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                   <span>Cancellation and Changes</span>
                 </h3>
                 <p className="text-slate-600">
-                  Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to vehicle dispatch. Cancellations made after a vehicle has been dispatched or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER]</span>.
+                  Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to the carrier collecting the cargo. Cancellations made after a vehicle has been dispatched or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER]</span>.
                 </p>
               </section>
 
@@ -770,7 +771,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                   <span>Tracking Information</span>
                 </h3>
                 <p className="text-slate-600">
-                  Shipment progress updates displayed on our Track Shipment page are entered and updated by our operations dispatch team and are indicative only. Milestone timestamps reflect reported telematics and manual operational logs. For current status, always refer to the "Last updated" time displayed on the tracking screen. Josan Logistics is not liable for minor display latencies or partner telematics transmission delays.
+                  Shipment updates are entered manually by our operations team, are indicative only, and show a Last updated time.
                 </p>
               </section>
 
@@ -1015,7 +1016,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
             <p className="font-bold text-slate-900 text-sm">Commercial Inquiries &bull; {siteSettings?.company_name || 'Josan Logistics Pte. Ltd.'}</p>
             <p className="flex items-center space-x-2">
               <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>Office: {siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}</span>
+              <span>Office: {siteSettings?.registered_office || COMPANY_INFO.address}</span>
             </p>
             <p className="flex items-center space-x-2">
               <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />

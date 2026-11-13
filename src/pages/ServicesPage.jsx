@@ -27,7 +27,7 @@ export const ServicesPage = ({ setActiveTab }) => {
     if (!currentUser) {
       if (setAuthRedirectTab) setAuthRedirectTab('quote');
       setIsAuthModalOpen(true);
-      if (showToast) showToast('Please sign in or create an account to request a freight quote.', 'warning');
+      if (showToast) showToast('Please sign in or create an account to request a quote.', 'warning');
       return;
     }
     if (setActiveTab) setActiveTab('quote');

@@ -1,98 +1,5 @@
 import { COMPANY_INFO, SITE_CONTACT } from '../config/siteConfig';
 
-export const initialCargoPricing = [
-  {
-    id: 'cargo-gen-01',
-    name: 'General Cargo',
-    code: 'GEN',
-    category: 'General',
-    description: 'Standard palletized, consolidated dry goods and packaged commercial merchandise.',
-    active: true,
-    basePricePerKg: 3.50,
-    minimumCharge: 50.00,
-    weightSlabs: [
-      { minWeight: 0, maxWeight: 100, pricePerKg: 3.50 },
-      { minWeight: 101, maxWeight: 500, pricePerKg: 3.50 },
-      { minWeight: 501, maxWeight: 999999, pricePerKg: 3.00 }
-    ]
-  },
-  {
-    id: 'cargo-fra-02',
-    name: 'Fragile Cargo',
-    code: 'FRG',
-    category: 'Fragile',
-    description: 'Delicate glassware, optical instruments, calibrated laboratory apparatus and ceramics.',
-    active: true,
-    basePricePerKg: 4.80,
-    minimumCharge: 75.00,
-    weightSlabs: [
-      { minWeight: 0, maxWeight: 100, pricePerKg: 5.20 },
-      { minWeight: 101, maxWeight: 500, pricePerKg: 4.80 },
-      { minWeight: 501, maxWeight: 999999, pricePerKg: 4.20 }
-    ]
-  },
-  {
-    id: 'cargo-per-03',
-    name: 'Perishable Cargo',
-    code: 'PER',
-    category: 'Perishable',
-    description: 'Fresh seafood, agricultural produce, cut flowers and short shelf-life commercial goods.',
-    active: true,
-    basePricePerKg: 5.00,
-    minimumCharge: 90.00,
-    weightSlabs: [
-      { minWeight: 0, maxWeight: 100, pricePerKg: 6.00 },
-      { minWeight: 101, maxWeight: 500, pricePerKg: 5.00 },
-      { minWeight: 501, maxWeight: 999999, pricePerKg: 4.90 }
-    ]
-  },
-  {
-    id: 'cargo-elec-04',
-    name: 'Electronic Goods',
-    code: 'ELC',
-    category: 'Electronics',
-    description: 'Microchips, printed circuit assemblies, consumer technology and communication hardware.',
-    active: true,
-    basePricePerKg: 4.20,
-    minimumCharge: 60.00,
-    weightSlabs: [
-      { minWeight: 0, maxWeight: 100, pricePerKg: 4.50 },
-      { minWeight: 101, maxWeight: 500, pricePerKg: 4.20 },
-      { minWeight: 501, maxWeight: 999999, pricePerKg: 3.75 }
-    ]
-  },
-  {
-    id: 'cargo-doc-05',
-    name: 'Documents',
-    code: 'DOC',
-    category: 'Documents',
-    description: 'Confidential business dossiers, trade agreements, tender blue-prints and shipping manifests.',
-    active: true,
-    basePricePerKg: 2.50,
-    minimumCharge: 25.00,
-    weightSlabs: [
-      { minWeight: 0, maxWeight: 10, pricePerKg: 2.50 },
-      { minWeight: 11, maxWeight: 50, pricePerKg: 2.20 },
-      { minWeight: 51, maxWeight: 999999, pricePerKg: 1.90 }
-    ]
-  },
-  {
-    id: 'cargo-oth-06',
-    name: 'Other',
-    code: 'OTH',
-    category: 'Other',
-    description: 'Custom industrial machinery spares, oversized hardware and non-standard commercial consignments.',
-    active: true,
-    basePricePerKg: 4.00,
-    minimumCharge: 60.00,
-    weightSlabs: [
-      { minWeight: 0, maxWeight: 100, pricePerKg: 4.20 },
-      { minWeight: 101, maxWeight: 500, pricePerKg: 4.00 },
-      { minWeight: 501, maxWeight: 999999, pricePerKg: 3.60 }
-    ]
-  }
-];
-
 export const initialSystemUsers = [
   {
     id: 'USR-ADM-001',
@@ -303,7 +210,7 @@ export const initialWebsiteContent = {
         email: 'Email'
       },
       openInMapsLabel: 'Open in Google Maps',
-      mapTitlePrefix: 'Map showing Josan Logistics head office at',
+      mapTitle: 'Map showing Josan Logistics office at Sim Lim Tower, Jalan Besar',
       mapUnavailableText: 'Google Maps embed could not load.'
     },
     closingCta: {
@@ -365,6 +272,468 @@ export const initialWebsiteContent = {
     active: false,
     text: 'Air freight documentation support and road transportation coordination in Singapore.',
     type: 'info'
+  },
+  airFreight: {
+    hero: {
+      title: 'AWB, Billing & Shipment Documentation',
+      subtitle: 'We prepare Air Waybills and handle the billing and shipment documents for commercial air freight.',
+      ctaLabel: 'Get a quote',
+      image: '',
+      imageAlt: 'Parked white and blue freight aircraft on an airport tarmac at night'
+    },
+    intro: {
+      heading: 'Air freight paperwork, prepared for you',
+      paragraphs: [
+        'We prepare your Air Waybill from your shipment details and work out the billing that goes with it. Our team checks your commercial invoice, packing list and other shipment documents before anything is issued.',
+        'We handle the paperwork only. We do not book flights or carry cargo, so you or your forwarder arrange the flight with the airline.'
+      ],
+      linkLabel: 'See what we need from you',
+      linkTarget: '#what-we-need',
+      image: '/assets/air_freight_documentation_neutral.jpg',
+      imageAlt: 'Office desk in front of stacked cargo pallets with shipping paperwork folders, clipboards, a mug, and an open laptop'
+    },
+    services: {
+      heading: 'What we do for air freight',
+      subheading: 'We prepare your Air Waybill, work out the billing, and check your shipment documents.',
+      cards: [
+        {
+          id: 'awb-prep',
+          title: 'AWB preparation',
+          description: 'We prepare your Air Waybill from the details of your shipment.',
+          items: [
+            'Shipper and consignee details entered from your documents',
+            'Cargo description, pieces and weight taken from your invoice and packing list',
+            'Air Waybill ready to hand to the airline or your forwarder'
+          ]
+        },
+        {
+          id: 'awb-billing',
+          title: 'AWB billing',
+          description: 'We work out the charges that go with your Air Waybill.',
+          items: [
+            'Air freight charges listed line by line',
+            'Billing sent to you with the Air Waybill'
+          ]
+        },
+        {
+          id: 'shipment-doc',
+          title: 'Shipment documentation',
+          description: 'We check the documents for your air shipment before anything is issued.',
+          items: [
+            'Commercial invoice and packing list checked against each other',
+            'Cargo details recorded for the Air Waybill',
+            'Copies of the finished documents sent to you'
+          ]
+        }
+      ]
+    },
+    showCargoTypes: false, // Set to true only for cargo types we have confirmed we prepare documents for.
+    cargoTypes: {
+      heading: 'Cargo types we prepare documents for',
+      subheading: 'We prepare the Air Waybill and shipment documents for these types of cargo.',
+      footnote: 'Some cargo types need extra documents. Contact us and we will tell you what is needed.',
+      // Set to true only for cargo types we have confirmed we prepare documents for.
+      enabled: {
+        general: false,
+        fragile: false,
+        documentsParcels: false,
+        electronics: false,
+        perishable: false
+      },
+      cards: [
+        {
+          key: 'general',
+          title: 'General cargo',
+          description: 'Air Waybill and shipment documents for standard commercial cargo and palletised goods.' // [CONFIRM]
+        },
+        {
+          key: 'fragile',
+          title: 'Fragile cargo',
+          description: 'Air Waybill and shipment documents for fragile commercial shipments.' // [CONFIRM]
+        },
+        {
+          key: 'documentsParcels',
+          title: 'Documents and parcels',
+          description: 'Air Waybill and shipment documents for business documents and commercial parcels.' // [CONFIRM]
+        },
+        {
+          key: 'electronics',
+          title: 'Electronics',
+          description: 'Air Waybill and shipment documents for commercial electronics.' // [CONFIRM]
+        },
+        {
+          key: 'perishable',
+          title: 'Perishable cargo',
+          description: 'Air Waybill and shipment documents for perishable shipments.' // [CONFIRM: do not mention any partner or any cold-chain service]
+        }
+      ]
+    },
+    process: {
+      heading: 'How an air freight job works',
+      subheading: 'From your first request to your finished documents, this is the order we follow.',
+      steps: [
+        {
+          number: '1',
+          title: 'Send your request',
+          description: 'Tell us what you are shipping and what you need prepared. You can use our quote form or email us.'
+        },
+        {
+          number: '2',
+          title: 'We prepare your quote',
+          description: 'We work out the cost of preparing your Air Waybill and the billing that goes with it.'
+        },
+        {
+          number: '3',
+          title: 'We check your documents',
+          description: 'A member of our team checks your shipment documents and emails you the confirmed details and the quote.'
+        },
+        {
+          number: '4',
+          title: 'You confirm and pay',
+          description: 'Once you are happy with the quote, you pay by bank transfer or PayNow.'
+        },
+        {
+          number: '5',
+          title: 'We prepare your Air Waybill',
+          description: 'We prepare the Air Waybill and the billing from your confirmed shipment details.'
+        },
+        {
+          number: '6',
+          title: 'You receive your documents',
+          description: 'We send you the finished documents by email. Booking the flight is handled by you or your forwarder.'
+        }
+      ]
+    },
+    whatWeNeed: {
+      heading: 'What we need from you',
+      subheading: 'To prepare your Air Waybill and billing, we usually ask for:',
+      items: [
+        'Shipper and consignee details',
+        'Cargo description, quantity, weight and dimensions',
+        'Commercial invoice',
+        'Packing list',
+        'Origin and destination',
+        'Anything else we should know about your shipment'
+      ],
+      note: 'The documents we need can vary by shipment. We will tell you what is needed.',
+      ctaLabel: 'Get a quote'
+    },
+    roadCrossLink: {
+      heading: 'Need road transport?',
+      text: 'We also arrange commercial road transport through our partner carriers.',
+      linkLabel: 'See road transport'
+    },
+    faqSection: {
+      heading: 'Frequently asked questions',
+      subheading: 'Answers to common questions about Air Waybills and our billing and document service.',
+      cargoTypesQuestion: 'Which types of cargo do you prepare documents for?',
+      cargoTypesAnswerPrefix: 'We prepare Air Waybill and shipment documents for ',
+      cargoTypesAnswerSuffix: '. Contact us if your cargo is not listed.'
+    },
+    faqs: [
+      {
+        q: 'What is an Air Waybill (AWB)?',
+        a: 'An Air Waybill is the document that goes with an air cargo shipment. It records what is being shipped, who is sending it and who is receiving it. It is also the contract between the shipper and the airline for carrying the cargo.'
+      },
+      {
+        q: 'What information do you need to prepare an AWB?',
+        a: 'We need the shipper and consignee details, a description of the cargo with the quantity, weight and dimensions, your commercial invoice and packing list, and the origin and destination. Tell us anything else we should know about your shipment. The documents we need can vary by shipment, and we will tell you what is needed.'
+      },
+      {
+        q: 'How is air freight billing calculated?',
+        // [CONFIRM: verify chargeable weight billing and whether any document preparation fee applies]
+        a: 'Air freight charges are based on chargeable weight, which is the higher of the actual weight and the volumetric weight of your shipment. We work out the charges that go with your Air Waybill and confirm them in your quote before you pay.'
+      },
+      {
+        q: 'Do you book flights or carry cargo?',
+        // [CONFIRM: verify "Booking the flight is handled by you or your forwarder."]
+        a: 'No. We prepare the Air Waybill, the billing and the shipment documents only. Booking the flight is handled by you or your forwarder.'
+      }
+    ],
+    closingCta: {
+      heading: 'Send us your shipment details and we will prepare your Air Waybill.',
+      subtext: 'Tell us what you are shipping and we will send you a quote for the Air Waybill and billing.',
+      primaryLabel: 'Get a quote',
+      contactLabel: 'Contact us',
+      callLabel: 'Call us',
+      whatsappLabel: 'WhatsApp',
+      whatsappHref: 'https://wa.me/6567890123' // [PLACEHOLDER PHONE NUMBER: +65 6789 0123 until confirmed]
+    }
+  },
+  roadFreight: {
+    hero: {
+      heading: 'Commercial road transport in Singapore',
+      paragraph: 'We arrange commercial road transport for businesses through our partner carriers. We do not own vehicles, so each job is matched to a carrier that suits your goods.',
+      ctaLabel: 'Get a quote',
+      image: '/assets/road_transportation_hero.jpg',
+      imageAlt: 'Commercial road transport vehicle in Singapore'
+    },
+    intro: {
+      heading: 'Road transport through partner carriers',
+      paragraphs: [
+        'You tell us what you are moving, where it is collected and where it needs to go. We send you a quote. Once you confirm and pay, we arrange a partner carrier for the job.',
+        'We email you a tracking number so you can follow your shipment, and you receive proof of delivery when the job is done.'
+      ],
+      linkLabel: 'See what we need to quote',
+      linkTarget: '#what-we-need-road',
+      useRealPhoto: false,
+      realPhoto: '',
+      realPhotoAlt: '',
+      whatWeDoBlock: {
+        heading: 'What we do and what we do not do',
+        doHeading: 'We do',
+        doItems: [
+          'Arrange commercial road transport in Singapore through partner carriers',
+          'Send you a quote before you pay',
+          'Email you a tracking number',
+          'Give you proof of delivery'
+        ],
+        doNotHeading: 'We do not',
+        doNotItems: [
+          'Own or run vehicles',
+          'Move oversize goods, dangerous goods or electronics'
+        ]
+      }
+    },
+    services: {
+      heading: 'What we do for road transport',
+      subheading: 'We book your job with a partner carrier in Singapore. We do not own vehicles.',
+      cards: [
+        {
+          id: 'road-transport-singapore',
+          title: 'Road transport in Singapore',
+          description: 'We arrange the movement of your commercial goods from one place in Singapore to another.',
+          items: [
+            'Pickup and delivery addresses taken from your request',
+            'Goods matched to a carrier that suits their size and weight',
+            'Singapore jobs only'
+          ]
+        },
+        {
+          id: 'partner-carriers',
+          title: 'Partner carriers',
+          description: 'We do not own vehicles. We book each job with a partner carrier.',
+          items: [
+            'Carrier chosen for your goods and route',
+            'Booked after you confirm the quote and pay [CONFIRM]',
+            'One contact at our team for your job [CONFIRM]'
+          ]
+        },
+        {
+          id: 'quote-tracking-pod',
+          title: 'Quote, tracking and proof of delivery',
+          description: 'You know the price before you pay, and you can follow the job afterwards.',
+          items: [
+            'Quote sent to you before you pay',
+            'Tracking number sent to you by email',
+            'Proof of delivery when the job is done'
+          ]
+        }
+      ],
+      linkLabel: 'Get a quote',
+      linkTarget: '#quote'
+    },
+    goodsWeMove: {
+      heading: 'Goods we move',
+      subheading: 'We arrange road transport for these kinds of commercial goods.',
+      // Set to true only for goods we have confirmed we move.
+      packagedPalletised: true,
+      retailWholesale: true,
+      industrial: false,
+      rawMaterials: true,
+      flags: {
+        packagedPalletised: true,
+        retailWholesale: true,
+        industrial: false,
+        rawMaterials: true
+      },
+      items: [
+        {
+          id: 'packaged-palletised',
+          flagKey: 'packagedPalletised',
+          title: 'Packaged and palletised goods',
+          description: 'Boxed and carton-packed goods, and goods on pallets.'
+        },
+        {
+          id: 'retail-wholesale',
+          flagKey: 'retailWholesale',
+          title: 'Retail and wholesale goods',
+          description: 'Stock moving between suppliers, warehouses and shops.'
+        },
+        {
+          id: 'industrial-products',
+          flagKey: 'industrial',
+          title: 'Industrial products',
+          description: 'Industrial parts and supplies of a normal size and weight.' // [CONFIRM: only enable this card if we really move these; do not mention machinery or equipment]
+        },
+        {
+          id: 'raw-materials',
+          flagKey: 'rawMaterials',
+          title: 'Raw materials and components',
+          description: 'Materials and parts used in production.'
+        }
+      ],
+      notMovedBlock: {
+        heading: 'We do not move',
+        text: 'Oversize goods, dangerous goods and electronics.',
+        footnotePrefix: 'Not sure whether your goods fit? ',
+        contactLabel: 'Contact us',
+        footnoteSuffix: ' and we will tell you.',
+        contactTarget: '#contact'
+      }
+    },
+    process: {
+      heading: 'How a road transport job works',
+      subheading: 'From your first request to proof of delivery, this is the order we follow.',
+      steps: [
+        {
+          number: '1',
+          title: 'Send your request',
+          description: 'Tell us what you are moving, where it is collected and where it needs to go. Use our quote form.'
+        },
+        {
+          number: '2',
+          title: 'We review your request',
+          description: 'A member of our team looks at your request and confirms the details with you if anything is unclear [CONFIRM: delete "confirms the details with you if anything is unclear" if our team does not contact the customer at this stage].'
+        },
+        {
+          number: '3',
+          title: 'You receive your quote',
+          description: 'Once our team has confirmed the job, we email you the quote [CONFIRM QUOTE TURNAROUND TIME, optional].'
+        },
+        {
+          number: '4',
+          title: 'You pay',
+          description: 'You pay the quote [CONFIRM PAYMENT METHODS, e.g. bank transfer or PayNow]. We do not book a carrier before payment.'
+        },
+        {
+          number: '5',
+          title: 'We book a partner carrier',
+          description: 'After payment we book a partner carrier for your job. We email you a tracking number [CONFIRM: that the tracking number is sent at this stage].'
+        },
+        {
+          number: '6',
+          title: 'Your goods are delivered',
+          descriptionPrefix: 'The carrier delivers your goods and you receive proof of delivery [CONFIRM: how and in what form proof of delivery is sent]. You can follow the job with your tracking number on our ',
+          trackLinkLabel: 'Track road shipment page',
+          trackLinkTarget: '#track',
+          descriptionSuffix: '.',
+          description: 'The carrier delivers your goods and you receive proof of delivery [CONFIRM: how and in what form proof of delivery is sent]. You can follow the job with your tracking number on our Track road shipment page.'
+        }
+      ]
+    },
+    whatWeNeed: {
+      heading: 'What we need to quote your job',
+      subheading: 'To quote your job, we ask for these details in the quote form:',
+      items: [
+        'Pickup and delivery addresses',
+        'Type of goods and packaging',
+        'Weight, size and number of packages',
+        'Preferred pickup date'
+      ],
+      note: 'Our team reviews your request before we send you a quote.',
+      buttonLabel: 'Get a quote',
+      // Set to true only when this service is confirmed.
+      showDocumentationCard: false,
+      documentationCard: {
+        heading: 'Shipment documentation support',
+        text: 'Help preparing and organising shipment documents.',
+        linkLabel: 'See documentation support',
+        linkTarget: '#shipment-documentation-support'
+      }
+    },
+    airCrossLink: {
+      heading: 'Need air freight documents?',
+      text: 'We also prepare Air Waybills and the billing and shipment documents for air freight.',
+      linkLabel: 'See air freight documents',
+      linkTarget: '#air-freight'
+    },
+    whereWeOperate: {
+      lead: 'Where we operate:',
+      text: 'Singapore only.'
+    },
+    faqSection: {
+      heading: 'Frequently asked questions',
+      subheading: 'Answers to common questions about our road transport service.',
+      goodsQuestion: 'What types of goods can you move?',
+      goodsAnswerPrefix: 'We arrange road transport for ',
+      goodsAnswerSuffix: '. We do not move oversize goods, dangerous goods or electronics. If you are not sure whether your goods fit, contact us and we will tell you.',
+      goodsAnswerEmpty: 'We do not move oversize goods, dangerous goods or electronics. Contact us to ask whether we can move your goods.'
+    },
+    faqs: [
+      {
+        id: 'how-get-quote',
+        q: 'How do I get a quote?',
+        a: 'Fill in our quote form with your pickup and delivery addresses, the type of goods and packaging, and the weight, size and number of packages. A member of our team reviews your request, and we email you the quote.'
+      },
+      {
+        id: 'own-vehicles',
+        q: 'Do you own the vehicles?',
+        a: 'No. We do not own or run vehicles. After you pay the quote, we book a partner carrier for your job.'
+      },
+      {
+        id: 'send-documents',
+        q: 'Do I need to send you any documents?',
+        a: 'No. We only need the details you enter in the quote form.'
+      },
+      {
+        id: 'track-shipment',
+        q: 'How do I track my shipment?',
+        aPrefix: 'After we book your carrier, we email you a tracking number. Enter it on our ',
+        linkLabel: 'Track road shipment page',
+        linkTarget: '#track',
+        aSuffix: ' to follow your job.',
+        a: 'After we book your carrier, we email you a tracking number. Enter it on our Track road shipment page to follow your job.'
+      },
+      {
+        id: 'proof-delivery',
+        q: 'Do I get proof of delivery?',
+        a: 'Yes. When your goods have been delivered, you receive proof of delivery [CONFIRM HOW, e.g. by email].'
+      }
+    ],
+    closingCta: {
+      heading: 'Send us your job details and we will quote.',
+      subtext: 'Tell us what you are moving and where it is going. Our team reviews your request and emails you a quote.',
+      primaryLabel: 'Get a quote',
+      contactLabel: 'Contact us',
+      callLabel: 'Call us',
+      whatsappLabel: 'WhatsApp',
+      whatsappHref: 'https://wa.me/6567890123' // [PLACEHOLDER PHONE NUMBER: +65 6789 0123 until confirmed]
+    }
+  },
+  tracking: {
+    hero: {
+      heading: 'Track road shipment',
+      subtext: 'Enter the tracking number we emailed you to see the latest status of your road shipment. Updates are entered by our team, and the time of the last update is shown.'
+    },
+    form: {
+      label: 'Tracking number',
+      placeholder: 'Enter your tracking number',
+      buttonLabel: 'Track shipment',
+      buttonLoadingLabel: 'Searching...',
+      rateLimitWarning: 'Too many lookups. Please try again later. Please wait',
+      rateLimitSuffix: 's before querying again.',
+      clientRateLimitError: 'Rate limit reached: Maximum 10 tracking queries per minute allowed.'
+    },
+    guidelines: {
+      heading: 'Where to find your tracking number',
+      text: 'We email you a tracking number after we book your carrier. Enter it above to see the latest status of your road shipment.',
+      // [CONFIRM: that the tracking number is emailed at that stage, after payment and carrier booking]
+      airFreightNotice: 'Air freight: we prepare Air Waybills and shipment documents only, so air shipments cannot be tracked here.'
+    },
+    help: {
+      text: 'Need help with your shipment? ',
+      linkLabel: 'Contact us'
+    },
+    notFound: {
+      messagePrefix: 'We could not find this tracking number. Check the number or ',
+      linkLabel: 'contact us',
+      messageSuffix: '.'
+    },
+    events: {
+      heading: 'Tracking events',
+      emptyText: 'Shipment is recorded. Updates are entered by our team as they occur.'
+    }
   }
 };
 
@@ -394,41 +763,3 @@ export const initialManagedServices = {
 
 export const initialAdminActivityLog = [];
 
-export const calculateCargoPricingHelper = (cargoItem, weightKg = 0) => {
-  const weight = Math.max(0, Number(weightKg) || 0);
-  if (!cargoItem || !cargoItem.active) {
-    return {
-      pricePerKg: 0,
-      estimatedCargoCharge: 0,
-      appliedSlab: null,
-      isMinChargeApplied: false,
-      minimumCharge: 0
-    };
-  }
-
-  let effectiveRate = Number(cargoItem.basePricePerKg) || 0;
-  let appliedSlab = null;
-
-  if (Array.isArray(cargoItem.weightSlabs) && cargoItem.weightSlabs.length > 0) {
-    const matchedSlab = cargoItem.weightSlabs.find(
-      slab => weight >= Number(slab.minWeight) && weight <= Number(slab.maxWeight)
-    );
-    if (matchedSlab && Number(matchedSlab.pricePerKg) > 0) {
-      effectiveRate = Number(matchedSlab.pricePerKg);
-      appliedSlab = matchedSlab;
-    }
-  }
-
-  const rawCharge = weight * effectiveRate;
-  const minCharge = Number(cargoItem.minimumCharge) || 0;
-  const isMinChargeApplied = minCharge > 0 && rawCharge < minCharge;
-  const estimatedCargoCharge = isMinChargeApplied ? minCharge : Number(rawCharge.toFixed(2));
-
-  return {
-    pricePerKg: effectiveRate,
-    estimatedCargoCharge,
-    appliedSlab,
-    isMinChargeApplied,
-    minimumCharge: minCharge
-  };
-};

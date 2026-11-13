@@ -1,6 +1,7 @@
 // Disabled. Needs lawyer review. Contains unapproved liability wording.
 import { jsPDF } from 'jspdf';
 import { safeDownloadPdf } from './pdfDownload.js';
+import { COMPANY_INFO } from '../config/siteConfig.js';
 
 /**
  * Generates and downloads a clean, professional PDF for Terms of Service or Privacy Policy.
@@ -16,8 +17,8 @@ export function generateLegalPdf(type = 'terms', customSettings = null) {
     } catch (e) {}
   }
 
-  const companyName = settings?.company_name || 'Josan Logistics Pte. Ltd.';
-  const registeredOffice = settings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438';
+  const companyName = settings?.company_name || COMPANY_INFO.legalName;
+  const registeredOffice = settings?.registered_office || COMPANY_INFO.address;
   const contactEmail = settings?.contact_email || 'contact@josanlogistics.com.sg';
   const phone = settings?.phone || '+65 6789 0123';
 

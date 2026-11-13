@@ -3,7 +3,7 @@ import { Truck } from 'lucide-react';
 
 export const SingaporeGoogleMapBackground = ({
   origin = 'Changi Air Cargo Complex',
-  destination = 'Pasir Panjang Logistics Terminal',
+  destination = 'West Coast Hub Terminal',
   vehicle = 'Josan EV Express Semi-Truck #SG-8819',
   truckProgress: externalProgress,
   currentSpeed: externalSpeed,
@@ -28,7 +28,7 @@ export const SingaporeGoogleMapBackground = ({
   }, [externalProgress]);
 
   const safeOrigin = origin || 'Changi Air Cargo Complex';
-  const safeDestination = destination || 'Pasir Panjang Logistics Terminal';
+  const safeDestination = destination || 'West Coast Hub Terminal';
   const safeVehicle = vehicle || 'Josan EV Express Semi-Truck #SG-8819';
 
   const progressVal = typeof externalProgress === 'number' && !isNaN(externalProgress) ? externalProgress : internalProgress;
@@ -272,18 +272,6 @@ export const SingaporeGoogleMapBackground = ({
               <circle cx="12" cy="12" r="2" fill="#ffffff" />
               <circle cx="32" cy="12" r="6" fill="#020617" stroke="#cbd5e1" strokeWidth="1.5" />
               <circle cx="32" cy="12" r="2" fill="#ffffff" />
-
-              {/* Live Telematics Badge Overlay */}
-              <rect x="-65" y="24" width="130" height="20" rx="10" fill="#0f172a" fillOpacity="0.95" stroke="#f97316" strokeWidth="1.5" />
-              <text x="0" y="37" textAnchor="middle" fill="#ffffff" fontSize="9.5" fontWeight="900" fontFamily="monospace">
-                🚛 {Math.round(safeProgress)}% EN ROUTE
-              </text>
-
-              {/* Pulsing GPS LIVE Pill */}
-              <rect x="18" y="-34" width="48" height="16" rx="8" fill="#10b981" stroke="#ffffff" strokeWidth="1.5" />
-              <text x="42" y="-23" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="900" fontFamily="sans-serif">
-                GPS LIVE
-              </text>
             </g>
           )}
 
@@ -319,7 +307,7 @@ export const SingaporeGoogleMapBackground = ({
           </div>
           <div>
             <p className="text-[10px] text-[#2463EB] font-bold uppercase tracking-wider">
-              Singapore Live GPS Telematics Route
+              Singapore Route Corridor
             </p>
             <p className="font-extrabold text-slate-100">{safeOrigin} → {safeDestination}</p>
           </div>
@@ -361,22 +349,6 @@ export const SingaporeGoogleMapBackground = ({
           >
             −
           </button>
-        </div>
-      </div>
-
-      {/* Floating Footer Telematics Overlay (Bottom Left) */}
-      <div className="absolute bottom-3 left-4 right-4 z-40 pointer-events-none grid grid-cols-3 gap-2 bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-slate-700 text-center text-xs text-white shadow-2xl">
-        <div>
-          <span className="text-slate-400 text-[10px] block font-bold uppercase">Est. Arrival</span>
-          <span className="font-extrabold text-white font-mono">Today, 4:30 PM (SGT)</span>
-        </div>
-        <div>
-          <span className="text-slate-400 text-[10px] block font-bold uppercase">Distance Remaining</span>
-          <span className="font-extrabold text-[#2463EB] font-mono">18.4 km (Expressway SLA)</span>
-        </div>
-        <div>
-          <span className="text-slate-400 text-[10px] block font-bold uppercase">Battery & Efficiency</span>
-          <span className="font-extrabold text-emerald-400 font-mono">94% (EV Cargo SLA)</span>
         </div>
       </div>
     </div>

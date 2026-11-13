@@ -57,7 +57,7 @@ export const HomePage = ({ setActiveTab }) => {
   const heroData = websiteContent?.hero || {};
   const heroTitle = heroData.title || 'Reliable Logistics Solutions For Every Journey';
   const heroSubtitle = heroData.subtitle || 'From Air Waybill preparation and shipment documentation to commercial road transportation, we provide reliable logistics support for businesses moving goods from one location to another.';
-  const heroCtaPrimary = heroData.ctaPrimary || 'Get a Freight Quote';
+  const heroCtaPrimary = heroData.ctaPrimary || 'Get a Quote';
   const heroCtaSecondary = heroData.ctaSecondary || '';
   const heroBadge = heroData.badge || '';
 
@@ -219,7 +219,7 @@ export const HomePage = ({ setActiveTab }) => {
                 onClick={handleQuoteAction}
                 className="w-full sm:w-auto px-7 py-3.5 bg-[var(--color-orange)] hover:bg-[var(--color-orange-hover)] text-[var(--color-on-navy)] rounded-[var(--radius)] font-semibold text-base transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-on-navy)]"
               >
-                Get a freight quote
+                Get a Quote
               </button>
             </div>
 

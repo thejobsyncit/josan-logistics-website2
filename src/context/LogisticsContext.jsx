@@ -16,13 +16,11 @@ import {
   initialShipmentEvents
 } from '../data/mockData';
 import {
-  initialCargoPricing,
   initialSystemUsers,
   initialCrmRolePermissions,
   initialWebsiteContent,
   initialManagedServices,
-  initialAdminActivityLog,
-  calculateCargoPricingHelper
+  initialAdminActivityLog
 } from '../data/adminCrmData';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
@@ -31,8 +29,8 @@ import { normalizeRole, isStaffRole, canEditRole } from '../utils/roles';
 import {
   COMPANY_INFO,
   PLACEHOLDER_PHONE,
-  LEGACY_PLACEHOLDER_ADDRESS,
   LEGACY_PLACEHOLDER_HOURS,
+  isLegacyOfficeAddress,
 } from '../config/siteConfig';
 
 // Helper to deduplicate notifications and strip seed/test data
@@ -240,8 +238,8 @@ export const LogisticsProvider = ({ children }) => {
       {
         id: 'AIR-0003',
         customerName: 'Darren Koh',
-        company: 'Razer Global Supply Solutions',
-        email: 'logistics.sg@razer.com',
+        company: 'Customer Company',
+        email: 'logistics.sg@customercompany.com',
         phone: '+65 6789 0123',
         receiverName: 'Min-Jun Park',
         receiverCompany: 'Seoul E-Sports Hardware Hub',
@@ -257,7 +255,7 @@ export const LogisticsProvider = ({ children }) => {
         approximateValue: 'SGD 62,000',
         services: ['AWB Preparation', 'AWB Billing', 'Transportation Support'],
         documents: [
-          { name: 'Razer_Commercial_Invoice_KR.pdf', type: 'Commercial Invoice', size: '185 KB' },
+          { name: 'Commercial_Invoice_KR.pdf', type: 'Commercial Invoice', size: '185 KB' },
           { name: 'Dangerous_Goods_Exemption_Declaration.pdf', type: 'Other Shipment Documents', size: '140 KB' }
         ],
         date: '2026-09-22',
@@ -414,7 +412,7 @@ export const LogisticsProvider = ({ children }) => {
       const saved = localStorage.getItem('josan_cargo_pricing');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return initialCargoPricing;
+    return [];
   });
 
   useEffect(() => {
@@ -508,16 +506,7 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const calculateCargoPrice = (cargoTypeIdOrName, weightKg = 0) => {
-    if (!cargoTypeIdOrName) return { pricePerKg: 0, estimatedCargoCharge: 0, appliedSlab: null, isMinChargeApplied: false, minimumCharge: 0 };
-    const query = String(cargoTypeIdOrName).toLowerCase().trim();
-    const item = cargoPricing.find(c =>
-      c.id.toLowerCase() === query ||
-      c.name.toLowerCase() === query ||
-      c.category?.toLowerCase() === query ||
-      query.includes(c.name.toLowerCase()) ||
-      c.name.toLowerCase().includes(query)
-    ) || cargoPricing[0];
-    return calculateCargoPricingHelper(item, weightKg);
+    return { pricePerKg: 0, estimatedCargoCharge: 0, appliedSlab: null, isMinChargeApplied: false, minimumCharge: 0 };
   };
 
   // 3. Admin User Management State
@@ -659,7 +648,7 @@ export const LogisticsProvider = ({ children }) => {
               ? COMPANY_INFO.phone
               : parsed.contact.phone,
             email: parsed.contact?.email || COMPANY_INFO.email,
-            address: (!parsed.contact?.address || parsed.contact.address === LEGACY_PLACEHOLDER_ADDRESS)
+            address: isLegacyOfficeAddress(parsed.contact?.address)
               ? COMPANY_INFO.address
               : parsed.contact.address,
             description: 'Phone number, email, office address and opening hours.',
@@ -675,7 +664,9 @@ export const LogisticsProvider = ({ children }) => {
             ...(parsed.banner || {}),
             active: false,
             text: 'Air freight documentation support and road transportation coordination in Singapore.'
-          }
+          },
+          airFreight: initialWebsiteContent.airFreight,
+          roadFreight: initialWebsiteContent.roadFreight
         };
       }
     } catch (e) {}
@@ -759,7 +750,7 @@ export const LogisticsProvider = ({ children }) => {
           gst_reg: parsed.gst_reg === 'M90382910X' || parsed.gst_reg === 'M90384721' ? '' : (parsed.gst_reg ?? ''),
           phone: (!parsed.phone || parsed.phone === PLACEHOLDER_PHONE) ? initialSiteSettings.phone : parsed.phone,
           contact_email: parsed.contact_email || initialSiteSettings.contact_email,
-          registered_office: (!parsed.registered_office || parsed.registered_office === LEGACY_PLACEHOLDER_ADDRESS)
+          registered_office: isLegacyOfficeAddress(parsed.registered_office)
             ? initialSiteSettings.registered_office
             : parsed.registered_office,
           demo_mode: parsed.demo_mode !== false && parsed.demo_mode !== 'false'
@@ -784,7 +775,7 @@ export const LogisticsProvider = ({ children }) => {
             gst_reg: remoteSettings.gst_reg === 'M90382910X' || remoteSettings.gst_reg === 'M90384721' ? '' : (remoteSettings.gst_reg ?? prev.gst_reg ?? ''),
             phone: (!remoteSettings.phone || remoteSettings.phone === PLACEHOLDER_PHONE) ? prev.phone : remoteSettings.phone,
             contact_email: remoteSettings.contact_email || prev.contact_email,
-            registered_office: (!remoteSettings.registered_office || remoteSettings.registered_office === LEGACY_PLACEHOLDER_ADDRESS)
+            registered_office: isLegacyOfficeAddress(remoteSettings.registered_office)
               ? prev.registered_office
               : remoteSettings.registered_office,
             demo_mode: remoteSettings.demo_mode !== 'false' && remoteSettings.demo_mode !== false
@@ -902,14 +893,8 @@ export const LogisticsProvider = ({ children }) => {
     if (showToast) showToast('Service configuration updated', 'success');
   };
 
-  // User & Auth state
-  const [currentRole, setCurrentRole] = useState(() => {
-    try {
-      return localStorage.getItem('josan_role') || 'customer';
-    } catch (e) {
-      return 'customer';
-    }
-  });
+  // User & Auth state (customer auth is in-memory only, never initialized from localStorage)
+  const [currentRole, setCurrentRole] = useState('CUSTOMER');
 
 
   // Initialize Supabase Data Fetching & Realtime Database Subscriptions
@@ -975,17 +960,17 @@ export const LogisticsProvider = ({ children }) => {
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
+      const savedStaff = localStorage.getItem('josan_staff_user');
+      if (savedStaff) {
+        const parsed = JSON.parse(savedStaff);
         if (parsed?.isTest || parsed?.isDemo) {
-          try {
-            localStorage.removeItem('josan_user');
-            localStorage.removeItem('josan_staff_user');
-          } catch (e) {}
+          localStorage.removeItem('josan_staff_user');
           return null;
         }
-        return parsed;
+        const staffRole = normalizeRole(parsed?.role || parsed?.rawRole);
+        if (parsed?.id && isStaffRole(staffRole)) {
+          return parsed;
+        }
       }
       return null;
     } catch (e) {
@@ -993,14 +978,16 @@ export const LogisticsProvider = ({ children }) => {
     }
   });
 
-  // Ensure any lingering invalid sessions are cleaned up
+  // Ensure any stale client-side customer/role localStorage keys or invalid test sessions are removed
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.isTest || parsed?.isDemo) {
-          localStorage.removeItem('josan_user');
+      localStorage.removeItem('josan_user');
+      localStorage.removeItem('josan_role');
+      const savedStaff = localStorage.getItem('josan_staff_user');
+      if (savedStaff) {
+        const parsed = JSON.parse(savedStaff);
+        const staffRole = normalizeRole(parsed?.role || parsed?.rawRole);
+        if (parsed?.isTest || parsed?.isDemo || !parsed?.id || !isStaffRole(staffRole)) {
           localStorage.removeItem('josan_staff_user');
           setCurrentUser(null);
         }
@@ -1145,21 +1132,24 @@ export const LogisticsProvider = ({ children }) => {
 
   // Saved Addresses State
   const [addressList, setAddressList] = useState(() => {
+    const defaultAddresses = [
+      { id: 1, label: 'Primary Sim Lim Tower HQ Office', address: COMPANY_INFO.address, contact: 'Tan Wei Ming (Operations)', type: 'pickup' },
+      { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
+      { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
+      { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
+    ];
     try {
       const saved = localStorage.getItem('josan_addresses');
-      return saved ? JSON.parse(saved) : [
-        { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
-        { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
-        { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
-        { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
-      ];
+      if (!saved) return defaultAddresses;
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed)) return defaultAddresses;
+      return parsed.map(item =>
+        item && (item.id === 1 || isLegacyOfficeAddress(item.address))
+          ? { ...item, label: 'Primary Sim Lim Tower HQ Office', address: COMPANY_INFO.address }
+          : item
+      );
     } catch (e) {
-      return [
-        { id: 1, label: 'Primary Pasir Panjang HQ Warehouse', address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438', contact: 'Tan Wei Ming (Warehouse Manager)', type: 'pickup' },
-        { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
-        { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
-        { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
-      ];
+      return defaultAddresses;
     }
   });
 
@@ -1192,14 +1182,6 @@ export const LogisticsProvider = ({ children }) => {
     localStorage.setItem('josan_warehouses', JSON.stringify(warehouses));
   }, [warehouses]);
 
-  useEffect(() => {
-    localStorage.setItem('josan_role', currentRole);
-  }, [currentRole]);
-
-  useEffect(() => {
-    localStorage.setItem('josan_user', JSON.stringify(currentUser));
-  }, [currentUser]);
-
   // Helper toast alert function (20s duration so Admin & Drivers can view availability status)
   const showToast = (message, type = 'success', duration = 20000) => {
     if (!message) {
@@ -1212,145 +1194,41 @@ export const LogisticsProvider = ({ children }) => {
     }, duration);
   };
 
-  // Role toggle action
-  const toggleRole = (role, setActiveTab) => {
-    const newRole = role || (currentRole === 'customer' ? 'driver' : 'customer');
-    setCurrentRole(newRole);
-    if (newRole === 'admin') {
-      const adminUser = {
-        name: 'Administrator',
-        email: 'admin@josanlogistics.com.sg',
-        role: 'admin',
-        company: 'Josan Logistics Operations'
-      };
-      setCurrentUser(adminUser);
-      try { localStorage.setItem('josan_user', JSON.stringify(adminUser)); } catch (e) {}
-      if (setActiveTab) setActiveTab('admin-dashboard', true, adminUser);
-      showToast('Switched to Admin Management Portal', 'info');
-    } else if (newRole === 'driver') {
-      const driverUser = {
-        name: 'Robert Martinez (Driver)',
-        email: 'robert.m@josanlogistics.com',
-        role: 'driver',
-        company: 'Josan Logistics Fleet'
-      };
-      setCurrentUser(driverUser);
-      try { localStorage.setItem('josan_user', JSON.stringify(driverUser)); } catch (e) {}
-      if (setActiveTab) setActiveTab('driver-dashboard', true, driverUser);
-      showToast('Switched to Driver Portal', 'info');
-    } else {
-      const custUser = {
-        name: 'TechCorp Solutions (Customer)',
-        email: 'shipping@techcorp.com',
-        role: 'customer',
-        company: 'TechCorp Solutions'
-      };
-      setCurrentUser(custUser);
-      try { localStorage.setItem('josan_user', JSON.stringify(custUser)); } catch (e) {}
-      if (setActiveTab) setActiveTab('customer-dashboard', true, custUser);
-      showToast('Switched to Customer Dashboard', 'info');
-    }
-  };
-
-  // Auth login
+  // Staff session finalizer (verified Supabase staff accounts only; never creates fake USER-* or customer sessions)
   const loginUser = (email, password, role, setActiveTab, details = {}) => {
-    const normalizedInputRole = role ? normalizeRole(role) : null;
-    const userRole = normalizedInputRole || (role === 'driver' || (!role && email && email.includes('driver')) ? 'driver' : 'CUSTOMER');
-    
-    let matchedDriver = null;
-    let matchedCustomer = null;
-
-    if (userRole === 'driver') {
-      const cleanInput = (email || '').trim().toLowerCase();
-      matchedDriver = drivers.find(d => 
-        (d.email && d.email.trim().toLowerCase() === cleanInput) ||
-        (d.phone && d.phone.replace(/[^0-9]/g, '') === cleanInput.replace(/[^0-9]/g, '')) ||
-        (d.name && d.name.trim().toLowerCase() === cleanInput)
-      );
-
-      if (!matchedDriver) {
-        return { success: false, error: 'Driver account not found. Drivers must be provisioned by Admin in the Admin Control Portal first.' };
-      }
-    } else if (isStaffRole(userRole)) {
-      // Staff accounts authenticate through the secure server staff authentication endpoint
-      // No plain text demo passwords accepted
-    } else if (normalizeRole(userRole) === 'CUSTOMER' || userRole === 'customer') {
-      const cleanEmail = (email || '').trim().toLowerCase();
-      matchedCustomer = (customers || []).find(c => c.email && c.email.trim().toLowerCase() === cleanEmail);
+    const normRole = normalizeRole(details?.role || role);
+    if (!details?.id || !isStaffRole(normRole)) {
+      return { success: false, error: 'Customer login must use Supabase authentication.' };
     }
 
-    const normRole = normalizeRole(userRole);
     const userObj = {
-      id: details.id || `USER-${Date.now()}`,
-      name: details.name || details.fullName || matchedDriver?.name || matchedCustomer?.name || (normRole === 'ADMIN' 
-        ? 'Fleet Admin Manager' 
-        : userRole === 'driver' 
-        ? 'Robert Martinez (Driver)' 
-        : (email ? email.split('@')[0] : 'Customer')),
-      email: matchedDriver?.email || email,
-      role: normRole || userRole,
-      displayRole: details.displayRole || (normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : normRole === 'READONLY' ? 'Read-only' : 'Customer'),
-      company: details.company || matchedDriver?.assignedHub || matchedCustomer?.company || (normRole === 'ADMIN' 
-        ? 'Josan Logistics Operations' 
-        : userRole === 'driver' 
-        ? 'Josan Fleet Operations' 
-        : ''),
-      phone: details.phone || matchedDriver?.phone || matchedCustomer?.phone || (userRole === 'driver' ? '+65 9112 3456' : '+65 8765 4321'),
-      licenseNumber: matchedDriver?.licenseNumber || details.licenseNumber || (userRole === 'driver' ? 'SG-CLASS4-881' : ''),
-      dob: matchedDriver?.dob || details.dob || (userRole === 'driver' ? '1990-05-12' : ''),
-      photo: matchedDriver?.photo || details.photo || undefined,
-      ...details
+      ...details,
+      id: details.id,
+      name: details.name || details.fullName || (email ? email.split('@')[0] : 'Staff Member'),
+      email: details.email || email,
+      role: normRole,
+      displayRole: details.displayRole || (normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only'),
+      company: details.company || 'Josan Logistics Operations'
     };
+
     setCurrentUser(userObj);
-    setCurrentRole(normRole || userRole);
+    setCurrentRole(normRole);
     try {
-      localStorage.setItem('josan_user', JSON.stringify(userObj));
-      localStorage.setItem('josan_role', normRole || userRole);
-      if (isStaffRole(userRole)) {
-        localStorage.setItem('josan_staff_user', JSON.stringify(userObj));
-      }
+      localStorage.setItem('josan_staff_user', JSON.stringify(userObj));
     } catch (e) {}
 
-    if (normRole === 'CUSTOMER' || userRole === 'customer') {
-      const newCustObj = {
-        id: matchedCustomer?.id || `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: userObj.name,
-        email: userObj.email,
-        phone: userObj.phone,
-        company: userObj.company,
-        company_name: userObj.company
-      };
-      setCustomers(prev => {
-        const exists = (prev || []).some(c => c.email?.toLowerCase() === userObj.email?.toLowerCase());
-        if (!exists) {
-          return [newCustObj, ...(prev || [])];
-        } else {
-          return (prev || []).map(c => c.email?.toLowerCase() === userObj.email?.toLowerCase() ? { ...c, ...newCustObj } : c);
-        }
-      });
-    }
-
-    const wasForcedBookingModal = authModalHideClose;
     setIsAuthModalOpen(false);
     setAuthModalHideClose(false);
 
-    // Enforce Strict Portal Redirection
     if (setActiveTab) {
-      if (authRedirectTab && (normRole === 'CUSTOMER' || userRole === 'customer')) {
-        setActiveTab(authRedirectTab, true, userObj);
-        setAuthRedirectTab(null);
-      } else if (wasForcedBookingModal && (normRole === 'CUSTOMER' || userRole === 'customer')) {
-        setActiveTab('book', true, userObj);
-      } else if (normRole === 'ADMIN') {
+      if (normRole === 'ADMIN') {
         setActiveTab('admin-dashboard', true, userObj);
-      } else if (isStaffRole(userRole)) {
-        setActiveTab('crm', true, userObj);
       } else {
-        setActiveTab('customer-dashboard', true, userObj);
+        setActiveTab('crm', true, userObj);
       }
     }
 
-    const portalName = normRole === 'ADMIN' ? 'Admin Hub' : userRole === 'driver' ? 'Driver Portal' : isStaffRole(userRole) ? 'CRM Portal' : 'Customer Portal';
+    const portalName = normRole === 'ADMIN' ? 'Admin Hub' : 'CRM Portal';
     showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
     return { success: true, user: userObj };
   };
@@ -1421,7 +1299,7 @@ export const LogisticsProvider = ({ children }) => {
       receiverPhone: newShipmentData.receiverPhone || '+65 6789 0123',
       receiverAddress: newShipmentData.deliveryAddress || 'Singapore Destination Address',
       origin: newShipmentData.pickupCity || 'Changi Air Cargo Hub',
-      destination: newShipmentData.deliveryCity || 'Pasir Panjang Logistics Hub',
+      destination: newShipmentData.deliveryCity || 'West Coast Hub Terminal',
       currentLocation: `${newShipmentData.pickupCity || 'Changi Hub'} Sorting Facility`,
       status: 'ASSIGNED',
       statusType: 'active',
@@ -2635,10 +2513,10 @@ export const LogisticsProvider = ({ children }) => {
       title: `🚨 Direct Admin Order Assignment (#${shipmentId})`,
       message: `Fleet Operations Manager assigned Order #${shipmentId} directly to your roster!`,
       pickup: targetShipment?.senderAddress || targetShipment?.origin || 'Changi Air Cargo Logistics Hub - 8 Changi South Street 1',
-      delivery: targetShipment?.receiverAddress || targetShipment?.destination || 'West Coast Hub Terminal - 12 Pasir Panjang Road',
+      delivery: targetShipment?.receiverAddress || targetShipment?.destination || 'West Coast Hub Terminal - 12 Pioneer Sector 3, Singapore 628349',
       cargoType: targetShipment?.cargoType || 'Commercial Freight',
       weight: targetShipment?.weight || '250 kg',
-      price: targetShipment?.price || '$315.00',
+      price: targetShipment?.price || 'Price not set',
       timestamp: 'Just Now',
       status: 'Assigned'
     };
@@ -2692,10 +2570,10 @@ export const LogisticsProvider = ({ children }) => {
       title: `🚨 Direct Admin Order Assignment (#${shipmentId})`,
       message: `Fleet Operations Manager assigned Order #${shipmentId} directly to your roster!`,
       pickup: targetShipment?.senderAddress || targetShipment?.origin || 'Changi Air Cargo Logistics Hub - 8 Changi South Street 1',
-      delivery: targetShipment?.receiverAddress || targetShipment?.destination || 'West Coast Hub Terminal - 12 Pasir Panjang Road',
+      delivery: targetShipment?.receiverAddress || targetShipment?.destination || 'West Coast Hub Terminal - 12 Pioneer Sector 3, Singapore 628349',
       cargoType: targetShipment?.cargoType || 'Commercial Freight',
       weight: targetShipment?.weight || '250 kg',
-      price: targetShipment?.price || '$315.00',
+      price: targetShipment?.price || 'Price not set',
       timestamp: 'Just Now',
       status: 'Assigned'
     };
@@ -3169,7 +3047,6 @@ export const LogisticsProvider = ({ children }) => {
       selectedInvoiceShipment,
       setSelectedInvoiceShipment,
       setIsAuthModalOpen,
-      toggleRole,
       loginUser,
       logoutUser,
       updateUserProfile,

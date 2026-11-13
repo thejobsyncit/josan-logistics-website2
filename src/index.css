@@ -35,7 +35,7 @@
     --color-on-navy: #FFFFFF;
     --color-on-navy-muted: #C9CFDA;
 
-    --color-orange: #D04201;
+    --color-orange: #D54301;
     --color-orange-hover: #B83A01;
 
     --color-bg: #F4F7FB;
@@ -45,8 +45,8 @@
     --color-text-muted: #5A6170;
     --color-border: #DCE4EE;
     --color-divider: #E3E8F0;
-    --color-kraft: #E2641F;
-    --color-kraft-dark: #A84814;
+    --color-kraft: #C49A6C;
+    --color-kraft-dark: #9E7445;
     --color-whatsapp: #128C5A;
 
     /* Semantic aliases */
@@ -171,6 +171,39 @@
   .hero-navy-overlay {
     background-color: rgba(14, 32, 56, 0.55);
     background-color: color-mix(in srgb, var(--color-navy) 55%, transparent);
+  }
+
+  /* Inline text links in body copy (sitewide) */
+  .link-inline,
+  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a),
+  p button.link-inline,
+  div a.link-inline,
+  div button.link-inline {
+    color: var(--color-navy);
+    font-weight: 400;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    transition: text-decoration-thickness 0.15s ease;
+  }
+
+  .link-inline:hover,
+  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a):hover,
+  p button.link-inline:hover,
+  div a.link-inline:hover,
+  div button.link-inline:hover {
+    color: var(--color-navy);
+    text-decoration-thickness: 2px;
+  }
+
+  .link-inline:focus-visible,
+  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a):focus-visible,
+  p button.link-inline:focus-visible,
+  div a.link-inline:focus-visible,
+  div button.link-inline:focus-visible {
+    outline: 2px solid var(--color-navy);
+    outline-offset: 2px;
   }
 }
 

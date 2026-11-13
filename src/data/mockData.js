@@ -49,7 +49,7 @@ export const initialTransportationPartners = [
     phone: '+65 6789 0123',
     email: 'dispatch@woodlandsroadways.sg',
     vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
-    operatingZones: 'Northern & Eastern Corridors (Woodlands, Changi, Pasir Panjang)',
+    operatingZones: 'Northern & Eastern Corridors (Woodlands, Changi, Tampines)',
     agreementStatus: 'Active Partner',
     registeredVehicles: 6,
     designatedDrivers: 8,
@@ -64,12 +64,12 @@ export const initialTransportationPartners = [
     phone: '+65 8234 5678',
     email: 'ops@apexprimehaulage.sg',
     vehicleTypes: '24ft Lorries, 40ft Prime Movers',
-    operatingZones: 'Pasir Panjang Port & Heavy Industrial Corridors',
+    operatingZones: 'West Coast Port & Heavy Industrial Corridors',
     agreementStatus: 'Active Partner',
     registeredVehicles: 8,
     designatedDrivers: 10,
     activeDispatches: 0,
-    address: '10 Pasir Panjang Road, Singapore 117438',
+    address: '12 Pioneer Sector 3, Singapore 628349',
     notes: 'Handles heavy machinery and industrial container line transfers.'
   },
   {
