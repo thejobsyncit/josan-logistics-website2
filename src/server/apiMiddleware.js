@@ -3,6 +3,7 @@
  * Endpoint mapping: /api/chat, /api/documents/ingest, /api/documents/seed, /api/documents
  */
 
+import { createClient } from '@supabase/supabase-js';
 import { generateEmbedding } from './rag/embeddings.js';
 import { searchRelevantChunks } from './rag/retrieval.js';
 import { generateGroundedResponse, MIN_MATCH_THRESHOLD } from './rag/generation.js';
@@ -39,57 +40,10 @@ let inMemoryChunks = [];
 // Server chat storage: Store chats for "Follow up on your enquiry or quote request" and delete them after 30 days, visible to admin staff only
 export const CHAT_STORAGE_PURPOSE = 'Follow up on your enquiry or quote request';
 export const CHAT_RETENTION_DAYS = 30;
-const NUMERIC_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
-let serverChatLogs = [];
-
-function purgeExpiredServerChatLogs() {
+// Rate Limiter helper: IP -> timestamp[] (Maximum attempts per minute per visitor)
+function checkRateLimit(rateMap, ip, maxAttempts = 10, windowMs = 60000) {
   const now = Date.now();
-  serverChatLogs = serverChatLogs.filter(log => (now - (log.createdAt || now)) < NUMERIC_RETENTION_MS);
-}
-
-// Rate Limiter: IP -> timestamp[] (Maximum 10 attempts per minute per IP address)
-const trackingIpRateLimits = new Map();
-
-// Progressive security delay map after repeated failed tries (e.g. brute force prevention)
-const trackingFailedTries = new Map();
-
-function checkFailedDelay(ip) {
-  const current = trackingFailedTries.get(ip);
-  if (!current) return { locked: false, waitSeconds: 0 };
-  const now = Date.now();
-  if (now < current.lockUntil) {
-    return { locked: true, waitSeconds: Math.ceil((current.lockUntil - now) / 1000) };
-  }
-  if (now - current.lastFailedAt > 120000) {
-    trackingFailedTries.delete(ip);
-  }
-  return { locked: false, waitSeconds: 0 };
-}
-
-function recordFailedTrackingTry(ip) {
-  const current = trackingFailedTries.get(ip) || { count: 0, lastFailedAt: 0, lockUntil: 0 };
-  const now = Date.now();
-  current.count += 1;
-  current.lastFailedAt = now;
-
-  // Progressive delay: 3+ failures -> 5s, 5+ -> 15s, 7+ -> 30s
-  if (current.count >= 7) {
-    current.lockUntil = now + 30000;
-  } else if (current.count >= 5) {
-    current.lockUntil = now + 15000;
-  } else if (current.count >= 3) {
-    current.lockUntil = now + 5000;
-  }
-  trackingFailedTries.set(ip, current);
-}
-
-function recordSuccessfulTrackingTry(ip) {
-  trackingFailedTries.delete(ip);
-}
-
-function checkIpTrackingRateLimit(ip, maxAttempts = 10, windowMs = 60000) {
-  const now = Date.now();
-  const rawTimestamps = trackingIpRateLimits.get(ip) || [];
+  const rawTimestamps = rateMap.get(ip) || [];
   const validTimestamps = rawTimestamps.filter(t => now - t < windowMs);
 
   if (validTimestamps.length >= maxAttempts) {
@@ -99,8 +53,53 @@ function checkIpTrackingRateLimit(ip, maxAttempts = 10, windowMs = 60000) {
   }
 
   validTimestamps.push(now);
-  trackingIpRateLimits.set(ip, validTimestamps);
+  rateMap.set(ip, validTimestamps);
   return { allowed: true, remaining: maxAttempts - validTimestamps.length };
+}
+
+const chatIpRateLimits = new Map();
+const chatSubmissionRateLimits = new Map();
+const chatSessionRateLimits = new Map();
+
+// Server-only Supabase client for chat_logs operations (reads SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from process.env)
+let serverChatSupabaseClient = null;
+let lastServerChatUrl = null;
+let lastServerChatKey = null;
+
+function getServerChatSupabaseClient() {
+  const url = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    return null;
+  }
+  if (!serverChatSupabaseClient || lastServerChatUrl !== url || lastServerChatKey !== serviceKey) {
+    lastServerChatUrl = url;
+    lastServerChatKey = serviceKey;
+    serverChatSupabaseClient = createClient(url, serviceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  }
+  return serverChatSupabaseClient;
+}
+
+// Active browser chat session tracker (sessionId -> timestamp)
+const activeChatSessions = new Map();
+
+function trackChatSession(sessionId) {
+  if (!sessionId || typeof sessionId !== 'string') return;
+  const cleanId = sessionId.trim();
+  const now = Date.now();
+  activeChatSessions.set(cleanId, now);
+
+  if (activeChatSessions.size > 2000) {
+    const maxAge = 24 * 60 * 60 * 1000;
+    for (const [id, ts] of activeChatSessions.entries()) {
+      if (now - ts > maxAge) activeChatSessions.delete(id);
+    }
+  }
 }
 
 // Initialize seed documents in memory
@@ -150,15 +149,18 @@ export async function handleApiRequest(req, res, path) {
     return res.end();
   }
 
-  // Parse JSON Body
+  // Parse JSON Body & measure payload size
   let body = {};
-  if (req.method === 'POST') {
+  let rawBodyLength = 0;
+  if (req.method === 'POST' || req.method === 'DELETE' || req.method === 'PUT' || req.method === 'PATCH') {
     try {
       const buffers = [];
       for await (const chunk of req) {
         buffers.push(chunk);
       }
-      const raw = Buffer.concat(buffers).toString('utf-8');
+      const rawBuffer = Buffer.concat(buffers);
+      rawBodyLength = rawBuffer.length;
+      const raw = rawBuffer.toString('utf-8');
       body = raw ? JSON.parse(raw) : {};
     } catch (e) {
       body = {};
@@ -167,14 +169,38 @@ export async function handleApiRequest(req, res, path) {
 
   // 1. POST /api/chat
   if (path === '/api/chat' && req.method === 'POST') {
+    const forwarded = req.headers['x-forwarded-for'];
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
+
+    // 10 requests per minute rate limit per visitor
+    const rateCheck = checkRateLimit(chatIpRateLimits, clientIp, 10, 60000);
+    if (!rateCheck.allowed) {
+      res.statusCode = 429;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Retry-After', String(rateCheck.retryAfter));
+      return res.end(JSON.stringify({
+        error: 'Too many requests. Please try again later.'
+      }));
+    }
+
     const userMessage = body.message || body.question;
-    const sessionId = body.sessionId || crypto.randomUUID();
+    const sessionId = (body.sessionId && typeof body.sessionId === 'string' && body.sessionId.trim())
+      ? body.sessionId.trim()
+      : crypto.randomUUID();
+    trackChatSession(sessionId);
     const history = body.history || [];
 
     if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: 'Message content is required.' }));
+    }
+
+    // Reject messages longer than 1000 characters
+    if (userMessage.length > 1000) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Message exceeds maximum length of 1000 characters.' }));
     }
 
     try {
@@ -225,15 +251,15 @@ export async function handleApiRequest(req, res, path) {
         sessionId,
         retrievedCount: chunks.length
       }));
-    } catch (err) {
-      console.error('[ApiMiddleware] /api/chat exception:', err);
+    } catch (_err) {
+      console.error('[ApiMiddleware] /api/chat error');
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({
         answer: "I don't know enough to answer that accurately. Please check with our team on our [Contact our team](/contact) page.",
         sources: [],
         hasQuoteAction: false,
-        error: err.message
+        error: 'Unable to process chat request'
       }));
     }
   }
@@ -241,258 +267,201 @@ export async function handleApiRequest(req, res, path) {
   // POST /api/chat/store-submission
   // Store a conversation ONLY when visitor submits a quote or contact request (attached to ref) or chooses "Send this chat to our team"
   if (path === '/api/chat/store-submission' && req.method === 'POST') {
-    const { sessionId, referenceNumber, customerName, customerEmail, customerPhone, messages, trigger } = body;
-    purgeExpiredServerChatLogs();
-
-    const storedEntry = {
-      id: crypto.randomUUID(),
-      sessionId: sessionId || crypto.randomUUID(),
-      referenceNumber: referenceNumber || null,
-      customerName: customerName || 'Website Visitor',
-      customerEmail: customerEmail || '',
-      customerPhone: customerPhone || '',
-      purpose: CHAT_STORAGE_PURPOSE,
-      trigger: trigger || (referenceNumber ? 'quote_or_contact_submission' : 'user_sent_chat'),
-      visibility: 'admin staff only',
-      messages: Array.isArray(messages) ? messages : [],
-      createdAt: Date.now()
-    };
-
-    serverChatLogs.unshift(storedEntry);
-
-    if (isSupabaseConfigured) {
-      try {
-        await supabase.from('chat_logs').insert([{
-          session_id: storedEntry.sessionId,
-          reference_number: storedEntry.referenceNumber,
-          customer_email: storedEntry.customerEmail,
-          purpose: storedEntry.purpose,
-          messages: storedEntry.messages,
-          created_at: new Date(storedEntry.createdAt).toISOString()
-        }]);
-      } catch (e) {
-        console.warn('[ApiMiddleware] Supabase chat_logs insert warning:', e.message);
-      }
+    const serverSupabase = getServerChatSupabaseClient();
+    if (!serverSupabase) {
+      res.statusCode = 503;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Service unavailable.' }));
     }
 
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ success: true, referenceNumber: storedEntry.referenceNumber }));
+    const forwarded = req.headers['x-forwarded-for'];
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
+
+    // 5 requests per minute limit per visitor
+    const rateCheck = checkRateLimit(chatSubmissionRateLimits, clientIp, 5, 60000);
+    if (!rateCheck.allowed) {
+      res.statusCode = 429;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Retry-After', String(rateCheck.retryAfter));
+      return res.end(JSON.stringify({
+        error: 'Too many requests. Please try again later.'
+      }));
+    }
+
+    // Maximum body size of 20 KB
+    if (rawBodyLength > 20 * 1024) {
+      res.statusCode = 413;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Payload too large' }));
+    }
+
+    try {
+      const sessionId = (body.sessionId && typeof body.sessionId === 'string') ? body.sessionId.trim() : '';
+      // Reject any request that does not carry a valid sessionId created by the chat in this browser session
+      if (!sessionId || !activeChatSessions.has(sessionId)) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ error: 'Invalid session' }));
+      }
+
+      const rawMessages = Array.isArray(body.messages) ? body.messages : [];
+      // Maximum of 50 messages per record
+      if (rawMessages.length === 0 || rawMessages.length > 50) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ error: 'Invalid request' }));
+      }
+
+      // Do not store customerName or customerPhone anywhere (Supabase chat_logs only)
+      try {
+        await serverSupabase.from('chat_logs').insert([{
+          session_id: sessionId,
+          reference_number: body.referenceNumber || null,
+          customer_email: body.customerEmail || '',
+          purpose: CHAT_STORAGE_PURPOSE,
+          messages: rawMessages.slice(0, 50),
+          created_at: new Date().toISOString()
+        }]);
+      } catch (_e) {
+        // Generic error handling
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ success: true, referenceNumber: body.referenceNumber || null }));
+    } catch (_err) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Unable to process submission' }));
+    }
   }
 
   // DELETE /api/chat/session or POST /api/chat/delete (Delete conversation from server)
   if ((path === '/api/chat/session' || path === '/api/chat/delete') && (req.method === 'DELETE' || req.method === 'POST')) {
-    const targetSessionId = body.sessionId || req.url.split('?')[1]?.split('=')[1];
-    if (targetSessionId) {
-      serverChatLogs = serverChatLogs.filter(l => l.sessionId !== targetSessionId && l.referenceNumber !== targetSessionId);
-      if (isSupabaseConfigured) {
-        try {
-          await supabase.from('chat_logs').delete().or(`session_id.eq.${targetSessionId},reference_number.eq.${targetSessionId}`);
-        } catch (e) {}
-      }
+    const serverSupabase = getServerChatSupabaseClient();
+    if (!serverSupabase) {
+      res.statusCode = 503;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Service unavailable.' }));
     }
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ success: true, deletedSessionId: targetSessionId }));
+
+    const forwarded = req.headers['x-forwarded-for'];
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
+
+    // 5 requests per minute limit per visitor
+    const rateCheck = checkRateLimit(chatSessionRateLimits, clientIp, 5, 60000);
+    if (!rateCheck.allowed) {
+      res.statusCode = 429;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Retry-After', String(rateCheck.retryAfter));
+      return res.end(JSON.stringify({
+        error: 'Too many requests. Please try again later.'
+      }));
+    }
+
+    // Maximum body size of 20 KB
+    if (rawBodyLength > 20 * 1024) {
+      res.statusCode = 413;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Payload too large' }));
+    }
+
+    try {
+      const targetSessionId = (body.sessionId || (req.url.includes('?') ? new URL(req.url, 'http://localhost').searchParams.get('sessionId') : ''))?.trim();
+      // Allow deletion only when the request supplies the sessionId that created the record
+      if (!targetSessionId || typeof targetSessionId !== 'string' || !activeChatSessions.has(targetSessionId)) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ error: 'Invalid session' }));
+      }
+
+      // Do not allow deletion by referenceNumber alone
+      try {
+        await serverSupabase.from('chat_logs').delete().eq('session_id', targetSessionId);
+      } catch (_e) {}
+      activeChatSessions.delete(targetSessionId);
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ success: true, deletedSessionId: targetSessionId }));
+    } catch (_err) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Unable to process session request' }));
+    }
   }
 
   // POST /api/admin/chat-logs/delete-customer (Admin tool to delete customer chats on request)
   if (path === '/api/admin/chat-logs/delete-customer' && req.method === 'POST') {
     const identifier = (body.identifier || '').trim().toLowerCase();
-    const initialLen = serverChatLogs.length;
-    if (identifier) {
-      serverChatLogs = serverChatLogs.filter(l => {
-        const matchesSession = l.sessionId && l.sessionId.toLowerCase() === identifier;
-        const matchesRef = l.referenceNumber && l.referenceNumber.toLowerCase() === identifier;
-        const matchesEmail = l.customerEmail && l.customerEmail.toLowerCase().includes(identifier);
-        const matchesName = l.customerName && l.customerName.toLowerCase().includes(identifier);
-        return !(matchesSession || matchesRef || matchesEmail || matchesName);
-      });
-      if (isSupabaseConfigured) {
-        try {
-          await supabase.from('chat_logs').delete().or(`session_id.eq.${identifier},reference_number.eq.${identifier},customer_email.ilike.%${identifier}%`);
-        } catch (e) {}
-      }
+    if (identifier && isSupabaseConfigured) {
+      try {
+        await supabase
+          .from('chat_logs')
+          .delete()
+          .or(`session_id.eq.${identifier},reference_number.eq.${identifier},customer_email.ilike.%${identifier}%`);
+      } catch (_e) {}
     }
-    const count = initialLen - serverChatLogs.length;
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ success: true, count }));
+    return res.end(JSON.stringify({ success: true }));
   }
 
   // GET /api/admin/chat-logs (Visible to admin staff only)
   if (path === '/api/admin/chat-logs' && req.method === 'GET') {
-    purgeExpiredServerChatLogs();
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ logs: serverChatLogs, purpose: CHAT_STORAGE_PURPOSE, retention: CHAT_RETENTION_DAYS }));
-  }
-
-  // 2. GET /api/documents
-  if (path === '/api/documents' && req.method === 'GET') {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase
-          .from('documents')
+          .from('chat_logs')
           .select('*')
           .order('created_at', { ascending: false });
 
         if (!error && data) {
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
-          return res.end(JSON.stringify({ documents: data }));
+          return res.end(JSON.stringify({ logs: data, purpose: CHAT_STORAGE_PURPOSE, retention: CHAT_RETENTION_DAYS }));
+        }
+      } catch (_e) {}
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ logs: [], purpose: CHAT_STORAGE_PURPOSE, retention: CHAT_RETENTION_DAYS }));
+  }
+
+  // 2. GET /api/documents (Return titles only)
+  if (path === '/api/documents' && req.method === 'GET') {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('documents')
+          .select('title')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({ documents: data.map(d => ({ title: d.title })) }));
         }
       } catch (e) {}
     }
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ documents: inMemoryDocuments }));
+    return res.end(JSON.stringify({ documents: inMemoryDocuments.map(d => ({ title: d.title })) }));
   }
 
-  // 3. POST /api/documents/ingest
-  if (path === '/api/documents/ingest' && req.method === 'POST') {
-    const { title, fileName, content, category, description } = body;
-    if (!content) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ error: 'Document text content is required.' }));
-    }
-
-    const fileBuffer = Buffer.from(content, 'utf-8');
-    const name = fileName || `${(title || 'Document').replace(/\s+/g, '_')}.txt`;
-
-    const result = await ingestDocument({
-      fileBuffer,
-      fileName: name,
-      fileType: name.endsWith('.pdf') ? 'pdf' : 'txt',
-      title: title || name,
-      category: category || 'General',
-      description
-    });
-
-    if (result.success) {
-      if (result.chunks) {
-        inMemoryDocuments.push({
-          id: result.documentId,
-          file_name: name,
-          title: title || name,
-          category: category || 'General',
-          chunk_count: result.chunkCount,
-          status: 'COMPLETED',
-          created_at: new Date().toISOString()
-        });
-        inMemoryChunks.push(...result.chunks);
-      }
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify(result));
-    } else {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify(result));
-    }
-  }
-
-  // 4. POST /api/documents/seed
-  if (path === '/api/documents/seed' && req.method === 'POST') {
-    const seeded = [];
-    for (const sample of SAMPLE_KNOWLEDGE_DOCUMENTS) {
-      const res = await ingestDocument({
-        fileBuffer: Buffer.from(sample.content, 'utf-8'),
-        fileName: sample.fileName,
-        fileType: 'txt',
-        title: sample.title,
-        category: sample.category,
-        description: sample.description,
-        source: sample.source,
-        date: sample.date,
-        isOfficialJosan: sample.isOfficialJosan
-      });
-      if (res.success) {
-        seeded.push(res.title);
-        if (res.chunks) {
-          inMemoryDocuments.push({
-            id: res.documentId,
-            file_name: sample.fileName,
-            title: sample.title,
-            category: sample.category,
-            source: sample.source,
-            date: sample.date,
-            isOfficialJosan: sample.isOfficialJosan,
-            chunk_count: res.chunkCount,
-            status: 'COMPLETED',
-            created_at: sample.date ? `${sample.date}T00:00:00Z` : new Date().toISOString()
-          });
-          inMemoryChunks.push(...res.chunks);
-        }
-      }
-    }
-
-    res.statusCode = 200;
+  // 3. /api/documents/ingest (Rejected with 403)
+  if (path === '/api/documents/ingest') {
+    res.statusCode = 403;
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({
-      message: `Successfully seeded ${seeded.length} knowledge base documents.`,
-      documents: seeded
-    }));
+    return res.end(JSON.stringify({ error: 'Not available.' }));
   }
 
-  // 5. POST /api/track (Visitor Tracking Query IP Rate Limiter & Security Delay)
-  if (path === '/api/track' && req.method === 'POST') {
-    const forwarded = req.headers['x-forwarded-for'];
-    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
-
-    // 1. Check progressive delay from repeated failed searches
-    const delayCheck = checkFailedDelay(clientIp);
-    if (delayCheck.locked) {
-      res.statusCode = 429;
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Retry-After', String(delayCheck.waitSeconds));
-      return res.end(JSON.stringify({
-        error: `Security delay active after repeated failed searches. Please wait ${delayCheck.waitSeconds}s before trying again.`,
-        retryAfter: delayCheck.waitSeconds,
-        isDelay: true
-      }));
-    }
-
-    // 2. IP-level 10 attempts per minute rate limiter
-    const rateCheck = checkIpTrackingRateLimit(clientIp, 10, 60000);
-    if (!rateCheck.allowed) {
-      res.statusCode = 429;
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Retry-After', String(rateCheck.retryAfter));
-      return res.end(JSON.stringify({
-        error: `Rate limit reached: Maximum 10 tracking queries per minute allowed. Please wait ${rateCheck.retryAfter}s before trying again.`,
-        retryAfter: rateCheck.retryAfter
-      }));
-    }
-
-    const { queryNumber, status } = body;
-    if (status === 'failed') {
-      recordFailedTrackingTry(clientIp);
-    } else if (status === 'success') {
-      recordSuccessfulTrackingTry(clientIp);
-    }
-
-    // 3. Reject attempts to track quote requests on public page
-    const cleanNum = (queryNumber || '').trim().toUpperCase();
-    if (cleanNum.startsWith('QR-') || cleanNum.startsWith('TQ-')) {
-      recordFailedTrackingTry(clientIp);
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({
-        isQuoteReference: true,
-        error: 'Quote reference numbers cannot be opened on public tracking pages. Our logistics team will review your request and reply directly by email or phone.'
-      }));
-    }
-
-    res.statusCode = 200;
+  // 4. /api/documents/seed (Rejected with 403)
+  if (path === '/api/documents/seed') {
+    res.statusCode = 403;
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({
-      success: true,
-      clientIp,
-      remaining: rateCheck.remaining
-    }));
+    return res.end(JSON.stringify({ error: 'Not available.' }));
   }
 
   // 6. POST /api/reference/quote (Server-only cryptographically secure quote reference)

@@ -108,9 +108,14 @@ export async function generateGroundedResponse(userQuestion, retrievedChunks = [
     content: sanitizePromptForAi(msg.content, isTrackingQuery)
   }));
 
+  // If running in browser, do not read any key and do not call OpenAI or Gemini. Go straight to fallback.
+  if (typeof window !== 'undefined') {
+    return synthesizeFallbackResponse(userQuestion, retrievedChunks, sourcesList);
+  }
+
   // Check API keys
-  const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || process.env.VITE_AI_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
 
   // Check if query is about quotes, pricing, or specific shipments
   const isQuoteOrPricingOrShipment = /\b(quote|quotes|pricing|prices|rate|rates|cost|costs|fee|fees|per kg|estimate|specific shipment|shipment details|book a shipment)\b/i.test(userQuestion || '');

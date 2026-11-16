@@ -1,24 +1,73 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
-import { getRateLimitStatus, recordRateLimitAttempt } from '../utils/rateLimiter';
 import { formatSingaporeDateTime } from '../utils/dateTime';
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
+import { initialWebsiteContent } from '../data/adminCrmData';
 import { 
-  Search, 
-  MapPin, 
-  Clock, 
-  AlertTriangle, 
-  ShieldCheck, 
-  Package, 
-  Copy, 
-  Check, 
-  RotateCw,
-  Truck
+  RotateCw, 
+  Copy 
 } from 'lucide-react';
 
+const RATE_LIMIT_STORAGE_KEY = 'josan_rate_limit_track_shipment';
+
+const getRateLimitStatus = (maxAttempts = 10, windowMs = 60000) => {
+  try {
+    const raw = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+    const now = Date.now();
+    let timestamps = raw ? JSON.parse(raw) : [];
+    timestamps = timestamps.filter(t => typeof t === 'number' && now - t < windowMs);
+
+    if (timestamps.length >= maxAttempts) {
+      const oldest = timestamps[0];
+      const retryAfter = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+      return { allowed: false, retryAfter };
+    }
+    return { allowed: true, retryAfter: 0 };
+  } catch (_e) {
+    return { allowed: true, retryAfter: 0 };
+  }
+};
+
+const recordRateLimitAttempt = (windowMs = 60000) => {
+  try {
+    const raw = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+    const now = Date.now();
+    let timestamps = raw ? JSON.parse(raw) : [];
+    timestamps = timestamps.filter(t => typeof t === 'number' && now - t < windowMs);
+    timestamps.push(now);
+    localStorage.setItem(RATE_LIMIT_STORAGE_KEY, JSON.stringify(timestamps));
+  } catch (_e) {}
+};
+
+// Development-only test tracking record (TEST-0001), strictly gated by import.meta.env.DEV
+const DEV_TEST_RECORD = import.meta.env.DEV
+  ? {
+      tracking_number: 'TEST-0001',
+      status: 'Delivered',
+      last_updated: '2026-11-13T08:30:00+08:00',
+      service_type: 'Commercial Road Transportation (Test Data)',
+      origin: 'Jurong Industrial Estate (Test Data)',
+      destination: 'Changi Logistics Park (Test Data)',
+      events: [
+        { status: 'Request received', time: '2026-11-12T09:00:00+08:00' },
+        { status: 'Quote sent', time: '2026-11-12T11:15:00+08:00' },
+        { status: 'Carrier booked', time: '2026-11-12T14:30:00+08:00' },
+        { status: 'Delivered', time: '2026-11-13T08:30:00+08:00' }
+      ]
+    }
+  : null;
+
 export const TrackShipmentPage = ({ setActiveTab }) => {
-  const { activeTrackingId, setActiveTrackingId } = useLogistics();
+  const { activeTrackingId, setActiveTrackingId, websiteContent } = useLogistics();
+
+  const trackingContent = websiteContent?.tracking || initialWebsiteContent.tracking;
+  const heroCopy = trackingContent?.hero || initialWebsiteContent.tracking.hero;
+  const formCopy = trackingContent?.form || initialWebsiteContent.tracking.form;
+  const guidelinesCopy = trackingContent?.guidelines || initialWebsiteContent.tracking.guidelines;
+  const helpCopy = trackingContent?.help || initialWebsiteContent.tracking.help;
+  const notFoundCopy = trackingContent?.notFound || initialWebsiteContent.tracking.notFound;
+  const eventsCopy = trackingContent?.events || initialWebsiteContent.tracking.events;
 
   const [searchInput, setSearchInput] = useState(activeTrackingId || '');
   const [shipmentData, setShipmentData] = useState(null);
@@ -53,12 +102,12 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
 
   // Check client-side rate limit on component mount
   useEffect(() => {
-    const status = getRateLimitStatus('track_shipment', 10, 60000);
+    const status = getRateLimitStatus(10, 60000);
     if (!status.allowed) {
       setRateLimitSeconds(status.retryAfter);
-      setRateLimitMessage('Rate limit reached: Maximum 10 tracking queries per minute allowed.');
+      setRateLimitMessage(formCopy.clientRateLimitError || 'Rate limit reached: Maximum 10 tracking queries per minute allowed.');
     }
-  }, []);
+  }, [formCopy.clientRateLimitError]);
 
   // Perform tracking search calling the Edge Function
   const handleSearch = async (queryOverride) => {
@@ -87,20 +136,30 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     }
 
     // Enforce rate limiting: 10 attempts per minute per visitor
-    const status = getRateLimitStatus('track_shipment', 10, 60000);
+    const status = getRateLimitStatus(10, 60000);
     if (!status.allowed) {
       setRateLimitSeconds(status.retryAfter);
-      setRateLimitMessage('Rate limit reached: Maximum 10 tracking queries per minute allowed.');
+      setRateLimitMessage(formCopy.clientRateLimitError || 'Rate limit reached: Maximum 10 tracking queries per minute allowed.');
       return;
     }
 
-    recordRateLimitAttempt('track_shipment', 60000);
+    recordRateLimitAttempt(60000);
 
     setIsLoading(true);
     setNotFound(false);
     setErrorMessage('');
     setRateLimitMessage('');
     setCaptchaError('');
+
+    // Dev-only test record lookup gated by import.meta.env.DEV
+    if (import.meta.env.DEV && cleanQuery === 'TEST-0001' && DEV_TEST_RECORD) {
+      setTimeout(() => {
+        setIsLoading(false);
+        setShipmentData(DEV_TEST_RECORD);
+        if (setActiveTrackingId) setActiveTrackingId('TEST-0001');
+      }, 200);
+      return;
+    }
 
     try {
       let status = 404;
@@ -227,285 +286,324 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Status badge styling
-  const getStatusBadge = (status) => {
-    const s = (status || '').toUpperCase();
-    if (s.includes('DELIVERED')) {
-      return {
-        bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-        dot: 'bg-emerald-400',
-        label: 'DELIVERED'
-      };
-    }
-    if (s.includes('TRANSIT')) {
-      return {
-        bg: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-        dot: 'bg-blue-400 animate-pulse',
-        label: 'IN TRANSIT'
-      };
-    }
-    if (s.includes('DELAY')) {
-      return {
-        bg: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-        dot: 'bg-amber-400',
-        label: 'DELAYED'
-      };
-    }
-    return {
-      bg: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30',
-      dot: 'bg-indigo-400',
-      label: s || 'BOOKED'
-    };
+  const formatStatusLabel = (status) => {
+    if (!status) return 'Booked';
+    const s = status.trim();
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        
-        {/* Page Header - No prohibited claims */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4" /> Secure Tracking Lookup
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Track Your Shipment
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+      {/* 2. HERO: flat --color-navy band, straight bottom edge, 4px --color-kraft strip along bottom edge */}
+      <section className="w-full bg-[var(--color-navy)] text-[var(--color-on-navy)] border-b-4 border-[var(--color-kraft)] py-[64px] px-4 sm:px-6 lg:px-8 text-left">
+        <div className="max-w-[1100px] mx-auto">
+          <h1
+            className="text-[32px] sm:text-5xl font-bold font-heading text-[var(--color-on-navy)] leading-[1.2] max-w-3xl"
+            style={{ letterSpacing: 'normal' }}
+          >
+            {heroCopy.heading}
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-            Enter your tracking number to see the latest status. Updates are entered by our team, and the time of the last update is shown.
+          <p
+            className="mt-3.5 text-sm sm:text-base font-normal text-[var(--color-on-navy-muted)] leading-relaxed max-w-2xl"
+            style={{ letterSpacing: 'normal' }}
+          >
+            {heroCopy.subtext}
           </p>
         </div>
+      </section>
 
-        {/* Search Box */}
-        <div className="bg-[#121829] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl shadow-black/40 space-y-4">
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearch();
-            }}
-            className="space-y-4"
-          >
-            <div className="relative w-full">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => {
-                  setSearchInput(e.target.value);
-                  setErrorMessage('');
-                }}
-                placeholder="Enter tracking number"
-                disabled={isLoading || rateLimitSeconds > 0}
-                className="w-full bg-[#0D121F] border border-slate-700/80 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder-slate-500 text-sm sm:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors disabled:opacity-50"
-              />
-            </div>
+      {/* 3. TRACKING FORM & DETAILS SECTION - TWO COLUMNS (DESKTOP) */}
+      <section className="w-full bg-[var(--color-bg)] py-[72px] px-4 sm:px-6 lg:px-8 text-left">
+        <div className="max-w-[1100px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            {/* Cloudflare Turnstile Verification Widget - Positioned ABOVE the Track button */}
-            <div className="pt-1">
-              <TurnstileCaptcha
-                key={turnstileKey}
-                isVerified={captchaVerified}
-                onVerify={(token) => {
-                  setTurnstileToken(token || '');
-                  setCaptchaVerified(true);
-                  setCaptchaError('');
-                }}
-                onExpire={() => {
-                  setTurnstileToken('');
-                  setCaptchaVerified(false);
-                }}
-                error={captchaError}
-              />
-            </div>
+            {/* LEFT COLUMN (about 60%): Form, Error, Result, Help line */}
+            <div className="lg:col-span-7 w-full space-y-6">
 
-            {/* Track Button - Disabled until Turnstile passes */}
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading || rateLimitSeconds > 0 || !captchaVerified || !turnstileToken}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 disabled:shadow-none cursor-pointer disabled:cursor-not-allowed"
+              {/* FORM BLOCK: white, 1px border, 4px corners, no shadow, 3px kraft top border, 24px padding */}
+              <div
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-6 shadow-none"
+                style={{ borderTopColor: 'var(--color-kraft)' }}
               >
-                {isLoading ? (
-                  <>
-                    <RotateCw className="w-4 h-4 animate-spin" />
-                    <span>Searching...</span>
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    <span>Track Shipment</span>
-                  </>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSearch();
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label
+                      htmlFor="tracking-number-input"
+                      className="block text-sm font-semibold text-[var(--color-navy)] mb-2"
+                      style={{ letterSpacing: 'normal' }}
+                    >
+                      {formCopy.label}
+                    </label>
+                    <input
+                      id="tracking-number-input"
+                      type="text"
+                      value={searchInput}
+                      onChange={(e) => {
+                        setSearchInput(e.target.value);
+                        setErrorMessage('');
+                        setNotFound(false);
+                      }}
+                      placeholder={formCopy.placeholder}
+                      disabled={isLoading || rateLimitSeconds > 0}
+                      className="w-full h-12 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] px-4 text-sm sm:text-base text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent transition-colors disabled:opacity-50"
+                      style={{ letterSpacing: 'normal' }}
+                    />
+                  </div>
+
+                  {/* Cloudflare Turnstile Verification Widget - 16px spacing above and below (my-4) */}
+                  <div className="my-4">
+                    <TurnstileCaptcha
+                      key={turnstileKey}
+                      isVerified={captchaVerified}
+                      onVerify={(token) => {
+                        setTurnstileToken(token || '');
+                        setCaptchaVerified(true);
+                        setCaptchaError('');
+                      }}
+                      onExpire={() => {
+                        setTurnstileToken('');
+                        setCaptchaVerified(false);
+                      }}
+                      error={captchaError}
+                    />
+                  </div>
+
+                  {/* Track button - ONLY orange element on the page */}
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={isLoading || rateLimitSeconds > 0 || !captchaVerified || !turnstileToken}
+                      className="w-full sm:w-auto px-6 py-3 bg-[var(--color-orange)] hover:bg-[var(--color-orange-hover)] disabled:opacity-65 text-[var(--color-on-navy)] font-semibold text-sm sm:text-base rounded-[var(--radius)] transition-colors cursor-pointer disabled:cursor-not-allowed shadow-none text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
+                      style={{ letterSpacing: 'normal' }}
+                    >
+                      {isLoading ? (
+                        <span className="inline-flex items-center justify-center gap-2">
+                          <RotateCw className="w-4 h-4 animate-spin shrink-0" aria-hidden="true" />
+                          <span>{formCopy.buttonLoadingLabel || 'Searching...'}</span>
+                        </span>
+                      ) : (
+                        <span>{formCopy.buttonLabel}</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+
+                {/* Rate Limiting Warning (429) */}
+                {rateLimitSeconds > 0 && (
+                  <div className="mt-4 p-4 rounded-[var(--radius)] bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-[var(--color-text)] text-xs sm:text-sm" role="alert" aria-live="polite">
+                    <span>
+                      {rateLimitMessage || formCopy.rateLimitWarning || 'Too many lookups. Please try again later.'} Please wait{' '}
+                      <strong className="font-semibold">{rateLimitSeconds}s</strong> before querying again.
+                    </span>
+                  </div>
                 )}
-              </button>
-            </div>
-          </form>
 
-          {/* Rate Limiting Warning / 429 Message with countdown from Retry-After */}
-          {rateLimitSeconds > 0 && (
-            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs sm:text-sm flex items-center gap-2">
-              <Clock className="w-4 h-4 flex-shrink-0" />
-              <span>
-                {rateLimitMessage || 'Too many lookups. Please try again later.'} Please wait{' '}
-                <strong className="font-semibold text-white">{rateLimitSeconds}s</strong> before querying again.
-              </span>
-            </div>
-          )}
-
-          {/* Error Message (503 shown as it is) */}
-          {errorMessage && rateLimitSeconds <= 0 && (
-            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs sm:text-sm flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Not Found Message (404 only) */}
-        {notFound && (
-          <div className="bg-[#121829] border border-slate-800 rounded-2xl p-8 text-center">
-            <p className="text-base font-semibold text-white">Tracking number not found or unavailable.</p>
-          </div>
-        )}
-
-        {/* Shipment Details Result Card - Showing ONLY required, non-sensitive fields */}
-        {shipmentData && (
-          <div className="bg-[#121829] border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-8 shadow-2xl">
-            
-            {/* Top Bar: Tracking Number, Status Badge & Last Updated (Singapore Time) */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tracking Number</span>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl sm:text-2xl font-mono font-bold text-white tracking-wide">
-                    {shipmentData.tracking_number}
-                  </h2>
-                  <button
-                    onClick={() => handleCopy(shipmentData.tracking_number)}
-                    title="Copy tracking number"
-                    className="p-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                  >
-                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
+                {/* Generic / 503 Error Message */}
+                {errorMessage && rateLimitSeconds <= 0 && (
+                  <div className="mt-4 p-4 rounded-[var(--radius)] bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-[var(--color-text)] text-xs sm:text-sm" role="alert" aria-live="polite">
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex flex-col sm:items-end gap-1.5">
-                {(() => {
-                  const badge = getStatusBadge(shipmentData.status);
-                  return (
-                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold tracking-wide ${badge.bg}`}>
-                      <span className={`w-2 h-2 rounded-full ${badge.dot}`} />
-                      {badge.label}
-                    </div>
-                  );
-                })()}
-                {/* Last updated: Singapore Time */}
-                <div className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
-                  <span>
-                    Last updated: {shipmentData.last_updated ? (formatSingaporeDateTime(shipmentData.last_updated) || 'Not available') : 'Not available'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Route & Service Overview: Origin city, Destination city, Service type */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-xl bg-[#0D121F] border border-slate-800/60">
-              {/* Origin City / Area */}
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-blue-400" /> Origin
-                </span>
-                <p className="text-base sm:text-lg font-semibold text-white">
-                  {shipmentData.origin || shipmentData.origin_city || 'Not specified'}
-                </p>
-              </div>
-
-              {/* Destination City / Area */}
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Destination
-                </span>
-                <p className="text-base sm:text-lg font-semibold text-white">
-                  {shipmentData.destination || shipmentData.destination_city || 'Not specified'}
-                </p>
-              </div>
-
-              {/* Service Type */}
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" /> Service Type
-                </span>
-                <p className="text-base sm:text-lg font-semibold text-white">
-                  {shipmentData.service_type || 'Not specified'}
-                </p>
-              </div>
-            </div>
-
-            {/* Shipment Events Timeline: Status text and time */}
-            <div className="space-y-4 pt-2">
-              <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <Package className="w-4 h-4 text-blue-400" /> Tracking Events
-              </h3>
-
-              {Array.isArray(shipmentData.events) && shipmentData.events.length > 0 ? (
-                <div className="relative pl-6 sm:pl-8 space-y-6 before:content-[''] before:absolute before:left-2 sm:before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
-                  {shipmentData.events.map((evt, idx) => (
-                    <div key={idx} className="relative group">
-                      <div className="absolute -left-6 sm:-left-8 top-1 w-4 sm:w-5 h-4 sm:h-5 rounded-full bg-[#121829] border-2 border-blue-500 flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <h4 className="text-sm sm:text-base font-semibold text-white">
-                            {evt.status || evt.stage || 'Status Update'}
-                          </h4>
-                          <span className="text-xs text-slate-400 font-mono">
-                            {formatSingaporeDateTime(evt.time || evt.occurred_at)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-[#0D121F] border border-slate-800/60 text-slate-400 text-xs sm:text-sm">
-                  Shipment is recorded in the network. Milestone updates will be posted here as they occur.
+              {/* 4. NOT FOUND ERROR STATE (appears under the form in left column) */}
+              {notFound && (
+                <div
+                  className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-6 shadow-none text-left"
+                  style={{ borderTopColor: 'var(--color-kraft)' }}
+                  role="alert"
+                  aria-live="polite"
+                >
+                  <p className="text-sm sm:text-base text-[var(--color-text)] leading-relaxed" style={{ letterSpacing: 'normal' }}>
+                    {notFoundCopy.messagePrefix || 'We could not find this tracking number. Check the number or '}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab && setActiveTab('contact')}
+                      className="link-inline"
+                    >
+                      {notFoundCopy.linkLabel || 'contact us'}
+                    </button>
+                    {notFoundCopy.messageSuffix || '.'}
+                  </p>
                 </div>
               )}
+
+              {/* 4. SHIPMENT DETAILS RESULT CARD (appears under the form in left column) */}
+              {shipmentData && (
+                <div
+                  className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-6 space-y-6 shadow-none text-left"
+                  style={{ borderTopColor: 'var(--color-kraft)' }}
+                >
+                  {/* Top Bar: Status (first & large), Tracking Number + Copy, Last Updated */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-5 border-b border-[var(--color-border)]">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-xs text-[var(--color-text-muted)] block">
+                          Status
+                        </span>
+                        <div className="text-2xl font-bold text-[var(--color-text)] leading-tight">
+                          {formatStatusLabel(shipmentData.status)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-[var(--color-navy)] tabular-nums">
+                          {shipmentData.tracking_number}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(shipmentData.tracking_number)}
+                          aria-label="Copy tracking number"
+                          title="Copy tracking number"
+                          className="w-9 h-9 rounded-[var(--radius)] bg-[var(--color-surface)] hover:bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-[var(--color-navy)] flex items-center justify-center transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)] shrink-0"
+                        >
+                          <Copy className="w-4 h-4 text-[var(--color-navy)]" aria-hidden="true" />
+                        </button>
+                        {copied && (
+                          <span className="text-xs text-[var(--color-text-muted)]" role="status">
+                            Copied
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-[var(--color-text-muted)] tabular-nums sm:text-right shrink-0">
+                      Last updated: {shipmentData.last_updated ? (formatSingaporeDateTime(shipmentData.last_updated) || 'Not available') : 'Not available'}
+                    </div>
+                  </div>
+
+                  {/* Route & Service Overview: Origin, Destination, Service type ("Road transport") */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-5 rounded-[var(--radius)] bg-[var(--color-bg-alt)] border border-[var(--color-border)] shadow-none">
+                    <div className="space-y-1">
+                      <span className="text-xs text-[var(--color-text-muted)] block">
+                        Origin
+                      </span>
+                      <p className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
+                        {(() => {
+                          const val = shipmentData.origin || shipmentData.origin_city;
+                          if (!val) return 'Not specified';
+                          if (import.meta.env.DEV) return String(val).trim();
+                          return String(val).replace(/\s*\(Test Data\)/gi, '').trim() || 'Not specified';
+                        })()}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-xs text-[var(--color-text-muted)] block">
+                        Destination
+                      </span>
+                      <p className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
+                        {(() => {
+                          const val = shipmentData.destination || shipmentData.destination_city;
+                          if (!val) return 'Not specified';
+                          if (import.meta.env.DEV) return String(val).trim();
+                          return String(val).replace(/\s*\(Test Data\)/gi, '').trim() || 'Not specified';
+                        })()}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-xs text-[var(--color-text-muted)] block">
+                        Service type
+                      </span>
+                      <p className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
+                        Road transport
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Shipment Events Timeline: Ordered list with square markers */}
+                  <div className="space-y-4 pt-2">
+                    <h3 className="text-base sm:text-lg font-bold font-heading text-[var(--color-navy)]" style={{ letterSpacing: 'normal' }}>
+                      {eventsCopy.heading || 'Tracking events'}
+                    </h3>
+
+                    {Array.isArray(shipmentData.events) && shipmentData.events.length > 0 ? (
+                      <ol className="relative pl-6 space-y-5 before:content-[''] before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--color-border)] list-none">
+                        {shipmentData.events.map((evt, idx) => {
+                          const isLatest = idx === shipmentData.events.length - 1;
+                          return (
+                            <li key={idx} className="relative">
+                              <div className="absolute -left-6 top-1.5 w-3.5 h-3.5 rounded-[2px] bg-[var(--color-navy)]" />
+                              <div className="space-y-0.5">
+                                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                                  <span
+                                    className={`text-sm sm:text-base text-[var(--color-text)] ${
+                                      isLatest ? 'font-bold' : 'font-normal'
+                                    }`}
+                                  >
+                                    {evt.status || evt.stage || 'Status update'}
+                                  </span>
+                                  <span className="text-xs text-[var(--color-text-muted)] tabular-nums sm:text-right shrink-0">
+                                    {formatSingaporeDateTime(evt.time || evt.occurred_at)}
+                                  </span>
+                                </div>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    ) : (
+                      <div className="p-4 rounded-[var(--radius)] bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-xs sm:text-sm">
+                        {eventsCopy.emptyText || 'Shipment is recorded. Updates are entered by our team as they occur.'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 6. HELP LINE: Left-aligned, muted text, 24px below blocks */}
+              <div className="pt-2 text-left">
+                <p className="text-sm text-[var(--color-text-muted)]" style={{ letterSpacing: 'normal' }}>
+                  {helpCopy.text || 'Need help with your shipment? '}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab && setActiveTab('contact')}
+                    className="link-inline"
+                  >
+                    {helpCopy.linkLabel || 'Contact us'}
+                  </button>
+                </p>
+              </div>
+
+            </div>
+
+            {/* RIGHT COLUMN (about 40%): Guidelines block aligned at top */}
+            <div className="lg:col-span-5 w-full">
+              {/* 5. GUIDELINES BLOCK: white, 1px border, 4px corners, no shadow, 3px kraft top border, 24px padding */}
+              <div
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-6 shadow-none text-left space-y-2"
+                style={{ borderTopColor: 'var(--color-kraft)' }}
+              >
+                <h2
+                  className="text-base sm:text-lg font-bold font-heading text-[var(--color-navy)]"
+                  style={{ letterSpacing: 'normal' }}
+                >
+                  {guidelinesCopy.heading}
+                </h2>
+                <p
+                  className="text-sm sm:text-base text-[var(--color-text)] leading-relaxed"
+                  style={{ letterSpacing: 'normal' }}
+                >
+                  {guidelinesCopy.text}
+                </p>
+                <p
+                  className="text-xs sm:text-sm text-[var(--color-text-muted)] leading-relaxed pt-1"
+                  style={{ letterSpacing: 'normal' }}
+                >
+                  {guidelinesCopy.airFreightNotice}
+                </p>
+              </div>
             </div>
 
           </div>
-        )}
-
-        {/* Empty State Help Card */}
-        {!shipmentData && !notFound && (
-          <div className="bg-[#121829]/60 border border-slate-800/80 rounded-2xl p-8 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mx-auto">
-              <Truck className="w-7 h-7" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="text-base font-semibold text-white">Tracking Number Guidelines</h3>
-              <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
-                Enter the consignment or reference number provided on your booking confirmation or transport document to view its current milestone.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Footer Support Prompt */}
-        <div className="text-center pt-4">
-          <p className="text-xs text-slate-500">
-            Need assistance with your consignment?{' '}
-            <button
-              onClick={() => setActiveTab && setActiveTab('contact')}
-              className="text-blue-400 hover:text-blue-300 font-medium underline transition-colors cursor-pointer"
-            >
-              Contact operations support
-            </button>
-          </p>
         </div>
-
-      </div>
+      </section>
     </div>
   );
 };

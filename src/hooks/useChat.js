@@ -8,59 +8,38 @@ const QUICK_PROMPTS = [
   { label: "How do I track my shipment?", query: "How do I track my shipment?" }
 ];
 
+let inMemoryMessages = null;
+let inMemorySessionId = null;
+
 export function useChat() {
-  // Use sessionStorage so the chat is kept ONLY in the browser session and deleted when session ends
-  const [sessionId, setSessionId] = useState(() => {
-    try {
-      return sessionStorage.getItem('josan_session_chat_id') || `sess_${Date.now()}`;
-    } catch (e) {
-      return `sess_${Date.now()}`;
-    }
-  });
+  // Keep chat messages in memory only for the current visit. Do not use localStorage.
+  const [sessionId, setSessionId] = useState(() => inMemorySessionId || `sess_${Date.now()}`);
 
   const [messages, setMessages] = useState(() => {
-    const defaultWelcome = [
+    if (inMemoryMessages && inMemoryMessages.length > 0) {
+      return inMemoryMessages;
+    }
+    return [
       {
         id: 'msg_welcome',
         role: 'assistant',
-        content: "Hello! I'm the Josan Logistics assistant. I can help with questions about our air freight documentation support, road transportation coordination and shipment documents. For quotes, please use our Request a Quote page.",
+        content: "Hello! I'm the Josan Logistics assistant. I can help with questions about our air freight documentation support, road transportation coordination and shipment documents. For quotes, please use Get a Quote.",
         disclaimer: "This assistant gives general information only and may make mistakes. It does not replace advice from our team.",
         sources: [],
         createdAt: new Date().toISOString()
       }
     ];
-
-    try {
-      const saved = sessionStorage.getItem('josan_session_chat_messages');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          if (parsed[0].id?.startsWith('msg_welcome')) {
-            parsed[0].content = defaultWelcome[0].content;
-            parsed[0].disclaimer = defaultWelcome[0].disclaimer;
-          }
-          return parsed;
-        }
-      }
-    } catch (e) {}
-
-    return defaultWelcome;
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Persist session only in browser session (sessionStorage)
   useEffect(() => {
-    try {
-      sessionStorage.setItem('josan_session_chat_id', sessionId);
-    } catch (e) {}
+    inMemorySessionId = sessionId;
   }, [sessionId]);
 
   useEffect(() => {
-    try {
-      sessionStorage.setItem('josan_session_chat_messages', JSON.stringify(messages.slice(-25)));
-    } catch (e) {}
+    inMemoryMessages = messages;
   }, [messages]);
 
   const sendMessage = useCallback(async (text) => {
@@ -128,17 +107,15 @@ export function useChat() {
       {
         id: `msg_welcome_${Date.now()}`,
         role: 'assistant',
-        content: "Hello! I'm the Josan Logistics assistant. I can help with questions about our air freight documentation support, road transportation coordination and shipment documents. For quotes, please use our Request a Quote page.",
+        content: "Hello! I'm the Josan Logistics assistant. I can help with questions about our air freight documentation support, road transportation coordination and shipment documents. For quotes, please use Get a Quote.",
         disclaimer: "This assistant gives general information only and may make mistakes. It does not replace advice from our team.",
         sources: [],
         createdAt: new Date().toISOString()
       }
     ];
+    inMemoryMessages = welcomeMsg;
+    inMemorySessionId = newSess;
     setMessages(welcomeMsg);
-    try {
-      sessionStorage.setItem('josan_session_chat_id', newSess);
-      sessionStorage.setItem('josan_session_chat_messages', JSON.stringify(welcomeMsg));
-    } catch (e) {}
 
     // Delete conversation from server and local admin logs
     try {

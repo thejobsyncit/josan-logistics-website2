@@ -45,7 +45,7 @@ export const CrmTransportationPartnersTab = ({
     contactPerson: '',
     phone: '',
     email: '',
-    serviceArea: 'Singapore Islandwide Corridors (Woodlands, Changi, Pasir Panjang, Tampines)',
+    serviceArea: 'Singapore Islandwide Corridors (Woodlands, Changi, Jurong, Tampines)',
     operatingZones: 'Northern & Eastern Corridors',
     vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
     agreementStatus: 'Active Partner',
@@ -97,7 +97,7 @@ export const CrmTransportationPartnersTab = ({
       contactPerson: '',
       phone: '',
       email: '',
-      serviceArea: 'Singapore Islandwide Corridors (Woodlands, Changi, Pasir Panjang, Tampines)',
+      serviceArea: 'Singapore Islandwide Corridors (Woodlands, Changi, Jurong, Tampines)',
       operatingZones: 'Northern & Eastern Corridors',
       vehicleTypes: '14ft Box Trucks, 24ft Heavy Lorries',
       agreementStatus: 'Active Partner',
@@ -440,7 +440,7 @@ export const CrmTransportationPartnersTab = ({
                   required
                   value={newPartnerData.operatingZones}
                   onChange={(e) => setNewPartnerData({ ...newPartnerData, operatingZones: e.target.value })}
-                  placeholder="e.g. Northern & Eastern Corridors (Woodlands, Changi, Pasir Panjang)"
+                  placeholder="e.g. Northern & Eastern Corridors (Woodlands, Changi, Tampines)"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>

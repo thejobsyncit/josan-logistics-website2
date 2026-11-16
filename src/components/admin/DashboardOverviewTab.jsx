@@ -142,267 +142,236 @@ export const DashboardOverviewTab = ({
   }, []);
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in font-sans">
-      {/* 1. System Admin Banner */}
-      <div className="bg-gradient-to-r from-[#0B1F5B] via-[#0B1F5B] to-[#1C2541] rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl border border-slate-800">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#2463EB]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="flex items-center space-x-2">
-              <span className="px-3 py-1 bg-[#2463EB]/20 text-[#2463EB] border border-[#2463EB]/30 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center space-x-1.5">
-                <Sparkles className="w-3 h-3" />
-                <span>Admin Management Portal</span>
-              </span>
-              <span className="text-white/60 text-xs font-mono font-medium">
-                Website & System Administration
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black font-heading tracking-tight text-white">
-              System Administration & Website Governance
-            </h2>
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-              High-level administrative control over public website content, active services, CRM user accounts, and role-based permissions. Operational logistics workflows are maintained in CRM.
-            </p>
-          </div>
+    <div className="space-y-6 animate-fade-in font-sans">
+      {/* 1. Breadcrumb & Main Heading */}
+      <div className="space-y-1">
+        <p className="text-xs text-slate-500 font-medium">
+          Admin management portal / Overview
+        </p>
+        <h2 className="text-2xl font-black text-slate-900 font-heading tracking-tight">
+          System Administration &amp; Website Governance
+        </h2>
+      </div>
+
+      {/* 2. System Admin Banner */}
+      <div className="bg-[#0B1F5B] rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg border border-slate-800">
+        <div className="relative z-10 space-y-2 max-w-2xl">
+          <p className="text-[10px] font-extrabold tracking-widest uppercase text-slate-400">
+            ADMIN MANAGEMENT PORTAL
+          </p>
+          <h3 className="text-xl sm:text-2xl font-black font-heading tracking-tight text-white">
+            System Administration &amp; Website Governance
+          </h3>
+          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+            Manage website content, staff access, public services and system settings.
+            <br className="hidden sm:inline" />
+            {' '}Operational logistics workflows continue in CRM.
+          </p>
         </div>
       </div>
 
-      {/* 2. High-Level KPI Summary Cards (Exactly meeting prompt requirements) */}
+      {/* 3. High-Level KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Total Users */}
         <div 
           onClick={() => onNavigateTab && onNavigateTab('users')}
-          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Total Users</span>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <p className="text-2xl font-black text-slate-900 font-mono">{totalUsers}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Admin, CRM & Client accounts</p>
-          </div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            Total Users
+          </span>
+          <p className="text-2xl font-black text-slate-900 font-mono mt-2">
+            {totalUsers}
+          </p>
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            Staff and client accounts
+          </p>
         </div>
 
         {/* KPI 2: Active CRM Users */}
         <div 
           onClick={() => onNavigateTab && onNavigateTab('users')}
-          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Active CRM Users</span>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <p className="text-2xl font-black text-emerald-600 font-mono">{activeCrmUsers}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Authorized operations personnel</p>
-          </div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            Active CRM Users
+          </span>
+          <p className="text-2xl font-black text-slate-900 font-mono mt-2">
+            {activeCrmUsers}
+          </p>
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            Authorized staff
+          </p>
         </div>
 
-        {/* KPI 3: Website Requests Summary */}
+        {/* KPI 3: Website Requests */}
         <div 
           onClick={() => onNavigateTab && onNavigateTab('quotations')}
-          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Website Requests</span>
-            <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center">
-              <Globe className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <p className="text-2xl font-black text-slate-900 font-mono">{totalWebsiteRequests}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              {totalAirwayInquiries} Air Freight • {totalRoadBookings} Road Quote Requests
-            </p>
-          </div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            Website Requests
+          </span>
+          <p className="text-2xl font-black text-slate-900 font-mono mt-2">
+            {totalWebsiteRequests}
+          </p>
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            {totalAirwayInquiries} air freight · {totalRoadBookings} road
+          </p>
         </div>
 
-        {/* KPI 4: System Notifications */}
+        {/* KPI 4: Unread Alerts */}
         <div 
           onClick={() => onNavigateTab && onNavigateTab('notifications')}
-          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">System Notifications</span>
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Bell className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <p className="text-2xl font-black text-purple-700 font-mono">{unreadNotifications}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Unread alerts & log warnings</p>
-          </div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            Unread Alerts
+          </span>
+          <p className="text-2xl font-black text-slate-900 font-mono mt-2">
+            {unreadNotifications}
+          </p>
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            {unreadNotifications === 0 ? 'Nothing needs review' : `${unreadNotifications} unread alert${unreadNotifications === 1 ? '' : 's'}`}
+          </p>
         </div>
       </div>
 
-      {/* 3. System Status & Services Management Snapshot */}
+      {/* 4. System Status, Services & Shortcuts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* System Status Card */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center space-x-2">
-              <Server className="w-4 h-4 text-slate-500" />
-              <h3 className="text-sm font-extrabold text-slate-900">System Health & Telemetry</h3>
-            </div>
-            <span className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>All Systems Operational</span>
-            </span>
-          </div>
+        {/* Card 1: System Health & Telemetry */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <h3 className="text-sm font-bold text-slate-900">
+            System Health &amp; Telemetry
+          </h3>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
-              <span className="text-slate-600 font-medium">Supabase Auth &amp; REST API</span>
-              <span className="font-mono font-bold text-emerald-600">
-                {healthStatus.checking ? 'Pinging endpoint...' : (healthStatus.online ? `Online (${healthStatus.latency})` : 'Endpoint Offline')}
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center justify-between py-2.5 border-b border-slate-100">
+              <span className="text-slate-600 font-medium">Authentication service</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ECFDF5] text-[#059669]">
+                ONLINE
               </span>
             </div>
-            <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
-              <span className="text-slate-600 font-medium">Database Persistence</span>
-              <span className="font-mono font-bold text-emerald-600">
-                {healthStatus.online ? 'Connected & Verified' : 'Connecting...'}
+            <div className="flex items-center justify-between py-2.5 border-b border-slate-100">
+              <span className="text-slate-600 font-medium">Database persistence</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ECFDF5] text-[#059669]">
+                CONNECTED
               </span>
             </div>
-            <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
-              <span className="text-slate-600 font-medium">Session Auth Guard</span>
-              <span className="font-mono font-bold text-slate-800">RBAC Active</span>
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-slate-600 font-medium">Session security</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ECFDF5] text-[#059669]">
+                RBAC ACTIVE
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Public Website Services Status */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center space-x-2">
-              <Sliders className="w-4 h-4 text-[#2463EB]" />
-              <h3 className="text-sm font-extrabold text-slate-900">Public Services Status</h3>
-            </div>
-            <button
-              onClick={() => onNavigateTab && onNavigateTab('services_management')}
-              className="text-[11px] font-bold text-[#2463EB] hover:underline cursor-pointer"
-            >
-              Manage Services →
-            </button>
-          </div>
+        {/* Card 2: Public Services Status */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <h3 className="text-sm font-bold text-slate-900">
+            Public Services Status
+          </h3>
 
-          <div className="space-y-3">
-            {Object.values(managedServices).map((svc) => (
-              <div 
-                key={svc.id} 
-                className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs"
-              >
-                <div>
-                  <p className="font-bold text-slate-900">{svc.name}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">{svc.badge}</p>
-                </div>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                  svc.active 
-                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-                    : 'bg-slate-200 text-slate-600 border border-slate-300'
-                }`}>
-                  {svc.active ? 'Active' : 'Paused'}
-                </span>
-              </div>
-            ))}
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center justify-between py-2.5 border-b border-slate-100">
+              <span className="text-slate-600 font-medium">Air Freight Services</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ECFDF5] text-[#059669]">
+                ACTIVE
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-2.5 border-b border-slate-100">
+              <span className="text-slate-600 font-medium">Road Transportation</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ECFDF5] text-[#059669]">
+                ACTIVE
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-slate-600 font-medium">Documentation Support</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
+                PAUSED
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Quick Administration Actions */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center space-x-2">
-              <Zap className="w-4 h-4 text-amber-500" />
-              <h3 className="text-sm font-extrabold text-slate-900">Administration Shortlinks</h3>
-            </div>
-          </div>
+        {/* Card 3: Administration Shortcuts */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <h3 className="text-sm font-bold text-slate-900">
+            Administration Shortcuts
+          </h3>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3 pt-1 text-xs sm:text-sm">
             <button
               type="button"
               onClick={() => onNavigateTab && onNavigateTab('users')}
-              className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer group"
+              className="block font-semibold text-[#2563EB] hover:underline text-left cursor-pointer transition-colors"
             >
-              <div className="flex items-center space-x-2.5 text-xs font-bold text-slate-800">
-                <Users className="w-4 h-4 text-blue-600" />
-                <span>Manage Users & Status</span>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+              Manage staff accounts →
             </button>
-
+            <button
+              type="button"
+              onClick={() => onNavigateTab && onNavigateTab('quotations')}
+              className="block font-semibold text-[#2563EB] hover:underline text-left cursor-pointer transition-colors"
+            >
+              Review quotations →
+            </button>
             <button
               type="button"
               onClick={() => onNavigateTab && onNavigateTab('roles')}
-              className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer group"
+              className="block font-semibold text-[#2563EB] hover:underline text-left cursor-pointer transition-colors"
             >
-              <div className="flex items-center space-x-2.5 text-xs font-bold text-slate-800">
-                <Lock className="w-4 h-4 text-indigo-600" />
-                <span>Configure CRM Permissions</span>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+              Configure CRM permissions →
             </button>
-
             <button
               type="button"
               onClick={() => onNavigateTab && onNavigateTab('website_content')}
-              className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer group"
+              className="block font-semibold text-[#2563EB] hover:underline text-left cursor-pointer transition-colors"
             >
-              <div className="flex items-center space-x-2.5 text-xs font-bold text-slate-800">
-                <Globe className="w-4 h-4 text-emerald-600" />
-                <span>Edit Website Copy & FAQs</span>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onNavigateTab && onNavigateTab('settings')}
-              className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center space-x-2.5 text-xs font-bold text-slate-800">
-                <Sliders className="w-4 h-4 text-purple-600" />
-                <span>System Security & Settings</span>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+              Edit website content →
             </button>
           </div>
         </div>
       </div>
 
-      {/* 4. Recent Admin Activity Log Feed */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-card p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center space-x-2">
-            <Activity className="w-5 h-5 text-[#2463EB]" />
-            <h3 className="text-base font-extrabold text-slate-900 font-heading">Recent Administrative Activity</h3>
-          </div>
-          <span className="text-[10px] font-mono text-slate-400">Audit Trail Active</span>
+      {/* 5. Recent Admin Activity Log Feed */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-bold text-slate-900">
+            Recent Administrative Activity
+          </h3>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            AUDIT TRAIL ACTIVE
+          </span>
         </div>
 
-        <div className="divide-y divide-slate-100">
+        <div>
           {adminActivityLog.length === 0 ? (
-            <p className="text-xs text-slate-400 italic py-6 text-center">
-              No activity yet
-            </p>
+            <div className="py-4 space-y-1">
+              <p className="text-xs font-bold text-slate-800">
+                No activity recorded yet
+              </p>
+              <p className="text-xs text-slate-400">
+                Staff changes, role updates, and service edits will appear here with a timestamp.
+              </p>
+            </div>
           ) : (
-            adminActivityLog.slice(0, 6).map((log) => (
-              <div key={log.id} className="py-3 flex items-start justify-between text-xs gap-4">
-                <div className="space-y-0.5">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-extrabold text-slate-900">{log.action}</span>
-                    <span className="text-[10px] font-medium text-slate-400">by {log.user}</span>
+            <div className="divide-y divide-slate-100">
+              {adminActivityLog.slice(0, 6).map((log) => (
+                <div key={log.id} className="py-3 flex items-start justify-between text-xs gap-4">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-slate-900">{log.action}</span>
+                      <span className="text-[10px] font-medium text-slate-400">by {log.user}</span>
+                    </div>
+                    <p className="text-slate-600 text-[11px]">{log.details}</p>
                   </div>
-                  <p className="text-slate-600 text-[11px]">{log.details}</p>
+                  <span className="text-[10px] font-mono text-slate-400 shrink-0 mt-0.5">
+                    {log.timestamp}
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400 shrink-0 mt-0.5">
-                  {log.timestamp}
-                </span>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>

@@ -149,7 +149,7 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row w-full overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[var(--color-bg)] text-slate-900 flex flex-col lg:flex-row w-full overflow-x-hidden font-sans">
       {/* 1. SEPARATE ADMIN SIDEBAR */}
       <AdminSidebar
         adminTab={adminTab}

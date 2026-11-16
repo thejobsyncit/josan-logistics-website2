@@ -15,6 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { useLogistics } from '../../context/LogisticsContext';
+import { COMPANY_INFO } from '../../config/siteConfig';
 
 export const WebsiteContentTab = ({
   websiteContent = {},
@@ -376,9 +377,9 @@ export const WebsiteContentTab = ({
               <label className="text-[11px] font-bold text-slate-700 uppercase">Physical Office Address</label>
               <input
                 type="text"
-                value={contactForm.address || siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438'}
+                value={contactForm.address || siteSettings?.registered_office || COMPANY_INFO.address}
                 onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
-                placeholder="10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438"
+                placeholder={COMPANY_INFO.address}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
               />
             </div>

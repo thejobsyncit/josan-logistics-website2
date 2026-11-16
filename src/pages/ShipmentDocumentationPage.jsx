@@ -27,10 +27,12 @@ import {
   Phone
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
+import { getPhoneLinks, isDisplayablePhone } from '../config/siteConfig';
 import docsHeroImg from '../assets/shipment_documentation_desk.jpg';
 
 export const ShipmentDocumentationPage = ({ setActiveTab }) => {
-  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast, websiteContent } = useLogistics();
+  const phoneLinks = getPhoneLinks(websiteContent?.contact?.phone);
   // Cargo Mode Tabs State - Airway Services as Primary Default
   const [activeMode, setActiveMode] = useState('air');
 
@@ -100,7 +102,7 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
       documents: [
         { name: 'Commercial Invoice', desc: 'Details of the commercial transaction, buyer, seller and invoice value.' },
         { name: 'Packing List', desc: 'Package counts, cargo weights and cargo dimensions.' },
-        { name: 'Road Consignment Note (LR)', desc: 'Consignment transit receipt and dispatch acknowledgment for partner transport.' },
+        { name: 'Road Consignment Note (LR)', desc: 'Consignment transit receipt and pickup acknowledgment for partner transport.' },
         { name: 'Delivery Record', desc: 'Delivery confirmation record for the shipment.' }
       ]
     }
@@ -141,7 +143,7 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
   ];
 
   return (
-    <div className="space-y-16 pb-24 animate-fade-in bg-slate-50/50">
+    <div className="space-y-16 pb-24 animate-fade-in bg-[var(--color-bg)]">
 
       {/* Hero Section */}
       <section className="bg-[#0B1F3A] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-[#1E3A5F] relative overflow-hidden">
@@ -242,6 +244,8 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
           })}
         </div>
       </section>
+
+      <div className="section-divider" aria-hidden="true" />
 
       {/* Cargo Modes & Documents Required (Clean Tabbed Layout) */}
       <section id="cargo-modes" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
@@ -380,6 +384,8 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* How It Works (5 Steps in a Single Row) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-3 text-center max-w-3xl mx-auto mb-10">
@@ -424,6 +430,8 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden border border-slate-800">
@@ -457,14 +465,16 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <a
-                href="tel:+6567890123"
-                className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl border border-white/20 transition-all cursor-pointer flex items-center space-x-2 active:scale-95"
-                title="Call Josan Logistics (+65 6789 0123)"
-              >
-                <Phone className="w-4 h-4 text-orange-400" />
-                <span>Call Us</span>
-              </a>
+              {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && (
+                <a
+                  href={phoneLinks.telHref}
+                  className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl border border-white/20 transition-all cursor-pointer flex items-center space-x-2 active:scale-95"
+                  title={`Call Josan Logistics (${phoneLinks.display})`}
+                >
+                  <Phone className="w-4 h-4 text-orange-400" />
+                  <span>Call Us</span>
+                </a>
+              )}
             </div>
           </div>
         </div>

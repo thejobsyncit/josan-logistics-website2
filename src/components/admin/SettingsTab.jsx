@@ -21,6 +21,7 @@ import {
   deleteCustomerChatsOnRequest 
 } from '../../services/chatStorageService';
 import { useLogistics } from '../../context/LogisticsContext';
+import { COMPANY_INFO } from '../../config/siteConfig';
 
 export const SettingsTab = ({ onSaveToast }) => {
   const { siteSettings, updateSiteSettings } = useLogistics();
@@ -32,7 +33,7 @@ export const SettingsTab = ({ onSaveToast }) => {
     gstReg: siteSettings?.gst_reg || '',
     contactEmail: siteSettings?.contact_email || 'contact@josanlogistics.com.sg',
     supportPhone: siteSettings?.phone || '+65 6789 0123',
-    address: siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+    address: siteSettings?.registered_office || COMPANY_INFO.address,
     currency: 'SGD (S$)',
     timezone: 'Asia/Singapore (UTC+8)',
     operatingRegion: 'Singapore Domestic & Port Corridors',
@@ -47,7 +48,7 @@ export const SettingsTab = ({ onSaveToast }) => {
         gstReg: siteSettings.gst_reg === 'M90382910X' || siteSettings.gst_reg === 'M90384721' ? '' : (siteSettings.gst_reg || ''),
         contactEmail: siteSettings.contact_email || 'contact@josanlogistics.com.sg',
         supportPhone: siteSettings.phone || '+65 6789 0123',
-        address: siteSettings.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        address: siteSettings.registered_office || COMPANY_INFO.address,
         currency: 'SGD (S$)',
         timezone: 'Asia/Singapore (UTC+8)',
         operatingRegion: 'Singapore Domestic & Port Corridors',
@@ -78,12 +79,12 @@ export const SettingsTab = ({ onSaveToast }) => {
     dailyDigestEmail: false,
   });
 
-  const [chatSessions, setChatSessions] = useState(() => getAdminChatSessions());
+  const [chatSessions, setChatSessions] = useState(() => []);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [deletionFeedback, setDeletionFeedback] = useState(null);
 
   const refreshChatSessions = () => {
-    setChatSessions(getAdminChatSessions());
+    setChatSessions([]);
   };
 
   const handleDeleteCustomerChats = (e) => {
@@ -121,7 +122,7 @@ export const SettingsTab = ({ onSaveToast }) => {
         gst_reg: companySettings.gstReg ? companySettings.gstReg.trim() : '',
         phone: companySettings.supportPhone ? companySettings.supportPhone.trim() : '+65 6789 0123',
         contact_email: companySettings.contactEmail ? companySettings.contactEmail.trim() : 'contact@josanlogistics.com.sg',
-        registered_office: companySettings.address ? companySettings.address.trim() : '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        registered_office: companySettings.address ? companySettings.address.trim() : COMPANY_INFO.address,
       });
     }
     if (onSaveToast) onSaveToast('Settings successfully updated and saved to system profile & database.', 'success');
@@ -134,7 +135,7 @@ export const SettingsTab = ({ onSaveToast }) => {
       gstReg: '',
       contactEmail: 'contact@josanlogistics.com.sg',
       supportPhone: '+65 6789 0123',
-      address: '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+      address: COMPANY_INFO.address,
       currency: 'SGD (S$)',
       timezone: 'Asia/Singapore (UTC+8)',
       operatingRegion: 'Singapore Domestic & Port Corridors',
@@ -302,10 +303,10 @@ export const SettingsTab = ({ onSaveToast }) => {
                   type="text"
                   value={companySettings.address}
                   onChange={(e) => setCompanySettings({ ...companySettings, address: e.target.value })}
-                  placeholder="10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438 [CONFIRM]"
+                  placeholder={COMPANY_INFO.address}
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] shadow-2xs"
                 />
-                <span className="text-[10px] text-slate-500 mt-1 block">10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438 [CONFIRM]</span>
+                <span className="text-[10px] text-slate-500 mt-1 block">{COMPANY_INFO.address}</span>
               </div>
             </div>
 
@@ -619,7 +620,7 @@ export const SettingsTab = ({ onSaveToast }) => {
 
             {chatSessions.length === 0 ? (
               <div className="bg-white p-8 rounded-xl border border-slate-200 text-center space-y-1">
-                <p className="font-bold text-slate-700">No active stored chat records found.</p>
+                <p className="font-bold text-slate-700">No chat logs yet</p>
                 <p className="text-[11px] text-slate-400">
                   Customer chats will be listed here when visitors submit inquiries through JOSAN AI.
                 </p>

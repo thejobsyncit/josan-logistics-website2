@@ -56,7 +56,7 @@ export const CrmRoadShipmentsTab = ({
   const [newRoadData, setNewRoadData] = useState({
     customer: '',
     senderPhone: '+65 6789 0123',
-    pickupLocation: 'Pasir Panjang Logistics Terminal Gate 4, Singapore',
+    pickupLocation: 'Changi Air Cargo Hub, Singapore',
     deliveryLocation: 'Woodlands Distribution Terminal, Singapore',
     goodsDescription: '',
     packages: 4,
@@ -165,7 +165,7 @@ export const CrmRoadShipmentsTab = ({
     setNewRoadData({
       customer: '',
       senderPhone: '+65 6789 0123',
-      pickupLocation: 'Pasir Panjang Logistics Terminal Gate 4, Singapore',
+      pickupLocation: 'Changi Air Cargo Hub, Singapore',
       deliveryLocation: 'Woodlands Distribution Terminal, Singapore',
       goodsDescription: '',
       packages: 4,
@@ -647,7 +647,7 @@ export const CrmRoadShipmentsTab = ({
                     required
                     value={newRoadData.customer}
                     onChange={(e) => setNewRoadData({ ...newRoadData, customer: e.target.value })}
-                    placeholder="e.g. Razer Asia-Pacific HQ"
+                    placeholder="Company name"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                   />
                 </div>

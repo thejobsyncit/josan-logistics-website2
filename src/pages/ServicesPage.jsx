@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { ArrowRight, Phone } from 'lucide-react';
+import { getPhoneLinks, isDisplayablePhone } from '../config/siteConfig';
 
 import airFreightImg from '../assets/air_freight_unbranded.jpg';
 import roadFreightImg from '../assets/road_truck_highway.jpg';
@@ -9,6 +10,7 @@ import docsHeroImg from '../assets/shipment_documentation_desk.jpg';
 export const ServicesPage = ({ setActiveTab }) => {
   const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast, websiteContent, managedServices } = useLogistics();
   const servicesContent = websiteContent?.services || {};
+  const phoneLinks = getPhoneLinks(websiteContent?.contact?.phone);
 
   const handleNavigate = (path, tabId) => {
     if (setActiveTab) {
@@ -27,7 +29,7 @@ export const ServicesPage = ({ setActiveTab }) => {
     if (!currentUser) {
       if (setAuthRedirectTab) setAuthRedirectTab('quote');
       setIsAuthModalOpen(true);
-      if (showToast) showToast('Please sign in or create an account to request a freight quote.', 'warning');
+      if (showToast) showToast('Please sign in or create an account to request a quote.', 'warning');
       return;
     }
     if (setActiveTab) setActiveTab('quote');
@@ -157,6 +159,8 @@ export const ServicesPage = ({ setActiveTab }) => {
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       {/* 3. SHORT FINAL CTA */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#0B1F3A] rounded-3xl p-8 sm:p-12 text-white text-center shadow-xl border border-[#1E3A5F] relative overflow-hidden space-y-6">
@@ -178,14 +182,16 @@ export const ServicesPage = ({ setActiveTab }) => {
               <span>Get a Quote</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-            <a
-              href="tel:+6567890123"
-              className="px-8 py-3.5 bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center space-x-2 cursor-pointer active:scale-95"
-              title="Call Us (+65 6789 0123)"
-            >
-              <Phone className="w-4 h-4 text-[#F26B21]" />
-              <span>Call Us</span>
-            </a>
+            {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && (
+              <a
+                href={phoneLinks.telHref}
+                className="px-8 py-3.5 bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center space-x-2 cursor-pointer active:scale-95"
+                title={`Call Us (${phoneLinks.display})`}
+              >
+                <Phone className="w-4 h-4 text-[#F26B21]" />
+                <span>Call Us</span>
+              </a>
+            )}
           </div>
         </div>
       </section>

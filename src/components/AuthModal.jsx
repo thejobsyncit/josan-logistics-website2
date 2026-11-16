@@ -3,14 +3,13 @@ import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { X, Lock, Mail, ArrowRight, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { supabaseApi } from '../services/supabaseApi';
-import { isSupabaseConfigured } from '../services/supabase';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { openLegalDialog } from './LegalDialog';
+import { normalizeRole, isStaffRole } from '../utils/roles';
 
 export const AuthModal = ({ setActiveTab }) => {
-  const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, setAuthModalHideClose, loginUser, authRedirectTab, setAuthRedirectTab } = useLogistics();
+  const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, setAuthModalHideClose, authRedirectTab, setAuthRedirectTab, setCurrentUser, setCurrentRole } = useLogistics();
   const [isLogin, setIsLogin] = useState(true);
-  const [role, setRole] = useState('customer');
   
   // Registration fields
   const [fullName, setFullName] = useState('');
@@ -23,11 +22,8 @@ export const AuthModal = ({ setActiveTab }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [consentAgreed, setConsentAgreed] = useState(false);
   const [error, setError] = useState('');
-
-  // Driver Registration Profile Picture & Hub
-  const defaultDriverPhoto = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
-  const [driverPhoto, setDriverPhoto] = useState(defaultDriverPhoto);
-  const [assignedHub, setAssignedHub] = useState('Changi Air Cargo Logistics Hub');
+  const [infoMessage, setInfoMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetForm = () => {
     setFullName('');
@@ -40,6 +36,7 @@ export const AuthModal = ({ setActiveTab }) => {
     setShowConfirmPassword(false);
     setConsentAgreed(false);
     setError('');
+    setInfoMessage('');
   };
 
   useEffect(() => {
@@ -54,17 +51,6 @@ export const AuthModal = ({ setActiveTab }) => {
     resetForm();
   };
 
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setDriverPhoto(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   if (!isAuthModalOpen) return null;
 
   const validateEmail = (emailStr) => {
@@ -74,7 +60,9 @@ export const AuthModal = ({ setActiveTab }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
+    setInfoMessage('');
 
     const formData = e.currentTarget instanceof HTMLFormElement ? new FormData(e.currentTarget) : null;
     const cleanEmail = ((formData?.get('email') || email || '') + '').trim().toLowerCase();
@@ -106,85 +94,170 @@ export const AuthModal = ({ setActiveTab }) => {
       return;
     }
 
-    // Connect Supabase Auth when configured
-    if (isSupabaseConfigured) {
-      if (isLogin) {
-        try {
-          const sbRes = await supabaseApi.signIn({ email: cleanEmail, password: cleanPassword });
-          if (sbRes?.error) {
-            console.warn('[AuthModal] Supabase auth sign-in notice:', sbRes.error);
-            // Allow fallback to app authentication logic (loginUser) for demo/local profiles
-          }
-        } catch (sbErr) {
-          console.warn('[AuthModal] Supabase auth sign-in notice (fallback to local state):', sbErr);
-        }
-      } else {
-        try {
-          const sbRes = await supabaseApi.signUp({
-            email: cleanEmail,
-            password: cleanPassword,
-            fullName,
-            phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`,
-          });
-
-          if (sbRes?.error) {
-            console.warn('[AuthModal] Supabase auth notice:', sbRes.error);
-            const errLower = (sbRes.error || '').toLowerCase();
-            const isNetworkOrIgnorableError = 
-              errLower.includes('failed to fetch') ||
-              errLower.includes('fetch failed') ||
-              errLower.includes('network') ||
-              errLower.includes('rate limit') || 
-              errLower.includes('over_email_send_rate_limit') ||
-              errLower.includes('already registered') ||
-              errLower.includes('already in use') ||
-              errLower.includes('already exists') ||
-              errLower.includes('could not resolve host');
-
-            // Only halt if it is an actual user input validation error (e.g. password too short)
-            if (!isNetworkOrIgnorableError) {
-              setError(sbRes.error);
-              return;
-            }
-          }
-        } catch (sbErr) {
-          console.warn('[AuthModal] Supabase auth registration notice (fallback to local state):', sbErr);
-        }
-      }
+    if (!isSupabaseConfigured) {
+      setError('Authentication service is currently unavailable.');
+      return;
     }
 
-    const res = loginUser(
-      cleanEmail,
-      cleanPassword,
-      role,
-      setActiveTab,
-      {
-        fullName,
-        phone: `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`
-      }
-    );
+    setIsSubmitting(true);
+    try {
+      if (isLogin) {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: cleanPassword
+        });
 
-    if (res && res.success === false) {
-      setError(res.error || 'Login failed. Please check your credentials.');
-    } else {
-      setIsAuthModalOpen(false);
-      setAuthModalHideClose(false);
-      resetForm();
-      if (setActiveTab) {
-        const targetRole = res?.user?.role || role;
-        if (targetRole === 'admin') {
-          setActiveTab('admin-dashboard', true, res?.user);
-        } else if (targetRole === 'driver') {
-          setActiveTab('driver-dashboard', true, res?.user);
-        } else {
-          if (authRedirectTab) {
-            setActiveTab(authRedirectTab, true, res?.user);
-            if (setAuthRedirectTab) setAuthRedirectTab(null);
+        if (authError || !authData?.user) {
+          const authMsg = (authError?.message || '').toLowerCase();
+          if (authMsg.includes('email not confirmed')) {
+            setError('Please verify your email address before signing in.');
           } else {
-            setActiveTab('customer-dashboard', true, res?.user);
+            setError('Incorrect email or password.');
+          }
+          return;
+        }
+
+        // Read role and status from public.profiles (id = session user id)
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, role, status, name, email, company, phone')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (profileError || !profile) {
+          await supabase.auth.signOut().catch(() => {});
+          setError(
+            profileError
+              ? 'Unable to verify your account profile. Please try again.'
+              : 'Account profile not found. Please contact support.'
+          );
+          return;
+        }
+
+        const userRole = normalizeRole(profile.role);
+        const userStatus = (profile.status || '').trim().toLowerCase();
+
+        // Refuse staff roles (ADMIN, CRM, READONLY) on customer login
+        if (isStaffRole(userRole)) {
+          await supabase.auth.signOut().catch(() => {});
+          setError('Staff accounts cannot sign in here. Please use the staff login.');
+          return;
+        }
+
+        // Refuse unknown / non-CUSTOMER roles
+        if (userRole !== 'CUSTOMER') {
+          await supabase.auth.signOut().catch(() => {});
+          setError('Access denied. A valid customer account is required to sign in here.');
+          return;
+        }
+
+        // Require status Active
+        if (userStatus !== 'active') {
+          await supabase.auth.signOut().catch(() => {});
+          setError('Your customer account is not active. Please contact support for assistance.');
+          return;
+        }
+
+        // Customer login successful: in-memory state only, never write to localStorage
+        const customerUser = {
+          id: authData.user.id,
+          name: profile.name || authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'Customer',
+          email: profile.email || authData.user.email,
+          role: 'CUSTOMER',
+          displayRole: 'Customer',
+          company: profile.company || '',
+          phone: profile.phone || ''
+        };
+
+        const destination = authRedirectTab || 'customer-dashboard';
+        if (setCurrentUser) setCurrentUser(customerUser);
+        if (setCurrentRole) setCurrentRole('CUSTOMER');
+
+        setIsAuthModalOpen(false);
+        setAuthModalHideClose(false);
+        if (setAuthRedirectTab) setAuthRedirectTab(null);
+        resetForm();
+
+        if (setActiveTab) {
+          setActiveTab(destination, true, customerUser);
+        }
+        return;
+      }
+
+      // Customer Registration
+      const cleanPhone = `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`.trim();
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: cleanPassword,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            phone: cleanPhone
           }
         }
+      });
+
+      if (signUpError) {
+        setError(signUpError.message || 'Registration failed.');
+        return;
       }
+
+      if (signUpData?.user && signUpData?.session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, role, status, name, email, company, phone')
+          .eq('id', signUpData.user.id)
+          .maybeSingle();
+
+        if (profile) {
+          const profileRole = normalizeRole(profile.role);
+          const profileStatus = (profile.status || '').trim().toLowerCase();
+          if (isStaffRole(profileRole) || (profileRole !== 'CUSTOMER')) {
+            await supabase.auth.signOut().catch(() => {});
+            setError('Access denied. This portal is only available to customer accounts.');
+            return;
+          }
+          if (profileStatus && profileStatus !== 'active') {
+            await supabase.auth.signOut().catch(() => {});
+            setError('Your customer account is not active. Please contact support for assistance.');
+            return;
+          }
+        }
+
+        const customerUser = {
+          id: signUpData.user.id,
+          name: profile?.name || fullName.trim() || signUpData.user.email?.split('@')[0] || 'Customer',
+          email: profile?.email || signUpData.user.email || cleanEmail,
+          role: 'CUSTOMER',
+          displayRole: 'Customer',
+          company: profile?.company || '',
+          phone: profile?.phone || cleanPhone
+        };
+
+        const destination = authRedirectTab || 'customer-dashboard';
+        if (setCurrentUser) setCurrentUser(customerUser);
+        if (setCurrentRole) setCurrentRole('CUSTOMER');
+
+        setIsAuthModalOpen(false);
+        setAuthModalHideClose(false);
+        if (setAuthRedirectTab) setAuthRedirectTab(null);
+        resetForm();
+
+        if (setActiveTab) {
+          setActiveTab(destination, true, customerUser);
+        }
+        return;
+      }
+
+      // Email confirmation required before session is active
+      resetForm();
+      setIsLogin(true);
+      setInfoMessage('Account created. Please check your email to verify your account before signing in.');
+    } catch (err) {
+      await supabase.auth.signOut().catch(() => {});
+      setError(err?.message || (isLogin ? 'Unable to sign in. Please try again.' : 'Registration failed.'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -231,63 +304,14 @@ export const AuthModal = ({ setActiveTab }) => {
             </div>
           )}
 
-          {/* Role Access Select */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Select Role</label>
-            <select
-              value={role}
-              onChange={(e) => {
-                setRole(e.target.value);
-                resetForm();
-              }}
-              className="w-full p-2.5 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus-orange cursor-pointer"
-            >
-              <option value="customer">Customer Portal</option>
-              <option value="driver">Driver (Admin Provisioned Account)</option>
-            </select>
-          </div>
-
-          {/* Role Access Demo Badge */}
-          {isLogin && (
-            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] font-mono text-slate-600 flex items-center justify-between">
-              <span className="font-bold text-orange-600">
-                {role === 'driver' ? '🚛 Driver Provisioned Login:' : '👤 Customer Login:'}
-              </span>
-              <span className="font-bold text-slate-900">
-                {role === 'driver' ? 'tan.weiming@josanlogistics.com' : 'Any valid email & password'}
-              </span>
+          {infoMessage && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{infoMessage}</span>
             </div>
           )}
 
-          {/* DRIVER REGISTER RESTRICTION NOTICE */}
-          {!isLogin && role === 'driver' ? (
-            <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 text-slate-800 text-xs space-y-3">
-              <div className="flex items-start space-x-2.5">
-                <AlertCircle className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-extrabold text-orange-900 text-sm mb-1">Driver Provisioning Required</h4>
-                  <p className="text-slate-600 font-medium leading-relaxed">
-                    Driver accounts cannot be self-registered online. All driver profiles, vehicle assignments, and credentials must be created directly by an Administrator in the <strong>Admin Control Portal</strong>.
-                  </p>
-                </div>
-              </div>
-              <div className="pt-1 flex items-center justify-between border-t border-orange-200">
-                <span className="text-[11px] font-bold text-slate-500">Already registered by Admin?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(true);
-                    resetForm();
-                  }}
-                  className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold cursor-pointer transition-colors shadow-sm"
-                >
-                  Switch to Driver Sign In
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* REGISTRATION FORM (CUSTOMERS ONLY) */}
+          {/* REGISTRATION FORM (CUSTOMERS ONLY) */}
               {!isLogin && (
                 <>
                   {/* Full Name */}
@@ -371,7 +395,7 @@ export const AuthModal = ({ setActiveTab }) => {
               {isLogin && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {role === 'driver' ? 'Driver Email or Phone Contact' : 'Email Address'}
+                    Email Address
                   </label>
                   <div className="relative">
                     <input
@@ -380,17 +404,12 @@ export const AuthModal = ({ setActiveTab }) => {
                       autoComplete="username email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={role === 'driver' ? 'e.g. gurpreet@josanlogistics.com or +65 XXXX XXXX' : 'user@company.com'}
+                      placeholder="user@company.com"
                       className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-900 focus-orange font-medium"
                       required
                     />
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   </div>
-                  {role === 'driver' && (
-                    <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
-                      Use the email or phone number created by Admin in the Fleet Control Portal
-                    </span>
-                  )}
                 </div>
               )}
 
@@ -494,9 +513,10 @@ export const AuthModal = ({ setActiveTab }) => {
 
               <button
                 type="submit"
-                className="w-full h-11 bg-[#FF6B00] hover:bg-[#E55C00] text-white rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full h-11 bg-[#FF6B00] hover:bg-[#E55C00] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
               >
-                <span>{isLogin ? 'Sign In' : 'Register Account'}</span>
+                <span>{isSubmitting ? (isLogin ? 'Signing In...' : 'Creating Account...') : (isLogin ? 'Sign In' : 'Register Account')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -530,8 +550,6 @@ export const AuthModal = ({ setActiveTab }) => {
                   .
                 </p>
               )}
-            </>
-          )}
 
           <div className="pt-2 text-center text-xs text-slate-500 font-medium">
             {isLogin ? "Don't have an account? " : "Already registered? "}

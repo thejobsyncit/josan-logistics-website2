@@ -289,7 +289,7 @@ export const shipmentsService = {
       await supabase.from('tracking_events').insert([{
         shipment_id: shipmentId,
         stage: 'Confirmed',
-        note: 'Transport partner assigned to consignment dispatch.',
+        note: 'Transport partner assigned to consignment transport.',
         source: 'manual',
         is_public: true
       }]);

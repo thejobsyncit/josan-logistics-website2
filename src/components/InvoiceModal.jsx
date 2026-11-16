@@ -133,15 +133,15 @@ export const InvoiceModal = () => {
           <div class="grid">
             <div class="card">
               <div class="card-header">SHIP FROM (ORIGIN)</div>
-              <div class="card-name">${shipment.sender || 'Razer Asia-Pacific HQ'}</div>
+              <div class="card-name">${shipment.sender || 'Customer Company'}</div>
               <div class="card-desc">${shipment.senderAddress || '1 Raffles Place, Singapore'}</div>
               <div class="card-hub">Hub: ${shipment.origin || 'Singapore Central Cargo Hub'}</div>
             </div>
             <div class="card">
               <div class="card-header">SHIP TO (DESTINATION)</div>
-              <div class="card-name">${shipment.receiver || 'Pasir Panjang Terminal Gate 4'}</div>
-              <div class="card-desc">${shipment.receiverAddress || '10 Pasir Panjang Road, Singapore'}</div>
-              <div class="card-hub">Hub: ${shipment.destination || 'Pasir Panjang Terminal Complex'}</div>
+              <div class="card-name">${shipment.receiver || 'West Coast Hub Terminal'}</div>
+              <div class="card-desc">${shipment.receiverAddress || '12 Pioneer Sector 3, Singapore 628349'}</div>
+              <div class="card-hub">Hub: ${shipment.destination || 'West Coast Hub Complex'}</div>
             </div>
           </div>
 
@@ -339,7 +339,7 @@ export const InvoiceModal = () => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(16, 24, 45);
-      const senderName = doc.splitTextToSize(shipment.senderName || shipment.sender || 'Razer Asia-Pacific HQ', 77)[0];
+      const senderName = doc.splitTextToSize(shipment.senderName || shipment.sender || 'Customer Company', 77)[0];
       doc.text(senderName, 20, 80);
 
       doc.setFont('helvetica', 'normal');
@@ -366,19 +366,19 @@ export const InvoiceModal = () => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(16, 24, 45);
-      const receiverName = doc.splitTextToSize(shipment.receiverName || shipment.receiver || 'Pasir Panjang Terminal Gate 4', 77)[0];
+      const receiverName = doc.splitTextToSize(shipment.receiverName || shipment.receiver || 'West Coast Hub Terminal', 77)[0];
       doc.text(receiverName, 113, 80);
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(71, 85, 105);
-      const receiverAddrLines = doc.splitTextToSize(shipment.deliveryAddress || shipment.receiverAddress || '10 Pasir Panjang Road, Singapore', 77).slice(0, 2);
+      const receiverAddrLines = doc.splitTextToSize(shipment.deliveryAddress || shipment.receiverAddress || '12 Pioneer Sector 3, Singapore 628349', 77).slice(0, 2);
       doc.text(receiverAddrLines, 113, 85);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
       doc.setTextColor(100, 116, 139);
-      doc.text(`Hub: ${shipment.deliveryCity || shipment.destination || 'Pasir Panjang Terminal Complex'}`, 113, 97);
+      doc.text(`Hub: ${shipment.deliveryCity || shipment.destination || 'West Coast Hub Complex'}`, 113, 97);
 
       // 5. Freight Specifications Table
       doc.setFont('helvetica', 'bold');

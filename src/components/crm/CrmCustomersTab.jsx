@@ -11,6 +11,7 @@ import {
   Eye, 
   X
 } from 'lucide-react';
+import { COMPANY_INFO } from '../../config/siteConfig';
 
 /**
  * Calculates correct invoice total (Subtotal + 9% GST) consistently
@@ -851,7 +852,7 @@ export const CrmCustomersTab = ({
                   type="text"
                   value={newCustomerData.address}
                   onChange={(e) => setNewCustomerData({ ...newCustomerData, address: e.target.value })}
-                  placeholder="e.g. 10 Pasir Panjang Road, Mapletree Business City, Singapore"
+                  placeholder={`e.g. ${COMPANY_INFO.address}`}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>

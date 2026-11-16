@@ -18,7 +18,7 @@ export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) 
 
       if (isList) {
         return (
-          <ul key={pIdx} className="list-disc list-inside space-y-1 my-1.5 pl-1 text-slate-800">
+          <ul key={pIdx} className="list-disc list-inside space-y-1 my-1.5 pl-1 text-[var(--color-text)]">
             {lines.map((line, lIdx) => {
               const cleanLine = line.replace(/^[-*]\s+|\d+\.\s+/, '');
               return <li key={lIdx}>{renderFormattedInline(cleanLine)}</li>;
@@ -28,7 +28,7 @@ export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) 
       }
 
       return (
-        <p key={pIdx} className="mb-2 last:mb-0 leading-relaxed text-slate-800">
+        <p key={pIdx} className="mb-2 last:mb-0 leading-relaxed text-[var(--color-text)]">
           {lines.map((line, lIdx) => (
             <React.Fragment key={lIdx}>
               {renderFormattedInline(line)}
@@ -80,7 +80,7 @@ export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) 
                 openLegalDialog('privacy', e.currentTarget);
               }
             }}
-            className="text-[#FF6B00] hover:text-orange-600 font-bold underline transition-colors cursor-pointer"
+            className="text-[var(--color-navy)] hover:text-[var(--color-navy-hover)] font-bold underline transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-navy)] rounded-[2px]"
           >
             {part.text}
           </a>
@@ -91,7 +91,7 @@ export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) 
       const boldParts = part.split(/(\*\*.*?\*\*)/g);
       return boldParts.map((bPart, bIdx) => {
         if (bPart.startsWith('**') && bPart.endsWith('**')) {
-          return <strong key={`${pIdx}-${bIdx}`} className="font-extrabold text-slate-900">{bPart.slice(2, -2)}</strong>;
+          return <strong key={`${pIdx}-${bIdx}`} className="font-extrabold text-[var(--color-text)]">{bPart.slice(2, -2)}</strong>;
         }
         return bPart;
       });
@@ -106,12 +106,12 @@ export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) 
   if (isLoadingMessage) {
     return (
       <div className="flex items-start space-x-3 text-sm animate-fade-in my-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FF6B00] to-amber-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-md">
-          <Bot className="w-4.5 h-4.5 text-white" />
+        <div className="w-8 h-8 rounded-full bg-[var(--color-navy)] text-[var(--color-on-navy)] flex items-center justify-center font-bold text-xs shrink-0">
+          <Bot className="w-4.5 h-4.5 text-[var(--color-on-navy)]" />
         </div>
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm max-w-[85%] rounded-tl-xs flex items-center space-x-2 text-slate-600">
-          <Loader2 className="w-4 h-4 animate-spin text-[#FF6B00]" />
-          <span className="text-xs font-semibold text-slate-500">Searching assistance...</span>
+        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 max-w-[85%] rounded-tl-xs flex items-center space-x-2 text-[var(--color-text-muted)]">
+          <Loader2 className="w-4 h-4 animate-spin text-[var(--color-navy)]" />
+          <span className="text-xs font-semibold text-[var(--color-text-muted)]">Searching assistance...</span>
         </div>
       </div>
     );
@@ -120,46 +120,46 @@ export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) 
   return (
     <div className={`flex items-start space-x-3 text-sm my-3 animate-fade-in ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
       {/* Avatar */}
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
         isUser
-          ? 'bg-[#0B132B] text-white'
-          : 'bg-gradient-to-tr from-[#FF6B00] to-amber-500 text-white'
+          ? 'bg-[var(--color-bg-alt)] text-[var(--color-navy)] border border-[var(--color-border)]'
+          : 'bg-[var(--color-navy)] text-[var(--color-on-navy)]'
       }`}>
-        {isUser ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
+        {isUser ? <User className="w-4 h-4 text-[var(--color-navy)]" /> : <Bot className="w-4 h-4 text-[var(--color-on-navy)]" />}
       </div>
 
       {/* Bubble Content */}
-      <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+      <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${
         isUser
-          ? 'bg-gradient-to-r from-[#FF6B00] to-orange-600 text-white rounded-tr-xs font-medium text-xs sm:text-sm'
-          : 'bg-white border border-slate-200/90 text-slate-800 rounded-tl-xs text-xs sm:text-sm'
+          ? 'bg-[var(--color-navy)] text-[var(--color-on-navy)] rounded-tr-xs font-medium text-xs sm:text-sm'
+          : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] rounded-tl-xs text-xs sm:text-sm'
       }`}>
-        <div className={isUser ? 'text-white' : 'text-slate-800'}>
+        <div className={isUser ? 'text-[var(--color-on-navy)]' : 'text-[var(--color-text)]'}>
           {isUser ? <p className="leading-relaxed">{message.content}</p> : formatText(message.content)}
         </div>
 
         {/* Disclaimer under message */}
         {!isUser && message.disclaimer && (
-          <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-500 italic leading-relaxed">
+          <div className="mt-2.5 pt-2 border-t border-[var(--color-border)] text-[11px] text-[var(--color-text-muted)] italic leading-relaxed">
             {message.disclaimer}
           </div>
         )}
 
         {/* Quote / Pricing / Specific Shipment Actions */}
         {isQuoteOrPricingOrShipmentAnswer && (
-          <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-3">
+          <div className="mt-3 pt-2.5 border-t border-[var(--color-border)] flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => {
                 window.location.href = '/quote';
               }}
-              className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-orange-500/20 active:scale-95 cursor-pointer flex items-center space-x-1"
+              className="px-3.5 py-1.5 bg-[var(--color-navy)] hover:bg-[var(--color-navy-hover)] text-[var(--color-on-navy)] rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
             >
               <span>Request a Quote</span>
             </button>
             <a
               href="/contact"
-              className="text-xs font-semibold text-slate-600 hover:text-[#FF6B00] underline transition-colors cursor-pointer"
+              className="text-xs font-semibold text-[var(--color-text)] hover:text-[var(--color-navy)] underline transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-navy)] rounded-[2px]"
             >
               Contact our team
             </a>
@@ -172,7 +172,7 @@ export const ChatMessage = ({ message, isLoadingMessage, isAdminView = false }) 
         )}
 
         {/* Timestamp: Same font as rest of the site */}
-        <div className={`text-[10px] mt-1.5 text-right font-sans font-normal ${isUser ? 'text-orange-200' : 'text-slate-400'}`}>
+        <div className={`text-[10px] mt-1.5 text-right font-sans font-normal ${isUser ? 'text-[var(--color-on-navy-muted)]' : 'text-[var(--color-text-muted)]'}`}>
           {message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
         </div>
       </div>

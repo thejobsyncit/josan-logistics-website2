@@ -14,6 +14,7 @@ import {
   Info
 } from 'lucide-react';
 import { useLogistics } from '../../context/LogisticsContext';
+import { COMPANY_INFO } from '../../config/siteConfig';
 
 export const CrmSettingsTab = ({
   currentUser,
@@ -25,7 +26,7 @@ export const CrmSettingsTab = ({
     companyName: siteSettings?.company_name || 'Josan Logistics Pte. Ltd.',
     uen: siteSettings?.uen === '202412345K' ? '' : (siteSettings?.uen || ''),
     gstReg: siteSettings?.gst_reg === 'M90384721' ? '' : (siteSettings?.gst_reg || ''),
-    address: siteSettings?.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+    address: siteSettings?.registered_office || COMPANY_INFO.address,
     opsPhone: siteSettings?.phone || '+65 6789 0123',
     contactEmail: siteSettings?.contact_email || 'contact@josanlogistics.com.sg',
     currency: 'SGD (S$)',
@@ -38,7 +39,7 @@ export const CrmSettingsTab = ({
         companyName: siteSettings.company_name || 'Josan Logistics Pte. Ltd.',
         uen: siteSettings.uen === '202412345K' || siteSettings.uen === '201829481K' ? '' : (siteSettings.uen || ''),
         gstReg: siteSettings.gst_reg === 'M90384721' || siteSettings.gst_reg === 'M90382910X' ? '' : (siteSettings.gst_reg || ''),
-        address: siteSettings.registered_office || '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        address: siteSettings.registered_office || COMPANY_INFO.address,
         opsPhone: siteSettings.phone || '+65 6789 0123',
         contactEmail: siteSettings.contact_email || 'contact@josanlogistics.com.sg',
         currency: 'SGD (S$)',
@@ -62,7 +63,7 @@ export const CrmSettingsTab = ({
         company_name: companySettings.companyName,
         uen: companySettings.uen ? companySettings.uen.trim() : '',
         gst_reg: companySettings.gstReg ? companySettings.gstReg.trim() : '',
-        registered_office: companySettings.address ? companySettings.address.trim() : '10 Pasir Panjang Road, #12-01 Mapletree Business City, Singapore 117438',
+        registered_office: companySettings.address ? companySettings.address.trim() : COMPANY_INFO.address,
         phone: companySettings.opsPhone ? companySettings.opsPhone.trim() : '+65 6789 0123',
         contact_email: companySettings.contactEmail ? companySettings.contactEmail.trim() : 'contact@josanlogistics.com.sg',
       });

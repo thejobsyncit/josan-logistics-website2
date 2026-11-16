@@ -1,4 +1,23 @@
 /**
+ * Formats a date/timestamp to Singapore Date only (SGT, Asia/Singapore):
+ * Example: "9 Nov 2026"
+ */
+export function formatSingaporeDate(dateInput) {
+  if (!dateInput) return '';
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '';
+
+  const str = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Singapore',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(d);
+
+  return str.replace(/[\u202F\u00A0]/g, ' ');
+}
+
+/**
  * Formats a date/timestamp to Singapore Time (SGT, Asia/Singapore):
  * Example: "7 Nov 2026, 8:20 pm"
  */

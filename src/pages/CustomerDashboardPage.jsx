@@ -37,6 +37,58 @@ import {
   ArrowRight
 } from 'lucide-react';
 
+/**
+ * Shared Customer Portal Design Tokens & Structural Components
+ * Used by CustomerDashboardPage and available for subtab components.
+ */
+export const PortalCard = ({ children, className = '', ...props }) => (
+  <div
+    className={`bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-6 shadow-none text-left ${className}`}
+    style={{ borderTopColor: 'var(--color-kraft)', ...(props.style || {}) }}
+    {...props}
+  >
+    {children}
+  </div>
+);
+
+export const PortalHeader = ({ title, subtext, action, className = '' }) => (
+  <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--color-border)] pb-4 ${className}`}>
+    <div>
+      <h2 className="text-xl font-bold font-heading text-[var(--color-navy)] leading-tight">
+        {title}
+      </h2>
+      {subtext && (
+        <p className="text-sm text-[var(--color-text-muted)] font-normal mt-1">
+          {subtext}
+        </p>
+      )}
+    </div>
+    {action && <div>{action}</div>}
+  </div>
+);
+
+export const PortalEmptyState = ({ message, actionLabel, onAction }) => (
+  <div
+    className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-8 text-center space-y-3 shadow-none"
+    style={{ borderTopColor: 'var(--color-kraft)' }}
+  >
+    <p className="text-sm text-[var(--color-text-muted)] font-normal">
+      {message}
+    </p>
+    {actionLabel && onAction && (
+      <div>
+        <button
+          type="button"
+          onClick={onAction}
+          className="text-sm font-normal text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)] cursor-pointer link-inline"
+        >
+          {actionLabel}
+        </button>
+      </div>
+    )}
+  </div>
+);
+
 export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }) => {
   const { 
     shipments = [], 
@@ -109,7 +161,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
       showToast('Please type a message before sending.', 'warning');
       return;
     }
-    showToast(`Cancellation / Inquiry message regarding Order #${messageTargetOrder?.id || ''} successfully dispatched to Josan Logistics support!`, 'success');
+    showToast(`Cancellation / Inquiry message regarding Order #${messageTargetOrder?.id || ''} successfully sent to Josan Logistics support!`, 'success');
     setIsMessageModalOpen(false);
     setMessageTargetOrder(null);
     setMessageSubject('');
@@ -149,22 +201,24 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
   };
 
   const customerShipmentIds = new Set((shipments || []).map(s => s.id));
+  const userNameQuery = (currentUser?.name || '').trim().toLowerCase();
+  const userCompanyQuery = (currentUser?.company || '').trim().toLowerCase();
   const customerDocuments = (documents || []).filter(d => 
     customerShipmentIds.has(d.shipmentId) || 
-    (d.customerName && d.customerName.toLowerCase().includes((currentUser?.name || 'Razer').toLowerCase())) ||
-    (d.customerName && d.customerName.toLowerCase().includes((currentUser?.company || 'Razer').toLowerCase()))
+    (userNameQuery && d.customerName && d.customerName.toLowerCase().includes(userNameQuery)) ||
+    (userCompanyQuery && d.customerName && d.customerName.toLowerCase().includes(userCompanyQuery))
   );
   const customerTickets = (tickets || []).filter(t => 
     customerShipmentIds.has(t.shipmentId) || 
-    t.customerEmail === currentUser?.email || 
-    (t.customerName && t.customerName.toLowerCase().includes((currentUser?.name || 'Razer').toLowerCase()))
+    (currentUser?.email && t.customerEmail === currentUser.email) || 
+    (userNameQuery && t.customerName && t.customerName.toLowerCase().includes(userNameQuery))
   );
 
 
   // Profile Edit State
-  const [profileName, setProfileName] = useState(currentUser?.name || 'Razer Asia-Pacific HQ');
-  const [profilePhone, setProfilePhone] = useState(currentUser?.phone || '+65 6789 0123');
-  const [profileCompany, setProfileCompany] = useState(currentUser?.company || 'Razer (Asia-Pacific) Pte Ltd');
+  const [profileName, setProfileName] = useState(currentUser?.name || '');
+  const [profilePhone, setProfilePhone] = useState(currentUser?.phone || '');
+  const [profileCompany, setProfileCompany] = useState(currentUser?.company || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   useEffect(() => {
@@ -193,24 +247,12 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
   const [expandedMapId, setExpandedMapId] = useState(null);
 
-  // Live Truck GPS animation loop for Customer Portal
-  const [customerTruckProgress, setCustomerTruckProgress] = useState(35);
-  const [customerSpeed, setCustomerSpeed] = useState(64);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCustomerTruckProgress(prev => (prev >= 85 ? 15 : prev + 0.35));
-      setCustomerSpeed(62 + Math.floor(Math.random() * 8));
-    }, 100);
-    return () => clearInterval(timer);
-  }, []);
-
   const displayUser = currentUser || {
-    name: 'Razer Asia-Pacific HQ',
-    email: 'shipping@razer.com',
-    company: 'Razer (Asia-Pacific) Pte Ltd',
-    phone: '67890123',
-    role: 'customer'
+    name: '',
+    email: '',
+    company: '',
+    phone: '',
+    role: 'CUSTOMER'
   };
 
   const [newLabel, setNewLabel] = useState('');
@@ -218,8 +260,81 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
   const [newAddressType, setNewAddressType] = useState('pickup');
   const [newContact, setNewContact] = useState('');
   const [editingAddressId, setEditingAddressId] = useState(null);
+  const [deletingAddressId, setDeletingAddressId] = useState(null);
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketMessage, setTicketMessage] = useState('');
+  const [supportSubmittedSuccess, setSupportSubmittedSuccess] = useState(false);
+
+  const isAddressFormValid = Boolean(newLabel.trim() && newAddress.trim());
+  const isSupportFormValid = Boolean(ticketSubject.trim() && ticketMessage.trim());
+
+  // Dev-only test data for customer.test@example.com
+  const isDevTestCustomer = Boolean(
+    import.meta.env.DEV &&
+    currentUser?.email?.toLowerCase() === 'customer.test@example.com'
+  );
+
+  const DEV_TEST_SHIPMENTS = [
+    {
+      id: 'TEST-0001',
+      trackingNumber: 'TEST-0001',
+      service: 'Road transport',
+      status: 'Delivered',
+      lastUpdated: '12 Nov 2026, 14:30 SGT',
+      createdDate: '2026-11-12 14:30',
+      origin: '10 Jalan Besar, #15-02 Sim Lim Tower, Singapore 208787',
+      destination: 'Changi Airport Cargo Complex, Singapore 819642',
+      price: 'S$ 350.00',
+      date: '12 Nov 2026',
+      paymentStatus: 'Paid',
+      isTest: true
+    },
+    {
+      id: 'TEST-0002',
+      trackingNumber: 'TEST-0002',
+      service: 'Road transport',
+      status: 'In transit',
+      lastUpdated: '13 Nov 2026, 09:15 SGT',
+      createdDate: '2026-11-13 09:15',
+      origin: '20 Orchard Road, Singapore 238864',
+      destination: 'Pioneer Sector 1, Jurong, Singapore 628437',
+      price: 'S$ 280.00',
+      date: '13 Nov 2026',
+      paymentStatus: 'Pending payment',
+      isTest: true
+    }
+  ];
+
+  const DEV_TEST_QUOTES = [
+    {
+      id: 'Q-TEST-001',
+      date: '13 Nov 2026',
+      service: 'Road transport',
+      status: 'Sent',
+      price: 'S$ 280.00',
+      origin: '20 Orchard Road, Singapore 238864',
+      destination: 'Pioneer Sector 1, Jurong, Singapore 628437',
+      isTest: true
+    },
+    {
+      id: 'Q-TEST-002',
+      date: '11 Nov 2026',
+      service: 'Air freight documentation',
+      status: 'Accepted',
+      price: 'S$ 150.00',
+      origin: 'Changi Airport, Singapore',
+      destination: 'London Heathrow (LHR)',
+      isTest: true
+    }
+  ];
+
+  const displayShipments = (shipments && shipments.length > 0)
+    ? shipments
+    : (isDevTestCustomer ? DEV_TEST_SHIPMENTS : []);
+
+  const displayQuotes = (quotes && quotes.length > 0)
+    ? quotes
+    : (isDevTestCustomer ? DEV_TEST_QUOTES : []);
 
   const handleStartEdit = (addr) => {
     setEditingAddressId(addr.id);
@@ -239,291 +354,392 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
   const handleAddAddress = (e) => {
     e.preventDefault();
-    if (!newLabel || !newAddress) return;
+    if (!newLabel.trim() || !newAddress.trim()) return;
 
     if (editingAddressId) {
       updateSavedAddress(editingAddressId, {
-        label: newLabel,
+        label: newLabel.trim(),
         type: newAddressType,
-        address: newAddress,
-        contact: newContact || currentUser?.name || 'Customer Manager'
+        address: newAddress.trim(),
+        contact: newContact.trim() || currentUser?.name || 'Customer Manager'
       });
-      showToast('Saved address location updated successfully!');
+      showToast('Saved address updated successfully!');
       handleCancelEdit();
     } else {
       addSavedAddress({ 
         id: Date.now(), 
-        label: newLabel, 
-        address: newAddress, 
-        contact: newContact || currentUser?.name || 'Customer Manager',
+        label: newLabel.trim(), 
+        address: newAddress.trim(), 
+        contact: newContact.trim() || currentUser?.name || 'Customer Manager',
         type: newAddressType
       });
       setNewLabel('');
       setNewAddress('');
       setNewContact('');
-      showToast(`New saved ${newAddressType} address added! Available in booking dropdown.`);
+      showToast('Address saved successfully.');
     }
   };
 
   const handleSupportSubmit = (e) => {
     e.preventDefault();
-    showToast('Support ticket logged with Priority Flag. Agent will contact you.');
+    if (!ticketSubject.trim() || !ticketMessage.trim()) return;
+
+    if (createSupportTicket) {
+      createSupportTicket({
+        subject: ticketSubject.trim(),
+        message: ticketMessage.trim(),
+        shipmentId: 'General Inquiry',
+        customerName: displayUser.name || 'Customer Account',
+        customerEmail: displayUser.email,
+        customerPhone: displayUser.phone
+      });
+    }
+
     setTicketSubject('');
     setTicketMessage('');
+    setSupportSubmittedSuccess(true);
   };
 
+  const menuItems = [
+    {
+      id: 'orders',
+      label: 'My shipments',
+      count: displayShipments.length,
+      countLabel: 'shipments',
+      icon: Package,
+      action: () => setActiveSubTab('orders')
+    },
+    {
+      id: 'quotes',
+      label: 'Quotations',
+      count: displayQuotes.length,
+      countLabel: 'quotations',
+      icon: DollarSign,
+      action: () => setActiveSubTab('quotes')
+    },
+    {
+      id: 'notifications',
+      label: 'Notifications',
+      count: notifications.filter(n => (n.role === 'customer' || !n.role) && !n.read).length,
+      countLabel: 'unread notifications',
+      icon: Bell,
+      action: () => setActiveSubTab('notifications')
+    },
+    {
+      id: 'track',
+      label: 'Track road shipment',
+      icon: Search,
+      action: () => {
+        if (setActiveTab) setActiveTab('track');
+      }
+    },
+    {
+      id: 'billing',
+      label: 'Invoices',
+      count: displayShipments.length,
+      countLabel: 'invoices',
+      icon: CreditCard,
+      action: () => setActiveSubTab('billing')
+    },
+    {
+      id: 'documents',
+      label: 'Documents vault',
+      count: customerDocuments.length,
+      countLabel: 'documents',
+      icon: FileText,
+      action: () => setActiveSubTab('documents')
+    },
+    {
+      id: 'addresses',
+      label: 'Saved addresses',
+      count: (addressList || []).length,
+      countLabel: 'saved addresses',
+      icon: MapPin,
+      action: () => setActiveSubTab('addresses')
+    }
+  ];
+
+  const secondaryMenuItems = [
+    {
+      id: 'manage',
+      label: 'Manage orders',
+      icon: Pencil,
+      action: () => setActiveSubTab('manage')
+    },
+    {
+      id: 'support',
+      // Label was 'Support and claims'; claims are not offered.
+      label: 'Support',
+      count: customerTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length,
+      countLabel: 'active messages',
+      icon: LifeBuoy,
+      action: () => setActiveSubTab('support')
+    }
+  ];
+
+  if (!currentUser) return null;
+
   return (
-    <div className="space-y-6 pb-20 w-full px-3 sm:px-5 lg:px-6 pt-6 animate-fade-in">
+    <div className="bg-[var(--color-bg)] min-h-screen py-8 text-[var(--color-text)] animate-fade-in">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
-      {/* Customer Header Card */}
-      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#2463EB]-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-sm">
-            {displayUser.name ? displayUser.name.charAt(0) : 'R'}
-          </div>
-          <div>
-            <span className="text-xs font-bold text-[#2463EB] uppercase tracking-widest bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
-              Customer Account
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">{displayUser.name || 'Razer Asia-Pacific HQ'}</h1>
-            <p className="text-xs text-slate-700 font-semibold">{displayUser.email || 'shipping@razer.com'} | Company: {displayUser.company || 'Razer (Asia-Pacific) Pte Ltd'}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
+        {/* Customer Header Block */}
+        <div
+          className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-6 shadow-none flex flex-col sm:flex-row sm:items-center justify-between gap-6"
+          style={{ borderTopColor: 'var(--color-kraft)' }}
+        >
           <button
-            onClick={() => setActiveTab('quote')}
-            className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05D00] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Request Freight Quote</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2-Column Dashboard Layout: Left Navigation + Center Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* Left Side: Navigation Tabs Panel (Red Marked Field) */}
-        <div className="lg:col-span-3 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-card space-y-2 sticky top-24">
-          <p className="px-3 pt-1 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400">
-            Customer Portal
-          </p>
-
-          {/* 1. My Profile */}
-          <button
+            type="button"
             onClick={() => setActiveSubTab('profile')}
-            className={`w-full p-3 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold transition-all cursor-pointer ${
-              activeSubTab === 'profile'
-                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+            aria-label="View and edit your profile"
+            className="flex items-center gap-4 text-left group cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)] rounded-[var(--radius)]"
           >
-            <User className="w-4 h-4 shrink-0" />
-            <span>My Profile</span>
-          </button>
-
-          {/* 2. My Shipments */}
-          <button
-            onClick={() => setActiveSubTab('orders')}
-            className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
-              activeSubTab === 'orders'
-                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center space-x-2.5">
-              <Package className="w-4 h-4 shrink-0" />
-              <span>My Shipments</span>
-            </div>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeSubTab === 'orders' ? 'bg-white/20 text-white' : 'bg-[#EAF2FF] text-[#0B1F5B]'
-            }`}>
-              {(shipments || []).length}
-            </span>
-          </button>
-
-          {/* 2b. Quotations & Pricing */}
-          <button
-            onClick={() => setActiveSubTab('quotes')}
-            className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
-              activeSubTab === 'quotes'
-                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center space-x-2.5">
-              <DollarSign className="w-4 h-4 shrink-0" />
-              <span>Quotations</span>
-            </div>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeSubTab === 'quotes' ? 'bg-white/20 text-white' : 'bg-[#EAF2FF] text-[#0B1F5B]'
-            }`}>
-              {(quotes || []).length}
-            </span>
-          </button>
-
-          {/* 2c. Notifications Panel */}
-          <button
-            onClick={() => setActiveSubTab('notifications')}
-            className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
-              activeSubTab === 'notifications'
-                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center space-x-2.5">
-              <Bell className="w-4 h-4 shrink-0" />
-              <span>Notifications</span>
-            </div>
-            {notifications.filter(n => (n.role === 'customer' || !n.role) && !n.read).length > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white animate-pulse">
-                {notifications.filter(n => (n.role === 'customer' || !n.role) && !n.read).length}
-              </span>
-            )}
-          </button>
-
-          {/* 3. Track Shipment */}
-          <button
-            onClick={() => {
-              if (setActiveTab) setActiveTab('track');
-            }}
-            className="w-full p-3 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold text-slate-700 hover:bg-slate-50 hover:text-[#2463EB] transition-all cursor-pointer"
-          >
-            <Search className="w-4 h-4 shrink-0 text-[#2463EB]" />
-            <span>Track Shipment</span>
-          </button>
-
-          {/* 4. Invoices */}
-          <button
-            onClick={() => setActiveSubTab('billing')}
-            className={`w-full p-3 rounded-2xl flex items-center space-x-2.5 text-xs font-extrabold transition-all cursor-pointer ${
-              activeSubTab === 'billing'
-                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <FileText className="w-4 h-4 shrink-0" />
-            <span>Invoices</span>
-          </button>
-
-          {/* 4b. Consignment Documents Vault */}
-          <button
-            onClick={() => setActiveSubTab('documents')}
-            className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
-              activeSubTab === 'documents'
-                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center space-x-2.5">
-              <FileText className="w-4 h-4 shrink-0" />
-              <span>Documents Vault</span>
-            </div>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeSubTab === 'documents' ? 'bg-white/20 text-white' : 'bg-[#EAF2FF] text-[#0B1F5B]'
-            }`}>
-              {customerDocuments.length}
-            </span>
-          </button>
-
-          {/* 5. Saved Addresses */}
-          <button
-            onClick={() => setActiveSubTab('addresses')}
-            className={`w-full p-3 rounded-2xl flex items-center justify-between text-xs font-extrabold transition-all cursor-pointer ${
-              activeSubTab === 'addresses'
-                ? 'bg-[#EAF2FF]0 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center space-x-2.5">
-              <MapPin className="w-4 h-4 shrink-0" />
-              <span>Saved Addresses</span>
-            </div>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              activeSubTab === 'addresses' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-            }`}>
-              {(addressList || []).length}
-            </span>
-          </button>
-
-          {/* Secondary Subtabs: Manage Orders & Support */}
-          <div className="pt-2 border-t border-slate-100 space-y-1">
-            <button
-              onClick={() => setActiveSubTab('manage')}
-              className={`w-full p-2.5 rounded-xl flex items-center space-x-2 text-[11px] font-bold transition-all cursor-pointer ${
-                activeSubTab === 'manage'
-                  ? 'bg-[#EAF2FF] text-[#0B1F5B] font-extrabold'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-              }`}
+            {/* 56px square avatar with 4px corners */}
+            <div
+              className="w-14 h-14 rounded-[var(--radius)] bg-[var(--color-navy)] text-[var(--color-on-navy)] font-bold text-xl flex items-center justify-center shrink-0"
+              aria-hidden="true"
             >
-              <Pencil className="w-3.5 h-3.5 shrink-0" />
-              <span>Manage Orders</span>
-            </button>
-
-            <button
-              onClick={() => setActiveSubTab('support')}
-              className={`w-full p-2.5 rounded-xl flex items-center justify-between text-[11px] font-bold transition-all cursor-pointer ${
-                activeSubTab === 'support'
-                  ? 'bg-[#EAF2FF] text-[#0B1F5B] font-extrabold'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <LifeBuoy className="w-3.5 h-3.5 shrink-0" />
-                <span>Support & Claims</span>
-              </div>
-              {customerTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-[#EAF2FF]0 text-white">
-                  {customerTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* 6. Logout */}
-          <div className="pt-2 border-t border-slate-100">
-            <button
-              onClick={handleDashboardLogout}
-              className="w-full p-2.5 rounded-xl flex items-center space-x-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              <span>Logout</span>
-            </button>
-          </div>
-
-          {/* Quick Stats in Left Nav */}
-          <div className="pt-4 mt-3 border-t border-slate-100 px-3 pb-1 space-y-2">
-            <div className="flex justify-between items-center text-[11px]">
-              <span className="text-slate-500 font-semibold">In-Transit:</span>
-              <span className="font-mono font-bold text-[#2463EB]">
-                {(shipments || []).filter(s => s.status !== 'Delivered').length}
-              </span>
+              {displayUser.name ? displayUser.name.charAt(0).toUpperCase() : (displayUser.email ? displayUser.email.charAt(0).toUpperCase() : 'C')}
             </div>
-            <div className="flex justify-between items-center text-[11px]">
-              <span className="text-slate-500 font-semibold">Delivered:</span>
-              <span className="font-mono font-bold text-emerald-600">
-                {(shipments || []).filter(s => s.status === 'Delivered').length}
-              </span>
+            <div>
+              <h1 className="text-2xl font-bold font-heading text-[var(--color-navy)] leading-tight group-hover:underline">
+                {displayUser.name || displayUser.email || 'Customer Account'}
+              </h1>
+              <p className="text-sm text-[var(--color-text-muted)] font-normal mt-0.5">
+                {displayUser.email || '—'}
+              </p>
             </div>
+          </button>
+
+          <div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('quote')}
+              className="w-full sm:w-auto px-6 py-3 bg-[var(--color-orange)] hover:bg-[var(--color-orange-hover)] text-white font-semibold text-sm rounded-[var(--radius)] shadow-none transition-colors text-center cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
+            >
+              Get a Quote
+            </button>
           </div>
         </div>
 
-        {/* Center / Main Content Area (Green Marked Field) */}
-        <div className="lg:col-span-9 space-y-6">
+        {/* 2-Column Dashboard Layout: Left Navigation + Main Content Area */}
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          
+          {/* Left Side: Navigation Sidebar (240px on desktop, horizontally scrollable row on mobile/tablet) */}
+          <nav
+            aria-label="Account"
+            className="w-full lg:w-[240px] shrink-0 bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] shadow-none p-2 lg:sticky lg:top-24"
+            style={{ borderTopColor: 'var(--color-kraft)' }}
+          >
+            <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible flex-nowrap items-center lg:items-stretch gap-1 pb-1 lg:pb-0 scrollbar-none">
+              {/* Primary Menu Items */}
+              {menuItems.map((item) => {
+                const IconComponent = item.icon;
+                const isActive = activeSubTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={item.action}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`min-h-[44px] px-3.5 py-2.5 rounded-[var(--radius)] flex items-center gap-2.5 text-sm transition-colors text-left cursor-pointer shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)] ${
+                      isActive
+                        ? 'bg-transparent lg:bg-[var(--color-bg-alt)] border-b-[3px] lg:border-b-0 lg:border-l-[3px] font-bold text-[var(--color-navy)]'
+                        : 'bg-transparent text-[var(--color-text)] hover:underline font-normal border-b-[3px] border-b-transparent lg:border-b-0 lg:border-l-[3px] lg:border-l-transparent'
+                    }`}
+                    style={isActive ? { borderBottomColor: 'var(--color-kraft)', borderLeftColor: 'var(--color-kraft)' } : undefined}
+                  >
+                    <IconComponent className="w-5 h-5 shrink-0 text-[var(--color-navy)]" aria-hidden="true" />
+                    <span className="truncate lg:whitespace-normal lg:break-words leading-tight">{item.label}</span>
+                    {item.count !== undefined && item.count !== null && (
+                      <span
+                        className="text-sm tabular-nums text-[var(--color-text-muted)] font-normal ml-auto shrink-0 pl-2"
+                        aria-label={`${item.count} ${item.countLabel || item.label}`}
+                      >
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
 
-      {/* SUB-TAB 1 & 2: MY SHIPMENT ORDERS & MANAGE ORDERS */}
-      {(activeSubTab === 'orders' || activeSubTab === 'manage') && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
+              {/* 1px Divider */}
+              <hr className="hidden lg:block my-2 border-[var(--color-border)]" />
+              <div className="lg:hidden w-[1px] h-6 bg-[var(--color-border)] shrink-0 mx-1" aria-hidden="true" />
+
+              {/* Secondary Menu Items: Manage orders & Support */}
+              {secondaryMenuItems.map((item) => {
+                const IconComponent = item.icon;
+                const isActive = activeSubTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={item.action}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`min-h-[44px] px-3.5 py-2.5 rounded-[var(--radius)] flex items-center gap-2.5 text-sm transition-colors text-left cursor-pointer shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)] ${
+                      isActive
+                        ? 'bg-transparent lg:bg-[var(--color-bg-alt)] border-b-[3px] lg:border-b-0 lg:border-l-[3px] font-bold text-[var(--color-navy)]'
+                        : 'bg-transparent text-[var(--color-text)] hover:underline font-normal border-b-[3px] border-b-transparent lg:border-b-0 lg:border-l-[3px] lg:border-l-transparent'
+                    }`}
+                    style={isActive ? { borderBottomColor: 'var(--color-kraft)', borderLeftColor: 'var(--color-kraft)' } : undefined}
+                  >
+                    <IconComponent className="w-5 h-5 shrink-0 text-[var(--color-navy)]" aria-hidden="true" />
+                    <span className="truncate lg:whitespace-normal lg:break-words leading-tight">{item.label}</span>
+                    {item.count !== undefined && item.count !== null && (
+                      <span
+                        className="text-sm tabular-nums text-[var(--color-text-muted)] font-normal ml-auto shrink-0 pl-2"
+                        aria-label={`${item.count} ${item.countLabel || item.label}`}
+                      >
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Divider and Log out */}
+              <hr className="hidden lg:block my-2 border-[var(--color-border)]" />
+              <div className="lg:hidden w-[1px] h-6 bg-[var(--color-border)] shrink-0 mx-1" aria-hidden="true" />
+
+              <button
+                type="button"
+                onClick={handleDashboardLogout}
+                className="min-h-[44px] px-3.5 py-2.5 rounded-[var(--radius)] flex items-center gap-2.5 text-sm text-[var(--color-text)] hover:underline font-normal transition-colors text-left cursor-pointer shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
+              >
+                <LogOut className="w-5 h-5 shrink-0 text-[var(--color-navy)]" aria-hidden="true" />
+                <span>Log out</span>
+              </button>
+            </div>
+          </nav>
+
+          {/* Center / Main Content Area */}
+          <div className="flex-1 min-w-0 space-y-6">
+
+      {/* SUB-TAB 1: MY SHIPMENTS */}
+      {activeSubTab === 'orders' && (
+        <PortalCard>
+          <PortalHeader
+            title="My shipments"
+            subtext="Your road shipments and their latest status."
+            count={`${displayShipments.length} ${displayShipments.length === 1 ? 'shipment' : 'shipments'}`}
+          />
+
+          {displayShipments.length === 0 ? (
+            <PortalEmptyState
+              message="No shipments yet."
+              actionLabel="Get a Quote"
+              onAction={() => {
+                if (setActiveTab) setActiveTab('quote');
+              }}
+            />
+          ) : (
+            <div>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] font-semibold">
+                      <th scope="col" className="pb-3 pr-4 font-semibold">Tracking number</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Service</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Status</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Last updated</th>
+                      <th scope="col" className="pb-3 pl-4 text-right font-semibold">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
+                    {displayShipments.map((s) => {
+                      const trackingNum = s.trackingNumber || s.id;
+                      const lastUpdated = s.lastUpdated || s.lastUpdatedTime || (s.createdDate ? s.createdDate.split(' ')[0] : '—');
+                      return (
+                        <tr key={s.id} className="hover:bg-[var(--color-bg-alt)] transition-colors">
+                          <td className="py-3.5 pr-4 font-bold tabular-nums text-[var(--color-navy)]">
+                            {trackingNum}
+                          </td>
+                          <td className="py-3.5 px-4 font-normal">
+                            Road transport
+                          </td>
+                          <td className="py-3.5 px-4 font-normal">
+                            {s.status}
+                          </td>
+                          <td className="py-3.5 px-4 tabular-nums text-[var(--color-text-muted)]">
+                            {lastUpdated}
+                          </td>
+                          <td className="py-3.5 pl-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (setActiveTrackingId) setActiveTrackingId(trackingNum);
+                                if (setActiveTab) setActiveTab('track');
+                              }}
+                              className="underline text-[var(--color-navy)] hover:text-[var(--color-kraft-dark)] font-medium cursor-pointer"
+                              aria-label={`View road shipment ${trackingNum}`}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Stacked List */}
+              <div className="md:hidden divide-y divide-[var(--color-border)]">
+                {displayShipments.map((s) => {
+                  const trackingNum = s.trackingNumber || s.id;
+                  const lastUpdated = s.lastUpdated || s.lastUpdatedTime || (s.createdDate ? s.createdDate.split(' ')[0] : '—');
+                  return (
+                    <div key={s.id} className="py-4 space-y-2.5 text-sm">
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-[var(--color-text-muted)]">Tracking number</span>
+                        <span className="font-bold tabular-nums text-[var(--color-navy)]">{trackingNum}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Service</span>
+                        <span className="text-[var(--color-text)]">Road transport</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Status</span>
+                        <span className="text-[var(--color-text)]">{s.status}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Last updated</span>
+                        <span className="tabular-nums text-[var(--color-text-muted)]">{lastUpdated}</span>
+                      </div>
+                      <div className="pt-1 text-right">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (setActiveTrackingId) setActiveTrackingId(trackingNum);
+                            if (setActiveTab) setActiveTab('track');
+                          }}
+                          className="underline text-[var(--color-navy)] hover:text-[var(--color-kraft-dark)] font-medium cursor-pointer"
+                          aria-label={`View road shipment ${trackingNum}`}
+                        >
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </PortalCard>
+      )}
+
+      {/* SUB-TAB: MANAGE ORDERS (Legacy Management) */}
+      {activeSubTab === 'manage' && (
+        <div className="bg-white rounded-[var(--radius)] p-6 sm:p-8 border border-[var(--color-border)] border-t-[3px] shadow-none space-y-6" style={{ borderTopColor: 'var(--color-kraft)' }}>
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-extrabold text-slate-900">
-                {activeSubTab === 'manage' ? 'Manage Freight Orders & Cancellations' : 'Shipment History & Live Trackers'}
+                Manage Freight Orders & Cancellations
               </h2>
               <p className="text-xs text-slate-500 font-semibold">
-                {activeSubTab === 'manage'
-                  ? 'Review and delete active order bookings if needed.'
-                  : 'View active freight orders and live delivery tracking status.'}
+                Review and delete active order bookings if needed.
               </p>
             </div>
             <span className="text-xs text-slate-800 font-extrabold">Total Orders: {(shipments || []).length}</span>
@@ -620,8 +836,8 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   </div>
                 </div>
 
-                {/* 3. Operational Telematics: Driver, Vehicle & GPS Sync */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* 3. Operational Details: Driver & Vehicle */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Driver Tile */}
                   <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80 flex items-center space-x-3">
                     <div className="w-9 h-9 rounded-xl bg-[#EAF2FF]/90 text-[#2463EB] flex items-center justify-center shrink-0 shadow-2xs">
@@ -644,26 +860,6 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                       <p className="text-xs font-mono font-bold text-slate-900 truncate">{s.vehiclePlate || 'SG-8819'}</p>
                       <p className="text-[11px] text-slate-500 truncate mt-0.5" title={s.vehicle || 'Commercial Transport Truck'}>
                         {s.vehicle || 'Commercial Transport Truck'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Live Telematics Location Tile */}
-                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80 flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-100/90 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
-                      <Navigation className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Live Telematics</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{s.lastUpdatedTime || 'Just now'}</span>
-                      </div>
-                      <p className="text-xs font-bold text-[#2463EB] truncate mt-0.5" title={s.currentLocation}>
-                        {s.currentLocation || 'Expressway Corridor'}
-                      </p>
-                      <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        GPS Telematics Sync
                       </p>
                     </div>
                   </div>
@@ -716,7 +912,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 {/* 6. Clean Action Toolbar */}
                 <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                   <div className="text-slate-400 text-[11px] font-medium hidden sm:block">
-                    Order logged with real-time road freight telematics
+                    Order logged
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 ml-auto">
@@ -805,7 +1001,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                               current: false
                             },
                             {
-                              title: 'Picked Up by Josan Fleet Courier',
+                              title: 'Picked up by partner carrier',
                               location: s.origin ? `${s.origin} Depot` : 'Changi Logistics Depot',
                               timestamp: 'Aug 31, 10:40 AM',
                               completed: true,
@@ -872,201 +1068,208 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
         </div>
       )}
 
-      {/* SUB-TAB: QUOTATIONS & ESTIMATES (Requirement 6) */}
+      {/* SUB-TAB 2: QUOTATIONS */}
       {activeSubTab === 'quotes' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-[#2463EB]" />
-                <span>Quotations & Freight Rate Proposals</span>
-              </h2>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                Review itemized pricing, accept/reject official quotes, and convert directly into live shipments.
-              </p>
-            </div>
-            <button
-              onClick={() => {
+        <PortalCard>
+          <PortalHeader
+            title="Your quotes"
+            subtext="Your quote requests and the quotes we have sent you."
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  if (setActiveTab) setActiveTab('quote');
+                }}
+                className="bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
+              >
+                New quote request
+              </button>
+            }
+          />
+
+          {displayQuotes.length === 0 ? (
+            <PortalEmptyState
+              message="No quote requests yet."
+              actionLabel="Get a Quote"
+              onAction={() => {
                 if (setActiveTab) setActiveTab('quote');
               }}
-              className="px-4 py-2 bg-[#2463EB] hover:bg-[#2463EB]/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Request New Quote</span>
-            </button>
-          </div>
+            />
+          ) : (
+            <div>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] font-semibold">
+                      <th scope="col" className="pb-3 pr-4 font-semibold">Date</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Service</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Status</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Quote</th>
+                      <th scope="col" className="pb-3 pl-4 text-right font-semibold">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
+                    {displayQuotes.map((q) => {
+                      const dateStr = q.date || q.createdDate || '—';
+                      const serviceName = q.service || (q.freightMode === 'air' ? 'Air freight documentation' : 'Road transport');
+                      const displayPrice = q.price || (q.total !== undefined && q.total !== null ? `S$ ${Number(q.total).toFixed(2)}` : (q.lineItems?.finalAmount ? `S$ ${Number(q.lineItems.finalAmount).toFixed(2)}` : 'Pending review'));
+                      const isSent = q.status === 'Sent';
+                      const isAccepted = q.status === 'Accepted';
+                      const isConverted = q.status === 'Converted';
+                      const isRejected = q.status === 'Rejected';
 
-          <div className="space-y-4">
-            {(quotes || []).length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <FileText className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                <p className="text-sm font-bold text-slate-700">No quotation requests on file</p>
-                <p className="text-xs text-slate-500 mt-1">Submit a quick route and weight estimate to receive an itemized quote.</p>
+                      return (
+                        <tr key={q.id} className="hover:bg-[var(--color-bg-alt)] transition-colors">
+                          <td className="py-3.5 pr-4 tabular-nums text-[var(--color-text-muted)]">
+                            {dateStr}
+                          </td>
+                          <td className="py-3.5 px-4 font-normal">
+                            {serviceName}
+                          </td>
+                          <td className="py-3.5 px-4 font-normal">
+                            {q.status}
+                          </td>
+                          <td className="py-3.5 px-4 tabular-nums font-semibold text-[var(--color-text)]">
+                            {displayPrice}
+                          </td>
+                          <td className="py-3.5 pl-4 text-right">
+                            {isSent && (
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => customerRespondQuote(q.id, 'Accepted')}
+                                  className="bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+                                >
+                                  Accept quote
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => customerRespondQuote(q.id, 'Rejected')}
+                                  className="bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer"
+                                >
+                                  Decline quote
+                                </button>
+                              </div>
+                            )}
+                            {isAccepted && !isConverted && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const created = convertQuoteToShipment(q.id);
+                                  if (created) setActiveSubTab('orders');
+                                }}
+                                className="bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+                              >
+                                Book shipment
+                              </button>
+                            )}
+                            {isConverted && (
+                              <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
+                                Booked as shipment {q.convertedShipmentId || ''}
+                              </span>
+                            )}
+                            {isRejected && (
+                              <span className="text-xs text-[var(--color-text-muted)]">
+                                Declined
+                              </span>
+                            )}
+                            {!isSent && !isAccepted && !isConverted && !isRejected && (
+                              <span className="text-xs text-[var(--color-text-muted)]">
+                                Under review
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              (quotes || []).map((q) => {
-                const isSent = q.status === 'Sent';
-                const isAccepted = q.status === 'Accepted';
-                const isRejected = q.status === 'Rejected';
-                const isConverted = q.status === 'Converted';
-                const lineItems = q.lineItems || {
-                  baseCharge: 320,
-                  distanceCharge: 85,
-                  cargoCharge: 60,
-                  vehicleCharge: 110,
-                  additionalServices: 35,
-                  taxAmount: 54.90,
-                  finalAmount: 664.90
-                };
 
-                return (
-                  <div key={q.id} className="p-5 rounded-2xl border border-slate-200 bg-white hover:border-[#2463EB]/30 transition-all shadow-xs space-y-4">
-                    {/* Header & Status */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-black text-slate-900 text-base">{q.id}</span>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                            isConverted
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              : isAccepted
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                              : isSent
-                              ? 'bg-[#EAF2FF] text-[#0B1F5B] border border-[#DCE5F0] animate-pulse'
-                              : isRejected
-                              ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}>
-                            ● {q.status}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Requested: <span className="font-medium text-slate-700">{q.createdDate || 'Recently'}</span> &bull; Mode: <strong className="text-slate-800">{q.freightMode || 'Commercial Road Transport'}</strong>
-                        </p>
+              {/* Mobile Stacked List */}
+              <div className="md:hidden divide-y divide-[var(--color-border)]">
+                {displayQuotes.map((q) => {
+                  const dateStr = q.date || q.createdDate || '—';
+                  const serviceName = q.service || (q.freightMode === 'air' ? 'Air freight documentation' : 'Road transport');
+                  const displayPrice = q.price || (q.total !== undefined && q.total !== null ? `S$ ${Number(q.total).toFixed(2)}` : (q.lineItems?.finalAmount ? `S$ ${Number(q.lineItems.finalAmount).toFixed(2)}` : 'Pending review'));
+                  const isSent = q.status === 'Sent';
+                  const isAccepted = q.status === 'Accepted';
+                  const isConverted = q.status === 'Converted';
+                  const isRejected = q.status === 'Rejected';
+
+                  return (
+                    <div key={q.id} className="py-4 space-y-2.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Date</span>
+                        <span className="tabular-nums text-[var(--color-text-muted)]">{dateStr}</span>
                       </div>
-
-                      <div className="text-left sm:text-right">
-                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Contract Amount</span>
-                        <span className="text-xl font-bold font-mono text-[#2463EB]">
-                          S$ {lineItems.finalAmount ? lineItems.finalAmount.toFixed(2) : '664.90'}
-                        </span>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Service</span>
+                        <span className="text-[var(--color-text)]">{serviceName}</span>
                       </div>
-                    </div>
-
-                    {/* Origin & Destination */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[#EAF2FF] p-3.5 rounded-xl border border-[#2463EB]/20">
-                      <div>
-                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Origin / Loading Point</span>
-                        <strong className="text-[#0B1F5B] text-sm">{q.origin}</strong>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Status</span>
+                        <span className="text-[var(--color-text)]">{q.status}</span>
                       </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Destination / Unloading Point</span>
-                        <strong className="text-[#0B1F5B] text-sm">{q.destination}</strong>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Quote</span>
+                        <span className="tabular-nums font-semibold text-[var(--color-text)]">{displayPrice}</span>
                       </div>
-                    </div>
-
-                    {/* Line Items Breakdown Table (Requirement 6) */}
-                    <div className="bg-[#F5F6F8] rounded-xl p-4 border border-slate-200 text-xs space-y-2">
-                      <span className="font-bold text-[#0B1F5B] uppercase text-[11px] block tracking-wide">
-                        Itemized Pricing Breakdown
-                      </span>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-slate-600">
-                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                          <span className="block text-slate-400 text-[10px]">Base Transport Charge</span>
-                          <strong className="text-[#0B1F5B]">S$ {lineItems.baseCharge?.toFixed(2) || '0.00'}</strong>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                          <span className="block text-slate-400 text-[10px]">Distance / Route Charge</span>
-                          <strong className="text-[#0B1F5B]">S$ {lineItems.distanceCharge?.toFixed(2) || '0.00'}</strong>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                          <span className="block text-slate-400 text-[10px]">Cargo Handling & Security</span>
-                          <strong className="text-[#0B1F5B]">S$ {lineItems.cargoCharge?.toFixed(2) || '0.00'}</strong>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                          <span className="block text-slate-400 text-[10px]">Vehicle Specification</span>
-                          <strong className="text-[#0B1F5B]">S$ {lineItems.vehicleCharge?.toFixed(2) || '0.00'}</strong>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                          <span className="block text-slate-400 text-[10px]">Additional Services / Accessorials</span>
-                          <strong className="text-[#0B1F5B]">S$ {lineItems.additionalServices?.toFixed(2) || '0.00'}</strong>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                          <span className="block text-slate-400 text-[10px]">Singapore GST (9%)</span>
-                          <strong className="text-[#0B1F5B]">S$ {lineItems.taxAmount?.toFixed(2) || '0.00'}</strong>
-                        </div>
-                      </div>
-
-                      {q.adminNotes && (
-                        <p className="text-[11px] text-slate-500 italic pt-1">
-                          Operations Note: "{q.adminNotes}"
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                      <div className="text-xs text-slate-500">
-                        {isConverted && (
-                          <span className="text-emerald-700 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Active as Order #{q.convertedShipmentId}
-                          </span>
-                        )}
-                        {isAccepted && !isConverted && (
-                          <span className="text-blue-700 font-bold flex items-center gap-1">
-                            <Check className="w-4 h-4" />
-                            Quotation accepted! Click "Proceed to Booking" to confirm dispatch.
-                          </span>
-                        )}
-                        {isSent && (
-                          <span className="text-[#2463EB] font-semibold">
-                            Please review the pricing and accept or reject this quote.
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
+                      <div className="pt-2 flex justify-end gap-2">
                         {isSent && (
                           <>
                             <button
-                              onClick={() => customerRespondQuote(q.id, 'Rejected')}
-                              className="px-4 py-2 border border-slate-300 hover:bg-rose-50 hover:text-rose-700 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                              type="button"
+                              onClick={() => customerRespondQuote(q.id, 'Accepted')}
+                              className="bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
                             >
-                              Reject Quote
+                              Accept quote
                             </button>
                             <button
-                              onClick={() => customerRespondQuote(q.id, 'Accepted')}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                              type="button"
+                              onClick={() => customerRespondQuote(q.id, 'Rejected')}
+                              className="bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer"
                             >
-                              <Check className="w-4 h-4" />
-                              <span>Accept Quote</span>
+                              Decline quote
                             </button>
                           </>
                         )}
-
-                        {isAccepted && (
+                        {isAccepted && !isConverted && (
                           <button
+                            type="button"
                             onClick={() => {
                               const created = convertQuoteToShipment(q.id);
-                              if (created) {
-                                setActiveSubTab('orders');
-                              }
+                              if (created) setActiveSubTab('orders');
                             }}
-                            className="px-5 py-2.5 bg-[#2463EB] hover:bg-[#2463EB]/90 text-white rounded-xl text-xs font-black transition-all shadow-sm cursor-pointer flex items-center gap-2 animate-bounce-subtle"
+                            className="bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
                           >
-                            <span>Proceed to Booking →</span>
+                            Book shipment
                           </button>
+                        )}
+                        {isConverted && (
+                          <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
+                            Booked as shipment {q.convertedShipmentId || ''}
+                          </span>
+                        )}
+                        {isRejected && (
+                          <span className="text-xs text-[var(--color-text-muted)]">
+                            Declined
+                          </span>
+                        )}
+                        {!isSent && !isAccepted && !isConverted && !isRejected && (
+                          <span className="text-xs text-[var(--color-text-muted)]">
+                            Under review
+                          </span>
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </PortalCard>
       )}
 
       {/* SUB-TAB: NOTIFICATIONS PANEL (Requirement 3) */}
@@ -1151,393 +1354,440 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
         </div>
       )}
 
-      {/* SUB-TAB 3: SUPPORT & CLAIMS */}
-      {activeSubTab === 'support' && (
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6 max-w-2xl">
-          <div>
-            <h2 className="text-lg font-extrabold text-slate-900">Dispute Resolution & Cargo SLA Support</h2>
-            <p className="text-xs text-slate-800 font-semibold">Log a query or insurance claim directly with dispatch managers.</p>
-          </div>
-
-          <form onSubmit={handleSupportSubmit} className="space-y-4 text-xs">
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Subject</label>
-              <input
-                type="text"
-                value={ticketSubject}
-                onChange={(e) => setTicketSubject(e.target.value)}
-                placeholder="e.g. Expedite Customs Clearance"
-                className="w-full p-3 border border-slate-300 rounded-xl focus-blue"
-                required
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Ticket Details</label>
-              <textarea
-                rows="4"
-                value={ticketMessage}
-                onChange={(e) => setTicketMessage(e.target.value)}
-                placeholder="Provide tracking ID or issue details..."
-                className="w-full p-3 border border-slate-300 rounded-xl focus-blue"
-                required
-              ></textarea>
-            </div>
-            <button
-              type="submit"
-              className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-colors"
-            >
-              Submit Ticket
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* SUB-TAB 4: BILLING & PAYMENTS */}
+      {/* SUB-TAB 3: INVOICES */}
       {activeSubTab === 'billing' && (
-        <div className="space-y-8 animate-fade-in">
-          {/* Billing & Invoice History Table */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-extrabold text-slate-900">Invoices & Payment Records</h2>
-                <p className="text-xs text-slate-800 font-semibold">Track payment status per order and pay pending invoices.</p>
+        <PortalCard>
+          <PortalHeader
+            title="Your invoices"
+            subtext="Your invoices and their payment status."
+            count={`${displayShipments.length} ${displayShipments.length === 1 ? 'invoice' : 'invoices'}`}
+          />
+
+          {displayShipments.length === 0 ? (
+            <PortalEmptyState message="No invoices yet." />
+          ) : (
+            <div>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] font-semibold">
+                      <th scope="col" className="pb-3 pr-4 font-semibold">Date</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Shipment</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Amount</th>
+                      <th scope="col" className="pb-3 px-4 font-semibold">Payment status</th>
+                      <th scope="col" className="pb-3 pl-4 text-right font-semibold">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
+                    {displayShipments.map((s) => {
+                      const dateStr = s.createdDate ? s.createdDate.split(' ')[0] : (s.date || '—');
+                      const isPaid = s.paymentStatus === 'Paid' || (s.paymentStatus !== 'Unpaid' && !s.isUnpaid);
+                      const amountStr = s.price || 'S$ 350.00';
+
+                      return (
+                        <tr key={s.id} className="hover:bg-[var(--color-bg-alt)] transition-colors">
+                          <td className="py-3.5 pr-4 tabular-nums text-[var(--color-text-muted)]">
+                            {dateStr}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold tabular-nums text-[var(--color-navy)]">
+                            {s.id}
+                          </td>
+                          <td className="py-3.5 px-4 tabular-nums font-semibold text-[var(--color-text)]">
+                            {amountStr}
+                          </td>
+                          <td className="py-3.5 px-4 font-normal">
+                            {isPaid ? 'Paid' : 'Pending payment'}
+                          </td>
+                          <td className="py-3.5 pl-4 text-right">
+                            {isPaid ? (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedInvoiceShipment(s)}
+                                className="bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer"
+                                aria-label={`View invoice for shipment ${s.id}`}
+                              >
+                                View invoice
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedInvoiceShipment(s)}
+                                className="bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] rounded-[var(--radius)] px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+                                aria-label={`Pay now for shipment ${s.id}`}
+                              >
+                                Pay now
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-              <span className="text-xs font-bold text-slate-900">Showing {(shipments || []).length} Records</span>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
-                  <tr>
-                    <th className="p-3.5">Date</th>
-                    <th className="p-3.5">Shipment ID</th>
-                    <th className="p-3.5">Amount</th>
-                    <th className="p-3.5">Payment Status</th>
-                    <th className="p-3.5 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-                  {(shipments || []).map((s) => {
-                    const isPaid = s.paymentStatus === 'Paid' || (s.paymentStatus !== 'Unpaid' && !s.isUnpaid);
-                    return (
-                      <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-3.5 font-mono text-slate-600">{s.createdDate ? s.createdDate.split(' ')[0] : '2026-08-31'}</td>
-                        <td className="p-3.5 font-mono font-extrabold text-slate-900">{s.id}</td>
-                        <td className="p-3.5 font-mono font-bold text-slate-900">{s.price || '$350.00'}</td>
-                        <td className="p-3.5">
-                          {isPaid ? (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center space-x-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                              <span>Paid</span>
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center space-x-1 animate-pulse">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                              <span>Pending Payment</span>
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3.5 text-right">
-                          {isPaid ? (
-                            <button
-                              onClick={() => setSelectedInvoiceShipment(s)}
-                              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all inline-flex items-center space-x-1 cursor-pointer"
-                            >
-                              <FileText className="w-3.5 h-3.5 text-slate-600" />
-                              <span>View Invoice</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setSelectedInvoiceShipment(s)}
-                              className="px-3.5 py-1.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all inline-flex items-center space-x-1 cursor-pointer active:scale-95"
-                            >
-                              <CreditCard className="w-3.5 h-3.5" />
-                              <span>Pay Now</span>
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+              {/* Mobile Stacked List */}
+              <div className="md:hidden divide-y divide-[var(--color-border)]">
+                {displayShipments.map((s) => {
+                  const dateStr = s.createdDate ? s.createdDate.split(' ')[0] : (s.date || '—');
+                  const isPaid = s.paymentStatus === 'Paid' || (s.paymentStatus !== 'Unpaid' && !s.isUnpaid);
+                  const amountStr = s.price || 'S$ 350.00';
 
-        </div>
+                  return (
+                    <div key={s.id} className="py-4 space-y-2.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Date</span>
+                        <span className="tabular-nums text-[var(--color-text-muted)]">{dateStr}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Shipment</span>
+                        <span className="font-bold tabular-nums text-[var(--color-navy)]">{s.id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Amount</span>
+                        <span className="tabular-nums font-semibold text-[var(--color-text)]">{amountStr}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Payment status</span>
+                        <span className="text-[var(--color-text)]">{isPaid ? 'Paid' : 'Pending payment'}</span>
+                      </div>
+                      <div className="pt-1 text-right">
+                        {isPaid ? (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedInvoiceShipment(s)}
+                            className="bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer"
+                            aria-label={`View invoice for shipment ${s.id}`}
+                          >
+                            View invoice
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedInvoiceShipment(s)}
+                            className="bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] rounded-[var(--radius)] px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+                            aria-label={`Pay now for shipment ${s.id}`}
+                          >
+                            Pay now
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </PortalCard>
       )}
 
-      {/* SUB-TAB 5: MY PROFILE */}
+      {/* SUB-TAB: YOUR PROFILE */}
       {activeSubTab === 'profile' && (
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-card space-y-6 max-w-3xl animate-fade-in">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div>
-              <h2 className="text-xl font-extrabold text-slate-900">Customer Profile & Account Details</h2>
-              <p className="text-xs text-slate-500 font-semibold">Manage your corporate credentials and contact information.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsEditingProfile(!isEditingProfile)}
-              className="px-4 py-2 bg-[#EAF2FF] hover:bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              <span>{isEditingProfile ? 'Cancel Editing' : 'Edit Profile'}</span>
-            </button>
-          </div>
-
-          {/* Profile Details Header Card */}
-          <div className="flex items-center space-x-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div className="w-16 h-16 rounded-2xl bg-[#2463EB]-gradient text-white flex items-center justify-center font-extrabold text-2xl shadow-sm shrink-0">
-              {profileName ? profileName.charAt(0) : 'C'}
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <h3 className="font-extrabold text-slate-900 text-base">{profileName}</h3>
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase border border-emerald-200 flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  <span>Active & Verified</span>
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 font-mono">{currentUser?.email || 'shipping@razer.com'}</p>
-              <p className="text-xs font-semibold text-slate-700">{profileCompany} • Customer Account</p>
-            </div>
-          </div>
+        <PortalCard className="space-y-6">
+          <PortalHeader
+            title="Your profile"
+            subtext="Your name and contact details."
+            action={
+              <button
+                type="button"
+                onClick={() => setIsEditingProfile(!isEditingProfile)}
+                className="bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
+              >
+                {isEditingProfile ? 'Cancel' : 'Edit profile'}
+              </button>
+            }
+          />
 
           {isEditingProfile ? (
-            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveProfile} className="space-y-5 max-w-xl text-left">
               <div>
-                <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
-                  Full Name / Contact Person *
+                <label className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                  Contact name *
                 </label>
                 <input
                   type="text"
                   required
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue"
+                  className="w-full h-12 px-4 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm sm:text-base font-normal focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
-                  Company Name *
+                <label className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                  Company *
                 </label>
                 <input
                   type="text"
                   required
                   value={profileCompany}
                   onChange={(e) => setProfileCompany(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue"
+                  className="w-full h-12 px-4 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm sm:text-base font-normal focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
-                  Phone Number *
+                <label className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                  Phone *
                 </label>
                 <input
                   type="text"
                   required
                   value={profilePhone}
                   onChange={(e) => setProfilePhone(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue font-mono"
+                  className="w-full h-12 px-4 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm sm:text-base font-normal focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:border-[var(--color-navy)] transition-colors"
                 />
               </div>
 
-              <div className="pt-2 flex items-center space-x-3">
+              <div className="pt-2 flex items-center gap-3">
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+                  className="h-12 px-6 bg-[var(--color-navy)] hover:bg-[var(--color-navy-hover)] text-white font-medium rounded-[var(--radius)] transition-colors text-sm cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Save Profile Details</span>
+                  Save profile
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditingProfile(false)}
-                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer"
+                  className="h-12 px-6 bg-[var(--color-surface)] hover:bg-[var(--color-bg-alt)] text-[var(--color-navy)] border border-[var(--color-navy)] font-medium rounded-[var(--radius)] transition-colors text-sm cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
                 >
                   Cancel
                 </button>
               </div>
             </form>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase">Contact Name</span>
-                <span className="font-extrabold text-slate-900 text-sm">{profileName}</span>
+            <dl className="divide-y divide-[var(--color-border)]">
+              <div className="py-3.5 flex flex-col sm:flex-row sm:items-baseline gap-2">
+                <dt className="w-full sm:w-[140px] shrink-0 text-sm text-[var(--color-text-muted)] font-normal">
+                  Contact name
+                </dt>
+                <dd className={`text-sm sm:text-base font-semibold ${profileName ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                  {profileName || 'Not added'}
+                </dd>
               </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase">Corporate Email</span>
-                <span className="font-extrabold text-slate-900 text-sm font-mono">{currentUser?.email || 'shipping@razer.com'}</span>
+
+              <div className="py-3.5 flex flex-col sm:flex-row sm:items-baseline gap-2">
+                <dt className="w-full sm:w-[140px] shrink-0 text-sm text-[var(--color-text-muted)] font-normal">
+                  Email
+                </dt>
+                <dd className={`text-sm sm:text-base font-semibold ${currentUser?.email ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                  {currentUser?.email || 'Not added'}
+                </dd>
               </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase">Company Entity</span>
-                <span className="font-extrabold text-slate-900 text-sm">{profileCompany}</span>
+
+              <div className="py-3.5 flex flex-col sm:flex-row sm:items-baseline gap-2">
+                <dt className="w-full sm:w-[140px] shrink-0 text-sm text-[var(--color-text-muted)] font-normal">
+                  Company
+                </dt>
+                <dd className={`text-sm sm:text-base font-semibold ${profileCompany ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                  {profileCompany || 'Not added'}
+                </dd>
               </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase">Contact Phone</span>
-                <span className="font-extrabold text-slate-900 text-sm font-mono">{profilePhone}</span>
+
+              <div className="py-3.5 flex flex-col sm:flex-row sm:items-baseline gap-2">
+                <dt className="w-full sm:w-[140px] shrink-0 text-sm text-[var(--color-text-muted)] font-normal">
+                  Phone
+                </dt>
+                <dd className={`text-sm sm:text-base font-semibold ${profilePhone ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                  {profilePhone || 'Not added'}
+                </dd>
               </div>
-            </div>
+            </dl>
           )}
-        </div>
+        </PortalCard>
       )}
 
-      {/* SUB-TAB 6: SAVED ADDRESSES */}
+      {/* SUB-TAB 4: SAVED ADDRESSES */}
       {activeSubTab === 'addresses' && (
-        <div className="space-y-8 animate-fade-in">
-          {/* Address Management Form & Header */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-900">Saved Addresses & Hub Locations</h2>
-                <p className="text-xs text-slate-500 font-semibold">Store frequently used shipping origin terminals and destination drop points.</p>
-              </div>
-              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl">
-                {(addressList || []).length} Saved Locations
-              </span>
-            </div>
+        <PortalCard className="space-y-8">
+          <PortalHeader
+            title="Saved addresses"
+            subtext="Addresses you use often for pickup and delivery."
+            count={`${(addressList || []).length} ${(addressList || []).length === 1 ? 'address' : 'addresses'}`}
+          />
 
-            {/* Add / Edit Address Form */}
-            <form onSubmit={handleAddAddress} className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4 text-xs">
-              <span className="block font-extrabold text-slate-900 text-xs">
-                {editingAddressId ? 'Edit Address Location' : 'Add New Saved Address'}
-              </span>
+          {/* Add / Edit Address Form */}
+          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] p-5">
+            <h3 className="text-base font-bold text-[var(--color-navy)] mb-4">
+              {editingAddressId ? 'Edit address' : 'Add an address'}
+            </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <form onSubmit={handleAddAddress} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase text-[10px]">Location Label *</label>
+                  <label htmlFor="address-name" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                    Name for this address (required)
+                  </label>
                   <input
+                    id="address-name"
                     type="text"
                     required
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
-                    placeholder="e.g. Distribution Center Dock #4"
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue"
+                    placeholder="e.g. Main warehouse"
+                    className="w-full h-12 px-3 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase text-[10px]">Address Type *</label>
+                  <label htmlFor="address-type" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                    Address type (required)
+                  </label>
                   <select
+                    id="address-type"
                     value={newAddressType}
                     onChange={(e) => setNewAddressType(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus-blue cursor-pointer"
+                    className="w-full h-12 px-3 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] cursor-pointer"
                   >
-                    <option value="pickup">Pickup Origin Location</option>
-                    <option value="drop">Delivery Destination</option>
+                    <option value="pickup">Pickup</option>
+                    <option value="drop">Delivery</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase text-[10px]">Contact Person / Dept</label>
+                  <label htmlFor="address-contact" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                    Contact person
+                  </label>
                   <input
+                    id="address-contact"
                     type="text"
                     value={newContact}
                     onChange={(e) => setNewContact(e.target.value)}
-                    placeholder="e.g. Warehouse Supervisor"
-                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-slate-900 focus-blue"
+                    placeholder="e.g. Store manager"
+                    className="w-full h-12 px-3 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1 uppercase text-[10px]">Full Street Address *</label>
+                <label htmlFor="address-street" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                  Street address (required)
+                </label>
                 <input
+                  id="address-street"
                   type="text"
                   required
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
-                  placeholder="e.g. 10 Woodlands Industrial Park E5, Singapore 738322"
-                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-slate-900 focus-blue"
+                  placeholder="e.g. 10 Example Road, Singapore 000000"
+                  className="w-full h-12 px-3 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)]"
                 />
               </div>
 
-              <div className="flex items-center space-x-2 pt-1">
+              <div className="flex items-center gap-3 pt-2">
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+                  disabled={!isAddressFormValid}
+                  className={`rounded-[var(--radius)] px-5 py-2.5 text-sm font-semibold transition-colors ${
+                    isAddressFormValid
+                      ? 'bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]'
+                      : 'bg-[var(--color-bg-alt)] text-[var(--color-text-muted)] cursor-not-allowed border border-[var(--color-border)]'
+                  }`}
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>{editingAddressId ? 'Update Address' : 'Save Address'}</span>
+                  Save address
                 </button>
                 {editingAddressId && (
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold cursor-pointer"
+                    className="bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                 )}
               </div>
             </form>
+          </div>
 
-            {/* Saved Address Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              {(addressList || []).map((addr) => (
-                <div
-                  key={addr.id}
-                  className="p-5 bg-white rounded-2xl border border-slate-200 hover:border-[#2463EB]/40 shadow-sm transition-all space-y-3 flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                        addr.type === 'pickup'
-                          ? 'bg-[#EAF2FF] text-[#0B1F5B] border border-[#DCE5F0]'
-                          : 'bg-blue-100 text-blue-800 border border-blue-200'
-                      }`}>
-                        {addr.type === 'pickup' ? '📍 Pickup Point' : '🏁 Delivery Point'}
-                      </span>
+          {/* Saved Address Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(addressList || []).map((addr) => (
+              <div
+                key={addr.id}
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] p-5 shadow-none flex flex-col justify-between"
+                style={{ borderTopColor: 'var(--color-kraft)' }}
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <span className="text-xs text-[var(--color-text-muted)] font-normal">
+                      {addr.type === 'pickup' ? 'Pickup' : 'Delivery'}
+                    </span>
 
-                      <div className="flex items-center space-x-1">
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(addr)}
-                          className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Edit address"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm(`Delete address "${addr.label}"?`)) {
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(addr)}
+                        aria-label={`Edit ${addr.label}`}
+                        className="underline text-sm text-[var(--color-navy)] hover:text-[var(--color-kraft-dark)] cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <span className="text-[var(--color-border)]" aria-hidden="true">|</span>
+                      {deletingAddressId === addr.id ? (
+                        <span className="text-xs text-[var(--color-text)]">
+                          Delete this address?{' '}
+                          <button
+                            type="button"
+                            onClick={() => {
                               deleteSavedAddress(addr.id);
-                              showToast(`Saved address "${addr.label}" deleted.`);
-                            }
-                          }}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Delete address"
+                              setDeletingAddressId(null);
+                              showToast(`Address "${addr.label}" deleted.`);
+                            }}
+                            className="underline font-bold text-rose-700 cursor-pointer"
+                          >
+                            Yes, delete
+                          </button>
+                          {' / '}
+                          <button
+                            type="button"
+                            onClick={() => setDeletingAddressId(null)}
+                            className="underline text-[var(--color-text-muted)] cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setDeletingAddressId(addr.id)}
+                          aria-label={`Delete ${addr.label}`}
+                          className="underline text-sm text-rose-700 hover:text-rose-900 cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete
                         </button>
-                      </div>
+                      )}
                     </div>
-
-                    <h4 className="font-extrabold text-slate-900 text-sm">{addr.label}</h4>
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed">{addr.address}</p>
-                    {addr.contact && (
-                      <p className="text-[11px] text-slate-400 font-semibold">Contact: {addr.contact}</p>
-                    )}
                   </div>
 
+                  <h4 className="font-bold text-base text-[var(--color-navy)] leading-snug">
+                    {addr.label}
+                  </h4>
+                  <p className="text-sm text-[var(--color-text)] mt-1.5 leading-relaxed">
+                    {addr.address}
+                  </p>
+                  {addr.contact && (
+                    <p className="text-sm text-[var(--color-text-muted)] mt-1.5">
+                      Contact: {addr.contact}
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-4 mt-2">
                   <button
                     type="button"
                     onClick={() => {
                       if (setActiveTab) setActiveTab('quote');
                     }}
-                    className="w-full py-2 bg-slate-50 hover:bg-[#EAF2FF] text-slate-700 hover:text-[#2463EB] rounded-xl text-xs font-bold transition-colors border border-slate-200 flex items-center justify-center space-x-1 cursor-pointer"
+                    className="w-full bg-[var(--color-surface)] border border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-bg-alt)] rounded-[var(--radius)] py-2 text-sm font-medium transition-colors cursor-pointer text-center"
                   >
-                    <span>Use for Quote Request</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    Use for a quote
                   </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </PortalCard>
       )}
 
       {/* SUB-TAB 7: CONSIGNMENT DOCUMENT VAULT (Requirement 3) */}
@@ -1556,7 +1806,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               </div>
               <h2 className="text-xl font-extrabold text-slate-900 mt-1">Consignment Document Management Vault</h2>
               <p className="text-xs text-slate-500 font-semibold">
-                Access official commercial invoices, packing lists, delivery notes (LR), customs permits, marine cargo insurance, and signed proof-of-delivery (POD).
+                Access invoices, packing lists, delivery notes and proof-of-delivery (POD) shared by Josan Logistics.
               </p>
             </div>
 
@@ -1578,14 +1828,13 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <th className="p-3">Classification</th>
                   <th className="p-3">Shipment Ref</th>
                   <th className="p-3">Size & Upload Date</th>
-                  <th className="p-3">Compliance</th>
                   <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
                 {customerDocuments.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                    <td colSpan={5} className="p-8 text-center text-slate-400">
                       No documents currently attached to your account or consignments.
                     </td>
                   </tr>
@@ -1614,11 +1863,6 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                       <td className="p-3 text-slate-500">
                         <div>{doc.fileSize}</div>
                         <div className="text-[10px] text-slate-400">{doc.uploadDate}</div>
-                      </td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
-                          ✓ Verified
-                        </span>
                       </td>
                       <td className="p-3 text-right space-x-1.5">
                         <button
@@ -1654,110 +1898,165 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
         </div>
       )}
 
-      {/* SUB-TAB 8: SUPPORT & INCIDENT DESK (Requirement 7) */}
+      {/* SUB-TAB 5: SUPPORT */}
       {activeSubTab === 'support' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6 animate-fade-in">
-          
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <PortalCard className="space-y-8">
+          <PortalHeader
+            title="Support"
+            subtext="Send us a message about a quote, an invoice or a shipment. Our team replies by email."
+          />
+
+          {supportSubmittedSuccess && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="p-4 bg-[var(--color-bg-alt)] border-l-[3px] text-sm text-[var(--color-text)]"
+              style={{ borderLeftColor: 'var(--color-kraft-dark)' }}
+            >
+              We have received your message. Our team will reply by email.
+            </div>
+          )}
+
+          {/* Support Message Submission Form */}
+          <form onSubmit={handleSupportSubmit} className="space-y-4 max-w-2xl">
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
-                  Shipper Assistance
-                </span>
-                <span className="text-xs font-bold text-slate-500 font-mono">
-                  {customerTickets.length} Support Inquiries
-                </span>
-              </div>
-              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Consignment Support & Incident Desk</h2>
-              <p className="text-xs text-slate-500 font-semibold">
-                Submit claims or questions linked directly to your active shipments and communicate with Josan Logistics dispatch dispatchers in real time.
-              </p>
+              <label htmlFor="support-subject" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                Subject (required)
+              </label>
+              <input
+                id="support-subject"
+                type="text"
+                required
+                value={ticketSubject}
+                onChange={(e) => setTicketSubject(e.target.value)}
+                placeholder="e.g. Question about my quote"
+                className="w-full h-12 px-3 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)]"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="support-message" className="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+                Message (required)
+              </label>
+              <textarea
+                id="support-message"
+                required
+                rows={4}
+                value={ticketMessage}
+                onChange={(e) => setTicketMessage(e.target.value)}
+                placeholder="If your question is about a road shipment, include its tracking number."
+                className="w-full min-h-[120px] p-3 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] leading-relaxed"
+              />
             </div>
 
             <button
-              onClick={() => setIsCreateTicketOpen(true)}
-              className="px-4 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              type="submit"
+              disabled={!isSupportFormValid}
+              className={`rounded-[var(--radius)] px-5 py-2.5 text-sm font-semibold transition-colors ${
+                isSupportFormValid
+                  ? 'bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]'
+                  : 'bg-[var(--color-bg-alt)] text-[var(--color-text-muted)] cursor-not-allowed border border-[var(--color-border)]'
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              <span>Create New Ticket</span>
+              Send message
             </button>
-          </div>
+          </form>
 
-          {/* Tickets List */}
-          <div className="space-y-4">
+          {/* Block below: Your messages */}
+          <div className="border-t border-[var(--color-border)] pt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold font-heading text-[var(--color-navy)]">
+                Your messages
+              </h3>
+              <span className="text-sm tabular-nums text-[var(--color-text-muted)] font-normal">
+                {`${customerTickets.length} ${customerTickets.length === 1 ? 'message' : 'messages'}`}
+              </span>
+            </div>
+
             {customerTickets.length === 0 ? (
-              <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                <LifeBuoy className="w-10 h-10 text-[#2463EB] mx-auto" />
-                <h3 className="font-extrabold text-slate-900 text-base">No Support Tickets Logged</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Need assistance with customs clearance, temperature-controlled transit, or invoice queries? Open a support ticket anytime.
-                </p>
-                <button
-                  onClick={() => setIsCreateTicketOpen(true)}
-                  className="px-4 py-2 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Open Inquiry Ticket</span>
-                </button>
-              </div>
+              <p className="text-sm text-[var(--color-text-muted)] py-2">
+                No messages yet.
+              </p>
             ) : (
-              customerTickets.map((t) => (
-                <div
-                  key={t.id}
-                  className="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-[#2463EB]/40 transition-colors space-y-3"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
-                    <div className="flex items-center space-x-2.5">
-                      <span className="font-mono font-black text-[#2463EB] text-xs">{t.id}</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-slate-200 text-slate-700">
-                        {t.category || 'General Support'}
-                      </span>
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded text-[10px] font-bold font-mono">
-                        Consignment #{t.shipmentId}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                        t.status === 'Open'
-                          ? 'bg-[#EAF2FF] text-[#0B1F5B] border border-[#2463EB]/40'
-                          : t.status === 'In Progress'
-                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                          : t.status === 'Waiting for Customer'
-                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                          : t.status === 'Resolved'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : 'bg-slate-200 text-slate-700'
-                      }`}>
-                        ● {t.status}
-                      </span>
-                      <button
-                        onClick={() => setActiveCustomerTicket(t)}
-                        className="px-3 py-1 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center space-x-1"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>View Conversation ({t.messages ? t.messages.length : 1})</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-extrabold text-slate-900 text-sm">{t.subject}</h4>
-                    {t.messages && t.messages.length > 0 && (
-                      <p className="text-xs text-slate-600 mt-1 line-clamp-2">
-                        Last message: <span className="font-semibold text-slate-800">{t.messages[t.messages.length - 1].senderName}:</span> "{t.messages[t.messages.length - 1].text}"
-                      </p>
-                    )}
-                  </div>
+              <div>
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] font-semibold">
+                        <th scope="col" className="pb-3 pr-4 font-semibold">Date</th>
+                        <th scope="col" className="pb-3 px-4 font-semibold">Subject</th>
+                        <th scope="col" className="pb-3 px-4 font-semibold">Status</th>
+                        <th scope="col" className="pb-3 pl-4 text-right font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
+                      {customerTickets.map((t) => (
+                        <tr key={t.id} className="hover:bg-[var(--color-bg-alt)] transition-colors">
+                          <td className="py-3.5 pr-4 tabular-nums text-[var(--color-text-muted)]">
+                            {t.createdAt ? t.createdAt.split(',')[0] : '—'}
+                          </td>
+                          <td className="py-3.5 px-4 font-semibold text-[var(--color-navy)]">
+                            {t.subject}
+                          </td>
+                          <td className="py-3.5 px-4 font-normal">
+                            {t.status || 'Open'}
+                          </td>
+                          <td className="py-3.5 pl-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => setActiveCustomerTicket(t)}
+                              className="underline text-[var(--color-navy)] hover:text-[var(--color-kraft-dark)] font-medium cursor-pointer"
+                              aria-label={`View conversation for ${t.subject}`}
+                            >
+                              View conversation
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))
+
+                {/* Mobile Stacked List */}
+                <div className="md:hidden divide-y divide-[var(--color-border)]">
+                  {customerTickets.map((t) => (
+                    <div key={t.id} className="py-4 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Date</span>
+                        <span className="tabular-nums text-[var(--color-text-muted)]">
+                          {t.createdAt ? t.createdAt.split(',')[0] : '—'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Subject</span>
+                        <span className="font-semibold text-[var(--color-navy)] text-right">{t.subject}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Status</span>
+                        <span className="text-[var(--color-text)]">{t.status || 'Open'}</span>
+                      </div>
+                      <div className="pt-1 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setActiveCustomerTicket(t)}
+                          className="underline text-[var(--color-navy)] hover:text-[var(--color-kraft-dark)] font-medium cursor-pointer"
+                          aria-label={`View conversation for ${t.subject}`}
+                        >
+                          View conversation
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-
-        </div>
+        </PortalCard>
       )}
 
 
+          </div>
         </div>
       </div>
 
@@ -1840,170 +2139,34 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
         </div>
       )}
 
-      {/* MODAL: CREATE SUPPORT TICKET (Requirement 7) */}
-      {isCreateTicketOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-lg w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-9 h-9 rounded-xl bg-[#EAF2FF] text-[#2463EB] border border-[#DCE5F0] flex items-center justify-center font-bold">
-                  <LifeBuoy className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900">Open Customer Support Ticket</h3>
-                  <p className="text-[11px] text-slate-500 font-medium">Link inquiry directly to an active consignment</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsCreateTicketOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!newTicketForm.shipmentId || !newTicketForm.subject || !newTicketForm.message) {
-                  showToast('Please select a shipment and write your inquiry.', 'warning');
-                  return;
-                }
-                const ticketId = createSupportTicket({
-                  shipmentId: newTicketForm.shipmentId,
-                  customerName: displayUser.name || 'Customer Shipper',
-                  customerEmail: displayUser.email || 'customer@razer.com',
-                  subject: newTicketForm.subject,
-                  category: newTicketForm.category || 'Transit Status',
-                  priority: newTicketForm.priority || 'Medium',
-                  message: newTicketForm.message
-                });
-                setIsCreateTicketOpen(false);
-                setNewTicketForm({ shipmentId: '', subject: '', category: 'Transit Status', priority: 'Medium', message: '' });
-                showToast(`Support Ticket #${ticketId} created successfully! Dispatch team notified.`, 'success');
-              }}
-              className="space-y-3.5 text-xs"
-            >
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Related Consignment Shipment *</label>
-                <select
-                  value={newTicketForm.shipmentId}
-                  onChange={(e) => setNewTicketForm({ ...newTicketForm, shipmentId: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-mono font-bold text-xs"
-                  required
-                >
-                  <option value="">Select your shipment...</option>
-                  {(shipments || []).map((s) => (
-                    <option key={s.id} value={s.id}>#{s.id} — {s.origin} to {s.destination} ({s.status})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Category *</label>
-                  <select
-                    value={newTicketForm.category}
-                    onChange={(e) => setNewTicketForm({ ...newTicketForm, category: e.target.value })}
-                    className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-bold text-xs"
-                  >
-                    <option value="Transit Status">Transit Status & ETA</option>
-                    <option value="Customs & Clearance">Customs & Clearance</option>
-                    <option value="Shipment Tracking">GPS & Telematics Updates</option>
-                    <option value="Billing & Invoicing">Billing & Tax Invoice</option>
-                    <option value="Delivery Assistance">Delivery Address Change</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Priority Level *</label>
-                  <select
-                    value={newTicketForm.priority}
-                    onChange={(e) => setNewTicketForm({ ...newTicketForm, priority: e.target.value })}
-                    className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-bold text-xs"
-                  >
-                    <option value="Low">Low (Standard SLA)</option>
-                    <option value="Medium">Medium (Priority)</option>
-                    <option value="High">High (Urgent Dispatch Alert)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Inquiry Subject *</label>
-                <input
-                  type="text"
-                  value={newTicketForm.subject}
-                  onChange={(e) => setNewTicketForm({ ...newTicketForm, subject: e.target.value })}
-                  placeholder="e.g. Inquire about customs permit clearance timeline"
-                  className="w-full p-2.5 border border-slate-300 rounded-xl focus-blue font-semibold text-xs"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Detailed Message / Description *</label>
-                <textarea
-                  rows={4}
-                  value={newTicketForm.message}
-                  onChange={(e) => setNewTicketForm({ ...newTicketForm, message: e.target.value })}
-                  placeholder="Please state details regarding your shipment so our operations team can resolve it promptly..."
-                  className="w-full p-3 border border-slate-300 rounded-xl focus-blue text-xs text-slate-900 resize-none leading-relaxed"
-                  required
-                />
-              </div>
-
-              <div className="flex space-x-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateTicketOpen(false)}
-                  className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-1/2 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Submit Ticket</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: CUSTOMER TICKET CONVERSATION THREAD (Requirement 7) */}
+      {/* MODAL: CUSTOMER TICKET CONVERSATION THREAD */}
       {activeCustomerTicket && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 max-w-2xl w-full max-h-[92vh] flex flex-col justify-between shadow-2xl">
-            
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] border-t-[3px] rounded-[var(--radius)] max-w-2xl w-full max-h-[90vh] flex flex-col justify-between p-6 shadow-none"
+            style={{ borderTopColor: 'var(--color-kraft)' }}
+          >
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-start justify-between border-b border-[var(--color-border)] pb-3">
               <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-mono font-black text-[#2463EB] text-sm">{activeCustomerTicket.id}</span>
-                  <span className="px-2 py-0.5 bg-[#EAF2FF] text-[#0B1F5B] text-[10px] font-extrabold rounded-full">
-                    {activeCustomerTicket.status}
-                  </span>
-                  <span className="text-xs text-slate-500 font-mono">
-                    Consignment #{activeCustomerTicket.shipmentId}
-                  </span>
-                </div>
-                <h3 className="text-base font-extrabold text-slate-900 mt-1">{activeCustomerTicket.subject}</h3>
+                <h3 className="text-lg font-bold text-[var(--color-navy)]">{activeCustomerTicket.subject}</h3>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                  Status: {activeCustomerTicket.status || 'Open'}
+                </p>
               </div>
 
               <button
+                type="button"
                 onClick={() => setActiveCustomerTicket(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                className="p-1 text-[var(--color-text-muted)] hover:text-[var(--color-navy)] rounded-[var(--radius)] transition-colors cursor-pointer"
+                aria-label="Close conversation"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Message History */}
-            <div className="flex-1 overflow-y-auto space-y-3 p-3 bg-slate-50/60 rounded-2xl border border-slate-100 max-h-72 my-3">
+            <div className="flex-1 overflow-y-auto space-y-3 p-4 bg-[var(--color-bg-alt)] rounded-[var(--radius)] border border-[var(--color-border)] max-h-72 my-4">
               {(activeCustomerTicket.messages || []).map((msg, i) => {
                 const isCust = msg.role === 'customer';
                 return (
@@ -2011,21 +2174,18 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     key={msg.id || i}
                     className={`flex flex-col ${isCust ? 'items-end' : 'items-start'} space-y-1`}
                   >
-                    <div className="flex items-center space-x-1.5 text-[10px] text-slate-400">
-                      <span className="font-bold text-slate-600">{msg.senderName}</span>
-                      <span className={`px-1.5 py-0.2 rounded font-black uppercase text-[9px] ${
-                        isCust ? 'bg-[#EAF2FF] text-[#0B1F5B]' : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {isCust ? 'You (Customer)' : 'Josan Operations'}
+                    <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
+                      <span className="font-semibold text-[var(--color-text)]">
+                        {isCust ? 'You' : 'Our team'}
                       </span>
                       <span>• {msg.timestamp}</span>
                     </div>
 
                     <div
-                      className={`p-3 rounded-2xl max-w-md text-xs leading-relaxed ${
+                      className={`p-3 rounded-[var(--radius)] max-w-md text-sm leading-relaxed border ${
                         isCust
-                          ? 'bg-[#EAF2FF]0 text-white rounded-tr-xs shadow-2xs'
-                          : 'bg-white text-slate-800 border border-slate-200 rounded-tl-xs shadow-2xs'
+                          ? 'bg-[var(--color-surface)] text-[var(--color-text)] border-[var(--color-border)]'
+                          : 'bg-[var(--color-surface)] text-[var(--color-text)] border-[var(--color-border)]'
                       }`}
                     >
                       {msg.text}
@@ -2040,12 +2200,12 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!customerReplyText.trim()) return;
-                replySupportTicket(activeCustomerTicket.id, customerReplyText, 'customer', displayUser.name || 'Customer Shipper');
+                replySupportTicket(activeCustomerTicket.id, customerReplyText.trim(), 'customer', displayUser.name || 'Customer');
                 const newMsg = {
                   id: `MSG-${Date.now()}`,
-                  senderName: displayUser.name || 'Customer Shipper',
+                  senderName: displayUser.name || 'Customer',
                   role: 'customer',
-                  text: customerReplyText,
+                  text: customerReplyText.trim(),
                   timestamp: 'Just now'
                 };
                 setActiveCustomerTicket({
@@ -2054,25 +2214,32 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   status: 'Waiting for Customer'
                 });
                 setCustomerReplyText('');
-                showToast('Reply dispatched to Josan Logistics support desk.', 'success');
+                showToast('Reply sent to our team.');
               }}
-              className="space-y-2 pt-2 border-t border-slate-100"
+              className="space-y-3 pt-3 border-t border-[var(--color-border)]"
             >
-              <label className="block text-xs font-bold text-slate-700">Write Response to Josan Dispatch</label>
-              <div className="flex space-x-2">
+              <label htmlFor="customer-reply-input" className="block text-sm font-medium text-[var(--color-text)]">
+                Write a reply to our team
+              </label>
+              <div className="flex gap-2">
                 <input
+                  id="customer-reply-input"
                   type="text"
                   value={customerReplyText}
                   onChange={(e) => setCustomerReplyText(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus-blue text-xs"
+                  placeholder="Type your reply..."
+                  className="flex-1 h-12 px-3 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)]"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl font-extrabold text-xs shadow-sm transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer"
+                  disabled={!customerReplyText.trim()}
+                  className={`rounded-[var(--radius)] px-5 py-2.5 text-sm font-semibold transition-colors shrink-0 ${
+                    customerReplyText.trim()
+                      ? 'bg-[var(--color-navy)] text-white hover:bg-[var(--color-kraft-dark)] cursor-pointer'
+                      : 'bg-[var(--color-bg-alt)] text-[var(--color-text-muted)] cursor-not-allowed border border-[var(--color-border)]'
+                  }`}
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Send</span>
+                  Send reply
                 </button>
               </div>
             </form>
@@ -2148,8 +2315,6 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <option value="Commercial Invoice">Commercial Invoice</option>
                   <option value="Packing List">Packing List</option>
                   <option value="Delivery Note / LR">Delivery Note / LR</option>
-                  <option value="Customs Clearance Permit">Customs Clearance Permit</option>
-                  <option value="Cargo Insurance Policy">Cargo Insurance Policy</option>
                   <option value="Proof of Delivery (POD)">Proof of Delivery (POD)</option>
                 </select>
               </div>
@@ -2225,10 +2390,6 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold">Uploaded Date:</span>
                 <span className="text-slate-700 font-semibold">{viewingCustDoc.uploadDate}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-bold">Verification:</span>
-                <span className="text-emerald-700 font-extrabold">✓ Verified by Josan Compliance</span>
               </div>
             </div>
 

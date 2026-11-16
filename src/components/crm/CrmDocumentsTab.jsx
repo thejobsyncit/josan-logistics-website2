@@ -856,7 +856,7 @@ export const CrmDocumentsTab = ({
                     type="text"
                     value={newDocData.customerName}
                     onChange={(e) => setNewDocData({ ...newDocData, customerName: e.target.value })}
-                    placeholder="e.g. Razer Asia-Pacific HQ"
+                    placeholder="Company name"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   />
                 </div>
