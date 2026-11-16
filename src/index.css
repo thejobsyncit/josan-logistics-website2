@@ -175,7 +175,7 @@
 
   /* Inline text links in body copy (sitewide) */
   .link-inline,
-  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a),
+  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a):not([class*="text-"]):not([class*="!text-"]),
   p button.link-inline,
   div a.link-inline,
   div button.link-inline {
@@ -189,7 +189,7 @@
   }
 
   .link-inline:hover,
-  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a):hover,
+  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a):not([class*="text-"]):not([class*="!text-"]):hover,
   p button.link-inline:hover,
   div a.link-inline:hover,
   div button.link-inline:hover {
@@ -198,7 +198,7 @@
   }
 
   .link-inline:focus-visible,
-  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a):focus-visible,
+  p a:not([class*="btn"]):not([role="button"]):not(nav a):not(footer a):not([class*="text-"]):not([class*="!text-"]):focus-visible,
   p button.link-inline:focus-visible,
   div a.link-inline:focus-visible,
   div button.link-inline:focus-visible {

@@ -215,7 +215,7 @@ export function generateLegalPdf(type = 'terms', customSettings = null) {
 
     addSectionHeading(3, 'Purposes of Data Collection & Use');
     addParagraph('Your personal and consignment data is processed solely for legitimate operational logistics purposes, including:');
-    addBullet('Quotation & Booking', 'Preparing competitive freight quotations, confirming bookings, and processing dispatch instructions.');
+    addBullet('Quotation & Booking', 'Preparing competitive freight quotations, confirming bookings, and transport coordination.');
     addBullet('Operations Coordination', 'Coordinating collection, road transportation, and delivery with our verified road hauliers and commercial airline partners.');
     addBullet('Tracking & Status Updates', 'Providing milestone tracking notifications and electronic Proof of Delivery (e-POD) records.');
     addBullet('Legal & Regulatory Compliance', 'Maintaining statutory trade records and financial documentation required under Singapore law.');
@@ -278,7 +278,7 @@ export function generateLegalPdf(type = 'terms', customSettings = null) {
     addParagraph('All quotations are provided in Singapore Dollars (SGD) unless expressly stated otherwise and are valid for 7 calendar days from issuance. Rates are based on information supplied by the Shipper and are subject to verification of actual gross weight and volumetric dimensions (chargeable weight). Payment terms are strictly 7 days from invoice date for approved commercial credit accounts, or full prepayment for non-account holders.');
 
     addSectionHeading(5, 'Cancellations & Amendments');
-    addParagraph('Shipment booking cancellations made less than 4 hours prior to scheduled pickup, or after dispatch of transport equipment, may incur a standard abortive trip fee of 50% to 100% of the transport charge.');
+    addParagraph('Shipment booking cancellations made less than 4 hours prior to scheduled pickup, or after collection of the cargo by the carrier, may incur a standard abortive trip fee of 50% to 100% of the transport charge.');
 
     addSectionHeading(6, 'Loading, Unloading & Demurrage');
     addParagraph('A standard grace period of 60 minutes is allocated for cargo loading and unloading at each location. Waiting time exceeding the grace period will be billed as vehicle demurrage at standard hourly rates.');
@@ -287,7 +287,7 @@ export function generateLegalPdf(type = 'terms', customSettings = null) {
     addParagraph('Shipment tracking numbers and transit milestone updates provided through our website or customer portal are operational estimates subject to road traffic conditions, terminal wait times, and flight schedules.');
 
     addSectionHeading(8, 'Limitation of Liability & Cargo Insurance');
-    addParagraph('Cargo insurance is NOT included in standard freight quotations unless requested and confirmed in writing prior to dispatch. Where liability is established by law:');
+    addParagraph('Cargo insurance is NOT included in standard freight quotations unless requested and confirmed in writing prior to collection of the cargo by the carrier. Where liability is established by law:');
     addBullet('Road Freight', 'Liability for loss or damage during road carriage coordinated by us is strictly limited in accordance with the standard terms of the appointed haulier or a maximum of SGD 5.00 per kilogram of gross weight affected, whichever is lower.');
     addBullet('Air Freight', 'Air carriage coordination is governed by the rules and liability limits of the Warsaw Convention or Montreal Convention as applicable to the issuing airline.');
     addBullet('Consequential Loss', 'In no event shall Josan Logistics be liable for indirect, incidental, special, or consequential damages, including loss of profits, business opportunity, or market delay.');

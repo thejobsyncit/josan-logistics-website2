@@ -13,7 +13,7 @@ import {
 import { useLogistics } from '../../context/LogisticsContext';
 import { supabase } from '../../services/supabase';
 import { canEditRole, isStaffRole, normalizeRole } from '../../utils/roles';
-import { formatSingaporeDateTime } from '../../utils/dateTime';
+import { formatSingaporeDateTime, formatSingaporeDate } from '../../utils/dateTime';
 import { COMPANY_INFO } from '../../config/siteConfig';
 
 export const QUOTE_STATUS_OPTIONS = [
@@ -234,20 +234,37 @@ export const CrmQuotationsTab = ({
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-[#EFF6FF] text-[#2563EB] border border-blue-200/50';
       case 'In review':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-[#FFFBEB] text-[#D97706] border border-amber-200/50';
       case 'Quoted':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-[#FAF5FF] text-[#9333EA] border border-purple-200/50';
       case 'Accepted':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'bg-[#ECFDF5] text-[#059669] border border-emerald-200/50';
       case 'Declined':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-[#FEF2F2] text-[#DC2626] border border-rose-200/50';
       case 'Closed':
-        return 'bg-slate-100 text-slate-600 border-slate-200';
+        return 'bg-slate-100 text-slate-600 border border-slate-200/50';
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-slate-100 text-slate-700 border border-slate-200/50';
     }
+  };
+
+  const getCleanService = (q) => {
+    const service = (q.service || q.service_type || q.serviceCategory || '').toLowerCase();
+    const cargo = (q.cargoCategory || q.cargo_category || '').toLowerCase();
+    if (service.includes('road') || cargo.includes('road')) return 'Road Transportation';
+    if (service.includes('doc') && !service.includes('air')) return 'Shipment Documentation';
+    return 'Air Freight Documentation';
+  };
+
+  const getCustomerDisplay = (q) => {
+    const primary = (q.customerName || q.contact_name || q.name || q.company || 'Customer').trim();
+    let subtitle = 'Customer';
+    if (q.company && q.company.trim() && q.company.trim().toLowerCase() !== primary.toLowerCase()) {
+      subtitle = q.company.trim();
+    }
+    return { primary, subtitle };
   };
 
   const handleSendQuote = (quoteId) => {
@@ -460,70 +477,64 @@ export const CrmQuotationsTab = ({
     }, 250);
   };
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
-        <div>
-          <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-black text-slate-900 font-heading">Quotations Management</h2>
-            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-800">
-              {quotes.length} Quotes
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Prepare, review and track pricing quotations for air freight documentation support and commercial road transport coordination.
-          </p>
-        </div>
+  const needReviewCount = quotes.filter(q => (q.status || 'New').toLowerCase() === 'new' || q.quoted_amount === null || q.quoted_amount === undefined).length;
 
-        {!isReadOnly && (
-          <button
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Quotation</span>
-          </button>
-        )}
+  return (
+    <div className="space-y-5 animate-fade-in">
+      {/* Top Header */}
+      <div className="space-y-1">
+        <p className="text-xs text-slate-500 font-medium">
+          Quotations / {quotes.length} total · {needReviewCount} need review
+        </p>
+        <h2 className="text-2xl font-black text-slate-900 font-heading tracking-tight">Quotations Management</h2>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+      <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
+        <div className="relative flex-1 min-w-[260px]">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            placeholder="Search by quote reference (e.g. QR-8K3F-92XD, TQ-...), customer, ID..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
+            placeholder="Search quote reference, customer or request ID..."
+            className="w-full pl-9 pr-4 py-2 bg-slate-50/60 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00]"
           />
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2">
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
           >
-            <option value="All">All Statuses</option>
-            <option value="Real Only">Real Only (Exclude Test)</option>
+            <option value="All">Status: All</option>
+            <option value="Real Only">Status: Real Only</option>
             {QUOTE_STATUS_OPTIONS.map(s => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>Status: {s}</option>
             ))}
           </select>
 
           <select
             value={serviceFilter}
             onChange={(e) => { setServiceFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
           >
-            <option value="All">All Services</option>
-            <option value="Airway">Air Freight Services</option>
-            <option value="Road">Road Transportation</option>
-            <option value="Documentation">Shipment Documentation</option>
+            <option value="All">Service: All</option>
+            <option value="Airway">Service: Air Freight</option>
+            <option value="Road">Service: Road Transport</option>
           </select>
+
+          {!isReadOnly && (
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer shadow-xs active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create quotation</span>
+            </button>
+          )}
 
           {(search || statusFilter !== 'All' || serviceFilter !== 'All') && (
             <button
@@ -538,97 +549,97 @@ export const CrmQuotationsTab = ({
       </div>
 
       {/* Quotations Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
+            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px] tracking-wider">
               <tr>
-                <th className="p-4">Quotation ID</th>
-                <th className="p-4">Customer</th>
-                <th className="p-4">Request / Ref ID</th>
-                <th className="p-4">Service Scope</th>
-                <th className="p-4">Total Amount</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Quotation Date</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="py-3 px-4">Quote Ref</th>
+                <th className="py-3 px-4">Customer</th>
+                <th className="py-3 px-4">Service</th>
+                <th className="py-3 px-4">Amount</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Date</th>
+                <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {paginatedQuotes.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="p-12 text-center text-slate-400 font-medium">
+                  <td colSpan="7" className="p-12 text-center text-slate-400 font-medium">
                     No quotations found matching your search.
                   </td>
                 </tr>
               ) : (
                 paginatedQuotes.map((q) => {
-                  const { totalAmount } = calculateQuoteAmounts(q);
+                  const quoteRef = q.referenceNumber || q.requestId || (q.notes?.includes('QR-') ? ('QR-' + q.notes.split('QR-')[1].slice(0, 9)) : (q.notes?.includes('JOS') ? q.notes.split('JOS')[1].slice(0, 10) : ('QR-' + (q.id || '').slice(0, 8).toUpperCase())));
+                  const customerDisplay = getCustomerDisplay(q);
+                  const cleanService = getCleanService(q);
+                  const isPriced = q.quoted_amount !== null && q.quoted_amount !== undefined && Number(q.quoted_amount) > 0;
+                  const dateStr = formatSingaporeDate(q.created_at || q.createdAt || q.quotationDate) || '—';
 
                   return (
-                    <tr key={q.id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* Quotation ID */}
-                      <td className="p-4 font-mono font-black text-slate-900 text-xs">
-                        #{q.id}
+                    <tr key={q.id} className="hover:bg-slate-50/60 transition-colors">
+                      {/* Quote Ref */}
+                      <td className="py-3.5 px-4 font-mono font-bold text-xs text-[#2563EB]">
+                        <button
+                          type="button"
+                          onClick={() => setViewingQuote(q)}
+                          className="hover:underline cursor-pointer text-left"
+                        >
+                          {quoteRef}
+                        </button>
                       </td>
 
                       {/* Customer */}
-                      <td className="p-4">
-                        <p className="font-extrabold text-slate-900 text-xs hover:text-[#2463EB] cursor-pointer" onClick={() => setViewingQuote(q)}>
-                          {q.company || q.customerName || 'Commercial Client'}
+                      <td className="py-3.5 px-4">
+                        <p 
+                          className="font-bold text-slate-900 text-xs hover:text-[#2563EB] cursor-pointer" 
+                          onClick={() => setViewingQuote(q)}
+                        >
+                          {customerDisplay.primary}
                         </p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{q.customerName || '—'}</p>
+                        <p className="text-[11px] text-slate-400 font-normal mt-0.5">
+                          {customerDisplay.subtitle}
+                        </p>
                       </td>
 
-                      {/* Request ID */}
-                      <td className="p-4 font-mono font-bold text-slate-600">
-                        {q.requestId || q.referenceNumber || (q.notes?.includes('JOS') ? q.notes.split('JOS')[1].slice(0, 10) : 'Direct Intake')}
-                      </td>
-
-                      {/* Service Scope */}
-                      <td className="p-4 text-slate-700">
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-800 rounded font-bold text-[10px] border border-slate-200 block w-fit">
-                          {q.service || (q.cargoCategory ? `${q.cargoCategory}` : 'Airway & Transportation')}
-                        </span>
-                        <span className="text-[10px] text-slate-400 block mt-0.5 truncate max-w-[160px]">
-                          {q.origin && q.destination ? `${q.origin} → ${q.destination}` : 'Singapore Logistics Route'}
-                        </span>
+                      {/* Service */}
+                      <td className="py-3.5 px-4 text-xs font-normal text-slate-700">
+                        {cleanService}
                       </td>
 
                       {/* Amount */}
-                      <td className="p-4 font-mono font-black text-slate-900 text-sm">
-                        {q.quoted_amount !== null && q.quoted_amount !== undefined ? (
-                          `S$ ${Number(q.quoted_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      <td className="py-3.5 px-4 text-xs">
+                        {isPriced ? (
+                          <span className="font-bold text-slate-900">
+                            S$ {Number(q.quoted_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
                         ) : (
-                          <span className="text-slate-400 font-sans font-medium text-xs">Not quoted yet</span>
+                          <span className="text-slate-500 font-normal">
+                            Not quoted
+                          </span>
                         )}
                       </td>
 
                       {/* Status */}
-                      <td className="p-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getStatusBadge(q.status || 'New')}`}>
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold inline-block ${getStatusBadge(q.status || 'New')}`}>
                           {q.status || 'New'}
                         </span>
                       </td>
 
                       {/* Date */}
-                      <td className="p-4 text-slate-500 font-mono text-[11px]">
-                        {formatSingaporeDateTime(q.created_at || q.createdAt || q.quotationDate) || 'Recent'}
+                      <td className="py-3.5 px-4 text-xs text-slate-500 font-normal whitespace-nowrap">
+                        {dateStr}
                       </td>
 
-                      {/* Actions */}
-                      <td className="p-4 text-right space-x-1.5">
-                        <button
-                          type="button"
-                          disabled={true}
-                          className="px-2.5 py-1 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-[11px] font-bold cursor-not-allowed opacity-50"
-                          title="Email is not connected yet"
-                        >
-                          Mark as sent
-                        </button>
+                      {/* Action */}
+                      <td className="py-3.5 px-4 text-right">
                         <button
                           type="button"
                           onClick={() => setViewingQuote(q)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                          className="text-xs font-bold text-slate-700 hover:text-[#2563EB] transition-colors cursor-pointer"
                         >
                           View
                         </button>

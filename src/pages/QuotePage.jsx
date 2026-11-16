@@ -162,7 +162,7 @@ export const QuotePage = ({ setActiveTab }) => {
   };
 
   // Options and consent
-  const [emailCopy, setEmailCopy] = useState(false);
+  const emailCopy = false;
   const [consentAgreed, setConsentAgreed] = useState(false);
 
   // Cloudflare Turnstile
@@ -283,7 +283,7 @@ export const QuotePage = ({ setActiveTab }) => {
       contact_phone: fullContactPhone,
       company_name: contactCompany.trim() || null,
       consent_given: Boolean(consentAgreed),
-      copy_to_customer: Boolean(emailCopy),
+      copy_to_customer: false,
       turnstile_token: turnstileToken,
       website: websiteHoneypot || ''
     };
@@ -408,7 +408,7 @@ export const QuotePage = ({ setActiveTab }) => {
                       We have received your request
                     </h2>
                     <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      Our team will review it and email you a quote at <strong className="text-[var(--color-text)]">{submittedSummary.contactEmail}</strong>.
+                      Our team will contact you about your quote.
                     </p>
                     {submittedSummary.emailCopy && (
                       <p className="text-xs text-[var(--color-text-muted)] mt-1">
@@ -990,21 +990,7 @@ export const QuotePage = ({ setActiveTab }) => {
                           </div>
                         </div>
 
-                        {/* Copy checkbox */}
-                        <div className="mt-4">
-                          <label className="flex items-center space-x-2.5 cursor-pointer text-xs text-[var(--color-text)]">
-                            <input
-                              type="checkbox"
-                              checked={emailCopy}
-                              onChange={(e) => setEmailCopy(e.target.checked)}
-                              className="w-4 h-4 text-[var(--color-navy)] rounded border-[var(--color-border)] focus:ring-[var(--color-navy)] cursor-pointer"
-                            />
-                            <span>
-                              Email me a copy of this request
-                              {contactEmail.trim() ? ` (to ${contactEmail.trim()})` : ''}
-                            </span>
-                          </label>
-                        </div>
+
 
                         {/* Exact required consent checkbox */}
                         <div className="mt-3">
@@ -1063,6 +1049,11 @@ export const QuotePage = ({ setActiveTab }) => {
                           }}
                           error={captchaError}
                         />
+                      </div>
+
+                      {/* Notice above Send button */}
+                      <div className="p-3 my-3 bg-[var(--color-bg-alt)] border border-[var(--color-border)] rounded-[var(--radius,4px)] text-xs text-[var(--color-text-muted)] leading-relaxed">
+                        Please don't send documents here. Do not include NRIC numbers, passwords or payment details.
                       </div>
 
                       <div className="pt-2">

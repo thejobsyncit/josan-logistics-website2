@@ -216,7 +216,7 @@ export const initialWebsiteContent = {
     closingCta: {
       heading: 'Send us your shipment details and we will quote.',
       subtext: 'Tell us what you are shipping and what you need: air freight documents, road transport, or both.',
-      primaryLabel: 'Get a quote',
+      primaryLabel: 'Get a Quote',
       secondaryLabel: 'Contact us'
     }
   },
@@ -277,9 +277,9 @@ export const initialWebsiteContent = {
     hero: {
       title: 'AWB, Billing & Shipment Documentation',
       subtitle: 'We prepare Air Waybills and handle the billing and shipment documents for commercial air freight.',
-      ctaLabel: 'Get a quote',
-      image: '',
-      imageAlt: 'Parked white and blue freight aircraft on an airport tarmac at night'
+      ctaLabel: 'Get a Quote',
+      image: '/assets/air_background.png',
+      imageAlt: 'Commercial air cargo aircraft on an airport tarmac at night'
     },
     intro: {
       heading: 'Air freight paperwork, prepared for you',
@@ -416,7 +416,7 @@ export const initialWebsiteContent = {
         'Anything else we should know about your shipment'
       ],
       note: 'The documents we need can vary by shipment. We will tell you what is needed.',
-      ctaLabel: 'Get a quote'
+      ctaLabel: 'Get a Quote'
     },
     roadCrossLink: {
       heading: 'Need road transport?',
@@ -453,7 +453,7 @@ export const initialWebsiteContent = {
     closingCta: {
       heading: 'Send us your shipment details and we will prepare your Air Waybill.',
       subtext: 'Tell us what you are shipping and we will send you a quote for the Air Waybill and billing.',
-      primaryLabel: 'Get a quote',
+      primaryLabel: 'Get a Quote',
       contactLabel: 'Contact us',
       callLabel: 'Call us',
       whatsappLabel: 'WhatsApp',
@@ -464,7 +464,7 @@ export const initialWebsiteContent = {
     hero: {
       heading: 'Commercial road transport in Singapore',
       paragraph: 'We arrange commercial road transport for businesses through our partner carriers. We do not own vehicles, so each job is matched to a carrier that suits your goods.',
-      ctaLabel: 'Get a quote',
+      ctaLabel: 'Get a Quote',
       image: '/assets/road_transportation_hero.jpg',
       imageAlt: 'Commercial road transport vehicle in Singapore'
     },
@@ -530,7 +530,7 @@ export const initialWebsiteContent = {
           ]
         }
       ],
-      linkLabel: 'Get a quote',
+      linkLabel: 'Get a Quote',
       linkTarget: '#quote'
     },
     goodsWeMove: {
@@ -632,7 +632,7 @@ export const initialWebsiteContent = {
         'Preferred pickup date'
       ],
       note: 'Our team reviews your request before we send you a quote.',
-      buttonLabel: 'Get a quote',
+      buttonLabel: 'Get a Quote',
       // Set to true only when this service is confirmed.
       showDocumentationCard: false,
       documentationCard: {
@@ -694,7 +694,7 @@ export const initialWebsiteContent = {
     closingCta: {
       heading: 'Send us your job details and we will quote.',
       subtext: 'Tell us what you are moving and where it is going. Our team reviews your request and emails you a quote.',
-      primaryLabel: 'Get a quote',
+      primaryLabel: 'Get a Quote',
       contactLabel: 'Contact us',
       callLabel: 'Call us',
       whatsappLabel: 'WhatsApp',

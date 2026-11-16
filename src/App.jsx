@@ -502,20 +502,20 @@ const MainContent = () => {
         description: 'Explore our core logistics solutions: Air Freight Services, Commercial Road Transportation, and Shipment Documentation Support.'
       },
       'contact': {
-        title: 'Contact Us | Josan Logistics',
-        description: 'Get in touch with Josan Logistics for air freight documentation, commercial road transport inquiries, and freight quotes.'
+        title: 'Contact | Josan Logistics',
+        description: 'Contact Josan Logistics in Singapore about a quote, a road shipment or air freight documents. Send us a message and our team will get back to you.'
       },
       'track': {
         title: 'Track road shipment | Josan Logistics',
-        description: 'Enter the tracking number we emailed you to see the status of your road shipment with Josan Logistics in Singapore.'
+        description: 'Enter your tracking number to see the status of your road shipment with Josan Logistics in Singapore.'
       },
       'quote': {
         title: 'Request a quote | Josan Logistics',
-        description: 'Send us your shipment details and we will email you a quote for air freight documents or road transport in Singapore.'
+        description: 'Send us your shipment details and we will send you a quote for air freight documents or road transport in Singapore.'
       },
       'privacy-policy': {
         title: 'Privacy Policy | Josan Logistics Pte. Ltd.',
-        description: 'Josan Logistics Singapore PDPA compliance and commercial freight data privacy policy.'
+        description: 'Josan Logistics privacy policy for commercial freight enquiries under the Singapore PDPA.'
       },
       'terms-of-service': {
         title: 'Terms of Service | Josan Logistics Pte. Ltd.',

@@ -346,7 +346,7 @@ export const RoadFreightPage = ({ setActiveTab }) => {
               className="inline-block text-sm sm:text-base font-semibold text-[var(--color-navy)] hover:underline underline-offset-4 rounded-[2px] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
               style={{ letterSpacing: 'normal' }}
             >
-              {servicesCopy.linkLabel || 'Get a quote'}
+              {servicesCopy.linkLabel || 'Get a Quote'}
             </a>
           </div>
         </div>
@@ -584,7 +584,7 @@ export const RoadFreightPage = ({ setActiveTab }) => {
                   className="px-6 py-3 bg-[var(--color-orange)] hover:bg-[var(--color-orange-hover)] text-[var(--color-on-navy)] rounded-[var(--radius)] font-semibold text-sm transition-colors cursor-pointer shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
                   style={{ letterSpacing: 'normal' }}
                 >
-                  {whatWeNeedCopy.buttonLabel || 'Get a quote'}
+                  {whatWeNeedCopy.buttonLabel || 'Get a Quote'}
                 </button>
               </div>
             </div>

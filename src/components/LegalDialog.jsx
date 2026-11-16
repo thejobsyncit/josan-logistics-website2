@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { COOKIE_AUDIT_DATA, openCookiePreferences } from './CookieBanner';
 import { useLogistics } from '../context/LogisticsContext';
-import { COMPANY_INFO } from '../config/siteConfig';
+import { COMPANY_INFO, isDisplayablePhone } from '../config/siteConfig';
 
 // Global helper function so any component can open the dialog without navigating or clearing form state
 export const openLegalDialog = (type = 'privacy', triggerElement = null) => {
@@ -664,7 +664,9 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                   <p>
                     <strong>Email:</strong> <a href={`mailto:${siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}</a>
                   </p>
-                  <p><strong>Telephone:</strong> <a href={`tel:${(siteSettings?.phone || '+65 6789 0123').replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings?.phone || '+65 6789 0123'}</a></p>
+                  {isDisplayablePhone(siteSettings?.phone) && (
+                    <p><strong>Telephone:</strong> <a href={`tel:${siteSettings.phone.replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings.phone}</a></p>
+                  )}
                 </div>
               </section>
             </>
@@ -749,7 +751,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                   <span>Cancellation and Changes</span>
                 </h3>
                 <p className="text-slate-600">
-                  Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to the carrier collecting the cargo. Cancellations made after a vehicle has been dispatched or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER]</span>.
+                  Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to the carrier collecting the cargo. Cancellations made after a vehicle has been sent for collection or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER]</span>.
                 </p>
               </section>
 
@@ -771,7 +773,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                   <span>Tracking Information</span>
                 </h3>
                 <p className="text-slate-600">
-                  Shipment updates are entered manually by our operations team, are indicative only, and show a Last updated time.
+                  Shipment updates are entered manually by our operations team, are indicative only, and show a Last updated time. Josan Logistics is not liable for minor delays in updates shown on the Track Shipment page.
                 </p>
               </section>
 
@@ -789,7 +791,7 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                     Standard carriage liability for cargo loss or damage is limited in accordance with applicable statutory freight carriage regulations and conventions <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER]</span>.
                   </li>
                   <li>
-                    Cargo insurance is not included unless arranged in writing before dispatch. <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER TO CONFIRM]</span>
+                    Cargo insurance is not included unless arranged in writing before the carrier collects the cargo. <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER TO CONFIRM]</span>
                   </li>
                   <li>
                     Josan Logistics shall not be liable for consequential loss, indirect commercial damages, loss of business profits, loss of opportunity, or delays caused by force majeure events (severe weather, highway bottlenecks, border delays, civil disruptions) <span className="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">[LAWYER]</span>.
@@ -1022,10 +1024,12 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
               <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>Email: <a href={`mailto:${siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}</a></span>
             </p>
-            <p className="flex items-center space-x-2">
-              <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>Hotline: <a href={`tel:${(siteSettings?.phone || '+65 6789 0123').replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings?.phone || '+65 6789 0123'}</a></span>
-            </p>
+            {isDisplayablePhone(siteSettings?.phone) && (
+              <p className="flex items-center space-x-2">
+                <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>Hotline: <a href={`tel:${siteSettings.phone.replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings.phone}</a></span>
+              </p>
+            )}
           </div>
         </div>
       </div>

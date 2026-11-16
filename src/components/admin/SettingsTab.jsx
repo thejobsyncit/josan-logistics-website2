@@ -79,12 +79,12 @@ export const SettingsTab = ({ onSaveToast }) => {
     dailyDigestEmail: false,
   });
 
-  const [chatSessions, setChatSessions] = useState(() => getAdminChatSessions());
+  const [chatSessions, setChatSessions] = useState(() => []);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [deletionFeedback, setDeletionFeedback] = useState(null);
 
   const refreshChatSessions = () => {
-    setChatSessions(getAdminChatSessions());
+    setChatSessions([]);
   };
 
   const handleDeleteCustomerChats = (e) => {
@@ -620,7 +620,7 @@ export const SettingsTab = ({ onSaveToast }) => {
 
             {chatSessions.length === 0 ? (
               <div className="bg-white p-8 rounded-xl border border-slate-200 text-center space-y-1">
-                <p className="font-bold text-slate-700">No active stored chat records found.</p>
+                <p className="font-bold text-slate-700">No chat logs yet</p>
                 <p className="text-[11px] text-slate-400">
                   Customer chats will be listed here when visitors submit inquiries through JOSAN AI.
                 </p>

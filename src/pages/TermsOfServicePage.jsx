@@ -25,7 +25,7 @@ import {
   Ban
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
-import { COMPANY_INFO } from '../config/siteConfig';
+import { COMPANY_INFO, isDisplayablePhone } from '../config/siteConfig';
 
 export const TermsOfServicePage = ({ setActiveTab }) => {
   const { siteSettings } = useLogistics?.() || {};
@@ -146,7 +146,7 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
               <span>Cancellation and Changes</span>
             </h2>
             <p className="text-slate-600">
-              Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to the carrier collecting the cargo. Cancellations made after a vehicle has been dispatched or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred.
+              Booking modifications or cancellations must be communicated to Josan Logistics in writing prior to the carrier collecting the cargo. Cancellations made after a vehicle has been sent for collection or resulting in an abortive journey may be subject to cancellation charges or abortive haulage fees reflecting actual partner costs incurred.
             </p>
           </section>
 
@@ -168,7 +168,7 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
               <span>Tracking Information</span>
             </h2>
             <p className="text-slate-600">
-              Shipment updates are entered manually by our operations team, are indicative only, and show a Last updated time.
+              Shipment updates are entered manually by our operations team, are indicative only, and show a Last updated time. Josan Logistics is not liable for minor delays in updates shown on the Track Shipment page.
             </p>
           </section>
 
@@ -183,7 +183,7 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
             </p>
             <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600">
               <li>Standard carriage liability for cargo loss or damage is limited in accordance with applicable statutory freight carriage regulations and conventions.</li>
-              <li>Cargo insurance is not included unless arranged in writing before dispatch.</li>
+              <li>Cargo insurance is not included unless arranged in writing before the carrier collects the cargo.</li>
               <li>Josan Logistics shall not be liable for consequential loss, indirect commercial damages, loss of business profits, loss of opportunity, or delays caused by force majeure events.</li>
             </ul>
           </section>
@@ -415,10 +415,12 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
               <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>Email: <a href={`mailto:${siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}</a></span>
             </p>
-            <p className="flex items-center space-x-2">
-              <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>Hotline: <a href={`tel:${(siteSettings?.phone || '+65 6789 0123').replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings?.phone || '+65 6789 0123'}</a></span>
-            </p>
+            {isDisplayablePhone(siteSettings?.phone) && (
+              <p className="flex items-center space-x-2">
+                <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>Hotline: <a href={`tel:${siteSettings.phone.replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings.phone}</a></span>
+              </p>
+            )}
           </div>
 
         </div>

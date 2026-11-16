@@ -18,7 +18,7 @@ import {
 import { useLogistics } from '../context/LogisticsContext';
 import { openLegalDialog } from './LegalDialog';
 import { openCookiePreferences } from './CookieBanner';
-import { getPhoneLinks, SITE_CONTACT } from '../config/siteConfig';
+import { getPhoneLinks, isDisplayablePhone, SITE_CONTACT } from '../config/siteConfig';
 
 export const Footer = ({ setActiveTab }) => {
   const { showToast, currentUser, resetShipmentScope, setIsAuthModalOpen, setAuthRedirectTab, websiteContent, managedServices, siteSettings } = useLogistics();
@@ -183,7 +183,7 @@ export const Footer = ({ setActiveTab }) => {
                 Contact &amp; Support
               </h4>
               <div className="space-y-3 text-sm text-[var(--color-on-navy-muted)]">
-                {phoneLinks.hasConfirmedPhone && (
+                {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && (
                   <div className="space-y-1.5">
                     <p
                       className="text-xs text-[var(--color-on-navy-muted)] font-normal"
@@ -419,7 +419,7 @@ export const Footer = ({ setActiveTab }) => {
                   <div className="space-y-2">
                     <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. Complaints, Dispute Resolution &amp; DPO Contact</h4>
                     <p>
-                      Contact our Data Protection Officer for inquiries, consent withdrawal, or complaints at <a href={`mailto:${siteSettings?.contact_email || contactInfo.email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || contactInfo.email || 'contact@josanlogistics.com.sg'}</a> or call <strong>{siteSettings?.phone || contactInfo.phone || '+65 6789 0123'}</strong>. Address: {siteSettings?.registered_office || contactInfo.address || SITE_CONTACT.address}. Unresolved matters may be referred to the Personal Data Protection Commission (PDPC).
+                      Contact our Data Protection Officer for inquiries, consent withdrawal, or complaints at <a href={`mailto:${siteSettings?.contact_email || contactInfo.email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || contactInfo.email || 'contact@josanlogistics.com.sg'}</a>{isDisplayablePhone(siteSettings?.phone || contactInfo.phone) ? <> or call <strong>{siteSettings?.phone || contactInfo.phone}</strong></> : null}. Address: {siteSettings?.registered_office || contactInfo.address || SITE_CONTACT.address}. Unresolved matters may be referred to the Personal Data Protection Commission (PDPC).
                     </p>
                     <p className="text-xs text-slate-400 font-mono pt-1">Effective Date: 29 October 2026</p>
                   </div>
@@ -493,7 +493,7 @@ export const Footer = ({ setActiveTab }) => {
                     <h4 className="text-slate-900 font-bold text-sm sm:text-base">7. Limit of Liability &amp; Force Majeure</h4>
                     <ul className="list-disc list-inside space-y-1 text-slate-600 pl-2">
                       <li>Standard carriage liability for loss or damage is limited according to applicable statutory freight carriage regulations and conventions.</li>
-                      <li>Cargo insurance is not included unless arranged in writing before dispatch.</li>
+                      <li>Cargo insurance is not included unless arranged in writing before the carrier collects the cargo.</li>
                       <li>Neither party is liable for failure or delay caused by Force Majeure events (natural disasters, weather, epidemics, strikes, war, government restrictions).</li>
                     </ul>
                   </div>

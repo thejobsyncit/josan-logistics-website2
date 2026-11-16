@@ -27,10 +27,12 @@ import {
   Phone
 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
+import { getPhoneLinks, isDisplayablePhone } from '../config/siteConfig';
 import docsHeroImg from '../assets/shipment_documentation_desk.jpg';
 
 export const ShipmentDocumentationPage = ({ setActiveTab }) => {
-  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast } = useLogistics();
+  const { currentUser, setIsAuthModalOpen, setAuthRedirectTab, showToast, websiteContent } = useLogistics();
+  const phoneLinks = getPhoneLinks(websiteContent?.contact?.phone);
   // Cargo Mode Tabs State - Airway Services as Primary Default
   const [activeMode, setActiveMode] = useState('air');
 
@@ -463,14 +465,16 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <a
-                href="tel:+6567890123"
-                className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl border border-white/20 transition-all cursor-pointer flex items-center space-x-2 active:scale-95"
-                title="Call Josan Logistics (+65 6789 0123)"
-              >
-                <Phone className="w-4 h-4 text-orange-400" />
-                <span>Call Us</span>
-              </a>
+              {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && (
+                <a
+                  href={phoneLinks.telHref}
+                  className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl border border-white/20 transition-all cursor-pointer flex items-center space-x-2 active:scale-95"
+                  title={`Call Josan Logistics (${phoneLinks.display})`}
+                >
+                  <Phone className="w-4 h-4 text-orange-400" />
+                  <span>Call Us</span>
+                </a>
+              )}
             </div>
           </div>
         </div>

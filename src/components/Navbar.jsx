@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
-import { getPhoneLinks } from '../config/siteConfig';
+import { getPhoneLinks, isDisplayablePhone } from '../config/siteConfig';
 import { normalizeRole, isStaffRole } from '../utils/roles';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
 import { 
@@ -446,7 +446,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           {/* ZONE 3: Actions on Right (Phone, Get a Quote text link, Login text link or Account Menu) */}
           <div className="hidden min-[1100px]:flex items-center justify-end space-x-5 shrink-0 ml-10">
             {/* Phone link: plain small phone icon + number (hidden until phone is confirmed) */}
-            {phoneLinks.hasConfirmedPhone && (
+            {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && (
               <a
                 href={phoneLinks.telHref}
                 className="inline-flex items-center space-x-1.5 text-sm font-medium text-[var(--color-on-navy)] hover:underline underline-offset-4 transition-colors py-1 px-1.5 rounded-[2px] whitespace-nowrap cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-on-navy)] focus-visible:outline-offset-2"
@@ -655,7 +655,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               Get a Quote
             </button>
 
-            {phoneLinks.hasConfirmedPhone && (
+            {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && (
               <div className="flex items-center gap-2">
                 <a
                   href={phoneLinks.telHref}

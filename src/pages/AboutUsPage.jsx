@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Clock, Phone, Mail, ArrowRight, Send, FileCheck2, CreditCard, CheckCircle2 } from 'lucide-react';
 import { useLogistics } from '../context/LogisticsContext';
 import roadwayTruckImg from '../assets/Local CDL Training in Minden.jpg';
-import { COMPANY_INFO, getPhoneLinks } from '../config/siteConfig';
+import { COMPANY_INFO, getPhoneLinks, isDisplayablePhone } from '../config/siteConfig';
 import { initialWebsiteContent } from '../data/adminCrmData';
 
 const HOW_WE_WORK_ICONS = [Send, FileCheck2, CreditCard];
@@ -395,11 +395,11 @@ export const AboutUsPage = ({ setActiveTab }) => {
                       </>
                     )
                   },
-                  {
+                  ...(phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) ? [{
                     key: 'phone',
                     Icon: Phone,
                     label: whereToFindUs.labels.phone,
-                    content: phoneLinks.hasConfirmedPhone ? (
+                    content: (
                       <a
                         href={phoneLinks.telHref}
                         className="text-[var(--color-text)] hover:text-[var(--color-navy)] hover:underline underline-offset-4 rounded-[2px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
@@ -407,10 +407,8 @@ export const AboutUsPage = ({ setActiveTab }) => {
                       >
                         {phoneLinks.display}
                       </a>
-                    ) : (
-                      <span>{phoneLinks.display}</span>
                     )
-                  },
+                  }] : []),
                   {
                     key: 'email',
                     Icon: Mail,

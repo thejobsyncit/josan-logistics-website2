@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
-import { Bot, X, Trash2, ShieldAlert, Send, CheckCircle2 } from 'lucide-react';
+import { Bot, X, Trash2, Info } from 'lucide-react';
 import { openLegalDialog } from '../LegalDialog';
 
 export const ChatWindow = ({
@@ -16,13 +16,6 @@ export const ChatWindow = ({
   const messagesEndRef = useRef(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [teamFeedback, setTeamFeedback] = useState(null);
-  const [showNotice, setShowNotice] = useState(() => {
-    try {
-      return !sessionStorage.getItem('josan_chat_notice_dismissed');
-    } catch (e) {
-      return true;
-    }
-  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,18 +26,7 @@ export const ChatWindow = ({
   }, [messages, isLoading]);
 
   const handleSendChatToTeam = () => {
-    const hasUserMsg = messages && messages.some(m => m.role === 'user');
-    if (!hasUserMsg) {
-      setTeamFeedback('Please ask a question or enter your inquiry first.');
-      setTimeout(() => setTeamFeedback(null), 3500);
-      return;
-    }
-    const res = onSendToTeam ? onSendToTeam() : null;
-    if (res?.success) {
-      setTeamFeedback(`Chat sent to our operations team! Reference #${res.referenceNumber}`);
-    } else {
-      setTeamFeedback('Conversation sent to our operations team for follow-up.');
-    }
+    setTeamFeedback("This chat is automatic. Your messages are not sent to our team. For a quote, please use Get a Quote.");
     setTimeout(() => setTeamFeedback(null), 6000);
   };
 
@@ -127,41 +109,10 @@ export const ChatWindow = ({
         )}
       </div>
 
-      {/* Notice only once per session: short line at top */}
-      {showNotice && (
-        <div className="px-3 py-1.5 bg-[var(--color-bg-alt)] border-b border-[var(--color-border)] text-[10.5px] text-[var(--color-text)] flex items-center justify-between gap-1.5 shrink-0 animate-fade-in z-10">
-          <div className="flex items-center space-x-1.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-[var(--color-navy)] shrink-0 self-start sm:self-center mt-0.5 sm:mt-0" />
-            <span className="leading-tight">
-              Chats may be stored to follow up on your enquiry or quote request. Please don't share passwords, payment details or NRIC numbers. See our{' '}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openLegalDialog('privacy', e.currentTarget);
-                }}
-                className="text-[var(--color-navy)] hover:underline font-bold inline cursor-pointer rounded-[2px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-navy)]"
-              >
-                Privacy Policy
-              </button>.
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setShowNotice(false);
-              try {
-                sessionStorage.setItem('josan_chat_notice_dismissed', 'true');
-              } catch (e) {}
-            }}
-            className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] p-0.5 rounded cursor-pointer shrink-0 self-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-navy)]"
-            title="Dismiss notice"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
+      {/* Top short line notice */}
+      <div className="px-3 py-1.5 bg-[var(--color-bg-alt)] border-b border-[var(--color-border)] text-[11px] text-[var(--color-text-muted)] text-center leading-normal shrink-0">
+        Demo chat: automatic answers only. Please don't share personal or payment details here.
+      </div>
 
       {/* Messages Scroll Area */}
       <div className="flex-1 p-3.5 overflow-y-auto">
@@ -174,23 +125,15 @@ export const ChatWindow = ({
 
       {/* Team Follow-up Banner / Trigger */}
       {teamFeedback && (
-        <div className="px-3 py-1.5 bg-[var(--color-bg-alt)] border-t border-[var(--color-border)] text-[11px] font-bold text-[var(--color-navy)] flex items-center space-x-1.5 animate-fade-in shrink-0">
-          <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-navy)] shrink-0" />
+        <div className="px-3 py-1.5 bg-[var(--color-bg-alt)] border-t border-[var(--color-border)] text-[11px] font-medium text-[var(--color-text)] flex items-center space-x-1.5 animate-fade-in shrink-0">
+          <Info className="w-3.5 h-3.5 text-[var(--color-orange)] shrink-0" />
           <span>{teamFeedback}</span>
         </div>
       )}
 
-      {/* Utility Bar: Send this chat to our team */}
-      <div className="px-3 py-1 bg-[var(--color-bg-alt)] border-t border-[var(--color-border)] flex items-center justify-between text-[10px] text-[var(--color-text-muted)]">
-        <button
-          type="button"
-          onClick={handleSendChatToTeam}
-          className="text-[10px] font-bold text-[var(--color-navy)] hover:underline flex items-center space-x-1 transition-colors cursor-pointer rounded-[2px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-navy)]"
-        >
-          <Send className="w-2.5 h-2.5 text-[var(--color-navy)]" />
-          <span>Send this chat to our team</span>
-        </button>
-        <span className="text-[var(--color-text-muted)]">Stored only upon request/quote</span>
+      {/* Utility Bar */}
+      <div className="px-3 py-1 bg-[var(--color-bg-alt)] border-t border-[var(--color-border)] flex items-center justify-end text-[10px] text-[var(--color-text-muted)]">
+        <span className="text-[var(--color-text-muted)]">Automatic demo assistant</span>
       </div>
 
       {/* Input Section */}

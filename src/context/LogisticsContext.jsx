@@ -2129,7 +2129,7 @@ export const LogisticsProvider = ({ children }) => {
       shipmentId: ticketData.shipmentId !== 'General Inquiry' ? ticketData.shipmentId : null
     });
 
-    showToast(`Support Ticket #${ticketId} submitted to dispatch team!`, 'success');
+    showToast(`Support Ticket #${ticketId} submitted to operations team!`, 'success');
     return newTicket;
   };
 

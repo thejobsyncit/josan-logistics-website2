@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { initialWebsiteContent } from '../data/adminCrmData';
 import { getPhoneLinks } from '../config/siteConfig';
+import airFreightHeroImg from '../assets/air_background.png';
 import { 
   Check,
   Phone,
@@ -100,8 +101,8 @@ export const AirFreightPage = ({ setActiveTab }) => {
       <section className="relative bg-[var(--color-navy)] text-[var(--color-on-navy)] py-16 sm:py-[72px] px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <img 
-            src={heroCopy.image} 
-            alt={heroCopy.imageAlt} 
+            src={heroCopy.image || airFreightHeroImg} 
+            alt={heroCopy.imageAlt || 'Parked white and blue freight aircraft on an airport tarmac at night'} 
             className="w-full h-full object-cover object-[70%_center] sm:object-[78%_center] lg:object-[82%_center]"
           />
           <div className="absolute inset-0 hero-navy-overlay" />

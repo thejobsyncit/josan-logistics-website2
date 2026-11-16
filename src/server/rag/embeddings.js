@@ -12,9 +12,14 @@ export async function generateEmbedding(text) {
 
   const cleanText = text.replace(/\n/g, ' ').trim();
 
+  // If running in browser, do not read any key and do not call OpenAI or Gemini. Go straight to fallback.
+  if (typeof window !== 'undefined') {
+    return generateDeterministicEmbedding(cleanText);
+  }
+
   // Check for API Keys in environment variables
-  const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || process.env.VITE_AI_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
 
   // 1. Try OpenAI Embeddings API if key is present
   if (apiKey && !apiKey.includes('your-')) {

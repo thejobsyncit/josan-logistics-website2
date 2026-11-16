@@ -161,7 +161,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
       showToast('Please type a message before sending.', 'warning');
       return;
     }
-    showToast(`Cancellation / Inquiry message regarding Order #${messageTargetOrder?.id || ''} successfully dispatched to Josan Logistics support!`, 'success');
+    showToast(`Cancellation / Inquiry message regarding Order #${messageTargetOrder?.id || ''} successfully sent to Josan Logistics support!`, 'success');
     setIsMessageModalOpen(false);
     setMessageTargetOrder(null);
     setMessageSubject('');
@@ -517,7 +517,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               onClick={() => setActiveTab('quote')}
               className="w-full sm:w-auto px-6 py-3 bg-[var(--color-orange)] hover:bg-[var(--color-orange-hover)] text-white font-semibold text-sm rounded-[var(--radius)] shadow-none transition-colors text-center cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)]"
             >
-              Request a quote
+              Get a Quote
             </button>
           </div>
         </div>
@@ -628,7 +628,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           {displayShipments.length === 0 ? (
             <PortalEmptyState
               message="No shipments yet."
-              actionLabel="Request a quote"
+              actionLabel="Get a Quote"
               onAction={() => {
                 if (setActiveTab) setActiveTab('quote');
               }}
@@ -1090,7 +1090,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           {displayQuotes.length === 0 ? (
             <PortalEmptyState
               message="No quote requests yet."
-              actionLabel="Request a quote"
+              actionLabel="Get a Quote"
               onAction={() => {
                 if (setActiveTab) setActiveTab('quote');
               }}

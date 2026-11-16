@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { COOKIE_AUDIT_DATA, openCookiePreferences } from '../components/CookieBanner';
 import { useLogistics } from '../context/LogisticsContext';
-import { COMPANY_INFO } from '../config/siteConfig';
+import { COMPANY_INFO, isDisplayablePhone } from '../config/siteConfig';
 
 export const PrivacyPolicyPage = ({ setActiveTab }) => {
   const { siteSettings } = useLogistics?.() || {};
@@ -398,10 +398,12 @@ export const PrivacyPolicyPage = ({ setActiveTab }) => {
                   <Mail className="w-4 h-4 text-slate-500 shrink-0" />
                   <span><strong>Email:</strong> <a href={`mailto:${siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}`} className="text-[#F26B21] font-bold hover:underline">{siteSettings?.contact_email || 'contact@josanlogistics.com.sg'}</a></span>
                 </p>
-                <p className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-slate-500 shrink-0" />
-                  <span><strong>Telephone:</strong> <a href={`tel:${(siteSettings?.phone || '+65 6789 0123').replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings?.phone || '+65 6789 0123'}</a></span>
-                </p>
+                {isDisplayablePhone(siteSettings?.phone) && (
+                  <p className="flex items-center space-x-2">
+                    <Phone className="w-4 h-4 text-slate-500 shrink-0" />
+                    <span><strong>Telephone:</strong> <a href={`tel:${siteSettings.phone.replace(/\s+/g, '')}`} className="text-slate-900 font-bold hover:underline">{siteSettings.phone}</a></span>
+                  </p>
+                )}
               </div>
             </div>
           </section>

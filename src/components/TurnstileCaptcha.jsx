@@ -5,7 +5,7 @@ import { ShieldCheck, Check, Loader2 } from 'lucide-react';
  * Cloudflare Turnstile & Google reCAPTCHA Compatible Captcha Widget
  * Supports one-click verification, invisible challenge, and resilient fallback.
  */
-export const TurnstileCaptcha = ({ onVerify, onExpire, isVerified, error, isInvisible = false }) => {
+export const TurnstileCaptcha = ({ onVerify, onExpire, isVerified, error, isInvisible = false, hideShield = false }) => {
   const containerRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [widgetId, setWidgetId] = useState(null);
@@ -127,7 +127,7 @@ export const TurnstileCaptcha = ({ onVerify, onExpire, isVerified, error, isInvi
         {/* Invisible Turnstile Challenge Mount Point */}
         <div ref={containerRef} className="hidden" />
         <div className="flex items-center space-x-1.5 text-[10px] text-slate-400 font-normal select-none py-0.5">
-          <ShieldCheck className="w-3 h-3 text-slate-400 shrink-0" />
+          {!hideShield && <ShieldCheck className="w-3 h-3 text-slate-400 shrink-0" />}
           <span>Protected by Cloudflare Turnstile</span>
         </div>
         {error && (

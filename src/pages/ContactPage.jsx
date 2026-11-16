@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
-import { Mail, Phone, MapPin, Send, HelpCircle, ChevronDown, Clock, Building2, Globe, ExternalLink, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
 import { openLegalDialog } from '../components/LegalDialog';
 import { attachChatToSubmission } from '../services/chatStorageService';
-import { COMPANY_INFO, getPhoneLinks } from '../config/siteConfig';
+import { COMPANY_INFO, getPhoneLinks, isDisplayablePhone } from '../config/siteConfig';
 
 export const ContactPage = ({ setActiveTab }) => {
-  const { showToast, addLead, createSupportTicket, addNotification, websiteContent } = useLogistics();
+  const { showToast, addLead, createSupportTicket, addNotification, websiteContent, siteSettings } = useLogistics();
   const contactContent = websiteContent?.contact || {};
-  const sharedEmail = contactContent.email || COMPANY_INFO.email;
-  const sharedAddress = contactContent.address || COMPANY_INFO.address;
-  const sharedHours = contactContent.operatingHours || `${COMPANY_INFO.businessHours} (${COMPANY_INFO.timezoneNote})`;
-  const phoneLinks = getPhoneLinks(contactContent.phone);
+  const displayEmail = (siteSettings?.contact_email || contactContent.email || COMPANY_INFO.email || '').trim();
+  const sharedEmail = displayEmail || COMPANY_INFO.email;
+  const sharedAddress = siteSettings?.registered_office || contactContent.address || COMPANY_INFO.address;
+  const phoneLinks = getPhoneLinks(siteSettings?.phone || contactContent.phone);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,40 +24,49 @@ export const ContactPage = ({ setActiveTab }) => {
     message: '',
     consent: false
   });
+  const [submittedEmail, setSubmittedEmail] = useState('');
   const [errors, setErrors] = useState({});
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeFaq, setActiveFaq] = useState(null);
+
+  const successHeadingRef = useRef(null);
+
+  useEffect(() => {
+    document.title = 'Contact | Josan Logistics';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', 'Contact Josan Logistics in Singapore about a quote, a road shipment or air freight documents. Send us a message and our team will get back to you.');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (submittedSuccess && successHeadingRef.current) {
+      successHeadingRef.current.focus();
+    }
+  }, [submittedSuccess]);
 
   const validateEmail = (emailStr) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(emailStr.trim());
   };
 
-  const defaultFaqs = [
-    {
-      q: 'How do I get a quote?',
-      a: 'Use the Get a Quote button, or send us a message with your cargo details.'
-    },
-    {
-      q: 'How can I track my shipment?',
-      a: 'Use Track Shipment with your tracking number; status updates are entered by our operations team and show a "Last updated" time.'
-    },
-    {
-      q: 'What information do you need to prepare an Air Waybill?',
-      a: 'Shipper and consignee details, cargo description, weight and dimensions, commercial invoice and packing list.'
-    },
-    {
-      q: 'Do you own the trucks?',
-      a: 'We coordinate road transportation through our partner operators.'
-    },
-    {
-      q: 'Can you help with shipping documents?',
-      a: 'Yes. We help prepare and organise shipment documents such as the Air Waybill, commercial invoice and packing list. We do not provide customs clearance or act as a customs broker. Required documents vary by cargo, origin and destination.'
-    }
+  // Subject options in sentence case (filter display layer for customs, insurance, claims, special handling)
+  const allSubjectOptions = [
+    { value: 'Request a Quote', label: 'Request a quote' },
+    { value: 'Air Freight', label: 'Air freight' },
+    { value: 'Road Transportation', label: 'Road transport' },
+    { value: 'Documentation Help', label: 'Documentation help' },
+    { value: 'Track a Shipment', label: 'Track a shipment' },
+    { value: 'Other', label: 'Other' }
   ];
 
-  const faqs = (websiteContent?.faqs && websiteContent.faqs.length > 0) ? websiteContent.faqs : defaultFaqs;
+  const visibleSubjectOptions = allSubjectOptions.filter(opt => {
+    const text = (opt.value + ' ' + opt.label).toLowerCase();
+    return !text.includes('customs') && !text.includes('insurance') && !text.includes('claim') && !text.includes('special handling');
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -74,7 +84,7 @@ export const ContactPage = ({ setActiveTab }) => {
     }
 
     if (!formData.message.trim()) {
-      newErrors.message = 'Please tell us how we can help with your enquiry.';
+      newErrors.message = 'Please tell us how we can help with your request.';
     } else if (formData.message.length > 2000) {
       newErrors.message = 'Message cannot exceed 2000 characters.';
     }
@@ -89,11 +99,14 @@ export const ContactPage = ({ setActiveTab }) => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setSubmitError(true);
       showToast('Please complete all required fields highlighted below.', 'warning');
       return;
     }
 
     setErrors({});
+    setSubmitError(false);
+    setIsSubmitting(true);
 
     const submissionData = {
       id: `SUB-${Date.now().toString().slice(-6)}`,
@@ -121,7 +134,7 @@ export const ContactPage = ({ setActiveTab }) => {
         stage: 'New',
         estimatedValue: submissionData.subject === 'Request a Quote' ? 8000 : 2500,
         tags: ['Contact Form', submissionData.subject, submissionData.trackingId ? `Tracking: ${submissionData.trackingId}` : null].filter(Boolean),
-        notes: `Enquiry sent to ${sharedEmail}\nMessage: ${submissionData.message}`
+        notes: `Message sent to ${sharedEmail}\nMessage: ${submissionData.message}`
       });
     }
 
@@ -131,7 +144,7 @@ export const ContactPage = ({ setActiveTab }) => {
         customerName: submissionData.name,
         customerEmail: submissionData.email,
         customerPhone: submissionData.phone,
-        subject: `[Web Enquiry] ${submissionData.subject}`,
+        subject: `[Web Message] ${submissionData.subject}`,
         message: submissionData.message,
         shipmentId: submissionData.trackingId || 'General Inquiry'
       });
@@ -142,7 +155,7 @@ export const ContactPage = ({ setActiveTab }) => {
       addNotification({
         role: 'admin',
         type: 'contact_enquiry',
-        title: `📬 New Web Enquiry from ${submissionData.name}`,
+        title: `📬 New Web Message from ${submissionData.name}`,
         message: `Routed to ${sharedEmail} • Subject: "${submissionData.subject}" • Phone: ${submissionData.phone || 'N/A'}`
       });
     }
@@ -156,10 +169,10 @@ export const ContactPage = ({ setActiveTab }) => {
     // Simulated email dispatch log to REAL EMAIL
     console.info(`[Email Service] Transmission dispatched to ${sharedEmail}:`, submissionData);
 
-    // 5. Attach active chat session to contact enquiry reference if user chatted with AI
-    const enquiryRef = `ENQ-${Math.floor(10000 + Math.random() * 90000)}`;
+    // 5. Attach active chat session to contact message reference if user chatted with AI
+    const messageRef = `ENQ-${Math.floor(10000 + Math.random() * 90000)}`;
     try {
-      attachChatToSubmission(enquiryRef, {
+      attachChatToSubmission(messageRef, {
         name: submissionData.name,
         email: submissionData.email,
         phone: submissionData.phone,
@@ -169,8 +182,10 @@ export const ContactPage = ({ setActiveTab }) => {
       console.warn('[ContactPage] Failed to attach chat to contact submission:', e);
     }
 
+    setSubmittedEmail(submissionData.email);
     setSubmittedSuccess(true);
-    showToast('Thank you. We have received your message and will reply by email or phone as soon as we can.', 'success');
+    setIsSubmitting(false);
+    showToast('Thank you. We have received your message and our team will get back to you.', 'success');
 
     setFormData({
       name: '',
@@ -184,432 +199,590 @@ export const ContactPage = ({ setActiveTab }) => {
     });
   };
 
+  const faqList = [
+    {
+      q: 'How do I get a quote?',
+      a: (
+        <>
+          Fill in our{' '}
+          <a
+            href="#quote"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('quote');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)]"
+          >
+            quote form
+          </a>
+          . Our team reviews your request and emails you a quote.
+        </>
+      ),
+      plainA: 'Fill in our quote form. Our team reviews your request and emails you a quote.'
+    },
+    {
+      q: 'How can I track my shipment?',
+      a: (
+        <>
+          For road shipments, we email you a tracking number after we book your carrier. Enter it on our{' '}
+          <a
+            href="#track"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('track');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)]"
+          >
+            Track road shipment page
+          </a>
+          . Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents. [CONFIRM that the tracking number is emailed after the carrier is booked]
+        </>
+      ),
+      plainA: 'For road shipments, we email you a tracking number after we book your carrier. Enter it on our Track road shipment page. Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents.'
+    },
+    {
+      q: 'What information do you need to prepare an Air Waybill?',
+      a: 'We need the shipper and consignee details, a description of the cargo with the quantity, weight and dimensions, your commercial invoice and packing list, and the origin and destination. The documents we need can vary by shipment, and we will tell you what is needed.',
+      plainA: 'We need the shipper and consignee details, a description of the cargo with the quantity, weight and dimensions, your commercial invoice and packing list, and the origin and destination. The documents we need can vary by shipment, and we will tell you what is needed.'
+    },
+    {
+      q: 'Do you own the trucks?',
+      a: 'No. We do not own or run vehicles. After you pay the quote, we book a partner carrier for your job.',
+      plainA: 'No. We do not own or run vehicles. After you pay the quote, we book a partner carrier for your job.'
+    },
+    {
+      q: 'What documents do you prepare?',
+      a: 'For air freight, we prepare the Air Waybill and the billing and shipment documents. We do not book flights. For road transport, you do not need to send us any documents.',
+      plainA: 'For air freight, we prepare the Air Waybill and the billing and shipment documents. We do not book flights. For road transport, you do not need to send us any documents.'
+    }
+  ];
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqList.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.plainA
+      }
+    }))
+  };
+
   return (
-    <div className="space-y-16 pb-20">
+    <div className="font-sans text-[var(--color-text)]">
+      {/* FAQ Schema for structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
 
-      {/* Header Banner with Organic Curve Transition */}
-      <section className="relative bg-[#0B1F3A] text-white pt-16 pb-28 sm:pt-20 sm:pb-36 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Subtle Ambient Radial Lighting */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-12 left-1/4 w-96 h-96 bg-[#F26B21]/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto text-center space-y-4 relative z-10">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading text-white tracking-tight leading-tight">
-            Contact Josan Logistics
+      {/* 1. HERO */}
+      <section className="bg-[var(--color-navy)] py-16 px-4 sm:px-6 lg:px-8 border-b-4 border-b-[var(--color-kraft)] text-left">
+        <div className="max-w-[1200px] mx-auto space-y-3">
+          <h1 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-white font-heading tracking-normal leading-tight">
+            Contact us
           </h1>
-          <p className="text-[#B6C2D1] font-normal max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Questions about a quote, a shipment or your documents? Send us a message or call us and our team will get back to you.
+          <p className="text-[var(--color-on-navy-muted)] text-sm sm:text-base max-w-2xl leading-relaxed tracking-normal">
+            Questions about a quote, a shipment or your documents? Send us a message and our team will get back to you.
           </p>
         </div>
-
-        {/* Layered Organic Wave Transition merging into the white background */}
-        <div className="absolute -bottom-px left-0 right-0 w-full overflow-hidden leading-none pointer-events-none z-10">
-          <svg 
-            className="relative block w-full h-12 sm:h-16 lg:h-24" 
-            viewBox="0 0 1440 100" 
-            fill="none" 
-            preserveAspectRatio="none"
-          >
-            <path 
-              d="M0,45 C380,95 720,90 1080,45 C1240,25 1360,20 1440,15 L1440,100 L0,100 Z" 
-              fill="rgba(255, 255, 255, 0.15)" 
-            />
-            <path 
-              d="M0,25 C320,85 720,95 1120,55 C1260,40 1370,25 1440,15 L1440,100 L0,100 Z" 
-              fill="var(--color-bg)" 
-            />
-          </svg>
-        </div>
       </section>
 
-      {/* Main Grid: Form + Office Locations */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      {/* 2. MAIN LAYOUT: Form + Office & Hours */}
+      <section className="bg-[var(--color-bg)] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
 
-          {/* Contact Form */}
-          <div className="lg:col-span-7 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-card space-y-6">
-            <div>
-              <h2 className="text-2xl font-extrabold text-slate-900">Send Us A Message</h2>
-              <p className="text-slate-600 font-medium text-xs sm:text-sm mt-1">
-                Fill out the details below and our team will get back to you.
-              </p>
-            </div>
-
-            {/* Success Message Banner */}
-            {submittedSuccess && (
-              <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start space-x-3 text-emerald-900 animate-fade-in shadow-xs">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-extrabold text-sm text-emerald-950">
-                    Thank you. We have received your message and will reply by email or phone as soon as we can.
-                  </p>
-                  <p className="text-xs text-emerald-700">
-                    A copy of this enquiry has been routed directly to our Singapore operations desk at {sharedEmail}.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setSubmittedSuccess(false)}
-                    className="text-xs text-emerald-800 font-bold underline hover:text-emerald-950 pt-1 block cursor-pointer"
+            {/* Left Column: Form (approx 62%) */}
+            <div className="w-full lg:w-[62%]">
+              {submittedSuccess ? (
+                /* 4. SUCCESS STATE: Replaces the form */
+                <div
+                  className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] shadow-none border-t-[3px] border-t-[var(--color-kraft)] p-5 sm:p-8 space-y-4"
+                  role="region"
+                  aria-live="polite"
+                >
+                  <h2
+                    ref={successHeadingRef}
+                    tabIndex={-1}
+                    className="text-2xl font-bold text-[var(--color-text)] font-heading focus:outline-none"
                   >
-                    Send another enquiry
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Full name *</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => {
-                      setFormData({ ...formData, name: e.target.value });
-                      if (errors.name) setErrors({ ...errors, name: null });
-                    }}
-                    placeholder="Your name"
-                    className={`input-standard ${errors.name ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500' : ''}`}
-                    required
-                  />
-                  {errors.name && (
-                    <p className="text-xs text-rose-600 font-semibold mt-1 animate-fade-in flex items-center space-x-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" />
-                      <span>{errors.name}</span>
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Email *</label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => {
-                      setFormData({ ...formData, email: e.target.value });
-                      if (errors.email) setErrors({ ...errors, email: null });
-                    }}
-                    placeholder="name@domain.com"
-                    className={`input-standard ${errors.email ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500' : ''}`}
-                    required
-                  />
-                  {errors.email && (
-                    <p className="text-xs text-rose-600 font-semibold mt-1 animate-fade-in flex items-center space-x-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" />
-                      <span>{errors.email}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Phone number (optional)</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+65 XXXX XXXX"
-                    className="input-standard"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Company name (optional)</label>
-                  <input
-                    type="text"
-                    value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    placeholder="e.g. Acme Logistics"
-                    className="input-standard"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Inquiry Subject</label>
-                  <select
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="input-standard font-semibold"
-                  >
-                    <option value="Request a Quote">Request a Quote</option>
-                    <option value="Air Freight">Air Freight</option>
-                    <option value="Road Transportation">Road Transportation</option>
-                    <option value="Documentation Help">Documentation Help</option>
-                    <option value="Track a Shipment">Track a Shipment</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tracking ID (optional)</label>
-                  <input
-                    type="text"
-                    value={formData.trackingId}
-                    onChange={(e) => setFormData({ ...formData, trackingId: e.target.value })}
-                    placeholder="Your tracking number"
-                    className="input-standard"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700">How can we help? *</label>
-                  <span className={`text-[11px] font-medium ${formData.message.length >= 2000 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
-                    {formData.message.length} / 2000 characters
-                  </span>
-                </div>
-                <textarea
-                  rows="4"
-                  maxLength={2000}
-                  value={formData.message}
-                  onChange={(e) => {
-                    setFormData({ ...formData, message: e.target.value.slice(0, 2000) });
-                    if (errors.message) setErrors({ ...errors, message: null });
-                  }}
-                  placeholder="Tell us what you are shipping, from where to where, and any special requirements"
-                  className={`w-full p-3.5 text-[15px] bg-white border rounded-xl text-[#172033] focus-orange ${errors.message ? 'border-rose-400 bg-rose-50/20' : 'border-[#E2E8F0]'}`}
-                  required
-                ></textarea>
-                {errors.message && (
-                  <p className="text-xs text-rose-600 font-semibold mt-1 animate-fade-in flex items-center space-x-1">
-                    <AlertCircle className="w-3 h-3 shrink-0" />
-                    <span>{errors.message}</span>
+                    We have received your message
+                  </h2>
+                  <p className="text-sm text-[var(--color-text)] leading-relaxed">
+                    Our team will get back to you at {submittedEmail}. [CONFIRM: that replies come by email]
                   </p>
-                )}
-              </div>
-
-              {/* Required Consent Checkbox */}
-              <div className="space-y-1 pt-1">
-                <label className="flex items-start space-x-2.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={formData.consent}
-                    onChange={(e) => {
-                      setFormData({ ...formData, consent: e.target.checked });
-                      if (e.target.checked && errors.consent) {
-                        setErrors({ ...errors, consent: null });
-                      }
-                    }}
-                    className={`mt-0.5 w-4 h-4 rounded text-[#FF6B00] border ${errors.consent ? 'border-rose-500 ring-2 ring-rose-200' : 'border-slate-300'} focus:ring-[#FF6B00] cursor-pointer`}
-                  />
-                  <span className="text-xs text-slate-600 leading-snug">
-                    I agree to Josan Logistics contacting me about this enquiry and to the{' '}
-                    <button
-                      type="button"
+                  <div className="pt-2">
+                    <a
+                      href="#home"
                       onClick={(e) => {
                         e.preventDefault();
-                        e.stopPropagation();
-                        openLegalDialog('privacy', e.currentTarget);
+                        setActiveTab('home');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="text-orange-600 font-bold underline hover:text-orange-700 transition-colors cursor-pointer inline"
-                      title="Read Josan Logistics Privacy Policy"
+                      className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)] text-sm font-normal"
                     >
-                      Privacy Policy
-                    </button>.
-                  </span>
-                </label>
-                {errors.consent && (
-                  <p className="text-xs text-rose-600 font-semibold pl-6 animate-fade-in flex items-center space-x-1">
-                    <AlertCircle className="w-3 h-3 shrink-0" />
-                    <span>{errors.consent}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Invisible Spam Protection (Cloudflare Turnstile) */}
-              <TurnstileCaptcha
-                isInvisible={true}
-                isVerified={isCaptchaVerified}
-                onVerify={() => {
-                  setIsCaptchaVerified(true);
-                  if (errors.captcha) setErrors(prev => ({ ...prev, captcha: null }));
-                }}
-                error={errors.captcha}
-              />
-
-              <button
-                type="submit"
-                className="btn-primary w-full h-12 cursor-pointer"
-              >
-                <Send className="w-4 h-4" />
-                <span>Send Message</span>
-              </button>
-
-              <p className="text-center text-xs text-slate-500 mt-2.5 leading-relaxed">
-                By sending this request you agree to our{' '}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openLegalDialog('terms', e.currentTarget);
-                  }}
-                  className="text-orange-600 font-bold underline hover:text-orange-700 transition-colors cursor-pointer inline"
-                >
-                  Terms of Service
-                </button>
-                {' '}and{' '}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openLegalDialog('privacy', e.currentTarget);
-                  }}
-                  className="text-orange-600 font-bold underline hover:text-orange-700 transition-colors cursor-pointer inline"
-                >
-                  Privacy Policy
-                </button>
-                .
-              </p>
-            </form>
-          </div>
-
-          {/* Office Details & Direct Hotline */}
-          <div className="lg:col-span-5 space-y-6">
-
-            <div className="bg-[#0B1F3A] text-white p-8 rounded-3xl space-y-6 border border-[#1E3A5F] shadow-card">
-              <h3 className="text-xl font-extrabold flex items-center space-x-2">
-                <Building2 className="w-5 h-5 text-[#B6C2D1]" />
-                <span>Our Office</span>
-              </h3>
-
-              <div className="space-y-4 text-xs">
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-bold text-white text-sm">Head Office</p>
-                    <p className="text-[#B6C2D1] mt-1 leading-relaxed text-sm">
-                      {sharedAddress}
-                    </p>
-                  </div>
-
-                  <div className="pt-1">
-                    <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(sharedAddress)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1.5 text-xs font-bold text-orange-400 hover:text-orange-300 transition-colors"
-                      title="View on Google Maps"
-                    >
-                      <MapPin className="w-3.5 h-3.5 shrink-0" />
-                      <span>View on Google Maps</span>
-                      <ExternalLink className="w-3 h-3 shrink-0 ml-0.5" />
+                      Back to home
                     </a>
                   </div>
-
-                  <div className="pt-3 border-t border-[#1E3A5F] space-y-2 text-slate-300">
-                    <p className="flex items-center space-x-2">
-                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>Email:{' '}
-                      <a href={`mailto:${sharedEmail}`} className="text-white font-semibold hover:text-orange-400 transition-colors underline">
-                        {sharedEmail}
-                      </a>
-                      </span>
+                </div>
+              ) : (
+                /* 3. FORM CONTAINER */
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] shadow-none border-t-[3px] border-t-[var(--color-kraft)] p-5 sm:p-8 space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[var(--color-text)] font-heading">
+                      Send us a message
+                    </h2>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                      Fields marked (required) must be filled in.
                     </p>
                   </div>
+
+                  {/* Error Alert Block */}
+                  {submitError && (
+                    <div
+                      className="border-l-[3px] border-l-[var(--color-kraft-dark)] bg-[var(--color-bg-alt)] p-4 rounded-[var(--radius)] text-sm text-[var(--color-text)]"
+                      role="alert"
+                      aria-live="assertive"
+                    >
+                      Something went wrong. Please try again, or email us at{' '}
+                      <a
+                        href={`mailto:${sharedEmail}`}
+                        className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)]"
+                      >
+                        {sharedEmail}
+                      </a>.
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                    {/* Full Name & Email */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="contact-name"
+                          className="block text-sm font-semibold text-[var(--color-text)] mb-1.5"
+                        >
+                          Full name <span className="text-[var(--color-text-muted)] font-normal">(required)</span>
+                        </label>
+                        <input
+                          id="contact-name"
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => {
+                            setFormData({ ...formData, name: e.target.value });
+                            if (errors.name) setErrors({ ...errors, name: null });
+                          }}
+                          placeholder="Your name"
+                          aria-required="true"
+                          aria-describedby={errors.name ? 'name-error' : undefined}
+                          className="w-full h-[48px] px-3.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2"
+                        />
+                        {errors.name && (
+                          <p id="name-error" className="text-xs text-[var(--brand-error)] font-medium mt-1">
+                            Error: {errors.name}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="contact-email"
+                          className="block text-sm font-semibold text-[var(--color-text)] mb-1.5"
+                        >
+                          Email <span className="text-[var(--color-text-muted)] font-normal">(required)</span>
+                        </label>
+                        <input
+                          id="contact-email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => {
+                            setFormData({ ...formData, email: e.target.value });
+                            if (errors.email) setErrors({ ...errors, email: null });
+                          }}
+                          placeholder="name@example.com"
+                          aria-required="true"
+                          aria-describedby={errors.email ? 'email-error' : undefined}
+                          className="w-full h-[48px] px-3.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2"
+                        />
+                        {errors.email && (
+                          <p id="email-error" className="text-xs text-[var(--brand-error)] font-medium mt-1">
+                            Error: {errors.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Phone Number & Company Name */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="contact-phone"
+                          className="block text-sm font-semibold text-[var(--color-text)] mb-1.5"
+                        >
+                          Phone number <span className="text-[var(--color-text-muted)] font-normal">(optional)</span>
+                        </label>
+                        <input
+                          id="contact-phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="e.g. 91234567"
+                          className="w-full h-[48px] px-3.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="contact-company"
+                          className="block text-sm font-semibold text-[var(--color-text)] mb-1.5"
+                        >
+                          Company name <span className="text-[var(--color-text-muted)] font-normal">(optional)</span>
+                        </label>
+                        <input
+                          id="contact-company"
+                          type="text"
+                          value={formData.company}
+                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          placeholder="e.g. ABC Trading Pte Ltd"
+                          className="w-full h-[48px] px-3.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Subject & Tracking Number */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="contact-subject"
+                          className="block text-sm font-semibold text-[var(--color-text)] mb-1.5"
+                        >
+                          Subject
+                        </label>
+                        <select
+                          id="contact-subject"
+                          value={formData.subject}
+                          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                          className="w-full h-[48px] px-3.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-sm text-[var(--color-text)] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2 cursor-pointer"
+                        >
+                          {visibleSubjectOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                        {formData.subject === 'Request a Quote' && (
+                          <p className="text-xs text-[var(--color-text-muted)] mt-1.5">
+                            Our quote form asks for everything we need.{' '}
+                            <a
+                              href="#quote"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setActiveTab('quote');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)]"
+                            >
+                              Open the quote form
+                            </a>
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="contact-tracking"
+                          className="block text-sm font-semibold text-[var(--color-text)] mb-1.5"
+                        >
+                          Tracking number <span className="text-[var(--color-text-muted)] font-normal">(optional)</span>
+                        </label>
+                        <input
+                          id="contact-tracking"
+                          type="text"
+                          value={formData.trackingId}
+                          onChange={(e) => setFormData({ ...formData, trackingId: e.target.value })}
+                          placeholder="Your tracking number"
+                          className="w-full h-[48px] px-3.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2"
+                        />
+                        <p className="text-xs text-[var(--color-text-muted)] mt-1.5">
+                          Road shipments only.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* How can we help? */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label
+                          htmlFor="contact-message"
+                          className="block text-sm font-semibold text-[var(--color-text)]"
+                        >
+                          How can we help? <span className="text-[var(--color-text-muted)] font-normal">(required)</span>
+                        </label>
+                        <span className="text-xs text-[var(--color-text-muted)] font-normal">
+                          {formData.message.length} of 2000 characters
+                        </span>
+                      </div>
+                      <textarea
+                        id="contact-message"
+                        rows={4}
+                        maxLength={2000}
+                        value={formData.message}
+                        onChange={(e) => {
+                          setFormData({ ...formData, message: e.target.value.slice(0, 2000) });
+                          if (errors.message) setErrors({ ...errors, message: null });
+                        }}
+                        placeholder="Tell us what you need and, if it is about a shipment, where it is going."
+                        aria-required="true"
+                        aria-describedby={errors.message ? 'message-error' : undefined}
+                        className="w-full min-h-[140px] p-3.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2"
+                      />
+                      {errors.message && (
+                        <p id="message-error" className="text-xs text-[var(--brand-error)] font-medium mt-1">
+                          Error: {errors.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Required Consent Checkbox */}
+                    <div className="pt-2">
+                      <label className="flex items-start gap-3 cursor-pointer select-none min-h-[44px]">
+                        <input
+                          id="contact-consent"
+                          type="checkbox"
+                          checked={formData.consent}
+                          onChange={(e) => {
+                            setFormData({ ...formData, consent: e.target.checked });
+                            if (e.target.checked && errors.consent) {
+                              setErrors({ ...errors, consent: null });
+                            }
+                          }}
+                          aria-required="true"
+                          aria-describedby={errors.consent ? 'consent-error' : undefined}
+                          className="mt-0.5 w-5 h-5 min-w-[20px] min-h-[20px] rounded-[var(--radius)] border border-[var(--color-border)] text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2 cursor-pointer"
+                        />
+                        <span className="text-xs sm:text-sm text-[var(--color-text)] leading-relaxed">
+                          I agree to Josan Logistics contacting me about this message and to the{' '}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openLegalDialog('privacy', e.currentTarget);
+                            }}
+                            className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)] font-normal cursor-pointer"
+                          >
+                            Privacy Policy
+                          </button>
+                          .
+                        </span>
+                      </label>
+                      {errors.consent && (
+                        <p id="consent-error" className="text-xs text-[var(--brand-error)] font-medium mt-1">
+                          Error: {errors.consent}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Turnstile: 16px spacing above and below, no shield icon */}
+                    <div className="my-4">
+                      <TurnstileCaptcha
+                        isInvisible={true}
+                        hideShield={true}
+                        isVerified={isCaptchaVerified}
+                        onVerify={() => {
+                          setIsCaptchaVerified(true);
+                          if (errors.captcha) setErrors(prev => ({ ...prev, captcha: null }));
+                        }}
+                        error={errors.captcha}
+                      />
+                    </div>
+
+                    {/* Button: Only orange element on the page */}
+                    <div>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full sm:w-auto min-w-[200px] h-[48px] px-6 text-sm font-semibold rounded-[var(--radius)] shadow-none text-white bg-[var(--color-orange)] hover:bg-[var(--color-orange-hover)] disabled:bg-[var(--color-bg-alt)] disabled:text-[var(--color-text-muted)] disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      >
+                        {isSubmitting ? 'Sending...' : 'Send message'}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Call Us Card (renamed from 24/7 Singapore Hotline) */}
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-sm hover:border-slate-300 transition-all">
-              <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-xl bg-[#0B1F3A] text-white flex items-center justify-center font-bold shrink-0">
-                  <Phone className="w-5 h-5 text-orange-400" />
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-[#0B1F3A] text-sm">Call Us</h4>
-                  <a href={phoneLinks.telHref} className="text-[#0B1F3A] font-extrabold text-lg sm:text-xl font-mono tracking-tight hover:text-[#FF6B00] transition-colors">
-                    {phoneLinks.display}
-                  </a>
-                </div>
+            {/* Right Column: Office & Hours (approx 38%, sticky) */}
+            <div className="w-full lg:w-[38%] lg:sticky lg:top-6 self-start space-y-6">
+
+              {/* Block 1: Our office */}
+              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] shadow-none border-t-[3px] border-t-[var(--color-kraft)] p-6">
+                <h2 className="text-base font-bold text-[var(--color-text)] font-heading mb-4">
+                  Our office
+                </h2>
+                <dl className="divide-y divide-[var(--color-border)] text-sm">
+                  {/* Head office */}
+                  <div className="pb-4">
+                    <dt className="text-xs font-semibold text-[var(--color-text-muted)] mb-1">
+                      Head office
+                    </dt>
+                    <dd className="text-[var(--color-text)] leading-relaxed">
+                      {sharedAddress}
+                      <div className="mt-1.5">
+                        <a
+                          href={`https://maps.google.com/?q=${encodeURIComponent(sharedAddress)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)] text-xs font-normal"
+                        >
+                          Open in Google Maps
+                        </a>
+                      </div>
+                    </dd>
+                  </div>
+
+                  {/* Email */}
+                  {displayEmail && (
+                    <div className="py-4">
+                      <dt className="text-xs font-semibold text-[var(--color-text-muted)] mb-1">
+                        Email
+                      </dt>
+                      <dd className="text-[var(--color-text)]">
+                        <a
+                          href={`mailto:${displayEmail}`}
+                          className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)] break-all"
+                        >
+                          {displayEmail}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+
+                  {/* Phone (rendered only if confirmed and displayable) */}
+                  {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && (
+                    <div className="py-4">
+                      <dt className="text-xs font-semibold text-[var(--color-text-muted)] mb-1">
+                        Phone
+                      </dt>
+                      <dd className="text-[var(--color-text)]">
+                        <a
+                          href={phoneLinks.telHref}
+                          className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)]"
+                        >
+                          {phoneLinks.display}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+
+                  {/* WhatsApp (rendered only if confirmed and displayable) */}
+                  {phoneLinks.hasConfirmedPhone && isDisplayablePhone(phoneLinks.display) && phoneLinks.whatsappHref && (
+                    <div className="pt-4">
+                      <dt className="text-xs font-semibold text-[var(--color-text-muted)] mb-1">
+                        WhatsApp
+                      </dt>
+                      <dd className="text-[var(--color-text)]">
+                        <a
+                          href={phoneLinks.whatsappHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[var(--color-navy)] underline hover:text-[var(--color-navy-hover)]"
+                        >
+                          {phoneLinks.display}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                <a
-                  href={phoneLinks.telHref}
-                  className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-[#0B1F3A] hover:bg-[#1E3A5F] text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
-                  title={`Call Josan Logistics (${phoneLinks.display})`}
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Call</span>
-                </a>
-                <a
-                  href={phoneLinks.whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
-                  title="Message Josan on WhatsApp"
-                >
-                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                  </svg>
-                  <span>WhatsApp</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Contact Hours Card */}
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-3 shadow-sm hover:border-slate-300 transition-all">
-              <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-xl bg-[#0B1F3A] text-white flex items-center justify-center font-bold shrink-0">
-                  <Clock className="w-5 h-5 text-orange-400" />
-                </div>
+              {/* Block 2: Hours */}
+              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] shadow-none border-t-[3px] border-t-[var(--color-kraft)] p-6 space-y-3">
+                <h2 className="text-base font-bold text-[var(--color-text)] font-heading">
+                  Hours
+                </h2>
                 <div>
-                  <h4 className="font-extrabold text-[#0B1F3A] text-sm">Contact Hours</h4>
-                  <p className="text-slate-800 font-bold text-sm tracking-tight">
-                    {sharedHours}
+                  <p className="text-sm font-normal text-[var(--color-text)]">
+                    {COMPANY_INFO.businessHours}
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                    {COMPANY_INFO.timezoneNote} [CONFIRM DAYS: Monday to Friday, or including Saturday]
                   </p>
                 </div>
+                <p className="text-xs text-[var(--color-text-muted)] pt-3 border-t border-[var(--color-border)]">
+                  We reply to messages by email. [CONFIRM]
+                </p>
               </div>
-              <p className="text-xs text-slate-500 pt-1 border-t border-slate-100">
-                Operations desk and customer enquiry support hours.
-              </p>
+
             </div>
 
           </div>
-
         </div>
       </section>
 
-      <div className="section-divider" aria-hidden="true" />
+      {/* 6. FAQ ACCORDION SECTION */}
+      <section
+        id="faq-contact"
+        className="bg-[var(--color-bg-alt)] py-[72px] px-4 sm:px-6 lg:px-8 text-left"
+      >
+        <div className="max-w-[1200px] mx-auto">
+          <div className="max-w-[800px]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-navy)] font-heading leading-tight">
+              Frequently asked questions
+            </h2>
 
-      {/* FAQ Accordion */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-slate-900">Frequently Asked Questions</h2>
-        </div>
-
-        <div className="space-y-3.5">
-          {faqs.map((faq, idx) => {
-            const isOpen = activeFaq === idx;
-            return (
-              <div 
-                key={idx} 
-                className={`bg-white border rounded-2xl overflow-hidden shadow-xs transition-all ${
-                  isOpen 
-                    ? 'border-slate-300 border-l-4 border-l-[#FF6B00] bg-orange-50/10' 
-                    : 'border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setActiveFaq(isOpen ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between font-bold text-slate-900 text-sm sm:text-base cursor-pointer select-none"
-                  aria-expanded={isOpen}
-                >
-                  <span className="text-slate-900 pr-4">{faq.q}</span>
-                  <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isOpen && (
-                  <div className="px-5 pb-5 text-slate-700 text-sm sm:text-[14.5px] leading-relaxed border-t border-slate-100/90 pt-3.5">
-                    {faq.a}
+            <div className="mt-8 border-b border-[var(--color-border)]">
+              {faqList.map((faq, idx) => {
+                const isOpen = activeFaq === idx;
+                const triggerId = `contact-faq-trigger-${idx}`;
+                const panelId = `contact-faq-panel-${idx}`;
+                return (
+                  <div
+                    key={idx}
+                    className={`border-t border-[var(--color-border)] ${
+                      isOpen
+                        ? 'bg-[var(--color-bg-alt)] border-l-[3px] border-l-[var(--color-kraft)]'
+                        : 'bg-transparent'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      id={triggerId}
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      onClick={() => setActiveFaq(isOpen ? null : idx)}
+                      className="w-full min-h-[44px] py-5 px-4 sm:px-5 text-left flex items-center justify-between gap-4 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:ring-offset-2"
+                    >
+                      <span className="text-base font-semibold text-[var(--color-text)] leading-snug">
+                        {faq.q}
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-[var(--color-text-muted)] shrink-0 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180' : ''
+                        }`}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isOpen && (
+                      <div
+                        id={panelId}
+                        role="region"
+                        aria-labelledby={triggerId}
+                        className="px-4 sm:px-5 pb-5 text-sm sm:text-base text-[var(--color-text)] font-normal leading-relaxed"
+                      >
+                        {faq.a}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
 

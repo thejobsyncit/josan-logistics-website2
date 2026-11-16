@@ -36,17 +36,29 @@ export const SITE_CONTACT = {
 };
 
 /**
+ * Checks if a phone number string is valid to display to visitors.
+ * If empty, contains "X" or contains "[", returns false.
+ */
+export function isDisplayablePhone(phone) {
+  if (!phone || typeof phone !== 'string') return false;
+  const trimmed = phone.trim();
+  if (!trimmed) return false;
+  if (trimmed.includes('X') || trimmed.includes('[')) return false;
+  return true;
+}
+
+/**
  * Returns formatted display label, tel: href, WhatsApp href, and confirmation flag from shared phone config.
  */
 export function getPhoneLinks(overridePhone) {
   const cleanOverride = typeof overridePhone === 'string' ? overridePhone.trim() : '';
   const useOverride =
     cleanOverride &&
+    isDisplayablePhone(cleanOverride) &&
     cleanOverride !== PLACEHOLDER_PHONE &&
-    cleanOverride !== PHONE_PLACEHOLDER_LABEL &&
-    !cleanOverride.startsWith('[');
+    cleanOverride !== PHONE_PLACEHOLDER_LABEL;
   const display = useOverride ? cleanOverride : COMPANY_INFO.phone;
-  const hasConfirmedPhone = Boolean(display && !display.startsWith('[') && display !== PLACEHOLDER_PHONE);
+  const hasConfirmedPhone = Boolean(display && isDisplayablePhone(display) && display !== PLACEHOLDER_PHONE);
   const tel = hasConfirmedPhone ? display.replace(/[\s()-]/g, '') : '';
   const whatsappDigits = hasConfirmedPhone ? display.replace(/[^0-9]/g, '') : '';
 
