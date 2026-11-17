@@ -196,7 +196,7 @@ export const generateInvoicePdf = (inv, customSiteSettings = null) => {
   doc.text('Payment Due:', 120, metaY + 21);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text(inv.dueDate || 'Net 30 Days', 190, metaY + 21, { align: 'right' });
+  doc.text(inv.dueDate || '', 190, metaY + 21, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
@@ -596,7 +596,7 @@ export const CrmBillingTab = ({
                           #{inv.invoiceNumber || inv.id}
                         </span>
                         <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
-                          Due: {inv.dueDate || 'Net 30'}
+                          Due: {inv.dueDate || ''}
                         </span>
                       </td>
 
@@ -740,7 +740,7 @@ export const CrmBillingTab = ({
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">PAYMENT DUE DATE</span>
-                    <span className="font-mono font-bold text-slate-800">{viewingInvoice.dueDate || 'Net 30 Days'}</span>
+                    <span className="font-mono font-bold text-slate-800">{viewingInvoice.dueDate || ''}</span>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">REFERENCE CONSIGNMENT</span>

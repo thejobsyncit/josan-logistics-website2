@@ -116,7 +116,7 @@ export const InvoiceModal = () => {
               <span class="badge">PAID & VERIFIED</span>
               <h1 class="inv-title">INVOICE #${shipment.id}</h1>
               <p class="inv-meta">Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}</p>
-              <p class="inv-meta">Payment Term: Net 30</p>
+              <p class="inv-meta">Payment Term: ${shipment.paymentTerms || ''}</p>
             </div>
           </div>
 
@@ -294,7 +294,7 @@ export const InvoiceModal = () => {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 116, 139);
       doc.text(`Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}`, 195, 31, { align: 'right' });
-      doc.text('Payment Terms: Net 30 Days', 195, 35.5, { align: 'right' });
+      doc.text(`Payment Terms: ${shipment.paymentTerms || ''}`, 195, 35.5, { align: 'right' });
 
       // Divider line
       doc.setDrawColor(226, 232, 240);
@@ -615,7 +615,7 @@ export const InvoiceModal = () => {
               )}
               <h2 className="text-xl font-extrabold text-slate-900">INVOICE #{shipment.id}</h2>
               <p className="text-xs text-slate-500">Date Issued: {shipment.createdDate || 'Aug 29, 2026'}</p>
-              <p className="text-xs text-slate-500">Payment Term: Net 30</p>
+              <p className="text-xs text-slate-500">Payment Term: {shipment.paymentTerms || ''}</p>
             </div>
           </div>
 

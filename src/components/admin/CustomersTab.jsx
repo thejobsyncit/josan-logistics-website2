@@ -272,7 +272,7 @@ export const CustomersTab = ({
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block mb-1">Account Tier & Terms</span>
-                    <span className="font-semibold text-slate-800">{selectedCustomer.tier || 'Enterprise'} ({selectedCustomer.paymentTerms || 'Net 30 Days'})</span>
+                    <span className="font-semibold text-slate-800">{selectedCustomer.tier || ''}{selectedCustomer.paymentTerms ? ` (${selectedCustomer.paymentTerms})` : ''}</span>
                   </div>
                 </div>
               </div>

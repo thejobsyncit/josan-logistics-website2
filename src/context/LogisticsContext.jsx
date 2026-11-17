@@ -99,58 +99,9 @@ export const deduplicateNotifications = (list) => {
 const LogisticsContext = createContext();
 
 export const LogisticsProvider = ({ children }) => {
-  // Load state from localStorage or initial mock data
-  const [shipments, setShipments] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_shipments');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Retain only domestic Singapore roadways freight shipments
-        const domesticOnly = (parsed || []).filter((s) => {
-          if (!s || !s.id) return false;
-          // Filter out legacy non-domestic dummy shipments
-          if (
-            s.id.endsWith('-EU') ||
-            s.id.endsWith('-IN') ||
-            s.id.endsWith('-UK') ||
-            s.id.endsWith('-US') ||
-            s.id.includes('-EU') ||
-            s.id.includes('-IN') ||
-            s.id.includes('-UK') ||
-            s.id.includes('-US')
-          ) {
-            return false;
-          }
-          if (
-            s.origin?.includes('Germany') ||
-            s.origin?.includes('Noida') ||
-            s.origin?.includes('Edinburgh') ||
-            s.destination?.includes('Rotterdam') ||
-            s.destination?.includes('Mumbai') ||
-            s.destination?.includes('London')
-          ) {
-            return false;
-          }
-          return true;
-        });
+  // Shipments state loaded solely from database
+  const [shipments, setShipments] = useState([]);
 
-        // If user already booked domestic orders (like JOS-17133-SG), keep them!
-        if (domesticOnly.length > 0) {
-          return domesticOnly;
-        }
-      }
-      return initialShipments;
-    } catch (e) {
-      return initialShipments;
-    }
-  });
-
-  // Sync sanitized domestic shipments back to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_shipments', JSON.stringify(shipments));
-    } catch (e) {}
-  }, [shipments]);
 
   const [drivers, setDrivers] = useState(() => {
     try {
@@ -274,21 +225,8 @@ export const LogisticsProvider = ({ children }) => {
   // Website Notification System State (Loaded from Supabase notifications table for logged-in user)
   const [notifications, setNotifications] = useState([]);
 
-  // Phase 3: Customers Directory
-  const [customers, setCustomers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_customers');
-      return saved ? JSON.parse(saved) : initialCustomers;
-    } catch (e) {
-      return initialCustomers;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_customers', JSON.stringify(customers));
-    } catch (e) {}
-  }, [customers]);
+  // Phase 3: Customers Directory (Loaded from database only)
+  const [customers, setCustomers] = useState([]);
 
   // Phase 3: Linked Shipment Documents
   const [documents, setDocuments] = useState(() => {
@@ -935,12 +873,10 @@ export const LogisticsProvider = ({ children }) => {
       }
 
       const dbCustomers = await supabaseApi.getCustomers();
-      if (dbCustomers && dbCustomers.length > 0) {
-        setCustomers(prev => {
-          const dbIds = new Set(dbCustomers.map(c => c.id));
-          const localOnly = (prev || []).filter(c => c && c.id && !dbIds.has(c.id));
-          return [...dbCustomers, ...localOnly];
-        });
+      if (Array.isArray(dbCustomers) && dbCustomers.length > 0) {
+        setCustomers(dbCustomers);
+      } else {
+        setCustomers([]);
       }
     };
 
@@ -981,9 +917,11 @@ export const LogisticsProvider = ({ children }) => {
     }
   });
 
-  // Ensure any stale client-side customer/role localStorage keys or invalid test sessions are removed
+  // Ensure any stale client-side customer/role/shipment localStorage keys or invalid test sessions are removed
   useEffect(() => {
     try {
+      localStorage.removeItem('josan_customers');
+      localStorage.removeItem('josan_shipments');
       localStorage.removeItem('josan_user');
       localStorage.removeItem('josan_role');
       const savedStaff = localStorage.getItem('josan_staff_user');
@@ -1068,6 +1006,33 @@ export const LogisticsProvider = ({ children }) => {
     };
 
     loadStaffQuotes();
+  }, [currentUser]);
+
+  // Load customers from Supabase profiles table for logged-in staff (ADMIN, CRM, READONLY)
+  useEffect(() => {
+    const canLoadCustomers = Boolean(
+      currentUser &&
+      isStaffRole(currentUser?.role || currentUser?.rawRole)
+    );
+    if (!canLoadCustomers) {
+      setCustomers([]);
+      return;
+    }
+
+    const loadStaffCustomers = async () => {
+      try {
+        const dbCustomers = await supabaseApi.getCustomers();
+        if (Array.isArray(dbCustomers)) {
+          setCustomers(dbCustomers);
+        } else {
+          setCustomers([]);
+        }
+      } catch (e) {
+        setCustomers([]);
+      }
+    };
+
+    loadStaffCustomers();
   }, [currentUser]);
 
   // Load staff notifications from Supabase notifications table for logged-in user
@@ -1172,10 +1137,6 @@ export const LogisticsProvider = ({ children }) => {
     localStorage.setItem('josan_addresses', JSON.stringify(addressList));
   }, [addressList]);
 
-  // Save to localStorage
-  useEffect(() => {
-    localStorage.setItem('josan_shipments', JSON.stringify(shipments));
-  }, [shipments]);
 
   useEffect(() => {
     localStorage.setItem('josan_drivers', JSON.stringify(drivers));
@@ -1360,13 +1321,7 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const deleteShipment = async (shipmentId) => {
-    setShipments(prev => {
-      const updated = prev.filter(s => s.id !== shipmentId);
-      try {
-        localStorage.setItem('josan_shipments', JSON.stringify(updated));
-      } catch (e) {}
-      return updated;
-    });
+    setShipments(prev => prev.filter(s => s.id !== shipmentId));
 
     if (isSupabaseConfigured) {
       await supabaseApi.deleteShipment(shipmentId);
@@ -1777,114 +1732,6 @@ export const LogisticsProvider = ({ children }) => {
     showToast('Notifications cleared', 'info');
   };
 
-  // Quotation Management Operations
-  const requestQuote = (quoteData) => {
-    const isTestRequest = Boolean(quoteData.isTest || quoteData.status === 'Test');
-    const quoteId = quoteData.id || quoteData.referenceNumber || (isTestRequest ? 'TQ-TEST-0001' : 'QR-REFD-0001');
-    const weightVal = Number(quoteData.cargoWeight) || 100;
-
-    const newQuote = {
-      id: quoteId,
-      referenceNumber: quoteId,
-      requestId: quoteId,
-      customerId: currentUser?.id || 'USR-GUEST',
-      customerName: quoteData.contactName || currentUser?.name || 'Customer',
-      customerEmail: quoteData.contactEmail || currentUser?.email || 'contact@client.com',
-      customerPhone: quoteData.contactPhone || currentUser?.phone || '+65 6789 0123',
-      company: quoteData.contactCompany || currentUser?.company || 'Commercial Shipper',
-      origin: quoteData.originAddress || quoteData.originZone || 'Singapore Central Logistics Hub',
-      destination: quoteData.destinationAddress || quoteData.destinationZone || 'Woodlands Distribution Complex',
-      service: quoteData.service || (quoteData.serviceCategory === 'air-freight' ? 'Air Freight Documentation Support' : quoteData.serviceCategory === 'road-transport' ? 'Commercial Road Transportation Coordination' : 'Shipment Documentation Support'),
-      cargoCategory: quoteData.cargoCategory || 'General Commercial Cargo',
-      cargoWeight: weightVal,
-      freightMode: quoteData.roadLoadType || quoteData.freightMode || 'ltl',
-      deliverySpeed: quoteData.deliverySpeed || 'standard',
-      notes: quoteData.cargoDescription || quoteData.specialInstructions || '',
-      isTest: isTestRequest,
-      status: isTestRequest ? 'Test' : 'Requested',
-      staffPriced: false,
-      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      validUntil: new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-      total: null,
-      amount: null,
-      lineItems: null,
-      adminNotes: 'Awaiting operations review and vehicle allocation.'
-    };
-
-    setQuotes(prev => {
-      const filtered = (prev || []).filter(q => q.id !== quoteId && q.referenceNumber !== quoteId);
-      const updated = [newQuote, ...filtered];
-      
-      return updated;
-    });
-
-    // If Air Freight, also route into airwayRequests so CRM Air Freight tab shows it immediately
-    if (quoteData.serviceCategory === 'air-freight' || (newQuote.service && newQuote.service.toLowerCase().includes('air'))) {
-      const airwayReq = {
-        id: `AIR-${quoteId.replace(/[^0-9]/g, '').slice(-4) || String(Math.floor(1000 + Math.random() * 9000))}`,
-        quoteId: quoteId,
-        referenceNumber: quoteId,
-        customerName: newQuote.customerName,
-        company: newQuote.company,
-        email: newQuote.customerEmail,
-        phone: newQuote.customerPhone,
-        origin: newQuote.origin,
-        destination: newQuote.destination,
-        cargoDescription: quoteData.cargoDescription || newQuote.notes || 'Air freight consignment',
-        packagesCount: quoteData.packageCount ? `${quoteData.packageCount} packages` : '1 package',
-        totalWeight: `${weightVal} kg`,
-        dimensions: quoteData.dimensions || 'Standard Cargo',
-        services: ['AWB Preparation', 'Shipment Documentation', 'Air Freight Support'],
-        date: new Date().toISOString().split('T')[0],
-        status: 'New',
-        adminNotes: `Generated from quote request #${quoteId}.`
-      };
-      setAirwayRequests(prev => {
-        const filtered = (prev || []).filter(r => r.quoteId !== quoteId && r.referenceNumber !== quoteId);
-        const updatedAir = [airwayReq, ...filtered];
-        try {
-          localStorage.setItem('josan_airway_requests', JSON.stringify(updatedAir));
-        } catch (e) {}
-        return updatedAir;
-      });
-    }
-
-    // Auto-add customer to CRM customers list if not present
-    if (newQuote.customerEmail) {
-      setCustomers(prev => {
-        const exists = (prev || []).some(c => c.email?.toLowerCase() === newQuote.customerEmail.toLowerCase());
-        if (!exists) {
-          const newCust = {
-            id: `CUST-${Date.now().toString().slice(-4)}`,
-            name: newQuote.customerName,
-            email: newQuote.customerEmail,
-            phone: newQuote.customerPhone,
-            company: newQuote.company,
-            tier: 'Standard Corporate',
-            status: 'Active',
-            joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          };
-          const updatedCust = [newCust, ...(prev || [])];
-          try {
-            localStorage.setItem('josan_customers', JSON.stringify(updatedCust));
-          } catch (e) {}
-          return updatedCust;
-        }
-        return prev;
-      });
-    }
-
-    addNotification({
-      role: 'admin',
-      type: 'quote_request',
-      title: `📥 New Quote Request #${quoteId}`,
-      message: `${newQuote.customerName} (${newQuote.company}) requested a quote for ${newQuote.origin} → ${newQuote.destination}.`,
-      quoteId
-    });
-
-    showToast(`Quotation #${quoteId} created! Our operations desk has been notified.`, 'success');
-    return newQuote;
-  };
 
   const updateAdminQuote = async (quoteId, quotedAmount, adminNotes) => {
     const rawRole = currentUser?.role || currentUser?.rawRole || currentRole;
@@ -2338,9 +2185,9 @@ export const LogisticsProvider = ({ children }) => {
       phone: targetLead.phone,
       company: targetLead.company || targetLead.name,
       address: extraDetails.address || 'Singapore Logistics Hub, SG',
-      tier: extraDetails.tier || 'Standard Corporate',
+      tier: extraDetails.tier || '',
       creditLimit: extraDetails.creditLimit || 'S$ 35,000',
-      paymentTerms: extraDetails.paymentTerms || 'Net 30 Days',
+      paymentTerms: extraDetails.paymentTerms || '',
       totalOrders: 0,
       totalSpent: 0,
       activeShipments: 0,
@@ -2833,7 +2680,7 @@ export const LogisticsProvider = ({ children }) => {
       email: customerData.email,
       phone: customerData.phone,
       address: customerData.address || 'Singapore',
-      tier: customerData.tier || 'Standard Corporate',
+      tier: customerData.tier || '',
       totalSpent: 'S$ 0.00',
       totalShipments: 0,
       status: 'Active',
@@ -2897,9 +2744,9 @@ export const LogisticsProvider = ({ children }) => {
       email: customerData.email,
       phone: customerData.phone,
       address: customerData.address || 'Singapore',
-      tier: customerData.tier || 'Standard Corporate',
+      tier: customerData.tier || '',
       creditLimit: customerData.creditLimit || 'S$ 30,000',
-      paymentTerms: customerData.paymentTerms || 'Net 30 Days',
+      paymentTerms: customerData.paymentTerms || '',
       totalOrders: 0,
       totalSpent: 0,
       activeShipments: 0,
@@ -3123,7 +2970,6 @@ export const LogisticsProvider = ({ children }) => {
       reachDestination,
       verifyDeliveryOtp,
       submitPod,
-      requestQuote,
       updateAdminQuote,
       sendQuoteToCustomer,
       customerRespondQuote,
