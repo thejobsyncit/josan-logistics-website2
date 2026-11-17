@@ -92,7 +92,7 @@ export const TermsOfServicePage = ({ setActiveTab }) => {
               Josan Logistics Pte. Ltd. operates strictly as a <strong>freight coordinator</strong>. Our services comprise commercial road transportation coordination through independent transport partners and shipment documentation support (including Air Waybill preparation for partner airlines).
             </p>
             <p className="text-slate-600">
-              Transport services are performed by independent, verified road hauliers and commercial airlines appointed by us. We do not operate an airline or commercial road fleet directly, nor do we act as a customs broker or clearance agent.
+              Transport services are performed by independent road hauliers and commercial airlines appointed by us. We do not operate an airline or commercial road fleet directly, nor do we act as a customs broker or clearance agent.
             </p>
             <div className="p-3 bg-orange-50/60 rounded-xl border border-orange-200 text-xs font-semibold text-slate-800">
               This website and our services are intended for customers in Singapore.

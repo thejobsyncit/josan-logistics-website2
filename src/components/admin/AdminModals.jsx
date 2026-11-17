@@ -296,7 +296,7 @@ export const CreateShipmentModal = ({
     destination: '',
     cargoType: 'Commercial Electronics',
     weight: '1,200 kg',
-    price: 'S$ 650.00',
+    price: '',
     transportationPartner: 'Woodlands Roadways Logistics Pte Ltd',
     vehiclePlate: 'SG-8819',
     driverName: 'Tan Wei Ming',

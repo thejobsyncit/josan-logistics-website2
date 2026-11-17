@@ -55,15 +55,15 @@ export const CrmRoadShipmentsTab = ({
   // Form state for creating a new road consignment
   const [newRoadData, setNewRoadData] = useState({
     customer: '',
-    senderPhone: '+65 6789 0123',
-    pickupLocation: 'Changi Air Cargo Hub, Singapore',
-    deliveryLocation: 'Woodlands Distribution Terminal, Singapore',
+    senderPhone: '',
+    pickupLocation: '',
+    deliveryLocation: '',
     goodsDescription: '',
-    packages: 4,
-    weight: '450 kg',
+    packages: '',
+    weight: '',
     transportationPartnerId: '',
     serviceLevel: 'Commercial Road Transportation (Partner Carriers)',
-    price: 'S$ 550.00',
+    price: '',
     notes: ''
   });
 
@@ -164,15 +164,15 @@ export const CrmRoadShipmentsTab = ({
     setIsCreateModalOpen(false);
     setNewRoadData({
       customer: '',
-      senderPhone: '+65 6789 0123',
-      pickupLocation: 'Changi Air Cargo Hub, Singapore',
-      deliveryLocation: 'Woodlands Distribution Terminal, Singapore',
+      senderPhone: '',
+      pickupLocation: '',
+      deliveryLocation: '',
       goodsDescription: '',
-      packages: 4,
-      weight: '450 kg',
+      packages: '',
+      weight: '',
       transportationPartnerId: '',
       serviceLevel: 'Commercial Road Transportation (Partner Carriers)',
-      price: 'S$ 550.00',
+      price: '',
       notes: ''
     });
   };
@@ -509,7 +509,7 @@ export const CrmRoadShipmentsTab = ({
                     <Handshake className="w-4 h-4 text-blue-600" />
                     <span>{activeShipmentModal.transportationPartner || activeShipmentModal.driverName || 'No Partner Assigned'}</span>
                   </p>
-                  <p className="text-[11px] text-slate-500">Commercial arrangement through licensed Singapore roadway network</p>
+                  <p className="text-[11px] text-slate-500">Arranged through partner carriers in Singapore</p>
                 </div>
                 <button
                   type="button"
@@ -657,6 +657,7 @@ export const CrmRoadShipmentsTab = ({
                     type="tel"
                     value={newRoadData.senderPhone}
                     onChange={(e) => setNewRoadData({ ...newRoadData, senderPhone: e.target.value })}
+                    placeholder="Phone number"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                   />
                 </div>
@@ -670,6 +671,7 @@ export const CrmRoadShipmentsTab = ({
                     required
                     value={newRoadData.pickupLocation}
                     onChange={(e) => setNewRoadData({ ...newRoadData, pickupLocation: e.target.value })}
+                    placeholder="Pickup address"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                   />
                 </div>
@@ -680,6 +682,7 @@ export const CrmRoadShipmentsTab = ({
                     required
                     value={newRoadData.deliveryLocation}
                     onChange={(e) => setNewRoadData({ ...newRoadData, deliveryLocation: e.target.value })}
+                    placeholder="Delivery address"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                   />
                 </div>
@@ -704,6 +707,7 @@ export const CrmRoadShipmentsTab = ({
                     type="number"
                     value={newRoadData.packages}
                     onChange={(e) => setNewRoadData({ ...newRoadData, packages: e.target.value })}
+                    placeholder="Number of packages"
                     className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   />
                 </div>
@@ -713,6 +717,7 @@ export const CrmRoadShipmentsTab = ({
                     type="text"
                     value={newRoadData.weight}
                     onChange={(e) => setNewRoadData({ ...newRoadData, weight: e.target.value })}
+                    placeholder="Weight in kg"
                     className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   />
                 </div>
@@ -722,6 +727,7 @@ export const CrmRoadShipmentsTab = ({
                     type="text"
                     value={newRoadData.price}
                     onChange={(e) => setNewRoadData({ ...newRoadData, price: e.target.value })}
+                    placeholder="Price in S$ (optional)"
                     className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
                   />
                 </div>

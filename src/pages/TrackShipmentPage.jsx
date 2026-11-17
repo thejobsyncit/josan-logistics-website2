@@ -69,6 +69,9 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
   const notFoundCopy = trackingContent?.notFound || initialWebsiteContent.tracking.notFound;
   const eventsCopy = trackingContent?.events || initialWebsiteContent.tracking.events;
 
+  const heroSubtext = heroCopy?.subtext || 'Enter your tracking number to see the latest status of your road shipment. Updates are entered by our team, and the time of the last update is shown.';
+  const guidelinesText = guidelinesCopy?.text || 'Our team will send you a tracking number after we book your carrier. Enter it above to see the latest status of your road shipment.';
+
   const [searchInput, setSearchInput] = useState(activeTrackingId || '');
   const [shipmentData, setShipmentData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -307,7 +310,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             className="mt-3.5 text-sm sm:text-base font-normal text-[var(--color-on-navy-muted)] leading-relaxed max-w-2xl"
             style={{ letterSpacing: 'normal' }}
           >
-            {heroCopy.subtext}
+            {heroSubtext}
           </p>
         </div>
       </section>
@@ -590,7 +593,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   className="text-sm sm:text-base text-[var(--color-text)] leading-relaxed"
                   style={{ letterSpacing: 'normal' }}
                 >
-                  {guidelinesCopy.text}
+                  {guidelinesText}
                 </p>
                 <p
                   className="text-xs sm:text-sm text-[var(--color-text-muted)] leading-relaxed pt-1"

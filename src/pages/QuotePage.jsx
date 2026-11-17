@@ -519,19 +519,6 @@ export const QuotePage = ({ setActiveTab }) => {
                   >
                     Back to home
                   </button>
-
-                  {currentUser && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (setCustomerSubTab) setCustomerSubTab('quotes');
-                        if (setActiveTab) setActiveTab('customer-dashboard');
-                      }}
-                      className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text)] rounded-[var(--radius,4px)] font-bold text-sm hover:bg-[var(--color-bg-alt)] transition-colors cursor-pointer"
-                    >
-                      View your quotes
-                    </button>
-                  )}
                 </div>
               </div>
             ) : (

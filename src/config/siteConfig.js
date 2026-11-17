@@ -1,6 +1,7 @@
-export const PLACEHOLDER_PHONE = '+65 6789 0123';
+export const PLACEHOLDER_PHONE = '';
 export const PHONE_PLACEHOLDER_LABEL = '[+65 XXXX XXXX]';
 export const LEGACY_PLACEHOLDER_HOURS = 'Mon - Fri: 08:00 AM - 07:00 PM (SGT) | Sat: 08:00 AM - 01:00 PM';
+export const CUSTOMER_DEMO_TABS = false;
 
 export const COMPANY_INFO = {
   legalName: 'Josan Logistics Pte. Ltd.',
@@ -44,6 +45,8 @@ export function isDisplayablePhone(phone) {
   const trimmed = phone.trim();
   if (!trimmed) return false;
   if (trimmed.includes('X') || trimmed.includes('[')) return false;
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits === '6567890123' || digits === '67890123') return false;
   return true;
 }
 

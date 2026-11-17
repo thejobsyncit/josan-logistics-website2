@@ -60,6 +60,7 @@ function mapShipmentToUI(row) {
   if (!row) return null;
   return {
     ...row,
+    last_updated: row.last_updated || row.updated_at || null,
     trackingNumber: row.tracking_number,
     tracking_number: row.tracking_number,
     sender: row.pickup_address || row.origin_city || 'Josan Consignor',

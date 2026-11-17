@@ -301,7 +301,7 @@ export const CrmBillingTab = ({
   onUpdatePaymentStatus,
   selectedInvoiceFromSearch = null
 }) => {
-  const { siteSettings } = useLogistics?.() || {};
+  const { siteSettings, showToast } = useLogistics?.() || {};
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
@@ -338,7 +338,7 @@ export const CrmBillingTab = ({
     customerPhone: '',
     requestId: '',
     service: 'Air Freight Services (AWB Preparation & Billing)',
-    amount: 520,
+    amount: '',
     paymentStatus: 'Unpaid',
     issueDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
@@ -407,6 +407,15 @@ export const CrmBillingTab = ({
     e.preventDefault();
     if (!newInvData.customerName.trim()) return;
 
+    if (newInvData.amount === '' || newInvData.amount === null || isNaN(Number(newInvData.amount)) || Number(newInvData.amount) <= 0) {
+      if (typeof showToast === 'function') {
+        showToast('Please enter a price', 'warning');
+      } else {
+        alert('Please enter a price');
+      }
+      return;
+    }
+
     const subtotal = Number(newInvData.amount) || 0;
     const gst = Number((subtotal * 0.09).toFixed(2));
     const total = Number((subtotal + gst).toFixed(2));
@@ -434,7 +443,7 @@ export const CrmBillingTab = ({
       customerPhone: '',
       requestId: '',
       service: 'Air Freight Services (AWB Preparation & Billing)',
-      amount: 520,
+      amount: '',
       paymentStatus: 'Unpaid',
       issueDate: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],

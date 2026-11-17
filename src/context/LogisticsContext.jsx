@@ -666,7 +666,8 @@ export const LogisticsProvider = ({ children }) => {
             text: 'Air freight documentation support and road transportation coordination in Singapore.'
           },
           airFreight: initialWebsiteContent.airFreight,
-          roadFreight: initialWebsiteContent.roadFreight
+          roadFreight: initialWebsiteContent.roadFreight,
+          tracking: initialWebsiteContent.tracking
         };
       }
     } catch (e) {}

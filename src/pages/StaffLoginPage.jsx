@@ -693,6 +693,9 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   type="button"
                   onClick={() => {
                     if (setActiveTab) {
+                      if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+                        window.history.replaceState({ tab: 'admin-login' }, '', '/#admin-login');
+                      }
                       setActiveTab('admin-login');
                       if (typeof window !== 'undefined') window.location.hash = '#admin-login';
                     }

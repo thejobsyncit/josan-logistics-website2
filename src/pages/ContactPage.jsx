@@ -225,7 +225,7 @@ export const ContactPage = ({ setActiveTab }) => {
       q: 'How can I track my shipment?',
       a: (
         <>
-          For road shipments, we email you a tracking number after we book your carrier. Enter it on our{' '}
+          For road shipments, our team will send you a tracking number after we book your carrier. Enter it on our{' '}
           <a
             href="#track"
             onClick={(e) => {
@@ -237,10 +237,10 @@ export const ContactPage = ({ setActiveTab }) => {
           >
             Track road shipment page
           </a>
-          . Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents. [CONFIRM that the tracking number is emailed after the carrier is booked]
+          . Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents.
         </>
       ),
-      plainA: 'For road shipments, we email you a tracking number after we book your carrier. Enter it on our Track road shipment page. Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents.'
+      plainA: 'For road shipments, our team will send you a tracking number after we book your carrier. Enter it on our Track road shipment page. Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents.'
     },
     {
       q: 'What information do you need to prepare an Air Waybill?',
@@ -314,7 +314,7 @@ export const ContactPage = ({ setActiveTab }) => {
                     We have received your message
                   </h2>
                   <p className="text-sm text-[var(--color-text)] leading-relaxed">
-                    Our team will get back to you at {submittedEmail}. [CONFIRM: that replies come by email]
+                    Our team will get back to you at {submittedEmail}.
                   </p>
                   <div className="pt-2">
                     <a
@@ -711,11 +711,11 @@ export const ContactPage = ({ setActiveTab }) => {
                     {COMPANY_INFO.businessHours}
                   </p>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                    {COMPANY_INFO.timezoneNote} [CONFIRM DAYS: Monday to Friday, or including Saturday]
+                    {COMPANY_INFO.timezoneNote}
                   </p>
                 </div>
                 <p className="text-xs text-[var(--color-text-muted)] pt-3 border-t border-[var(--color-border)]">
-                  We reply to messages by email. [CONFIRM]
+                  We reply to messages by email.
                 </p>
               </div>
 

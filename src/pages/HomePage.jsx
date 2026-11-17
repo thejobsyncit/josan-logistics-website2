@@ -82,7 +82,7 @@ export const HomePage = ({ setActiveTab }) => {
     if (!currentUser) {
       if (setAuthRedirectTab) setAuthRedirectTab('quote');
       setIsAuthModalOpen(true);
-      if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+      if (showToast) showToast('Please sign in or create an account to get a quote.', 'warning');
       return;
     }
     setActiveTab('quote');

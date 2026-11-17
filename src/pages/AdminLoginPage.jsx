@@ -130,7 +130,7 @@ export const AdminLoginPage = ({ setActiveTab }) => {
       role: 'ADMIN',
       displayRole: 'Admin',
       company: profile?.company || 'Josan Logistics Operations',
-      phone: supabaseUser?.user_metadata?.phone || '+65 6789 0123'
+      phone: supabaseUser?.user_metadata?.phone || ''
     };
 
     try {
@@ -155,6 +155,9 @@ export const AdminLoginPage = ({ setActiveTab }) => {
     setLoading(false);
 
     if (typeof setActiveTab === 'function') {
+      if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+        window.history.replaceState({ tab: 'admin-dashboard' }, '', '/#admin-dashboard');
+      }
       setActiveTab('admin-dashboard', true, adminUser);
     }
   };
@@ -291,6 +294,9 @@ export const AdminLoginPage = ({ setActiveTab }) => {
           <button
             type="button"
             onClick={() => {
+              if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+                window.history.replaceState({ tab: 'home' }, '', '/#home');
+              }
               setActiveTab('home');
               if (typeof window !== 'undefined') window.location.hash = '#home';
             }}
@@ -303,6 +309,9 @@ export const AdminLoginPage = ({ setActiveTab }) => {
           <button
             type="button"
             onClick={() => {
+              if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+                window.history.replaceState({ tab: 'staff-login' }, '', '/#staff-login');
+              }
               setActiveTab('staff-login');
               if (typeof window !== 'undefined') window.location.hash = '#staff-login';
             }}

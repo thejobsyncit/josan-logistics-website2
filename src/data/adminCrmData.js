@@ -457,7 +457,7 @@ export const initialWebsiteContent = {
       contactLabel: 'Contact us',
       callLabel: 'Call us',
       whatsappLabel: 'WhatsApp',
-      whatsappHref: 'https://wa.me/6567890123' // [PLACEHOLDER PHONE NUMBER: +65 6789 0123 until confirmed]
+      whatsappHref: ''
     }
   },
   roadFreight: {
@@ -472,7 +472,7 @@ export const initialWebsiteContent = {
       heading: 'Road transport through partner carriers',
       paragraphs: [
         'You tell us what you are moving, where it is collected and where it needs to go. We send you a quote. Once you confirm and pay, we arrange a partner carrier for the job.',
-        'We email you a tracking number so you can follow your shipment, and you receive proof of delivery when the job is done.'
+        'Our team will send you a tracking number so you can follow your shipment, and you receive proof of delivery when the job is done.'
       ],
       linkLabel: 'See what we need to quote',
       linkTarget: '#what-we-need-road',
@@ -515,8 +515,8 @@ export const initialWebsiteContent = {
           description: 'We do not own vehicles. We book each job with a partner carrier.',
           items: [
             'Carrier chosen for your goods and route',
-            'Booked after you confirm the quote and pay [CONFIRM]',
-            'One contact at our team for your job [CONFIRM]'
+            'Booked after you confirm the quote and pay',
+            'One contact at our team for your job'
           ]
         },
         {
@@ -594,31 +594,31 @@ export const initialWebsiteContent = {
         {
           number: '2',
           title: 'We review your request',
-          description: 'A member of our team looks at your request and confirms the details with you if anything is unclear [CONFIRM: delete "confirms the details with you if anything is unclear" if our team does not contact the customer at this stage].'
+          description: 'A member of our team looks at your request and confirms the details with you if anything is unclear.'
         },
         {
           number: '3',
           title: 'You receive your quote',
-          description: 'Once our team has confirmed the job, we email you the quote [CONFIRM QUOTE TURNAROUND TIME, optional].'
+          description: 'Once our team has confirmed the job, our team will send you the quote.'
         },
         {
           number: '4',
           title: 'You pay',
-          description: 'You pay the quote [CONFIRM PAYMENT METHODS, e.g. bank transfer or PayNow]. We do not book a carrier before payment.'
+          description: 'You pay the quote. We do not book a carrier before payment.'
         },
         {
           number: '5',
           title: 'We book a partner carrier',
-          description: 'After payment we book a partner carrier for your job. We email you a tracking number [CONFIRM: that the tracking number is sent at this stage].'
+          description: 'After payment we book a partner carrier for your job. Our team will send you a tracking number.'
         },
         {
           number: '6',
           title: 'Your goods are delivered',
-          descriptionPrefix: 'The carrier delivers your goods and you receive proof of delivery [CONFIRM: how and in what form proof of delivery is sent]. You can follow the job with your tracking number on our ',
+          descriptionPrefix: 'The carrier delivers your goods and you receive proof of delivery. You can follow the job with your tracking number on our ',
           trackLinkLabel: 'Track road shipment page',
           trackLinkTarget: '#track',
           descriptionSuffix: '.',
-          description: 'The carrier delivers your goods and you receive proof of delivery [CONFIRM: how and in what form proof of delivery is sent]. You can follow the job with your tracking number on our Track road shipment page.'
+          description: 'The carrier delivers your goods and you receive proof of delivery. You can follow the job with your tracking number on our Track road shipment page.'
         }
       ]
     },
@@ -664,7 +664,7 @@ export const initialWebsiteContent = {
       {
         id: 'how-get-quote',
         q: 'How do I get a quote?',
-        a: 'Fill in our quote form with your pickup and delivery addresses, the type of goods and packaging, and the weight, size and number of packages. A member of our team reviews your request, and we email you the quote.'
+        a: 'Fill in our quote form with your pickup and delivery addresses, the type of goods and packaging, and the weight, size and number of packages. A member of our team reviews your request, and our team will send you the quote.'
       },
       {
         id: 'own-vehicles',
@@ -679,16 +679,16 @@ export const initialWebsiteContent = {
       {
         id: 'track-shipment',
         q: 'How do I track my shipment?',
-        aPrefix: 'After we book your carrier, we email you a tracking number. Enter it on our ',
+        aPrefix: 'After we book your carrier, our team will send you a tracking number. Enter it on our ',
         linkLabel: 'Track road shipment page',
         linkTarget: '#track',
         aSuffix: ' to follow your job.',
-        a: 'After we book your carrier, we email you a tracking number. Enter it on our Track road shipment page to follow your job.'
+        a: 'After we book your carrier, our team will send you a tracking number. Enter it on our Track road shipment page to follow your job.'
       },
       {
         id: 'proof-delivery',
         q: 'Do I get proof of delivery?',
-        a: 'Yes. When your goods have been delivered, you receive proof of delivery [CONFIRM HOW, e.g. by email].'
+        a: 'Yes. When your goods have been delivered, you receive proof of delivery.'
       }
     ],
     closingCta: {
@@ -698,13 +698,13 @@ export const initialWebsiteContent = {
       contactLabel: 'Contact us',
       callLabel: 'Call us',
       whatsappLabel: 'WhatsApp',
-      whatsappHref: 'https://wa.me/6567890123' // [PLACEHOLDER PHONE NUMBER: +65 6789 0123 until confirmed]
+      whatsappHref: ''
     }
   },
   tracking: {
     hero: {
       heading: 'Track road shipment',
-      subtext: 'Enter the tracking number we emailed you to see the latest status of your road shipment. Updates are entered by our team, and the time of the last update is shown.'
+      subtext: 'Enter your tracking number to see the latest status of your road shipment. Updates are entered by our team, and the time of the last update is shown.'
     },
     form: {
       label: 'Tracking number',
@@ -717,7 +717,7 @@ export const initialWebsiteContent = {
     },
     guidelines: {
       heading: 'Where to find your tracking number',
-      text: 'We email you a tracking number after we book your carrier. Enter it above to see the latest status of your road shipment.',
+      text: 'Our team will send you a tracking number after we book your carrier. Enter it above to see the latest status of your road shipment.',
       // [CONFIRM: that the tracking number is emailed at that stage, after payment and carrier booking]
       airFreightNotice: 'Air freight: we prepare Air Waybills and shipment documents only, so air shipments cannot be tracked here.'
     },

@@ -464,7 +464,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                 if (!currentUser) {
                   if (setAuthRedirectTab) setAuthRedirectTab('quote');
                   setIsAuthModalOpen(true);
-                  if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                  if (showToast) showToast('Please sign in or create an account to get a quote.', 'warning');
                   return;
                 }
                 setActiveTab('quote');
@@ -643,7 +643,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   if (setAuthRedirectTab) setAuthRedirectTab('quote');
                   setIsAuthModalOpen(true);
                   setMobileMenuOpen(false);
-                  if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                  if (showToast) showToast('Please sign in or create an account to get a quote.', 'warning');
                   return;
                 }
                 setActiveTab('quote');
