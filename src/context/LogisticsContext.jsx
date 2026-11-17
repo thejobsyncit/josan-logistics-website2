@@ -1192,8 +1192,12 @@ export const LogisticsProvider = ({ children }) => {
       }
     }
 
-    const portalName = normRole === 'ADMIN' ? 'Admin Hub' : 'CRM Portal';
-    showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
+    if (normRole === 'READONLY') {
+      showToast('Signed in as Read-only.', 'success');
+    } else {
+      const portalName = normRole === 'ADMIN' ? 'Admin Hub' : 'CRM Portal';
+      showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
+    }
     return { success: true, user: userObj };
   };
 

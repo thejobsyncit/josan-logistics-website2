@@ -611,7 +611,11 @@ export const StaffLoginPage = ({ setActiveTab }) => {
     } catch (e) {}
 
     if (showToast) {
-      showToast(`Staff access authorized. Welcome, ${staffUser.name}.`, 'success');
+      if (normRole === 'READONLY') {
+        showToast('Signed in as Read-only.', 'success');
+      } else {
+        showToast(`Staff access authorized. Welcome, ${staffUser.name}.`, 'success');
+      }
     }
 
     loginUser(

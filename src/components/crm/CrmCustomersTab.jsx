@@ -68,6 +68,7 @@ export const CrmCustomersTab = ({
   const { currentUser, currentRole } = useLogistics?.() || {};
   const activeRole = String(currentUser?.role || currentUser?.rawRole || currentRole || '').toUpperCase();
   const isAdmin = activeRole === 'ADMIN';
+  const isReadOnly = activeRole === 'READONLY';
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -443,14 +444,16 @@ export const CrmCustomersTab = ({
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingCustomer(cust)}
-                          className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                          title="Edit Customer Info"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
+                        {!isReadOnly && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingCustomer(cust)}
+                            className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                            title="Edit Customer Info"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        )}
                         {isAdmin && (
                           <button
                             type="button"
@@ -755,13 +758,15 @@ export const CrmCustomersTab = ({
                           'Internal notes visible to CRM team only.'
                         )}
                       </span>
-                      <button
-                        type="button"
-                        onClick={handleSaveNotes}
-                        className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm"
-                      >
-                        Save Notes
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={handleSaveNotes}
+                          className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm"
+                        >
+                          Save Notes
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -896,12 +901,14 @@ export const CrmCustomersTab = ({
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
-                >
-                  Create Account
-                </button>
+                {!isReadOnly && (
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
+                  >
+                    Create Account
+                  </button>
+                )}
               </div>
             </form>
           </div>
@@ -1017,12 +1024,14 @@ export const CrmCustomersTab = ({
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
-                >
-                  Save Changes
-                </button>
+                {!isReadOnly && (
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
+                  >
+                    Save Changes
+                  </button>
+                )}
               </div>
             </form>
           </div>
