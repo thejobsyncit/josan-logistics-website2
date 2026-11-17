@@ -30,6 +30,66 @@ export const ROAD_STATUS_OPTIONS = [
   'Completed'
 ];
 
+export const getCustomerDisplayName = (shipment) => {
+  if (!shipment) return 'Not recorded';
+
+  const disallowed = new Set([
+    'singapore',
+    'singapore hub',
+    'singapore delivery',
+    'josan consignor',
+    'commercial shipper',
+    'consignor',
+    'changi aviation client',
+    'corporate account',
+    String(shipment.origin || '').trim().toLowerCase(),
+    String(shipment.origin_city || '').trim().toLowerCase(),
+    String(shipment.pickupLocation || '').trim().toLowerCase(),
+    String(shipment.pickupAddress || '').trim().toLowerCase(),
+    String(shipment.senderAddress || '').trim().toLowerCase(),
+    String(shipment.destination || '').trim().toLowerCase(),
+    String(shipment.destination_city || '').trim().toLowerCase(),
+    String(shipment.deliveryLocation || '').trim().toLowerCase(),
+    String(shipment.deliveryAddress || '').trim().toLowerCase(),
+    String(shipment.receiverAddress || '').trim().toLowerCase()
+  ].filter(Boolean));
+
+  const candidates = [
+    shipment.profiles?.name,
+    shipment.profiles?.company,
+    shipment.customerName,
+    shipment.customer,
+    shipment.shipperName,
+    shipment.shipper,
+    shipment.contact_name,
+    shipment.contactName,
+    shipment.sender
+  ];
+
+  for (const c of candidates) {
+    if (typeof c === 'string') {
+      const trimmed = c.trim();
+      if (trimmed && !disallowed.has(trimmed.toLowerCase())) {
+        return trimmed;
+      }
+    }
+  }
+
+  return 'Not recorded';
+};
+
+export const normalizeStatusKey = (str) => String(str || '').toLowerCase().replace(/[\s_]+/g, '');
+
+export const getStatusOptionsForShipment = (currentStatus) => {
+  if (!currentStatus) return ROAD_STATUS_OPTIONS;
+  const normCurrent = normalizeStatusKey(currentStatus);
+  const found = ROAD_STATUS_OPTIONS.some(opt => normalizeStatusKey(opt) === normCurrent);
+  if (found) {
+    return ROAD_STATUS_OPTIONS;
+  }
+  return [currentStatus, ...ROAD_STATUS_OPTIONS];
+};
+
 export const CrmRoadShipmentsTab = ({
   shipments = [],
   transportationPartners = [],
@@ -70,15 +130,16 @@ export const CrmRoadShipmentsTab = ({
   // Filter logic
   const filteredShipments = shipments.filter(s => {
     const term = search.trim().toLowerCase();
-    const customerName = (s.sender || s.customerName || '').toLowerCase();
+    const customerDisplay = getCustomerDisplayName(s).toLowerCase();
+    const trackingNum = (s.trackingNumber || s.tracking_number || s.id || '').toLowerCase();
     const goods = (s.cargoType || s.goodsDescription || '').toLowerCase();
     const pickup = (s.origin || s.pickupLocation || s.senderAddress || '').toLowerCase();
     const delivery = (s.destination || s.deliveryLocation || s.receiverAddress || '').toLowerCase();
     const partner = (s.transportationPartner || s.driverName || '').toLowerCase();
 
     const matchesSearch = !term ||
-      s.id?.toLowerCase().includes(term) ||
-      customerName.includes(term) ||
+      trackingNum.includes(term) ||
+      customerDisplay.includes(term) ||
       goods.includes(term) ||
       pickup.includes(term) ||
       delivery.includes(term) ||
@@ -302,7 +363,7 @@ export const CrmRoadShipmentsTab = ({
                       {/* Request ID */}
                       <td className="p-4">
                         <span className="font-mono font-black text-slate-900 text-xs block">
-                          #{s.id}
+                          {s.trackingNumber || s.tracking_number || '—'}
                         </span>
                         <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
                           {s.createdDate?.split(' ')[0] || 'Recent'}
@@ -312,7 +373,7 @@ export const CrmRoadShipmentsTab = ({
                       {/* Customer */}
                       <td className="p-4">
                         <p className="font-extrabold text-slate-900 text-xs hover:text-[#2463EB] cursor-pointer" onClick={() => { setActiveShipmentModal(s); setTempNotes(s.adminNotes || ''); }}>
-                          {s.sender || s.customerName || 'Commercial Shipper'}
+                          {getCustomerDisplayName(s)}
                         </p>
                         <p className="text-[10px] text-slate-500 mt-0.5">{s.senderPhone || '—'}</p>
                       </td>
@@ -363,7 +424,7 @@ export const CrmRoadShipmentsTab = ({
                           onChange={(e) => onUpdateStatus(s.id, e.target.value)}
                           className={`px-2 py-1 rounded-lg text-[11px] font-extrabold border cursor-pointer ${getStatusStyle(s.status)}`}
                         >
-                          {ROAD_STATUS_OPTIONS.map(opt => (
+                          {getStatusOptionsForShipment(s.status).map(opt => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </select>
@@ -425,12 +486,12 @@ export const CrmRoadShipmentsTab = ({
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="font-mono text-sm font-black text-emerald-400 bg-white/10 px-2 py-0.5 rounded-lg border border-white/20">
-                    #{activeShipmentModal.id}
+                    {activeShipmentModal.trackingNumber || activeShipmentModal.tracking_number || '—'}
                   </span>
                   <h3 className="text-lg font-extrabold text-white">Road Consignment Dossier</h3>
                 </div>
                 <p className="text-xs text-slate-300 mt-1">
-                  Customer: {activeShipmentModal.sender || activeShipmentModal.customerName}
+                  Customer: {getCustomerDisplayName(activeShipmentModal)}
                 </p>
                 <p className="text-[11px] text-slate-400 mt-0.5">
                   Service Level: {activeShipmentModal.serviceLevel || 'Commercial Road Transportation'}
@@ -566,7 +627,7 @@ export const CrmRoadShipmentsTab = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-black text-lg text-slate-900 font-heading">Assign Transportation Partner</h3>
-                <p className="text-xs text-slate-500">Consignment #{assignPartnerModalShipment.id}</p>
+                <p className="text-xs text-slate-500 font-mono">Consignment {assignPartnerModalShipment.trackingNumber || assignPartnerModalShipment.tracking_number || '—'}</p>
               </div>
               <button
                 type="button"

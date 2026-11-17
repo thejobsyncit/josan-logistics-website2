@@ -40,24 +40,6 @@ const recordRateLimitAttempt = (windowMs = 60000) => {
   } catch (_e) {}
 };
 
-// Development-only test tracking record (TEST-0001), strictly gated by import.meta.env.DEV
-const DEV_TEST_RECORD = import.meta.env.DEV
-  ? {
-      tracking_number: 'TEST-0001',
-      status: 'Delivered',
-      last_updated: '2026-11-13T08:30:00+08:00',
-      service_type: 'Commercial Road Transportation (Test Data)',
-      origin: 'Jurong Industrial Estate (Test Data)',
-      destination: 'Changi Logistics Park (Test Data)',
-      events: [
-        { status: 'Request received', time: '2026-11-12T09:00:00+08:00' },
-        { status: 'Quote sent', time: '2026-11-12T11:15:00+08:00' },
-        { status: 'Carrier booked', time: '2026-11-12T14:30:00+08:00' },
-        { status: 'Delivered', time: '2026-11-13T08:30:00+08:00' }
-      ]
-    }
-  : null;
-
 export const TrackShipmentPage = ({ setActiveTab }) => {
   const { activeTrackingId, setActiveTrackingId, websiteContent } = useLogistics();
 
@@ -153,16 +135,6 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     setErrorMessage('');
     setRateLimitMessage('');
     setCaptchaError('');
-
-    // Dev-only test record lookup gated by import.meta.env.DEV
-    if (import.meta.env.DEV && cleanQuery === 'TEST-0001' && DEV_TEST_RECORD) {
-      setTimeout(() => {
-        setIsLoading(false);
-        setShipmentData(DEV_TEST_RECORD);
-        if (setActiveTrackingId) setActiveTrackingId('TEST-0001');
-      }, 200);
-      return;
-    }
 
     try {
       let status = 404;
@@ -487,12 +459,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                         Origin
                       </span>
                       <p className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
-                        {(() => {
-                          const val = shipmentData.origin || shipmentData.origin_city;
-                          if (!val) return 'Not specified';
-                          if (import.meta.env.DEV) return String(val).trim();
-                          return String(val).replace(/\s*\(Test Data\)/gi, '').trim() || 'Not specified';
-                        })()}
+                        {shipmentData.origin || shipmentData.origin_city || 'Not specified'}
                       </p>
                     </div>
 
@@ -501,12 +468,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                         Destination
                       </span>
                       <p className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
-                        {(() => {
-                          const val = shipmentData.destination || shipmentData.destination_city;
-                          if (!val) return 'Not specified';
-                          if (import.meta.env.DEV) return String(val).trim();
-                          return String(val).replace(/\s*\(Test Data\)/gi, '').trim() || 'Not specified';
-                        })()}
+                        {shipmentData.destination || shipmentData.destination_city || 'Not specified'}
                       </p>
                     </div>
 

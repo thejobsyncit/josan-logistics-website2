@@ -520,7 +520,7 @@ const MainContent = () => {
       },
       'contact': {
         title: 'Contact | Josan Logistics',
-        description: 'Contact Josan Logistics in Singapore about a quote, a road shipment or air freight documents. Send us a message and our team will get back to you.'
+        description: 'Contact Josan Logistics. Use Get a Quote for quote requests, or email us.'
       },
       'track': {
         title: 'Track road shipment | Josan Logistics',

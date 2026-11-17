@@ -907,6 +907,8 @@ export const LogisticsProvider = ({ children }) => {
       const dbShipments = await supabaseApi.getShipments();
       if (dbShipments && dbShipments.length > 0) {
         setShipments(dbShipments);
+      } else {
+        setShipments([]);
       }
 
       const dbDrivers = await supabaseApi.getDrivers();
@@ -2130,7 +2132,7 @@ export const LogisticsProvider = ({ children }) => {
       shipmentId: ticketData.shipmentId !== 'General Inquiry' ? ticketData.shipmentId : null
     });
 
-    showToast(`Support Ticket #${ticketId} submitted to operations team!`, 'success');
+    showToast('This form is not connected to our team yet. Please use Get a Quote or email us.', 'info');
     return newTicket;
   };
 

@@ -58,9 +58,22 @@ export function normalizeServiceType(rawType) {
 
 function mapShipmentToUI(row) {
   if (!row) return null;
+
+  // Derive latest tracking event time, exactly matching track_shipment RPC on the Track page
+  let latestTrackingEventTime = null;
+  if (Array.isArray(row.tracking_events) && row.tracking_events.length > 0) {
+    const validEvents = row.tracking_events.filter(e => e.is_public !== false && e.occurred_at);
+    if (validEvents.length > 0) {
+      validEvents.sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at));
+      latestTrackingEventTime = validEvents[0].occurred_at;
+    }
+  }
+
+  const effectiveLastUpdated = latestTrackingEventTime || row.last_updated || row.updated_at || null;
+
   return {
     ...row,
-    last_updated: row.last_updated || row.updated_at || null,
+    last_updated: effectiveLastUpdated,
     trackingNumber: row.tracking_number,
     tracking_number: row.tracking_number,
     sender: row.pickup_address || row.origin_city || 'Josan Consignor',
@@ -83,7 +96,9 @@ function mapShipmentToUI(row) {
     partner_id: row.partner_id,
     driver_id: row.partner_id,
     driver_name: row.transport_partners?.name || 'Partner Carrier',
-    estimated_delivery: row.estimated_delivery
+    estimated_delivery: row.estimated_delivery,
+    profiles: row.profiles || null,
+    customerName: row.profiles?.name || row.profiles?.company || row.customerName || null
   };
 }
 
@@ -97,16 +112,16 @@ export const shipmentsService = {
     try {
       const { data, error } = await supabase
         .from('shipments')
-        .select('*, transport_partners(id, name, contact_name, contact_phone)')
+        .select('*, transport_partners(id, name, contact_name, contact_phone), tracking_events(occurred_at, is_public), profiles:customer_id(id, name, company)')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('[ShipmentsService] Fetch shipments error:', error.message);
+        console.error('[shipments] load failed');
         return null;
       }
       return (data || []).map(mapShipmentToUI);
     } catch (err) {
-      console.warn('[ShipmentsService] Error fetching shipments:', err);
+      console.error('[shipments] load failed');
       return null;
     }
   },
@@ -121,7 +136,7 @@ export const shipmentsService = {
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idOrTracking);
       let query = supabase
         .from('shipments')
-        .select('*, transport_partners(id, name, contact_name, contact_phone)');
+        .select('*, transport_partners(id, name, contact_name, contact_phone), tracking_events(occurred_at, is_public), profiles:customer_id(id, name, company)');
 
       if (isUUID) {
         query = query.or(`id.eq.${idOrTracking},tracking_number.eq.${idOrTracking}`);
@@ -132,12 +147,12 @@ export const shipmentsService = {
       const { data, error } = await query.maybeSingle();
 
       if (error) {
-        console.warn('[ShipmentsService] Fetch shipment by ID error:', error.message);
+        console.error('[shipments] load failed');
         return null;
       }
       return mapShipmentToUI(data);
     } catch (err) {
-      console.warn('[ShipmentsService] Error in getShipmentById:', err);
+      console.error('[shipments] load failed');
       return null;
     }
   },

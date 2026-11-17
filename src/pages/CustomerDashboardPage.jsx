@@ -270,73 +270,13 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
   const isAddressFormValid = Boolean(newLabel.trim() && newAddress.trim());
   const isSupportFormValid = Boolean(ticketSubject.trim() && ticketMessage.trim());
 
-  // Dev-only test data for customer.test@example.com
-  const isDevTestCustomer = Boolean(
-    import.meta.env.DEV &&
-    currentUser?.email?.toLowerCase() === 'customer.test@example.com'
-  );
-
-  const DEV_TEST_SHIPMENTS = [
-    {
-      id: 'TEST-0001',
-      trackingNumber: 'TEST-0001',
-      service: 'Road transport',
-      status: 'Delivered',
-      lastUpdated: '12 Nov 2026, 14:30 SGT',
-      createdDate: '2026-11-12 14:30',
-      origin: '10 Jalan Besar, #15-02 Sim Lim Tower, Singapore 208787',
-      destination: 'Changi Airport Cargo Complex, Singapore 819642',
-      price: 'S$ 350.00',
-      date: '12 Nov 2026',
-      paymentStatus: 'Paid',
-      isTest: true
-    },
-    {
-      id: 'TEST-0002',
-      trackingNumber: 'TEST-0002',
-      service: 'Road transport',
-      status: 'In transit',
-      lastUpdated: '13 Nov 2026, 09:15 SGT',
-      createdDate: '2026-11-13 09:15',
-      origin: '20 Orchard Road, Singapore 238864',
-      destination: 'Pioneer Sector 1, Jurong, Singapore 628437',
-      price: 'S$ 280.00',
-      date: '13 Nov 2026',
-      paymentStatus: 'Pending payment',
-      isTest: true
-    }
-  ];
-
-  const DEV_TEST_QUOTES = [
-    {
-      id: 'Q-TEST-001',
-      date: '13 Nov 2026',
-      service: 'Road transport',
-      status: 'Sent',
-      price: 'S$ 280.00',
-      origin: '20 Orchard Road, Singapore 238864',
-      destination: 'Pioneer Sector 1, Jurong, Singapore 628437',
-      isTest: true
-    },
-    {
-      id: 'Q-TEST-002',
-      date: '11 Nov 2026',
-      service: 'Air freight documentation',
-      status: 'Accepted',
-      price: 'S$ 150.00',
-      origin: 'Changi Airport, Singapore',
-      destination: 'London Heathrow (LHR)',
-      isTest: true
-    }
-  ];
-
   const displayShipments = (shipments && shipments.length > 0)
     ? shipments
-    : (isDevTestCustomer ? DEV_TEST_SHIPMENTS : []);
+    : [];
 
   const displayQuotes = (quotes && quotes.length > 0)
     ? quotes
-    : (isDevTestCustomer ? DEV_TEST_QUOTES : []);
+    : [];
 
   const handleStartEdit = (addr) => {
     setEditingAddressId(addr.id);
