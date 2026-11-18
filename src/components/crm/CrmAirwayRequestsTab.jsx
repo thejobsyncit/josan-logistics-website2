@@ -280,7 +280,7 @@ export const CrmAirwayRequestsTab = ({
               {paginatedRequests.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="p-12 text-center text-slate-400 font-medium">
-                    No airway service requests found matching your filters.
+                    No air freight requests yet. New requests arrive under Quotations.
                   </td>
                 </tr>
               ) : (

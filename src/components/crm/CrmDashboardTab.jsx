@@ -181,7 +181,7 @@ export const CrmDashboardTab = ({
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-sans text-white leading-[1.15] tracking-normal">
-              Operations & Customer Relationship Hub
+              Operations dashboard
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
               Air freight documents, road jobs with partner carriers, quotes and billing in one place.

@@ -125,113 +125,7 @@ export const LogisticsProvider = ({ children }) => {
   const [quotes, setQuotes] = useState([]);
 
   // Airway Service Requests State (AWB Preparation, Billing, Documentation, Transportation Support)
-  const [airwayRequests, setAirwayRequests] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_airway_requests');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Keep dates synchronized with active November 2026 operations
-          return parsed.map(item => {
-            if (typeof item.date === 'string' && item.date.startsWith('2026-09')) {
-              return { ...item, date: item.date.replace('2026-09', '2026-11') };
-            }
-            return item;
-          });
-        }
-      }
-    } catch (e) {}
-    return [
-      {
-        id: 'AIR-0001',
-        customerName: 'Marcus Lim',
-        company: 'Changi Aviation Logistics Pte Ltd',
-        email: 'ops@changiaviation.sg',
-        phone: '+65 6543 2100',
-        receiverName: 'Somchai Prasert',
-        receiverCompany: 'Bangkok Air Logistics Co., Ltd',
-        receiverEmail: 'import@bangkokairlogistics.co.th',
-        receiverPhone: '+66 2 134 8888',
-        incoterm: 'FOB',
-        origin: 'SIN - Singapore Changi Airport (Air Cargo Complex)',
-        destination: 'BKK - Bangkok Suvarnabhumi Airport',
-        cargoDescription: 'Precision aircraft avionics replacement components & calibration units',
-        packagesCount: '4 wooden crates',
-        totalWeight: '320 kg',
-        dimensions: '120 x 80 x 75 cm per crate',
-        approximateValue: 'SGD 45,000',
-        services: ['AWB Preparation', 'AWB Billing', 'Shipment Documentation', 'Transportation Support'],
-        documents: [
-          { name: 'Commercial_Invoice_Avionics_001.pdf', type: 'Commercial Invoice', size: '245 KB' },
-          { name: 'Packing_List_Crates_1-4.pdf', type: 'Packing List', size: '110 KB' },
-          { name: 'Certificate_of_Origin_SG_Avionics.pdf', type: 'Certificate of Origin', size: '180 KB' }
-        ],
-        date: '2026-11-17',
-        status: 'Under Review',
-        adminNotes: 'IATA master AWB draft prepared with Singapore Airlines Cargo (SQ). Validated shipper export code.'
-      },
-      {
-        id: 'AIR-0002',
-        customerName: 'Elena Rostova',
-        company: 'BioPharma Asia Express',
-        email: 'supplychain@biopharma-asia.com',
-        phone: '+65 8234 5678',
-        receiverName: 'Kenji Takahashi',
-        receiverCompany: 'Narita Clinical Distribution KK',
-        receiverEmail: 'k.takahashi@naritaclinical.co.jp',
-        receiverPhone: '+81 3 5555 0142',
-        incoterm: 'FOB',
-        origin: 'HarbourFront Biomedical Hub, Singapore',
-        destination: 'NRT - Tokyo Narita International Airport',
-        cargoDescription: 'Temperature-controlled diagnostic reagents & cold-chain test kits',
-        packagesCount: '12 insulated cartons',
-        totalWeight: '185 kg',
-        dimensions: '50 x 50 x 40 cm',
-        approximateValue: 'SGD 28,000',
-        services: ['AWB Preparation', 'Shipment Documentation'],
-        documents: [
-          { name: 'Biopharma_Commercial_Invoice.pdf', type: 'Commercial Invoice', size: '320 KB' },
-          { name: 'Cold_Chain_Certificate_Of_Origin.pdf', type: 'Certificate of Origin', size: '195 KB' }
-        ],
-        date: '2026-11-16',
-        status: 'Documentation',
-        adminNotes: 'Chemical export clearance permit attached.'
-      },
-      {
-        id: 'AIR-0003',
-        customerName: 'Darren Koh',
-        company: 'Customer Company',
-        email: 'logistics.sg@customercompany.com',
-        phone: '+65 6789 0123',
-        receiverName: 'Min-Jun Park',
-        receiverCompany: 'Seoul E-Sports Hardware Hub',
-        receiverEmail: 'park.mj@seoulelectronics.co.kr',
-        receiverPhone: '+82 2 3456 7890',
-        incoterm: 'FOB',
-        origin: 'Raffles Logistics Bay, Singapore',
-        destination: 'ICN - Seoul Incheon Airport',
-        cargoDescription: 'High-end gaming microprocessor prototype samples',
-        packagesCount: '2 secure palletized boxes',
-        totalWeight: '95 kg',
-        dimensions: '80 x 60 x 50 cm',
-        approximateValue: 'SGD 62,000',
-        services: ['AWB Preparation', 'AWB Billing', 'Transportation Support'],
-        documents: [
-          { name: 'Commercial_Invoice_KR.pdf', type: 'Commercial Invoice', size: '185 KB' },
-          { name: 'Dangerous_Goods_Exemption_Declaration.pdf', type: 'Other Shipment Documents', size: '140 KB' }
-        ],
-        date: '2026-11-15',
-        status: 'Billing',
-        adminNotes: 'AWB billing invoice sent to customer finance department.'
-      }
-    ];
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_airway_requests', JSON.stringify(airwayRequests));
-    } catch (e) {}
-  }, [airwayRequests]);
+  const [airwayRequests, setAirwayRequests] = useState([]);
 
   // Website Notification System State (Loaded from Supabase notifications table for logged-in user)
   const [notifications, setNotifications] = useState([]);
@@ -288,35 +182,10 @@ export const LogisticsProvider = ({ children }) => {
   }, [tickets]);
 
   // Transportation Partners (Contracted Commercial Roadway Haulers)
-  const [transportationPartners, setTransportationPartners] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_transport_partners');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return initialTransportationPartners;
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_transport_partners', JSON.stringify(transportationPartners));
-    } catch (e) {}
-  }, [transportationPartners]);
+  const [transportationPartners, setTransportationPartners] = useState([]);
 
   // CRM Module: Leads & Pipeline
-  const [leads, setLeads] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_leads');
-      return saved ? JSON.parse(saved) : initialLeads;
-    } catch (e) {
-      return initialLeads;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_leads', JSON.stringify(leads));
-    } catch (e) {}
-  }, [leads]);
+  const [leads, setLeads] = useState([]);
 
   // CRM Module: Communications Log
   const [communications, setCommunications] = useState(() => {
@@ -893,6 +762,16 @@ export const LogisticsProvider = ({ children }) => {
 
     loadSupabaseData();
 
+    // Listen to Auth state changes to reload shipments on sign-in and sign-out
+    const unsubscribe = supabaseApi.onAuthStateChange(() => {
+      loadSupabaseData();
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, []);
 
   // Real-time Connection State
@@ -928,6 +807,16 @@ export const LogisticsProvider = ({ children }) => {
     }
   });
 
+  // Reload shipments when authenticated user state changes
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    const reloadShipments = async () => {
+      const dbShipments = await supabaseApi.getShipments();
+      setShipments(Array.isArray(dbShipments) ? dbShipments : []);
+    };
+    reloadShipments();
+  }, [currentUser]);
+
   // Ensure any stale client-side customer/role/shipment localStorage keys or invalid test sessions are removed
   useEffect(() => {
     try {
@@ -935,6 +824,10 @@ export const LogisticsProvider = ({ children }) => {
       localStorage.removeItem('josan_shipments');
       localStorage.removeItem('josan_user');
       localStorage.removeItem('josan_role');
+      localStorage.removeItem('josan_airway_requests');
+      localStorage.removeItem('josan_transport_partners');
+      localStorage.removeItem('josan_leads');
+      localStorage.removeItem('josan_addresses');
       const savedStaff = localStorage.getItem('josan_staff_user');
       if (savedStaff) {
         const parsed = JSON.parse(savedStaff);
@@ -1110,27 +1003,7 @@ export const LogisticsProvider = ({ children }) => {
   const [driverSubTab, setDriverSubTab] = useState('dashboard');
 
   // Saved Addresses State
-  const [addressList, setAddressList] = useState(() => {
-    const defaultAddresses = [
-      { id: 1, label: 'Primary Sim Lim Tower HQ Office', address: COMPANY_INFO.address, contact: 'Tan Wei Ming (Operations)', type: 'pickup' },
-      { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
-      { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
-      { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
-    ];
-    try {
-      const saved = localStorage.getItem('josan_addresses');
-      if (!saved) return defaultAddresses;
-      const parsed = JSON.parse(saved);
-      if (!Array.isArray(parsed)) return defaultAddresses;
-      return parsed.map(item =>
-        item && (item.id === 1 || isLegacyOfficeAddress(item.address))
-          ? { ...item, label: 'Primary Sim Lim Tower HQ Office', address: COMPANY_INFO.address }
-          : item
-      );
-    } catch (e) {
-      return defaultAddresses;
-    }
-  });
+  const [addressList, setAddressList] = useState([]);
 
   const addSavedAddress = (newAddressObj) => {
     setAddressList(prev => [...prev, newAddressObj]);
@@ -1143,10 +1016,6 @@ export const LogisticsProvider = ({ children }) => {
   const deleteSavedAddress = (id) => {
     setAddressList(prev => prev.filter(a => a.id !== id));
   };
-
-  useEffect(() => {
-    localStorage.setItem('josan_addresses', JSON.stringify(addressList));
-  }, [addressList]);
 
 
   useEffect(() => {

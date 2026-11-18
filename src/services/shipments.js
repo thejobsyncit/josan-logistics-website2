@@ -107,22 +107,40 @@ export const shipmentsService = {
    * Fetch all shipments ordered by created_at descending from public.shipments.
    */
   getShipments: async () => {
-    if (!isSupabaseConfigured) return null;
+    if (!isSupabaseConfigured) return [];
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (!session || !session.user) {
+        return [];
+      }
+
+      // Check user role from profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      const userRole = String(profile?.role || session.user.user_metadata?.role || '').toUpperCase();
+      const isStaff = ['ADMIN', 'CRM', 'READONLY'].includes(userRole);
+
+      const selectClause = isStaff
+        ? '*, transport_partners(id, name, contact_name, contact_phone), tracking_events(occurred_at, is_public), profiles:customer_id(id, name, company)'
+        : '*';
+
       const { data, error } = await supabase
         .from('shipments')
-        .select('*, transport_partners(id, name, contact_name, contact_phone), tracking_events(occurred_at, is_public), profiles:customer_id(id, name, company)')
+        .select(selectClause)
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('[shipments] load failed');
-        return null;
+        return [];
       }
       return (data || []).map(mapShipmentToUI);
     } catch (err) {
-      console.error('[shipments] load failed');
-      return null;
+      return [];
     }
   },
 
