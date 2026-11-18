@@ -15,7 +15,6 @@ import {
   Building2,
   ShieldCheck,
   Calendar,
-  Sparkles,
   ChevronRight,
   Handshake,
   DollarSign
@@ -56,49 +55,118 @@ export const CrmDashboardTab = ({
     .filter(inv => inv.paymentStatus === 'Paid')
     .reduce((sum, inv) => sum + (Number(inv.total) || Number(inv.subtotal) || 0), 0);
 
-  // Compile unified recent activity timeline from all modules:
+  // Helper to parse dates safely for timeline ordering
+  const parseActivityTimestamp = (val) => {
+    if (!val) return 0;
+    const t = new Date(val).getTime();
+    return isNaN(t) ? 0 : t;
+  };
+
+  const formatActivityDate = (val) => {
+    if (!val) return 'Recent';
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return String(val).split(' ')[0] || 'Recent';
+    return d.toLocaleDateString();
+  };
+
+  // Compile unified recent activity timeline from all modules, chronologically sorted:
   const recentActivities = [
-    ...quotes.map(q => ({
-      id: `act-quote-${q.id || q.reference}`,
-      type: 'quote',
-      title: `Quotation #${q.reference || q.id} (${q.status || 'New'})`,
-      subtitle: `${q.company_name || q.contact_name || q.company || q.customerName || 'Commercial Client'} • ${q.quoted_amount ? `S$ ${Number(q.quoted_amount).toLocaleString()}` : 'Not quoted yet'}`,
-      date: q.created_at ? new Date(q.created_at).toLocaleDateString() : 'Recent',
-      status: q.status || 'New',
-      badgeColor: 'bg-purple-100 text-purple-700 border-purple-200',
-      raw: q
-    })),
-    ...airwayRequests.map(r => ({
-      id: `act-air-${r.id}`,
-      type: 'airway',
-      title: `Airway Request #${r.id} (${r.status})`,
-      subtitle: `${r.customerName} • ${r.origin?.split(',')[0]} → ${r.destination?.split(',')[0]}`,
-      date: r.date || 'Recent',
-      status: r.status,
-      badgeColor: 'bg-blue-100 text-blue-700 border-blue-200',
-      raw: r
-    })),
-    ...shipments.map(s => ({
-      id: `act-road-${s.id}`,
-      type: 'road',
-      title: `Road Shipment #${s.id} (${s.status})`,
-      subtitle: `${s.sender || s.customerName} • ${s.origin} → ${s.destination}`,
-      date: s.createdDate ? s.createdDate.split(' ')[0] : 'Recent',
-      status: s.status,
-      badgeColor: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      raw: s
-    })),
-    ...invoices.map(i => ({
-      id: `act-inv-${i.id}`,
-      type: 'billing',
-      title: `Invoice #${i.invoiceNumber} (${i.paymentStatus})`,
-      subtitle: `${i.customerName} • S$ ${Number(i.total || i.subtotal || 0).toLocaleString()}`,
-      date: i.issueDate || 'Recent',
-      status: i.paymentStatus,
-      badgeColor: i.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200',
-      raw: i
-    }))
-  ].slice(0, 10);
+    ...quotes.map(q => {
+      const isQuoted = String(q.status || '').toLowerCase().includes('quoted');
+      const isDeclined = String(q.status || '').toLowerCase().includes('declined') || String(q.status || '').toLowerCase().includes('reject');
+      const badgeColor = isQuoted
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : isDeclined
+        ? 'bg-rose-50 text-rose-700 border-rose-200'
+        : 'bg-blue-50 text-blue-700 border-blue-200';
+
+      return {
+        id: `act-quote-${q.id || q.reference}`,
+        type: 'quote',
+        title: `Quotation #${q.reference || q.id}`,
+        subtitle: `${q.company_name || q.contact_name || q.company || q.customerName || 'Commercial Client'} • ${q.quoted_amount ? `S$ ${Number(q.quoted_amount).toLocaleString()}` : 'Not quoted yet'}`,
+        date: formatActivityDate(q.created_at),
+        timestamp: parseActivityTimestamp(q.created_at),
+        status: q.status || 'New',
+        badgeColor,
+        icon: <FileSpreadsheet className="w-4 h-4 text-amber-600" />,
+        iconBg: 'bg-amber-50',
+        raw: q
+      };
+    }),
+    ...airwayRequests.map(r => {
+      const s = String(r.status || '').toLowerCase();
+      const badgeColor = s.includes('completed')
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : s.includes('review')
+        ? 'bg-amber-50 text-amber-700 border-amber-200'
+        : s.includes('doc')
+        ? 'bg-purple-50 text-purple-700 border-purple-200'
+        : s.includes('bill')
+        ? 'bg-blue-50 text-blue-700 border-blue-200'
+        : 'bg-slate-100 text-slate-700 border-slate-200';
+
+      return {
+        id: `act-air-${r.id}`,
+        type: 'airway',
+        title: `Air Freight #${r.id}`,
+        subtitle: `${r.customerName || 'Customer'} • ${r.origin?.split(',')[0] || 'Origin'} → ${r.destination?.split(',')[0] || 'Destination'}`,
+        date: formatActivityDate(r.date || r.created_at),
+        timestamp: parseActivityTimestamp(r.created_at || r.date),
+        status: r.status || 'New',
+        badgeColor,
+        icon: <Plane className="w-4 h-4 text-blue-600" />,
+        iconBg: 'bg-blue-50',
+        raw: r
+      };
+    }),
+    ...shipments.map(s => {
+      const st = String(s.status || '').toLowerCase();
+      const badgeColor = st.includes('delivered') || st.includes('completed')
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : st.includes('transit') || st.includes('active')
+        ? 'bg-blue-50 text-blue-700 border-blue-200'
+        : st.includes('cancel')
+        ? 'bg-rose-50 text-rose-700 border-rose-200'
+        : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+      return {
+        id: `act-road-${s.id}`,
+        type: 'road',
+        title: `Road Shipment #${s.id}`,
+        subtitle: `${s.sender || s.customerName || 'Customer'} • ${s.origin || 'Origin'} → ${s.destination || 'Destination'}`,
+        date: formatActivityDate(s.createdDate),
+        timestamp: parseActivityTimestamp(s.createdDate),
+        status: s.status || 'Active',
+        badgeColor,
+        icon: <Truck className="w-4 h-4 text-emerald-600" />,
+        iconBg: 'bg-emerald-50',
+        raw: s
+      };
+    }),
+    ...invoices.map(i => {
+      const isPaid = String(i.paymentStatus || '').toLowerCase().includes('paid');
+      const badgeColor = isPaid
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : 'bg-amber-50 text-amber-700 border-amber-200';
+
+      return {
+        id: `act-inv-${i.id}`,
+        type: 'billing',
+        title: `Invoice #${i.invoiceNumber}`,
+        subtitle: `${i.customerName || 'Customer'} • S$ ${Number(i.total || i.subtotal || 0).toLocaleString()}`,
+        date: formatActivityDate(i.issueDate),
+        timestamp: parseActivityTimestamp(i.issueDate),
+        status: i.paymentStatus || 'Unpaid',
+        badgeColor,
+        icon: <Receipt className="w-4 h-4 text-indigo-600" />,
+        iconBg: 'bg-indigo-50',
+        raw: i
+      };
+    })
+  ]
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 8);
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
@@ -107,20 +175,16 @@ export const CrmDashboardTab = ({
         <div className="absolute top-0 right-0 w-80 h-80 bg-[#2463EB]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 bg-[#2463EB]/20 text-[#2463EB] border border-[#2463EB]/30 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center space-x-1.5">
-                <Sparkles className="w-3 h-3" />
-                <span>Josan Logistics CRM</span>
-              </span>
-              <span className="text-white/60 text-xs font-mono font-medium">
-                Josan Logistics Operations Suite
+            <div>
+              <span className="text-lg sm:text-xl font-medium font-sans text-slate-300 tracking-normal">
+                Josan Logistics
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black font-heading tracking-tight text-white">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-sans text-white leading-[1.15] tracking-normal">
               Operations & Customer Relationship Hub
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-              Consolidated command center managing air freight documentation services, third-party transportation partners, quotations, customer billing.
+              Air freight documents, road jobs with partner carriers, quotes and billing in one place.
             </p>
           </div>
 
@@ -143,228 +207,179 @@ export const CrmDashboardTab = ({
         {/* 1. Total Customers */}
         <div
           onClick={() => onNavigateTab('customers')}
-          className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">Customers</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Users className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Customers</span>
+            <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Users className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-slate-900 font-mono">{totalCustomers}</span>
-            <span className="text-[10px] font-bold text-slate-600 block mt-0.5">Customers / Shippers</span>
+            <span className="text-2xl font-bold text-slate-900 font-mono tracking-tight">{totalCustomers}</span>
+            <span className="text-[11px] font-medium text-slate-500 block mt-0.5 truncate">Customers / Shippers</span>
           </div>
         </div>
 
         {/* 2. New Airway Requests */}
         <div
           onClick={() => onNavigateTab('airway-requests')}
-          className="bg-white p-4 rounded-2xl border border-[#DCE5F0]/90 shadow-2xs hover:shadow-md hover:border-[#2463EB]/40 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#0B1F5B]">Air Freight Requests</span>
-            <div className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Plane className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Air Freight Requests</span>
+            <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Plane className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-[#2463EB] font-mono">{newAirwayRequests}</span>
-            <span className="text-[10px] font-bold text-[#0B1F5B] block mt-0.5">New / Under Review</span>
+            <span className="text-2xl font-bold text-blue-600 font-mono tracking-tight">{newAirwayRequests}</span>
+            <span className="text-[11px] font-medium text-slate-500 block mt-0.5 truncate">New / Under Review</span>
           </div>
         </div>
 
         {/* 3. Active Road Shipments */}
         <div
           onClick={() => onNavigateTab('road-shipments')}
-          className="bg-white p-4 rounded-2xl border border-emerald-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">Road Coordination</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Truck className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Road Jobs</span>
+            <div className="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <Truck className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-emerald-600 font-mono">{activeRoadShipments}</span>
-            <span className="text-[10px] font-bold text-emerald-700 block mt-0.5">Active Transportation</span>
+            <span className="text-2xl font-bold text-emerald-600 font-mono tracking-tight">{activeRoadShipments}</span>
+            <span className="text-[11px] font-medium text-slate-500 block mt-0.5 truncate">Active Transportation</span>
           </div>
         </div>
 
         {/* 4. Pending Documents */}
         <div
           onClick={() => onNavigateTab('documents')}
-          className="bg-white p-4 rounded-2xl border border-purple-200/90 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-purple-800">Shipment Documents</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <FileText className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Shipment Documents</span>
+            <div className="w-7 h-7 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <FileText className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-purple-600 font-mono">{pendingDocuments || documents.length}</span>
-            <span className="text-[10px] font-bold text-purple-700 block mt-0.5">Verified / In Review</span>
+            <span className="text-2xl font-bold text-purple-600 font-mono tracking-tight">{pendingDocuments || documents.length}</span>
+            <span className="text-[11px] font-medium text-slate-500 block mt-0.5 truncate">Verified / In Review</span>
           </div>
         </div>
 
         {/* 5. Pending Quotations */}
         <div
           onClick={() => onNavigateTab('quotations')}
-          className="bg-white p-4 rounded-2xl border border-amber-200/90 shadow-2xs hover:shadow-md hover:border-amber-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-amber-800">Quotations</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <FileSpreadsheet className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Quotations</span>
+            <div className="w-7 h-7 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <FileSpreadsheet className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-amber-600 font-mono">{pendingQuotations}</span>
-            <span className="text-[10px] font-bold text-amber-700 block mt-0.5">Open & Sent Quotes</span>
+            <span className="text-2xl font-bold text-amber-600 font-mono tracking-tight">{pendingQuotations}</span>
+            <span className="text-[11px] font-medium text-slate-500 block mt-0.5 truncate">Open & Sent Quotes</span>
           </div>
         </div>
 
         {/* 6. Pending Billing */}
         <div
           onClick={() => onNavigateTab('billing')}
-          className="bg-white p-4 rounded-2xl border border-rose-200/90 shadow-2xs hover:shadow-md hover:border-rose-300 transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-rose-800">Pending Billing</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Receipt className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Pending Billing</span>
+            <div className="w-7 h-7 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <Receipt className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-rose-600 font-mono">{pendingBilling}</span>
-            <span className="text-[10px] font-bold text-rose-700 block mt-0.5">Awaiting Payment</span>
+            <span className="text-2xl font-bold text-rose-600 font-mono tracking-tight">{pendingBilling}</span>
+            <span className="text-[11px] font-medium text-slate-500 block mt-0.5 truncate">Awaiting Payment</span>
           </div>
         </div>
 
         {/* 7. Completed Requests */}
         <div
           onClick={() => onNavigateTab('reports')}
-          className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between col-span-2 sm:col-span-1"
+          className="bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between col-span-2 sm:col-span-1"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">Completed</span>
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">Completed</span>
+            <div className="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-black text-slate-900 font-mono">{completedRequests}</span>
-            <span className="text-[10px] font-bold text-emerald-700 block mt-0.5">Fulfilled & Archived</span>
+            <span className="text-2xl font-bold text-slate-900 font-mono tracking-tight">{completedRequests}</span>
+            <span className="text-[11px] font-medium text-slate-500 block mt-0.5 truncate">Fulfilled & Archived</span>
           </div>
         </div>
       </div>
 
       {/* Middle Row: Two Columns - Active Pipelines & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2 spans): Operational Status & Service Breakdown */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Airway Services Status Strip */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column (2 spans): Air Waybill Service Workflow Status */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#2463EB] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                   <Plane className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-sm text-slate-900">Airway Service Workflow Status</h3>
-                  <p className="text-[11px] text-slate-500">AWB Preparation, Billing, Documentation & Transportation Support</p>
+                  <h3 className="font-bold text-sm text-slate-900">Air Waybill Service Workflow Status</h3>
+                  <p className="text-[11px] text-slate-500">AWB preparation, billing and shipment documentation.</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onNavigateTab('airway-requests')}
-                className="text-xs font-bold text-[#2463EB] hover:text-[#1D4ED8] flex items-center space-x-1 cursor-pointer"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1 cursor-pointer"
               >
                 <span>View All ({airwayRequests.length})</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-2">
               {[
                 { label: 'New', count: airwayRequests.filter(r => r.status === 'New').length, color: 'bg-blue-50 text-blue-700 border-blue-200' },
                 { label: 'Under Review', count: airwayRequests.filter(r => r.status === 'Under Review').length, color: 'bg-amber-50 text-amber-700 border-amber-200' },
                 { label: 'Documentation', count: airwayRequests.filter(r => r.status === 'Documentation').length, color: 'bg-purple-50 text-purple-700 border-purple-200' },
-                { label: 'Billing', count: airwayRequests.filter(r => r.status === 'Billing').length, color: 'bg-[#EAF2FF] text-[#0B1F5B] border-[#DCE5F0]' },
-                { label: 'Coordination', count: airwayRequests.filter(r => r.status === 'Transportation Coordination').length, color: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+                { label: 'Billing', count: airwayRequests.filter(r => r.status === 'Billing').length, color: 'bg-slate-50 text-slate-700 border-slate-200' },
                 { label: 'Completed', count: airwayRequests.filter(r => r.status === 'Completed').length, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
               ].map((st, idx) => (
-                <div key={idx} className={`p-3 rounded-xl border text-center ${st.color}`}>
-                  <p className="text-xl font-black font-mono">{st.count}</p>
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider mt-0.5">{st.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Road Transportation & Partners Strip */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                  <Truck className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm text-slate-900">Road Transportation Partners</h3>
-                  <p className="text-[11px] text-slate-500">Transportation arrangements through third-party partners</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => onNavigateTab('transportation-partners')}
-                className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 cursor-pointer"
-              >
-                <span>View Partners ({transportationPartners.length})</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              {transportationPartners.slice(0, 4).map((p) => (
-                <div key={p.id} className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200 flex items-center justify-between">
-                  <div className="space-y-0.5 truncate pr-2">
-                    <p className="text-xs font-extrabold text-slate-900 truncate">{p.name}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{p.operatingZones || p.serviceArea}</p>
-                    <span className="inline-block px-1.5 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-bold">
-                      {p.agreementStatus || 'Active Partner'}
-                    </span>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-[10px] font-mono font-bold text-slate-500 block">{p.phone}</span>
-                    <button
-                      type="button"
-                      onClick={() => onNavigateTab('transportation-partners')}
-                      className="text-[10px] font-bold text-[#2463EB] hover:underline mt-1 cursor-pointer"
-                    >
-                      Assign
-                    </button>
-                  </div>
+                <div key={idx} className={`p-3 rounded-lg border text-center ${st.color}`}>
+                  <p className="text-xl font-bold font-mono">{st.count}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mt-0.5">{st.label}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Right Column (1 span): Recent Activity Feed */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card flex flex-col justify-between">
+        {/* Right Column (1 span): Recent Activity Feed (Human-Made, Slight Curve, No Gradients) */}
+        <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-slate-400" />
-                <h3 className="font-extrabold text-sm text-slate-900">Recent CRM Activity</h3>
+                <Clock className="w-4 h-4 text-slate-500" />
+                <h3 className="font-bold text-sm text-slate-900">Recent CRM Activity</h3>
               </div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Recent Activity
+              <span className="text-[11px] font-medium text-slate-400">
+                Latest updates
               </span>
             </div>
 
-            <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
               {recentActivities.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400 font-medium">
                   No recent activities recorded.
@@ -379,22 +394,29 @@ export const CrmDashboardTab = ({
                       if (act.type === 'billing' && onOpenInvoiceDetails) onOpenInvoiceDetails(act.raw);
                       if (act.type === 'quote') onNavigateTab('quotations');
                     }}
-                    className="p-3 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 border border-slate-200/80 transition-all cursor-pointer group"
+                    className="p-3 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all cursor-pointer group flex items-start gap-3"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-xs font-extrabold text-slate-900 group-hover:text-[#2463EB] transition-colors truncate">
-                        {act.title}
-                      </p>
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 border ${act.badgeColor}`}>
-                        {act.status}
-                      </span>
+                    <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${act.iconBg}`}>
+                      {act.icon}
                     </div>
-                    <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                      {act.subtitle}
-                    </p>
-                    <span className="text-[10px] text-slate-400 font-mono mt-1 block">
-                      {act.date}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                          {act.title}
+                        </p>
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 border ${act.badgeColor}`}>
+                          {act.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <p className="text-[11px] text-slate-500 font-medium truncate">
+                          {act.subtitle}
+                        </p>
+                        <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                          {act.date}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))
               )}
@@ -403,7 +425,7 @@ export const CrmDashboardTab = ({
 
           {/* System Information */}
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="flex items-center space-x-1.5 font-bold">
+            <span className="flex items-center space-x-1.5 font-medium text-slate-600">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
               <span>Josan Logistics Operations</span>
             </span>
@@ -411,7 +433,7 @@ export const CrmDashboardTab = ({
             <button
               type="button"
               onClick={() => onNavigateTab('settings')}
-              className="text-[#2463EB] hover:underline font-extrabold text-[11px] cursor-pointer"
+              className="text-blue-600 hover:text-blue-700 font-semibold text-[11px] cursor-pointer hover:underline"
             >
               System Info
             </button>

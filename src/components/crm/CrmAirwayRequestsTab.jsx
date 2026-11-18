@@ -156,11 +156,11 @@ export const CrmAirwayRequestsTab = ({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-xl border border-slate-200">
         <div>
           <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-black text-slate-900 font-heading">Air Freight Requests</h2>
-            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-orange-100 text-orange-700">
+            <h2 className="text-xl font-bold text-slate-900 font-sans">Air Freight Requests</h2>
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700">
               {airwayRequests.length} Total
             </span>
           </div>
@@ -172,7 +172,7 @@ export const CrmAirwayRequestsTab = ({
         <button
           type="button"
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>New Air Freight Request</span>
@@ -180,7 +180,7 @@ export const CrmAirwayRequestsTab = ({
       </div>
 
       {/* Stage Flow Stepper Ribbon */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs overflow-x-auto">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 overflow-x-auto">
         <div className="flex items-center space-x-2 min-w-[700px]">
           {AIRWAY_STATUS_STAGES.map((stage, idx) => {
             const count = airwayRequests.filter(r => r.status === stage).length;
@@ -194,14 +194,14 @@ export const CrmAirwayRequestsTab = ({
                     setStatusFilter(isSelected ? 'All' : stage);
                     setCurrentPage(1);
                   }}
-                  className={`flex-1 p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                  className={`flex-1 p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#0B1F5B] text-white border-[#0B1F5B] shadow-xs'
+                      ? 'bg-[#0B1F5B] text-white border-[#0B1F5B]'
                       : 'bg-slate-50/80 hover:bg-slate-100 text-slate-700 border-slate-200'
                   }`}
                 >
-                  <p className="text-[10px] font-black uppercase tracking-wider">{stage}</p>
-                  <p className={`text-base font-black font-mono mt-0.5 ${isSelected ? 'text-[#2463EB]' : 'text-slate-900'}`}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider">{stage}</p>
+                  <p className={`text-base font-bold font-mono mt-0.5 ${isSelected ? 'text-[#2463EB]' : 'text-slate-900'}`}>
                     {count}
                   </p>
                 </button>
@@ -215,7 +215,7 @@ export const CrmAirwayRequestsTab = ({
       </div>
 
       {/* Filters and Search Bar */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
+      <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 flex flex-wrap gap-3 items-center justify-between">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
           <input
@@ -223,7 +223,7 @@ export const CrmAirwayRequestsTab = ({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             placeholder="Search by Request ID, customer, cargo, origin, or destination..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
           />
         </div>
 
@@ -231,7 +231,7 @@ export const CrmAirwayRequestsTab = ({
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="All">All Statuses</option>
             {AIRWAY_STATUS_STAGES.map(s => (
@@ -242,7 +242,7 @@ export const CrmAirwayRequestsTab = ({
           <select
             value={serviceFilter}
             onChange={(e) => { setServiceFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="All">All Services</option>
             <option value="AWB Preparation">AWB Preparation</option>
@@ -264,17 +264,14 @@ export const CrmAirwayRequestsTab = ({
       </div>
 
       {/* Airway Requests Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
+            <thead className="bg-slate-100 border-b border-slate-300 text-slate-900 font-extrabold uppercase text-[11px] tracking-wider">
               <tr>
                 <th className="p-4">Request ID</th>
                 <th className="p-4">Customer & Shipper</th>
                 <th className="p-4">Origin & Destination</th>
-                <th className="p-4">Cargo & Specs</th>
-                <th className="p-4">Requested Services</th>
-                <th className="p-4">Documents</th>
                 <th className="p-4">Status & Progression</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -282,7 +279,7 @@ export const CrmAirwayRequestsTab = ({
             <tbody className="divide-y divide-slate-100 font-medium">
               {paginatedRequests.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="p-12 text-center text-slate-400 font-medium">
+                  <td colSpan="5" className="p-12 text-center text-slate-400 font-medium">
                     No airway service requests found matching your filters.
                   </td>
                 </tr>
@@ -309,69 +306,40 @@ export const CrmAirwayRequestsTab = ({
                     </td>
 
                     {/* Origin & Destination */}
-                    <td className="p-4 text-slate-700">
-                      <p className="font-bold truncate max-w-[180px]">{req.origin?.split(',')[0] || req.origin}</p>
-                      <p className="text-[11px] text-[#2463EB] font-bold flex items-center space-x-1 mt-0.5 truncate max-w-[180px]">
-                        <ArrowRight className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{req.destination?.split(',')[0] || req.destination}</span>
-                      </p>
-                      <span className="text-[10px] text-slate-400 block mt-0.5">Incoterm: {req.incoterm || 'Not specified'}</span>
-                    </td>
-
-                    {/* Cargo Specs */}
                     <td className="p-4">
-                      <p className="font-bold text-slate-900 text-xs line-clamp-1 max-w-[180px]">
-                        {req.cargoDescription}
-                      </p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
-                        {req.packagesCount} • {req.totalWeight} • {req.dimensions}
-                      </p>
-                      <span className="font-mono font-bold text-emerald-700 text-[10px] block mt-0.5">
-                        Val: {req.approximateValue || 'SGD 10,000'}
-                      </span>
-                    </td>
-
-                    {/* Requested Services */}
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-1 max-w-[170px]">
-                        {(req.services || ['AWB Preparation']).map((svc, idx) => (
-                          <span key={idx} className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-bold">
-                            {svc}
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 w-8 shrink-0">From</span>
+                          <span className="text-xs font-bold text-slate-900 truncate" title={req.origin}>
+                            {req.origin?.split(',')[0] || req.origin}
                           </span>
-                        ))}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 w-8 shrink-0">To</span>
+                          <span className="text-xs font-bold text-slate-900 truncate" title={req.destination}>
+                            {req.destination?.split(',')[0] || req.destination}
+                          </span>
+                        </div>
+                        {req.incoterm && (
+                          <span className="text-[10px] text-slate-400 font-medium block pl-10">
+                            Incoterm: {req.incoterm}
+                          </span>
+                        )}
                       </div>
                     </td>
 
-                    {/* Documents */}
+                    {/* Status & Progression */}
                     <td className="p-4">
-                      <span className="px-2 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold font-mono">
-                        {req.documents?.length || 0} docs
-                      </span>
-                    </td>
-
-                    {/* Status & Transition */}
-                    <td className="p-4">
-                      <div className="space-y-1.5">
+                      <div>
                         <select
                           value={req.status}
                           onChange={(e) => onUpdateStatus(req.id, e.target.value)}
-                          className={`px-2 py-1 rounded-lg text-[11px] font-extrabold border cursor-pointer ${getStatusBadgeStyle(req.status)}`}
+                          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border cursor-pointer ${getStatusBadgeStyle(req.status)}`}
                         >
                           {AIRWAY_STATUS_STAGES.map(s => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
-
-                        {req.status !== 'Completed' && (
-                          <button
-                            type="button"
-                            onClick={() => handleNextStage(req)}
-                            className="text-[10px] font-bold text-[#2463EB] hover:text-[#1D4ED8] flex items-center space-x-1 cursor-pointer"
-                          >
-                            <span>Next Step</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        )}
                       </div>
                     </td>
 

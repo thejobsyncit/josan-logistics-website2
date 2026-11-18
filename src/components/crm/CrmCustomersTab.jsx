@@ -287,9 +287,9 @@ export const CrmCustomersTab = ({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Top Banner & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-xl border border-slate-200">
         <div>
-          <h2 className="text-xl font-black text-slate-900 font-heading">Customers</h2>
+          <h2 className="text-xl font-bold text-slate-900 font-sans">Customers</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Manage customer accounts and their requests.
           </p>
@@ -299,7 +299,7 @@ export const CrmCustomersTab = ({
       </div>
 
       {/* Filter and Search Controls */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
+      <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 flex flex-wrap gap-3 items-center justify-between">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
           <input
@@ -307,7 +307,7 @@ export const CrmCustomersTab = ({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             placeholder="Search by customer name, company, email, phone, or address..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
           />
         </div>
 
@@ -315,7 +315,7 @@ export const CrmCustomersTab = ({
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="All">All Statuses</option>
             <option value="Active">Active</option>
@@ -336,19 +336,19 @@ export const CrmCustomersTab = ({
       </div>
 
       {/* Customers Table View */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
+            <thead className="bg-slate-100 border-b border-slate-300 text-slate-900 font-extrabold uppercase text-[11px] tracking-wider">
               <tr>
-                <th className="p-4">Customer & Company</th>
-                <th className="p-4">Contact Details</th>
-                <th className="p-4">Account Tier</th>
-                <th className="p-4 text-center">Air Freight Req.</th>
-                <th className="p-4 text-center">Road Coordination</th>
-                <th className="p-4 text-center">Shipment Documents</th>
-                <th className="p-4">Billing History</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4 text-slate-900">Customer & Company</th>
+                <th className="p-4 text-slate-900">Contact Details</th>
+                <th className="p-4 text-slate-900">Account Tier</th>
+                <th className="p-4 text-center text-slate-900">Air Freight Req.</th>
+                <th className="p-4 text-center text-slate-900">Road Jobs</th>
+                <th className="p-4 text-center text-slate-900">Shipment Documents</th>
+                <th className="p-4 text-slate-900">Billing History</th>
+                <th className="p-4 text-right text-slate-900">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
@@ -367,29 +367,35 @@ export const CrmCustomersTab = ({
                       {/* Name & Company */}
                       <td className="p-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-700 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                          <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
                             {cust.company?.charAt(0).toUpperCase() || cust.name?.charAt(0).toUpperCase() || 'C'}
                           </div>
                           <div className="leading-tight">
-                            <p className="font-extrabold text-slate-900 text-xs hover:text-[#2463EB] cursor-pointer" onClick={() => setViewingCustomer(cust)}>
+                            <p
+                              className="font-bold text-slate-900 text-sm hover:text-blue-600 cursor-pointer"
+                              onClick={() => setViewingCustomer(cust)}
+                            >
                               {cust.company || cust.name}
                             </p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{cust.name}</p>
-                            <p className="text-[10px] font-mono text-slate-400 mt-0.5">#{cust.id}</p>
+                            {cust.company && cust.name && cust.company.trim().toLowerCase() !== cust.name.trim().toLowerCase() && (
+                              <p className="text-xs text-slate-600 mt-0.5">{cust.name}</p>
+                            )}
                           </div>
                         </div>
                       </td>
 
                       {/* Contact */}
-                      <td className="p-4 text-slate-600">
-                        <p className="flex items-center space-x-1.5 text-[11px] truncate max-w-[200px]">
-                          <Mail className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="truncate">{cust.email}</span>
-                        </p>
-                        <p className="flex items-center space-x-1.5 text-[11px] mt-1 text-slate-500">
-                          <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{cust.phone || '—'}</span>
-                        </p>
+                      <td className="p-4">
+                        <div className="space-y-1">
+                          <p className="flex items-center space-x-2 text-xs font-semibold text-slate-900 truncate max-w-[220px]">
+                            <Mail className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+                            <span className="truncate select-all">{cust.email}</span>
+                          </p>
+                          <p className="flex items-center space-x-2 text-xs font-medium text-slate-800">
+                            <Phone className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+                            <span>{cust.phone || '—'}</span>
+                          </p>
+                        </div>
                       </td>
 
                       {/* Tier & Status */}

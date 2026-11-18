@@ -25,11 +25,11 @@ export const CRM_TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'customers', label: 'Customers', icon: Users, badgeKey: 'customers' },
   { id: 'airway-requests', label: 'Air Freight Requests', icon: Plane, badgeKey: 'airway' },
-  { id: 'road-shipments', label: 'Road Coordination', icon: Truck, badgeKey: 'road' },
+  { id: 'road-shipments', label: 'Road Jobs', icon: Truck, badgeKey: 'road' },
   { id: 'documents', label: 'Shipment Documents', icon: FileText, badgeKey: 'docs' },
   { id: 'quotations', label: 'Quotations', icon: FileSpreadsheet, badgeKey: 'quotes' },
   { id: 'billing', label: 'Billing', icon: Receipt, badgeKey: 'billing' },
-  { id: 'transportation-partners', label: 'Transportation Partners', icon: Handshake, badgeKey: 'partners' },
+  { id: 'transportation-partners', label: 'Partner Carriers', icon: Handshake, badgeKey: 'partners' },
   { id: 'notifications', label: 'Notifications', icon: Bell, badgeKey: 'notifs' },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
@@ -66,7 +66,7 @@ export const CrmSidebar = ({
         {/* Top Header / Branding */}
         <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800 shrink-0">
           <div className="flex items-center space-x-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B00] to-amber-600 flex items-center justify-center text-white font-black shadow-orange-glow shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#FF6B00] flex items-center justify-center text-white font-black shadow-orange-glow shrink-0">
               <span className="text-base tracking-wider font-mono">JL</span>
             </div>
             {!isCollapsed && (
@@ -107,7 +107,7 @@ export const CrmSidebar = ({
         <div className="flex-1 py-4 px-3 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-slate-800">
           {!isCollapsed && (
             <div className="px-3 pb-2 text-[10px] font-black tracking-widest text-slate-400 uppercase">
-              Operations & Relationship
+              OPERATIONS & RELATIONSHIP
             </div>
           )}
 
@@ -125,7 +125,7 @@ export const CrmSidebar = ({
                   if (setMobileOpen) setMobileOpen(false);
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer group relative ${isActive
-                    ? 'bg-gradient-to-r from-[#FF6B00] to-orange-600 text-white shadow-orange-sm'
+                    ? 'bg-[#FF6B00] text-white shadow-orange-sm'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                   }`}
                 title={isCollapsed ? tab.label : undefined}
@@ -168,7 +168,7 @@ export const CrmSidebar = ({
               </div>
 
               <p className="text-[10px] text-slate-400 leading-snug">
-                AWB preparation, billing & shipment documentation • Third-party transportation partners
+                AWB preparation, billing & shipment documentation • Partner carriers
               </p>
             </div>
           )}

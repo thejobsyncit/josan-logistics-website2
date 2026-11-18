@@ -85,10 +85,9 @@ const isDateInTimeRange = (date, range, refDate) => {
   if (!date) return true; // Keep items with no explicit date so user records aren't dropped
   
   const itemYear = date.getFullYear();
-  const itemMonth = date.getMonth(); // 0-indexed: 8 is September
+  const itemMonth = date.getMonth(); // 0-indexed: 10 is November
   
   if (range === 'This Month') {
-    // Current operational month: September 2026
     const targetYear = refDate.getFullYear();
     const targetMonth = refDate.getMonth();
     return itemYear === targetYear && itemMonth === targetMonth;
@@ -98,15 +97,27 @@ const isDateInTimeRange = (date, range, refDate) => {
     const thirtyDaysAgo = new Date(refDate.getTime() - (30 * 24 * 60 * 60 * 1000));
     return date.getTime() >= thirtyDaysAgo.getTime() && date.getTime() <= refDate.getTime();
   }
+
+  if (range === 'Q4 2026') {
+    // Q4 2026 is October (9), November (10), December (11)
+    return itemYear === 2026 && itemMonth >= 9 && itemMonth <= 11;
+  }
   
   if (range === 'Q3 2026') {
     // Q3 2026 is July (6), August (7), September (8)
     return itemYear === 2026 && itemMonth >= 6 && itemMonth <= 8;
   }
+
+  if (range === 'September 2026') {
+    return itemYear === 2026 && itemMonth === 8;
+  }
   
   if (range === 'Year to Date') {
-    // 2026 Year to Date
-    return itemYear === 2026 && date.getTime() <= refDate.getTime();
+    return itemYear === refDate.getFullYear() && date.getTime() <= refDate.getTime();
+  }
+
+  if (range === 'All Time') {
+    return true;
   }
   
   return true;
@@ -156,18 +167,27 @@ export const CrmReportsTab = ({
 }) => {
   const [timeRange, setTimeRange] = useState('This Month');
 
-  // Determine operational reference date (September 30, 2026 or latest record timestamp)
+  // Determine operational reference date aligned with live system/header date (November 2026)
   const referenceDate = useMemo(() => {
-    let latest = new Date('2026-09-30T23:59:59');
+    const now = new Date();
     const allRecords = [...airwayRequests, ...shipments, ...invoices];
+    let latest = now;
     for (const record of allRecords) {
       const d = parseItemDate(record);
-      if (d && d.getFullYear() >= 2026 && d.getTime() > latest.getTime()) {
+      if (d && d.getFullYear() >= now.getFullYear() && d.getTime() > latest.getTime()) {
         latest = d;
       }
     }
     return latest;
   }, [airwayRequests, shipments, invoices]);
+
+  const currentMonthName = useMemo(() => {
+    return referenceDate.toLocaleString('en-US', { month: 'long' });
+  }, [referenceDate]);
+
+  const currentYear = useMemo(() => {
+    return referenceDate.getFullYear();
+  }, [referenceDate]);
 
   // Filter datasets strictly according to the selected timeRange
   const filteredAirwayRequests = useMemo(() => {
@@ -216,7 +236,7 @@ export const CrmReportsTab = ({
     { name: 'AWB Preparation', count: awbPrepCount, color: '#2463EB' },
     { name: 'Shipment Docs', count: docsCount, color: '#8B5CF6' },
     { name: 'AWB Billing', count: billingCount, color: '#3B82F6' },
-    { name: 'Airport Transport', count: transportCount, color: '#10B981' }
+    { name: 'Transportation Support', count: transportCount, color: '#10B981' }
   ], [awbPrepCount, docsCount, billingCount, transportCount]);
 
   const totalAirwayServicesCount = useMemo(() => {
@@ -278,7 +298,35 @@ export const CrmReportsTab = ({
       return weeks;
     }
 
-    if (timeRange === 'Q3 2026') {
+    if (timeRange === 'Q4 2026') {
+      const q4Months = [
+        { month: 'Oct', billed: 0, collected: 0 },
+        { month: 'Nov', billed: 0, collected: 0 },
+        { month: 'Dec', billed: 0, collected: 0 }
+      ];
+
+      filteredInvoices.forEach(inv => {
+        const d = parseItemDate(inv);
+        const month = d ? d.getMonth() : 10;
+        const { total } = calculateInvoiceAmounts(inv);
+        const isPaid = String(inv.paymentStatus || '').trim().toLowerCase() === 'paid';
+
+        if (month === 9) {
+          q4Months[0].billed = Number((q4Months[0].billed + total).toFixed(2));
+          if (isPaid) q4Months[0].collected = Number((q4Months[0].collected + total).toFixed(2));
+        } else if (month === 10) {
+          q4Months[1].billed = Number((q4Months[1].billed + total).toFixed(2));
+          if (isPaid) q4Months[1].collected = Number((q4Months[1].collected + total).toFixed(2));
+        } else if (month === 11) {
+          q4Months[2].billed = Number((q4Months[2].billed + total).toFixed(2));
+          if (isPaid) q4Months[2].collected = Number((q4Months[2].collected + total).toFixed(2));
+        }
+      });
+
+      return q4Months;
+    }
+
+    if (timeRange === 'Q3 2026' || timeRange === 'September 2026') {
       const q3Months = [
         { month: 'Jul', billed: 0, collected: 0 },
         { month: 'Aug', billed: 0, collected: 0 },
@@ -306,13 +354,14 @@ export const CrmReportsTab = ({
       return q3Months;
     }
 
-    // Year to Date 2026: Jan - Sep
-    const monthsList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+    // Year to Date / All Time: dynamically list months up to current month
+    const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsList = allMonths.slice(0, Math.max(1, referenceDate.getMonth() + 1));
     const ytdData = monthsList.map(m => ({ month: m, billed: 0, collected: 0 }));
 
     filteredInvoices.forEach(inv => {
       const d = parseItemDate(inv);
-      const mIdx = d ? d.getMonth() : 8;
+      const mIdx = d ? d.getMonth() : referenceDate.getMonth();
       if (mIdx >= 0 && mIdx < ytdData.length) {
         const { total } = calculateInvoiceAmounts(inv);
         const isPaid = String(inv.paymentStatus || '').trim().toLowerCase() === 'paid';
@@ -415,7 +464,7 @@ export const CrmReportsTab = ({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200">
         <div>
           <h2 className="text-xl font-black text-slate-900 font-heading">Operations & Financial Reports</h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -427,18 +476,21 @@ export const CrmReportsTab = ({
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
           >
-            <option value="This Month">This Month (September 2026)</option>
+            <option value="This Month">This Month ({currentMonthName} {currentYear})</option>
             <option value="Last 30 Days">Last 30 Days</option>
+            <option value="Q4 2026">Q4 2026 (Oct - Dec)</option>
             <option value="Q3 2026">Q3 2026 (Jul - Sep)</option>
-            <option value="Year to Date">Year to Date 2026</option>
+            <option value="September 2026">September 2026</option>
+            <option value="Year to Date">Year to Date {currentYear}</option>
+            <option value="All Time">All Time</option>
           </select>
 
           <button
             type="button"
             onClick={handleExportCSV}
-            className="px-4 py-2 bg-[#0B1F5B] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
+            className="px-4 py-2 bg-[#0B1F5B] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -448,25 +500,25 @@ export const CrmReportsTab = ({
 
       {/* Top 4 KPI Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white rounded-lg border border-slate-200">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Collection Efficiency</span>
           <p className="text-2xl font-black font-mono text-emerald-600 mt-1">{collectionRate}%</p>
           <span className="text-[10px] text-emerald-600 font-medium">S$ {paidBilled.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} collected</span>
         </div>
 
-        <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white rounded-lg border border-slate-200">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Airway Service Volume</span>
           <p className="text-2xl font-black font-mono text-[#2463EB] mt-1">{filteredAirwayRequests.length} Requests</p>
-          <span className="text-[10px] text-slate-500 font-medium">AWB, Billing & Airport transfers</span>
+          <span className="text-[10px] text-slate-500 font-medium">AWB, Billing & Transportation Support</span>
         </div>
 
-        <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white rounded-lg border border-slate-200">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Road Shipments</span>
           <p className="text-2xl font-black font-mono text-blue-600 mt-1">{filteredShipments.length} Consignments</p>
           <span className="text-[10px] text-slate-500 font-medium">{transportationPartners.length} Contracted Partners</span>
         </div>
 
-        <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white rounded-lg border border-slate-200">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Active Corporate Shippers</span>
           <p className="text-2xl font-black font-mono text-purple-600 mt-1">{activeShippersCount} Accounts</p>
           <span className="text-[10px] text-slate-500 font-medium">Enterprise & GDP certified</span>
@@ -476,7 +528,7 @@ export const CrmReportsTab = ({
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly Revenue Chart */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card space-y-4">
+        <div className="bg-white rounded-xl p-6 border border-slate-200 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="font-extrabold text-sm text-slate-900">Monthly Billing Realization</h3>
@@ -502,7 +554,9 @@ export const CrmReportsTab = ({
                   <YAxis tick={{ fontSize: 11, fill: '#64748B' }} />
                   <Tooltip 
                     formatter={(val) => `S$ ${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                    contentStyle={{ backgroundColor: '#0B1F5B', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '11px' }}
+                    contentStyle={{ backgroundColor: '#0B1F5B', color: '#ffffff', borderRadius: '8px', border: 'none', fontSize: '11px', padding: '6px 10px' }}
+                    itemStyle={{ color: '#ffffff', fontWeight: 600 }}
+                    labelStyle={{ color: '#ffffff', fontWeight: 700 }}
                   />
                   <Bar dataKey="billed" name="Billed" fill="#DCE5F0" radius={[6, 6, 0, 0]} />
                   <Bar dataKey="collected" name="Collected" fill="#2463EB" radius={[6, 6, 0, 0]} />
@@ -513,11 +567,11 @@ export const CrmReportsTab = ({
         </div>
 
         {/* Air Freight Services Distribution */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-card space-y-4">
+        <div className="bg-white rounded-xl p-6 border border-slate-200 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="font-extrabold text-sm text-slate-900">Air Freight Service Capabilities Mix</h3>
-              <p className="text-[11px] text-slate-500">Demand across AWB, documentation and transfers</p>
+              <p className="text-[11px] text-slate-500">Demand across AWB, documentation and transportation support</p>
             </div>
           </div>
 
@@ -545,7 +599,9 @@ export const CrmReportsTab = ({
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0B1F5B', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '11px' }}
+                    contentStyle={{ backgroundColor: '#0B1F5B', color: '#ffffff', borderRadius: '8px', border: 'none', fontSize: '11px', padding: '6px 10px' }}
+                    itemStyle={{ color: '#ffffff', fontWeight: 600 }}
+                    labelStyle={{ color: '#ffffff', fontWeight: 700 }}
                   />
                 </PieChart>
               </ResponsiveContainer>

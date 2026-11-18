@@ -128,7 +128,18 @@ export const LogisticsProvider = ({ children }) => {
   const [airwayRequests, setAirwayRequests] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_airway_requests');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Keep dates synchronized with active November 2026 operations
+          return parsed.map(item => {
+            if (typeof item.date === 'string' && item.date.startsWith('2026-09')) {
+              return { ...item, date: item.date.replace('2026-09', '2026-11') };
+            }
+            return item;
+          });
+        }
+      }
     } catch (e) {}
     return [
       {
@@ -155,7 +166,7 @@ export const LogisticsProvider = ({ children }) => {
           { name: 'Packing_List_Crates_1-4.pdf', type: 'Packing List', size: '110 KB' },
           { name: 'Certificate_of_Origin_SG_Avionics.pdf', type: 'Certificate of Origin', size: '180 KB' }
         ],
-        date: '2026-09-24',
+        date: '2026-11-17',
         status: 'Under Review',
         adminNotes: 'IATA master AWB draft prepared with Singapore Airlines Cargo (SQ). Validated shipper export code.'
       },
@@ -182,7 +193,7 @@ export const LogisticsProvider = ({ children }) => {
           { name: 'Biopharma_Commercial_Invoice.pdf', type: 'Commercial Invoice', size: '320 KB' },
           { name: 'Cold_Chain_Certificate_Of_Origin.pdf', type: 'Certificate of Origin', size: '195 KB' }
         ],
-        date: '2026-09-23',
+        date: '2026-11-16',
         status: 'Documentation',
         adminNotes: 'Chemical export clearance permit attached.'
       },
@@ -209,7 +220,7 @@ export const LogisticsProvider = ({ children }) => {
           { name: 'Commercial_Invoice_KR.pdf', type: 'Commercial Invoice', size: '185 KB' },
           { name: 'Dangerous_Goods_Exemption_Declaration.pdf', type: 'Other Shipment Documents', size: '140 KB' }
         ],
-        date: '2026-09-22',
+        date: '2026-11-15',
         status: 'Billing',
         adminNotes: 'AWB billing invoice sent to customer finance department.'
       }
@@ -1262,12 +1273,14 @@ export const LogisticsProvider = ({ children }) => {
       isTest,
       sender: newShipmentData.senderName || currentUser?.name || 'Valued Customer',
       senderPhone: newShipmentData.senderPhone || '+65 6789 0123',
-      senderAddress: newShipmentData.pickupAddress || 'Singapore Logistics Terminal 4',
+      senderAddress: newShipmentData.pickupAddress || newShipmentData.senderAddress || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
+      pickupAddress: newShipmentData.pickupAddress || newShipmentData.senderAddress || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
       receiver: newShipmentData.receiverName || 'Recipient',
       receiverPhone: newShipmentData.receiverPhone || '+65 6789 0123',
-      receiverAddress: newShipmentData.deliveryAddress || 'Singapore Destination Address',
-      origin: newShipmentData.pickupCity || 'Changi Air Cargo Hub',
-      destination: newShipmentData.deliveryCity || 'West Coast Hub Terminal',
+      receiverAddress: newShipmentData.deliveryAddress || newShipmentData.receiverAddress || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
+      deliveryAddress: newShipmentData.deliveryAddress || newShipmentData.receiverAddress || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
+      origin: newShipmentData.pickupAddress || newShipmentData.pickupCity || newShipmentData.origin || '12 Woodlands Loop, #02-05, Singapore 738340',
+      destination: newShipmentData.deliveryAddress || newShipmentData.deliveryCity || newShipmentData.destination || '8 Changi South Street 1, Singapore 486790',
       currentLocation: `${newShipmentData.pickupCity || 'Changi Hub'} Sorting Facility`,
       status: 'ASSIGNED',
       statusType: 'active',
