@@ -312,8 +312,8 @@ export const CreateShipmentModal = ({
 
     const isAir = formData.service === 'Air Freight Services' || formData.service === 'Airway Services';
     const newId = isAir 
-      ? `AWB-${Math.floor(100000 + Math.random() * 900000)}` 
-      : `JOS-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+      ? `AWS-${Math.floor(10000 + Math.random() * 90000)}` 
+      : `JOS-${Math.floor(10000 + Math.random() * 90000)}`;
 
     onCreateShipment({
       ...formData,

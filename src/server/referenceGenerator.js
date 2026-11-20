@@ -105,19 +105,25 @@ export function generateQuoteReferenceServer({ isTest = false } = {}) {
 
 /**
  * Generates a server-side shipment tracking number:
- * - Real shipment format: JOS-XXXXXXXXXX (10 random chars from alphabet, e.g. JOS-8K3F92XDW7)
- * - Test shipment format: TJOS-XXXXXXXXXX (10 random chars from alphabet, e.g. TJOS-4M7PX2RB89)
- * Guaranteed unique, never based on date or counter, never reused.
+ * - Real shipment format: JOS-XXXXX (5 random chars from alphabet, e.g. JOS-8K3F9)
+ * - Real airway format: AWS-XXXXX (5 random chars from alphabet, e.g. AWS-92XD7)
+ * - Test shipment format: TJOS-XXXXX (5 random chars, e.g. TJOS-4M7PX)
+ * - Test airway format: TAWS-XXXXX (5 random chars, e.g. TAWS-2RB89)
+ * Guaranteed unique, strictly 5 characters after the hyphen.
  */
-export function generateShipmentTrackingNumberServer({ isTest = false } = {}) {
-  const prefix = isTest ? 'TJOS-' : 'JOS-';
+export function generateShipmentTrackingNumberServer({ isTest = false, service = 'road', prefix: customPrefix } = {}) {
+  let defaultPrefix = isTest ? 'TJOS-' : 'JOS-';
+  if (service === 'airway' || service === 'air' || (customPrefix && customPrefix.startsWith('AWS'))) {
+    defaultPrefix = isTest ? 'TAWS-' : 'AWS-';
+  }
+  const prefix = customPrefix || defaultPrefix;
   let candidate = '';
   let attempts = 0;
   const MAX_ATTEMPTS = 50;
 
   do {
     attempts++;
-    const chars = generateSecureRandomChars(10);
+    const chars = generateSecureRandomChars(5);
     candidate = `${prefix}${chars}`;
   } while (issuedReferenceRegistry.has(candidate) && attempts < MAX_ATTEMPTS);
 
@@ -128,12 +134,23 @@ export function generateShipmentTrackingNumberServer({ isTest = false } = {}) {
   issuedReferenceRegistry.add(candidate);
   persistIssuedRegistry();
 
+  const isAirway = prefix.includes('AWS');
   return {
     trackingNumber: candidate,
     isTest: Boolean(isTest),
-    type: isTest ? 'TEST_SHIPMENT' : 'SHIPMENT',
+    type: isTest 
+      ? (isAirway ? 'TEST_AIRWAY' : 'TEST_SHIPMENT') 
+      : (isAirway ? 'AIRWAY' : 'SHIPMENT'),
     createdAt: new Date().toISOString()
   };
+}
+
+/**
+ * Generates an airway shipment tracking number with exactly 5 characters after AWS-:
+ * Format: AWS-XXXXX (or TAWS-XXXXX for test)
+ */
+export function generateAirwayTrackingNumberServer({ isTest = false } = {}) {
+  return generateShipmentTrackingNumberServer({ isTest, service: 'airway', prefix: isTest ? 'TAWS-' : 'AWS-' });
 }
 
 /**

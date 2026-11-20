@@ -708,7 +708,7 @@ export const initialWebsiteContent = {
     },
     form: {
       label: 'Tracking number',
-      placeholder: 'Enter your tracking number',
+      placeholder: 'Enter tracking number (e.g. JOS-88190 or AWS-29401)',
       buttonLabel: 'Track shipment',
       buttonLoadingLabel: 'Searching...',
       rateLimitWarning: 'Too many lookups. Please try again later. Please wait',

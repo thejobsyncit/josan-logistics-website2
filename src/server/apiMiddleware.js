@@ -488,13 +488,13 @@ export async function handleApiRequest(req, res, path) {
     }
   }
 
-  // 7. POST /api/reference/shipment (Server-only cryptographically secure tracking number)
+  // 7. POST /api/reference/shipment (Server-only cryptographically secure tracking number, strictly 5 characters after hyphen)
   if (path === '/api/reference/shipment' && req.method === 'POST') {
-    const { isTest = false, siteMode = 'live' } = body;
+    const { isTest = false, siteMode = 'live', service = 'road', prefix } = body;
     const finalIsTest = Boolean(isTest || siteMode === 'test');
 
     try {
-      const result = generateShipmentTrackingNumberServer({ isTest: finalIsTest });
+      const result = generateShipmentTrackingNumberServer({ isTest: finalIsTest, service, prefix });
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify(result));

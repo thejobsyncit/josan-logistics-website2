@@ -2128,7 +2128,7 @@ export const LogisticsProvider = ({ children }) => {
       ? `S$ ${Number(q.total).toFixed(2)}`
       : (q.amount !== null && q.amount !== undefined ? `S$ ${Number(q.amount).toFixed(2)}` : (q.lineItems?.finalAmount ? `S$ ${Number(q.lineItems.finalAmount).toFixed(2)}` : 'S$ 0.00'));
 
-    const newShipmentId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+    const newShipmentId = `JOS-${Math.floor(10000 + Math.random() * 90000)}`;
     const newShipment = {
       id: newShipmentId,
       referenceNumber: `REF-${q.id.replace(/[^0-9]/g, '').slice(-4)}-SG`,
@@ -2188,7 +2188,7 @@ export const LogisticsProvider = ({ children }) => {
       return isNaN(num) ? 0 : num;
     });
     const nextNum = (existingNums.length > 0 ? Math.max(...existingNums) : 0) + 1;
-    const formattedId = `AIR-${String(nextNum).padStart(4, '0')}`;
+    const formattedId = `AWS-${String(nextNum).padStart(5, '0')}`;
 
     const newRequest = {
       id: formattedId,
