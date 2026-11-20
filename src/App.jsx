@@ -21,6 +21,8 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CrmPage } from './pages/CrmPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { ShippingPolicyPage } from './pages/ShippingPolicyPage';
+import { RefundPolicyPage } from './pages/RefundPolicyPage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { EmailVerifiedPage } from './pages/EmailVerifiedPage';
@@ -531,8 +533,16 @@ const MainContent = () => {
         description: 'Josan Logistics privacy policy for commercial freight enquiries under the Singapore PDPA.'
       },
       'terms-of-service': {
-        title: 'Terms of Service | Josan Logistics Pte. Ltd.',
-        description: 'Commercial road freight coordination, Air Waybill preparation, and shipment documentation Terms of Service.'
+        title: 'Terms & Conditions | Josan Logistics Pte. Ltd.',
+        description: 'Commercial road freight coordination, Air Waybill preparation, and shipment documentation Terms and Conditions.'
+      },
+      'shipping-policy': {
+        title: 'Shipping Policy | Josan Logistics Pte. Ltd.',
+        description: 'Commercial shipment booking, pickup scheduling, road transport coordination, and tracking policy in Singapore.'
+      },
+      'refund-policy': {
+        title: 'Refund & Cancellation Policy | Josan Logistics Pte. Ltd.',
+        description: 'Cancellation eligibility, abortive haulage guidelines, billing adjustments, and refund request procedures.'
       },
       'staff-login': {
         title: 'Staff Gateway | Josan Logistics Operations',
@@ -658,14 +668,24 @@ const MainContent = () => {
         return;
       }
 
-      // Privacy policy & Terms of service routes: open pop-up dialog without reloading or clearing form state
+      // Legal and Compliance Routes: direct dedicated pages
       if (path === '/privacy-policy' || path === '/privacy' || rawHash === '#privacy-policy' || rawHash === '#/privacy-policy' || rawHash === '#privacy' || cleanHash === 'privacy-policy' || cleanHash === 'privacy') {
-        openLegalDialog('privacy');
+        setActiveTab('privacy-policy');
         return;
       }
 
-      if (path === '/terms-of-service' || path === '/terms' || rawHash === '#terms-of-service' || rawHash === '#/terms-of-service' || rawHash === '#terms' || cleanHash === 'terms-of-service' || cleanHash === 'terms') {
-        openLegalDialog('terms');
+      if (path === '/terms-of-service' || path === '/terms' || path === '/terms-and-conditions' || rawHash === '#terms-of-service' || rawHash === '#/terms-of-service' || rawHash === '#terms' || cleanHash === 'terms-of-service' || cleanHash === 'terms' || cleanHash === 'terms-and-conditions') {
+        setActiveTab('terms-of-service');
+        return;
+      }
+
+      if (path === '/shipping-policy' || path === '/shipping' || rawHash === '#shipping-policy' || rawHash === '#/shipping-policy' || rawHash === '#shipping' || cleanHash === 'shipping-policy' || cleanHash === 'shipping') {
+        setActiveTab('shipping-policy');
+        return;
+      }
+
+      if (path === '/refund-policy' || path === '/cancellation-policy' || path === '/refund' || rawHash === '#refund-policy' || rawHash === '#/refund-policy' || rawHash === '#refund' || cleanHash === 'refund-policy' || cleanHash === 'refund' || cleanHash === 'cancellation-policy') {
+        setActiveTab('refund-policy');
         return;
       }
 
@@ -848,6 +868,16 @@ const MainContent = () => {
         return <PrivacyPolicyPage setActiveTab={changeActiveTab} />;
       case 'terms-of-service':
       case 'terms':
+      case 'terms-and-conditions':
+        return <TermsOfServicePage setActiveTab={changeActiveTab} />;
+      case 'shipping-policy':
+      case 'shipping':
+        return <ShippingPolicyPage setActiveTab={changeActiveTab} />;
+      case 'refund-policy':
+      case 'refund':
+      case 'cancellation-policy':
+      case 'refund-and-cancellation':
+        return <RefundPolicyPage setActiveTab={changeActiveTab} />;
         return <TermsOfServicePage setActiveTab={changeActiveTab} />;
       case 'staff-login':
         return <StaffLoginPage setActiveTab={changeActiveTab} />;
