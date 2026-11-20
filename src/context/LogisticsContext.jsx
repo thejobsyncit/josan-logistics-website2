@@ -958,8 +958,25 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [driverIntimations]);
 
+  // 15-minute inactivity session timeout constant
+  const SESSION_INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 minutes = 900 seconds
+  const LAST_ACTIVITY_STORAGE_KEY = 'josan_last_activity';
+
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
+  const lastRecordedActivityRef = React.useRef(Date.now());
+  const isExpiringSessionRef = React.useRef(false);
+
   const [currentUser, setCurrentUser] = useState(() => {
     try {
+      const storedLastActive = localStorage.getItem('josan_last_activity');
+      if (storedLastActive) {
+        const lastActiveTime = parseInt(storedLastActive, 10);
+        if (Date.now() - lastActiveTime >= 15 * 60 * 1000) {
+          localStorage.removeItem('josan_staff_user');
+          localStorage.removeItem('josan_last_activity');
+          return null;
+        }
+      }
       const savedStaff = localStorage.getItem('josan_staff_user');
       if (savedStaff) {
         const parsed = JSON.parse(savedStaff);
@@ -1215,7 +1232,9 @@ export const LogisticsProvider = ({ children }) => {
     setCurrentRole(normRole);
     try {
       localStorage.setItem('josan_staff_user', JSON.stringify(userObj));
+      localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(Date.now()));
     } catch (e) {}
+    setSessionExpiredMessage('');
 
     setIsAuthModalOpen(false);
     setAuthModalHideClose(false);
@@ -1240,7 +1259,7 @@ export const LogisticsProvider = ({ children }) => {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('josan_')) {
+        if (key && key.startsWith('josan_') && key !== 'josan_registration_cooldowns') {
           keysToRemove.push(key);
         }
       }
@@ -1265,6 +1284,141 @@ export const LogisticsProvider = ({ children }) => {
       showToast('Logged out successfully', 'info');
     }
   };
+
+  // Expire authenticated session after 15 minutes of inactivity
+  const handleSessionExpiration = React.useCallback((options = {}) => {
+    if (isExpiringSessionRef.current) return;
+    isExpiringSessionRef.current = true;
+
+    const userToLogout = options.user || currentUser;
+    const wasStaff = userToLogout && isStaffRole(userToLogout.role || userToLogout.rawRole);
+    const wasAdmin = userToLogout && (userToLogout.role === 'ADMIN');
+
+    setCurrentUser(null);
+    setCurrentRole('CUSTOMER');
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('josan_') && key !== 'josan_registration_cooldowns') {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch (e) {}
+
+    try {
+      if (supabase && supabase.auth) {
+        supabase.auth.signOut().catch(() => {});
+      }
+    } catch (e) {}
+
+    const expiredMsg = 'Your session has expired. Please log in again.';
+    setSessionExpiredMessage(expiredMsg);
+    showToast(expiredMsg, 'warning', 15000);
+
+    if (wasStaff) {
+      const dest = wasAdmin ? 'admin-login' : 'staff-login';
+      if (typeof window !== 'undefined') {
+        window.location.hash = '#' + dest;
+        if (window.history && window.history.pushState) {
+          window.history.pushState({ tab: dest }, '', '#' + dest);
+        }
+      }
+    } else {
+      if (typeof window !== 'undefined') {
+        window.location.hash = '#home';
+        if (window.history && window.history.pushState) {
+          window.history.pushState({ tab: 'home' }, '', '#home');
+        }
+      }
+      setIsAuthModalOpen(true);
+    }
+
+    setTimeout(() => {
+      isExpiringSessionRef.current = false;
+    }, 1000);
+  }, [currentUser, showToast, setIsAuthModalOpen]);
+
+  // Reset activity timestamp when currentUser logs in
+  useEffect(() => {
+    if (currentUser) {
+      const now = Date.now();
+      lastRecordedActivityRef.current = now;
+      try {
+        localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(now));
+      } catch (e) {}
+    }
+  }, [currentUser?.id]);
+
+  // Track user interactions to update activity timestamp (throttled to 5 seconds)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const recordUserActivity = () => {
+      const now = Date.now();
+      if (now - lastRecordedActivityRef.current >= 5000) {
+        lastRecordedActivityRef.current = now;
+        try {
+          localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(now));
+        } catch (e) {}
+      }
+    };
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach(evt => window.addEventListener(evt, recordUserActivity, { passive: true }));
+
+    return () => {
+      activityEvents.forEach(evt => window.removeEventListener(evt, recordUserActivity));
+    };
+  }, [currentUser]);
+
+  // Inactivity watchdog: checks every 2 seconds, on tab focus, and visibility change
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const checkInactivity = () => {
+      if (!currentUser || isExpiringSessionRef.current) return;
+      const now = Date.now();
+      let lastActive = lastRecordedActivityRef.current;
+      try {
+        const stored = localStorage.getItem(LAST_ACTIVITY_STORAGE_KEY);
+        if (stored) {
+          lastActive = parseInt(stored, 10);
+        }
+      } catch (e) {}
+
+      if (now - lastActive >= SESSION_INACTIVITY_LIMIT_MS) {
+        handleSessionExpiration();
+      }
+    };
+
+    const interval = setInterval(checkInactivity, 2000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkInactivity();
+      }
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === LAST_ACTIVITY_STORAGE_KEY && e.newValue) {
+        lastRecordedActivityRef.current = parseInt(e.newValue, 10);
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', checkInactivity);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', checkInactivity);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [currentUser, handleSessionExpiration]);
 
   const updateUserProfile = (updatedDetails) => {
     setCurrentUser(prev => ({
@@ -3049,6 +3203,9 @@ export const LogisticsProvider = ({ children }) => {
       setIsAuthModalOpen,
       loginUser,
       logoutUser,
+      handleSessionExpiration,
+      sessionExpiredMessage,
+      setSessionExpiredMessage,
       updateUserProfile,
       addShipment,
       deleteShipment,

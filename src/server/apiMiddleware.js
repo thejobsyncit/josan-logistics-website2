@@ -61,6 +61,10 @@ const chatIpRateLimits = new Map();
 const chatSubmissionRateLimits = new Map();
 const chatSessionRateLimits = new Map();
 
+// Registration Rate Limiter (5 minutes / 300 seconds cooldown per email and IP)
+const registrationRateLimits = new Map();
+const REGISTRATION_COOLDOWN_WINDOW_MS = 5 * 60 * 1000;
+
 // Server-only Supabase client for chat_logs operations (reads SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from process.env)
 let serverChatSupabaseClient = null;
 let lastServerChatUrl = null;
@@ -499,6 +503,99 @@ export async function handleApiRequest(req, res, path) {
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({ error: e.message }));
     }
+  }
+
+  // =========================================================================
+  // CUSTOMER REGISTRATION RATE LIMIT & COOLDOWN (5 Minutes / 300 Seconds)
+  // =========================================================================
+  if ((path === '/api/auth/register-rate-limit' || path === '/api/register-rate-limit') && req.method === 'POST') {
+    const forwarded = req.headers['x-forwarded-for'];
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
+    const cleanEmail = (body.email || '').trim().toLowerCase();
+    const action = body.action || 'check';
+    const now = Date.now();
+
+    res.setHeader('Content-Type', 'application/json');
+
+    // Action: record lockout from client or Supabase rate-limit error
+    if (action === 'record') {
+      const lockSeconds = Math.max(1, parseInt(body.seconds, 10) || 300);
+      const lockUntil = now + lockSeconds * 1000;
+
+      if (cleanEmail) {
+        registrationRateLimits.set(`email:${cleanEmail}`, { lockedUntil: lockUntil, lastAttempt: now });
+      }
+      registrationRateLimits.set(`ip:${clientIp}`, { lockedUntil: lockUntil, lastAttempt: now });
+
+      res.statusCode = 200;
+      return res.end(JSON.stringify({ success: true, retryAfter: lockSeconds }));
+    }
+
+    // Action: check registration rate limit and cooldown
+    const emailKey = `email:${cleanEmail}`;
+    const ipKey = `ip:${clientIp}`;
+
+    const emailRecord = cleanEmail ? registrationRateLimits.get(emailKey) : null;
+    const ipRecord = registrationRateLimits.get(ipKey);
+
+    // 1. Check if email is currently locked under 5-minute cooldown
+    if (emailRecord && emailRecord.lockedUntil && emailRecord.lockedUntil > now) {
+      const retryAfter = Math.max(1, Math.ceil((emailRecord.lockedUntil - now) / 1000));
+      res.statusCode = 429;
+      res.setHeader('Retry-After', String(retryAfter));
+      return res.end(JSON.stringify({
+        allowed: false,
+        error: 'Too many registration attempts. Please try again in 5 minutes.',
+        message: 'Too many registration attempts. Please try again in 5 minutes.',
+        retryAfter
+      }));
+    }
+
+    // 2. Check if repeated registration attempts are made for the same email within 5 minutes
+    if (emailRecord && emailRecord.lastAttempt && (now - emailRecord.lastAttempt < REGISTRATION_COOLDOWN_WINDOW_MS)) {
+      const remainingSeconds = Math.max(1, Math.ceil((emailRecord.lastAttempt + REGISTRATION_COOLDOWN_WINDOW_MS - now) / 1000));
+      // Lock email for the remaining window
+      registrationRateLimits.set(emailKey, {
+        lockedUntil: emailRecord.lastAttempt + REGISTRATION_COOLDOWN_WINDOW_MS,
+        lastAttempt: now
+      });
+      res.statusCode = 429;
+      res.setHeader('Retry-After', String(remainingSeconds));
+      return res.end(JSON.stringify({
+        allowed: false,
+        error: 'Too many registration attempts. Please try again in 5 minutes.',
+        message: 'Too many registration attempts. Please try again in 5 minutes.',
+        retryAfter: remainingSeconds
+      }));
+    }
+
+    // 3. Check if IP has excessive submissions (> 5 attempts per 5 minutes)
+    if (ipRecord && ipRecord.attempts) {
+      const recentAttempts = (ipRecord.attempts || []).filter(t => now - t < REGISTRATION_COOLDOWN_WINDOW_MS);
+      if (recentAttempts.length >= 5) {
+        const oldest = recentAttempts[0];
+        const retryAfter = Math.max(1, Math.ceil((oldest + REGISTRATION_COOLDOWN_WINDOW_MS - now) / 1000));
+        res.statusCode = 429;
+        res.setHeader('Retry-After', String(retryAfter));
+        return res.end(JSON.stringify({
+          allowed: false,
+          error: 'Too many registration attempts. Please try again in 5 minutes.',
+          message: 'Too many registration attempts. Please try again in 5 minutes.',
+          retryAfter
+        }));
+      }
+    }
+
+    // Update attempt timestamp
+    if (cleanEmail) {
+      registrationRateLimits.set(emailKey, { lastAttempt: now });
+    }
+    const currentAttempts = (ipRecord?.attempts || []).filter(t => now - t < REGISTRATION_COOLDOWN_WINDOW_MS);
+    currentAttempts.push(now);
+    registrationRateLimits.set(ipKey, { attempts: currentAttempts, lastAttempt: now });
+
+    res.statusCode = 200;
+    return res.end(JSON.stringify({ allowed: true }));
   }
 
   // =========================================================================

@@ -96,7 +96,7 @@ function recordSuccessfulAttempt(email) {
 }
 
 export const StaffLoginPage = ({ setActiveTab }) => {
-  const { loginUser, showToast, currentUser } = useLogistics();
+  const { loginUser, showToast, currentUser, sessionExpiredMessage, setSessionExpiredMessage } = useLogistics();
 
   // Mode: 'login' | '2fa' | 'must_change_password' | 'forgot_password' | 'reset_password' | 'invite_setup'
   const [authMode, setAuthMode] = useState('login');
@@ -107,6 +107,13 @@ export const StaffLoginPage = ({ setActiveTab }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Session timeout expired notification
+  useEffect(() => {
+    if (sessionExpiredMessage) {
+      setError(sessionExpiredMessage);
+    }
+  }, [sessionExpiredMessage]);
 
   // Email Verification state (Simpler email OTP instead of 2FA authenticator app)
   const [pendingAuth, setPendingAuth] = useState(null);

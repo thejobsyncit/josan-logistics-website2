@@ -23,6 +23,7 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { EmailVerifiedPage } from './pages/EmailVerifiedPage';
 import { LegalDialog, openLegalDialog } from './components/LegalDialog';
 import { CookieBanner } from './components/CookieBanner';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
@@ -124,12 +125,24 @@ const MainContent = () => {
     'terms-of-service',
     'terms',
     'staff-login',
-    'admin-login'
+    'admin-login',
+    'email-verified'
   ];
 
   const [activeTab, setActiveTab] = useState(() => {
     const path = window.location.pathname.toLowerCase();
     const rawHash = window.location.hash.replace('#', '').toLowerCase();
+
+    if (
+      path === '/email-verified' || 
+      path.endsWith('/email-verified') || 
+      rawHash === 'email-verified' || 
+      rawHash === '/email-verified' ||
+      rawHash.startsWith('email-verified') ||
+      rawHash.includes('type=signup')
+    ) {
+      return 'email-verified';
+    }
     
     if (
       path === '/admin-login' || 
@@ -727,6 +740,19 @@ const MainContent = () => {
 
       // Services specific routes
       if (
+        path === '/email-verified' || 
+        path.endsWith('/email-verified') || 
+        rawHash === '#email-verified' || 
+        rawHash === '#/email-verified' || 
+        cleanHash === 'email-verified' ||
+        rawHash.includes('type=signup') ||
+        cleanHash.includes('type=signup')
+      ) {
+        setActiveTab('email-verified');
+        return;
+      }
+
+      if (
         path === '/services/air-freight' || 
         path.endsWith('/services/air-freight') ||
         rawHash === '#/services/air-freight' || 
@@ -827,6 +853,8 @@ const MainContent = () => {
         return <StaffLoginPage setActiveTab={changeActiveTab} />;
       case 'admin-login':
         return <AdminLoginPage setActiveTab={changeActiveTab} />;
+      case 'email-verified':
+        return <EmailVerifiedPage setActiveTab={changeActiveTab} />;
       case 'track':
         return <TrackShipmentPage key={`track-${trackNavKey}`} setActiveTab={changeActiveTab} />;
       case 'quote':

@@ -3,20 +3,20 @@ import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
 import { supabase } from '../services/supabase';
 import { normalizeRole } from '../utils/roles';
-import { 
-  Lock, 
-  Mail, 
-  ArrowRight, 
-  Eye, 
-  EyeOff, 
-  Loader2, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
   ArrowLeft
 } from 'lucide-react';
 
 export const AdminLoginPage = ({ setActiveTab }) => {
-  const { setCurrentUser, setCurrentRole, loginUser, showToast } = useLogistics();
+  const { setCurrentUser, setCurrentRole, loginUser, showToast, sessionExpiredMessage, setSessionExpiredMessage } = useLogistics();
 
   const [email, setEmail] = useState('josanlogisticss@gmail.com');
   const [password, setPassword] = useState('');
@@ -25,12 +25,19 @@ export const AdminLoginPage = ({ setActiveTab }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Session timeout expired notification
+  React.useEffect(() => {
+    if (sessionExpiredMessage) {
+      setErrorMessage(sessionExpiredMessage);
+    }
+  }, [sessionExpiredMessage]);
+
   const performFullSignOutCleanup = async () => {
     try {
       if (supabase && supabase.auth) {
-        await supabase.auth.signOut().catch(() => {});
+        await supabase.auth.signOut().catch(() => { });
       }
-    } catch (e) {}
+    } catch (e) { }
     try {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -41,7 +48,7 @@ export const AdminLoginPage = ({ setActiveTab }) => {
       }
       keysToRemove.forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleAdminSignIn = async (e) => {
@@ -167,13 +174,13 @@ export const AdminLoginPage = ({ setActiveTab }) => {
 
       {/* Main Container */}
       <div className="w-full max-w-md z-10 space-y-6">
-        
+
         {/* Header Branding */}
         <div className="text-center space-y-3">
           <div className="flex justify-center items-center space-x-3 pt-2">
-            <img 
-              src={josanLogo} 
-              alt="Josan Logistics" 
+            <img
+              src={josanLogo}
+              alt="Josan Logistics"
               className="h-12 w-auto object-contain"
             />
             <div className="flex flex-col text-left">
@@ -196,7 +203,7 @@ export const AdminLoginPage = ({ setActiveTab }) => {
 
         {/* Card Box */}
         <div className="bg-[#0B1F3A] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
-          
+
           {/* Error Message */}
           {errorMessage && (
             <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start space-x-2.5 animate-fadeIn">
@@ -214,7 +221,7 @@ export const AdminLoginPage = ({ setActiveTab }) => {
           )}
 
           <form onSubmit={handleAdminSignIn} className="space-y-4">
-            
+
             {/* Email Field */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
