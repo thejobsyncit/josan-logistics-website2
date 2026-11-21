@@ -26,7 +26,7 @@ import { AdminLoginPage } from './pages/AdminLoginPage';
 import { LegalDialog, openLegalDialog } from './components/LegalDialog';
 import { CookieBanner } from './components/CookieBanner';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
-import { normalizeRole, isStaffRole } from './utils/roles';
+import { normalizeRole, isStaffRole, getRoleDisplayName } from './utils/roles';
 import { supabase } from './services/supabase';
 
 class ErrorBoundary extends React.Component {
@@ -268,8 +268,8 @@ const MainContent = () => {
   }, [currentRole]);
 
   // Security Route Guard:
-  // On every load and refresh of /crm and /admin, get Supabase session and read role & status from public.profiles.
-  // Allow /crm only for ADMIN, CRM, or READONLY with status Active; /admin only for ADMIN.
+  // Direct /crm visits clear any existing session and require fresh credentials.
+  // /admin verifies the Supabase session, role, and status before access.
   // Wrapped in try/catch/finally with an 8-second timeout. Fails closed on timeout or error.
   const failClosedSignOut = async (destTab = 'staff-login', reasonMsg = 'Could not verify access. Please sign in again.') => {
     try {
@@ -307,6 +307,24 @@ const MainContent = () => {
   };
 
   const performSecurityCheck = async (targetTab, marker) => {
+    if (targetTab === 'crm') {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('[CRM route] Could not clear the existing session:', error);
+        }
+      } catch (error) {
+        console.error('[CRM route] Could not clear the existing session:', error);
+      }
+
+      if (marker.cancelled) return;
+      lastVerifiedTabRef.current = null;
+      if (setCurrentUser) setCurrentUser(null);
+      if (setCurrentRole) setCurrentRole('CUSTOMER');
+      setIsVerifyingRoute(false);
+      return;
+    }
+
     let timeoutId = null;
     const timeoutPromise = new Promise((_, reject) => {
       timeoutId = setTimeout(() => {
@@ -351,12 +369,7 @@ const MainContent = () => {
           // 4. Normalize role
           const normRole = normalizeRole(profile.role);
 
-          // Allow /crm only for ADMIN, CRM or READONLY with status Active
-          if (targetTab === 'crm') {
-            if (!isStaffRole(normRole)) {
-              throw new Error('UNAUTHORIZED_ROLE');
-            }
-          } else if (targetTab === 'admin-dashboard') {
+          if (targetTab === 'admin-dashboard') {
             if (normRole === 'ADMIN') {
               // Authorized
             } else if (isStaffRole(normRole)) {
@@ -390,7 +403,7 @@ const MainContent = () => {
             email: session.user.email,
             role: normRole,
             rawRole: normRole,
-            displayRole: normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only',
+            displayRole: getRoleDisplayName(normRole),
             company: profile.company || 'Josan Logistics Operations',
             status: profile.status
           };
@@ -402,9 +415,17 @@ const MainContent = () => {
     } catch (err) {
       if (marker.cancelled) return;
       marker.cancelled = true;
-      const destLogin = targetTab === 'admin-dashboard' ? 'admin-login' : 'staff-login';
+      const destLogin = targetTab === 'admin-dashboard'
+        ? 'admin-login'
+        : targetTab === 'crm'
+          ? 'crm'
+          : 'staff-login';
       const reasonMsg = err?.message === 'NO_SESSION'
-        ? (targetTab === 'admin-dashboard' ? 'Please sign in with administrator credentials.' : 'Please sign in to access staff portal.')
+        ? targetTab === 'admin-dashboard'
+          ? 'Please sign in with administrator credentials.'
+          : targetTab === 'crm'
+            ? 'Please sign in to access the CRM portal.'
+            : 'Please sign in to access staff portal.'
         : 'Could not verify access. Please sign in again.';
       await failClosedSignOut(
         destLogin,
@@ -577,16 +598,7 @@ const MainContent = () => {
     if (tab === 'track') {
       setTrackNavKey(prev => prev + 1);
     }
-    let savedStaffUser = null;
-    if (typeof window !== 'undefined') {
-      try {
-        const parsedStaff = JSON.parse(localStorage.getItem('josan_staff_user') || 'null');
-        if (parsedStaff?.id && isStaffRole(parsedStaff?.role || parsedStaff?.rawRole)) {
-          savedStaffUser = parsedStaff;
-        }
-      } catch (e) {}
-    }
-    const effectiveUser = (userOverride !== null && userOverride !== undefined) ? userOverride : (currentUser || savedStaffUser);
+    const effectiveUser = (userOverride !== null && userOverride !== undefined) ? userOverride : currentUser;
     const effectiveRole = normalizeRole(effectiveUser?.role || currentRole);
     const isStaffAuth = Boolean(effectiveUser && isStaffRole(effectiveRole));
 
@@ -917,7 +929,9 @@ const MainContent = () => {
       case 'admin-dashboard':
         return <AdminDashboardPage setActiveTab={changeActiveTab} />;
       case 'crm':
-        return <CrmPage setActiveTab={changeActiveTab} />;
+        return currentUser
+          ? <CrmPage setActiveTab={changeActiveTab} />
+          : <StaffLoginPage setActiveTab={changeActiveTab} isCrmLogin />;
       default:
         return <HomePage setActiveTab={changeActiveTab} />;
     }

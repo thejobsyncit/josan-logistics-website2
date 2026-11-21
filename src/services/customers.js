@@ -1,9 +1,10 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { isStaffRole } from '../utils/roles';
 
 export const customersService = {
   /**
    * Fetch corporate customers directory from public.profiles table (role = 'CUSTOMER').
-   * Permitted only when the signed-in user is ADMIN, CRM, or READONLY.
+   * Permitted only when the signed-in user has an active staff role.
    */
   getCustomers: async () => {
     if (!isSupabaseConfigured) return [];
@@ -23,7 +24,7 @@ export const customersService = {
         .maybeSingle();
 
       const userRole = String(profile?.role || user.user_metadata?.role || '').toUpperCase();
-      if (!['ADMIN', 'CRM', 'READONLY'].includes(userRole)) {
+      if (!isStaffRole(userRole)) {
         return [];
       }
 

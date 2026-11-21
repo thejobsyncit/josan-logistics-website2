@@ -901,7 +901,7 @@ export const CrmBillingTab = ({
                     list="billing-request-datalist"
                     value={newInvData.requestId}
                     onChange={(e) => setNewInvData({ ...newInvData, requestId: e.target.value })}
-                    placeholder="Your tracking number or AIR-0001"
+                    placeholder="Your tracking number or Reference"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
                   />
                   <datalist id="billing-request-datalist">

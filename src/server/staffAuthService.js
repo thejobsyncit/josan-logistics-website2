@@ -3,9 +3,9 @@
  * 
  * Powered by Supabase Auth & PostgreSQL:
  * - Staff authentication backed by Supabase Auth (signInWithPassword).
- * - Role enforcement strictly from public.profiles ('ADMIN', 'CRM', 'READONLY').
+ * - Role enforcement strictly from public.profiles.
  * - Two-Factor Authentication via Supabase TOTP MFA.
- * - Staff provisioning via server function with service-role key (server only).
+ * - Staff account provisioning via server function with service-role key (server only).
  * - Audit logging recorded directly to Supabase public.audit_log.
  * - Zero dependency on local JSON files.
  */
@@ -13,16 +13,24 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
+function getServiceRoleKey() {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '';
+}
+
+function getSupabaseUrl() {
+  return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+}
+
 function getSupabaseAdminClient() {
-  const url = process.env.SUPABASE_URL;
+  const url = getSupabaseUrl();
+  const serviceKey = getServiceRoleKey();
   if (!url) {
     throw new Error('[StaffAuthService] Missing required server environment variable: SUPABASE_URL');
   }
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
-  if (!key) {
-    throw new Error('[StaffAuthService] Missing required server environment variable: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY');
+  if (!serviceKey) {
+    throw new Error('[StaffAuthService] Missing required server environment variable: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_KEY');
   }
-  return createClient(url, key, {
+  return createClient(url, serviceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
@@ -180,7 +188,10 @@ export async function getAllStaffUsers() {
     const { data: profiles, error } = await supabaseAdmin
       .from('profiles')
       .select('*')
-      .in('role', ['ADMIN', 'CRM', 'READONLY', 'admin', 'crm', 'readonly']);
+      .in('role', [
+        'ADMIN', 'CRM', 'READONLY', 'OPERATIONS', 'FINANCE', 'AIRWAY_EXECUTIVE',
+        'admin', 'crm', 'readonly', 'operations', 'finance', 'airway_executive'
+      ]);
 
     if (error) {
       console.warn('[StaffAuthService] getAllStaffUsers error:', error.message);
@@ -191,7 +202,7 @@ export async function getAllStaffUsers() {
       id: p.id,
       name: p.name || p.email?.split('@')[0] || 'Staff Member',
       email: p.email,
-      role: (p.role || '').toUpperCase() === 'ADMIN' ? 'Admin' : (p.role || '').toUpperCase() === 'READONLY' ? 'Read-only' : 'CRM Operations',
+      role: getStaffRoleLabel(p.role),
       rawRole: p.role,
       status: p.status || 'Active',
       mustChangePassword: Boolean(p.must_change_password),
@@ -220,12 +231,24 @@ export function sanitizeStaffUser(user) {
   };
 }
 
+function getStaffRoleLabel(role) {
+  const labels = {
+    ADMIN: 'Admin',
+    CRM: 'CRM Operations',
+    READONLY: 'Read-only',
+    OPERATIONS: 'Operations',
+    FINANCE: 'Finance Executive',
+    AIRWAY_EXECUTIVE: 'Airway Executive'
+  };
+  return labels[String(role || '').toUpperCase()] || 'Unknown';
+}
+
 // -------------------------------------------------------------
-// STAFF INVITATION & PROVISIONING (Requirement 4)
+// STAFF ACCOUNT PROVISIONING (Admin-created temporary password for testing)
 // Server function that uses service-role key to set profiles.role
 // -------------------------------------------------------------
 
-export async function createStaffInvitation({ name, email, role, actor }) {
+export async function createStaffInvitation({ name, email, password, role, actor }) {
   if (!actor || (actor.role || '').toLowerCase() !== 'admin') {
     return { error: 'Forbidden: Insufficient privileges. Admin access required.', status: 403 };
   }
@@ -241,46 +264,49 @@ export async function createStaffInvitation({ name, email, role, actor }) {
     return { error: 'Please enter the staff member name.', status: 400 };
   }
 
-  // Normalize role to DB format
-  let dbRole = 'CRM';
-  const roleNorm = (role || '').toUpperCase();
-  if (roleNorm === 'ADMIN') dbRole = 'ADMIN';
-  else if (roleNorm === 'READONLY' || roleNorm === 'READ-ONLY') dbRole = 'READONLY';
+  if (typeof password !== 'string' || password.length < 12) {
+    return { error: 'The temporary password must be at least 12 characters.', status: 400 };
+  }
+
+  const allowedRoles = ['ADMIN', 'CRM', 'READONLY', 'OPERATIONS', 'FINANCE', 'AIRWAY_EXECUTIVE'];
+  const dbRole = String(role || '').trim().toUpperCase();
+  if (!allowedRoles.includes(dbRole)) {
+    return { error: 'Please choose a valid staff role.', status: 400 };
+  }
 
   try {
-    let authUserId = null;
-
-    // 1. If service-role key available, dispatch Supabase Auth invite
-    if (SUPABASE_SERVICE_ROLE_KEY) {
-      try {
-        const { data: inviteData, error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
-          data: {
-            full_name: cleanName,
-            role: dbRole
-          }
-        });
-        if (inviteErr) {
-          console.warn('[StaffInvite] Supabase admin invite note:', inviteErr.message);
-        } else if (inviteData?.user) {
-          authUserId = inviteData.user.id;
-        }
-      } catch (authAdminErr) {
-        console.warn('[StaffInvite] Supabase admin auth exception:', authAdminErr.message);
-      }
+    if (!getServiceRoleKey()) {
+      throw new Error('Staff account creation is unavailable because server-side Supabase credentials are not configured.');
     }
+
+    // Testing flow: Admin creates the initial password; employees must change it after signing in.
+    const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: cleanEmail,
+      password,
+      email_confirm: true,
+      data: {
+        full_name: cleanName,
+        role: dbRole
+      }
+    });
+    if (createError || !createData?.user) {
+      return {
+        error: createError?.message || 'Supabase did not create the employee account.',
+        status: 400
+      };
+    }
+    const authUserId = createData.user.id;
 
     // 2. Set profiles.role using service-role client (bypasses RLS / protect_profile_columns)
     const profileRow = {
       name: cleanName,
       email: cleanEmail,
       role: dbRole,
-      status: 'Invited',
+      status: 'Active',
       must_change_password: true,
       updated_at: new Date().toISOString()
     };
-    if (authUserId) {
-      profileRow.id = authUserId;
-    }
+    profileRow.id = authUserId;
 
     const { error: upsertErr } = await supabaseAdmin
       .from('profiles')
@@ -288,25 +314,29 @@ export async function createStaffInvitation({ name, email, role, actor }) {
 
     if (upsertErr) {
       console.warn('[StaffInvite] Profile upsert error:', upsertErr.message);
+      const { error: cleanupError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
+      if (cleanupError) {
+        console.error('[StaffInvite] Could not remove auth user after profile creation failed:', cleanupError.message);
+      }
       return { error: upsertErr.message, status: 400 };
     }
 
     // 3. Record in audit_log
     await logAuditEvent({
-      eventType: 'STAFF_INVITED',
+      eventType: 'STAFF_ACCOUNT_CREATED',
       actor: actor?.name || actor?.email || 'System Administrator',
       targetUser: cleanEmail,
-      details: `Staff member invited with role ${dbRole}.`
+      details: `Staff account created with role ${dbRole}.`
     });
 
     return {
       success: true,
-      message: `Staff invitation dispatched to ${cleanEmail} with role ${dbRole}.`,
+      message: `Employee account created for ${cleanEmail} with role ${dbRole}.`,
       role: dbRole
     };
   } catch (err) {
     console.error('[StaffInvite] Exception:', err);
-    return { error: err.message || 'Failed to dispatch staff invitation.', status: 500 };
+    return { error: err.message || 'Failed to create staff account.', status: 500 };
   }
 }
 
@@ -351,7 +381,7 @@ export async function deleteStaffUser({ userId, actor }) {
     await supabaseAdmin.from('profiles').delete().eq('id', userId);
 
     // If service role key present, delete from auth.users as well
-    if (SUPABASE_SERVICE_ROLE_KEY) {
+    if (getServiceRoleKey()) {
       try {
         await supabaseAdmin.auth.admin.deleteUser(userId);
       } catch (authDelErr) {
@@ -404,7 +434,7 @@ export async function forceLogoutStaffUser({ userId, actor }) {
   }
 
   try {
-    if (SUPABASE_SERVICE_ROLE_KEY) {
+    if (getServiceRoleKey()) {
       try {
         await supabaseAdmin.auth.admin.signOut(userId);
       } catch (e) {}
@@ -431,7 +461,6 @@ export async function verifyStaffSession(tokenString) {
   if (!tokenString) return null;
 
   try {
-    // 1. Verify via Supabase Auth
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(tokenString);
     if (user && !error) {
       const { data: profile } = await supabaseAdmin
@@ -440,44 +469,19 @@ export async function verifyStaffSession(tokenString) {
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profile && ['ADMIN', 'CRM', 'READONLY'].includes((profile.role || '').toUpperCase())) {
+      if (profile && profile.status === 'Active' && ['ADMIN', 'CRM', 'READONLY', 'OPERATIONS', 'FINANCE', 'AIRWAY_EXECUTIVE'].includes((profile.role || '').toUpperCase())) {
         return {
           userId: user.id,
           email: user.email,
-          role: (profile.role || '').toUpperCase() === 'ADMIN' ? 'Admin' : (profile.role || '').toUpperCase() === 'READONLY' ? 'Read-only' : 'CRM Operations',
+          role: getStaffRoleLabel(profile.role),
           rawRole: profile.role,
           name: profile.name || user.email.split('@')[0],
           user: profile
         };
       }
     }
-
-    // 2. Fallback: Parse token payload if valid JWT
-    const parts = tokenString.split('.');
-    if (parts.length >= 2) {
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
-      if (payload && (payload.sub || payload.userId)) {
-        const uid = payload.sub || payload.userId;
-        const { data: profile } = await supabaseAdmin
-          .from('profiles')
-          .select('*')
-          .eq('id', uid)
-          .maybeSingle();
-
-        if (profile && ['ADMIN', 'CRM', 'READONLY'].includes((profile.role || '').toUpperCase())) {
-          return {
-            userId: profile.id,
-            email: profile.email,
-            role: (profile.role || '').toUpperCase() === 'ADMIN' ? 'Admin' : (profile.role || '').toUpperCase() === 'READONLY' ? 'Read-only' : 'CRM Operations',
-            rawRole: profile.role,
-            name: profile.name || profile.email.split('@')[0],
-            user: profile
-          };
-        }
-      }
-    }
   } catch (e) {
-    // Invalid token
+    console.warn('[StaffAuth] Token verification failed:', e?.message || 'Invalid session');
   }
 
   return null;

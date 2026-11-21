@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { isStaffRole } from '../utils/roles';
 
 // Valid status values defined in public.shipments schema check constraint
 export const VALID_SHIPMENT_STATUSES = [
@@ -124,7 +125,7 @@ export const shipmentsService = {
         .maybeSingle();
 
       const userRole = String(profile?.role || session.user.user_metadata?.role || '').toUpperCase();
-      const isStaff = ['ADMIN', 'CRM', 'READONLY'].includes(userRole);
+      const isStaff = isStaffRole(userRole);
 
       const selectClause = isStaff
         ? '*, transport_partners(id, name, contact_name, contact_phone), tracking_events(occurred_at, is_public), profiles:customer_id(id, name, company)'

@@ -88,9 +88,9 @@ export const AdminLoginPage = ({ setActiveTab }) => {
         .eq('id', data.user.id)
         .maybeSingle();
 
-      if (pError || !profile) {
+      if (pError || !profile || !data.user?.id || !profile?.id) {
         await performFullSignOutCleanup();
-        setErrorMessage('Access denied. Administrator credentials required.');
+        setErrorMessage('Sign-in failed.');
         setLoading(false);
         return;
       }
@@ -117,29 +117,28 @@ export const AdminLoginPage = ({ setActiveTab }) => {
       loginAsAdminSession(data.user, data.session?.access_token, profile);
     } catch (err) {
       await performFullSignOutCleanup();
-      setErrorMessage('Access denied. Administrator credentials required.');
+      setErrorMessage('Sign-in failed.');
       setLoading(false);
     }
   };
 
-  const loginAsAdminSession = (supabaseUser, token, profile) => {
+  const loginAsAdminSession = async (supabaseUser, token, profile) => {
+    if (!supabaseUser?.id || !profile?.id) {
+      await performFullSignOutCleanup();
+      setErrorMessage('Sign-in failed.');
+      setLoading(false);
+      return;
+    }
+
     const adminUser = {
-      id: supabaseUser?.id || profile?.id || `ADM-${Date.now()}`,
-      name: profile?.name || supabaseUser?.user_metadata?.full_name || 'System Administrator',
-      email: supabaseUser?.email || email,
+      id: profile.id,
+      name: profile.name || supabaseUser.user_metadata?.full_name || 'System Administrator',
+      email: profile.email || supabaseUser.email || email,
       role: 'ADMIN',
       displayRole: 'Admin',
-      company: profile?.company || 'Josan Logistics Operations',
-      phone: supabaseUser?.user_metadata?.phone || ''
+      company: profile.company || 'Josan Logistics Operations',
+      phone: profile.phone || supabaseUser.user_metadata?.phone || ''
     };
-
-    try {
-      localStorage.setItem('josan_user', JSON.stringify(adminUser));
-      localStorage.setItem('josan_role', 'ADMIN');
-      localStorage.setItem('josan_staff_user', JSON.stringify(adminUser));
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
 
     if (typeof setCurrentUser === 'function') {
       setCurrentUser(adminUser);

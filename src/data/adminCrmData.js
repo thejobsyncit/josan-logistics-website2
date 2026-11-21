@@ -140,6 +140,45 @@ export const initialCrmRolePermissions = {
     notifications: true,
     reports: true,
     settings: false
+  },
+  OPERATIONS: {
+    dashboard: true,
+    customers: true,
+    airway_requests: false,
+    road_shipments: true,
+    documents: true,
+    quotations: false,
+    billing: false,
+    transportation_partners: true,
+    notifications: true,
+    reports: true,
+    settings: false
+  },
+  AIRWAY_EXECUTIVE: {
+    dashboard: true,
+    customers: true,
+    airway_requests: true,
+    road_shipments: false,
+    documents: true,
+    quotations: true,
+    billing: true,
+    transportation_partners: false,
+    notifications: true,
+    reports: true,
+    settings: false
+  },
+  FINANCE: {
+    dashboard: true,
+    customers: true,
+    airway_requests: true,
+    road_shipments: true,
+    documents: true,
+    quotations: true,
+    billing: true,
+    transportation_partners: false,
+    notifications: true,
+    reports: true,
+    settings: false
   }
 };
 
@@ -762,4 +801,3 @@ export const initialManagedServices = {
 };
 
 export const initialAdminActivityLog = [];
-

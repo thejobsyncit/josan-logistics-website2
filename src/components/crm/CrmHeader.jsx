@@ -13,7 +13,7 @@ import {
   FileText, 
   ExternalLink
 } from 'lucide-react';
-import { canEditRole, normalizeRole } from '../../utils/roles';
+import { canEditRole, getRoleDisplayName, normalizeRole } from '../../utils/roles';
 import { formatNotificationTime } from '../../utils/dateTime';
 
 export const CrmHeader = ({
@@ -390,7 +390,7 @@ export const CrmHeader = ({
         {(() => {
           const staffName = currentUser?.name || currentUser?.fullName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Staff Member');
           const normRole = normalizeRole(currentUser?.role || currentUser?.rawRole);
-          const staffRole = currentUser?.displayRole || (normRole === 'ADMIN' ? 'Administrator' : normRole === 'READONLY' ? 'Read-only' : 'CRM Operations');
+          const staffRole = currentUser?.displayRole || getRoleDisplayName(normRole);
           const staffInitial = (staffName.charAt(0) || currentUser?.email?.charAt(0) || 'S').toUpperCase();
 
           return (

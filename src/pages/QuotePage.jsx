@@ -355,6 +355,7 @@ export const QuotePage = ({ setActiveTab }) => {
 
       window.scrollTo({ top: 120, behavior: 'smooth' });
     } catch (networkError) {
+      console.error('[quote-submit-error]', networkError);
       resetTurnstile();
       if (showToast) {
         showToast('Network error while submitting request. Please try again.', 'error');

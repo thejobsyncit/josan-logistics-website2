@@ -393,7 +393,7 @@ export const CrmTransportationPartnersTab = ({
                   required
                   value={newPartnerData.name}
                   onChange={(e) => setNewPartnerData({ ...newPartnerData, name: e.target.value })}
-                  placeholder="e.g. Woodlands Roadways Logistics Pte Ltd"
+                  placeholder="Partner carrier name"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>

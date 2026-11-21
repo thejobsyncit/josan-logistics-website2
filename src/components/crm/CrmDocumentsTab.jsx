@@ -866,7 +866,7 @@ export const CrmDocumentsTab = ({
                     type="text"
                     value={newDocData.shipmentId}
                     onChange={(e) => setNewDocData({ ...newDocData, shipmentId: e.target.value })}
-                    placeholder="Your tracking number or AIR-0001"
+                    placeholder="Your tracking number or Reference"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium font-mono"
                   />
                 </div>

@@ -25,7 +25,7 @@ import {
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
 import { fetchServerShipmentReference } from '../utils/referenceApi';
-import { normalizeRole, isStaffRole, canEditRole } from '../utils/roles';
+import { normalizeRole, isStaffRole, canEditRole, getRoleDisplayName } from '../utils/roles';
 import {
   COMPANY_INFO,
   PLACEHOLDER_PHONE,
@@ -384,7 +384,15 @@ export const LogisticsProvider = ({ children }) => {
   const [crmRolePermissions, setCrmRolePermissions] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_crm_permissions');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return Object.fromEntries(
+          Object.entries(initialCrmRolePermissions).map(([role, defaults]) => [
+            role,
+            { ...defaults, ...(parsed?.[role] || {}) }
+          ])
+        );
+      }
     } catch (e) {}
     return initialCrmRolePermissions;
   });
@@ -787,25 +795,7 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [driverIntimations]);
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const savedStaff = localStorage.getItem('josan_staff_user');
-      if (savedStaff) {
-        const parsed = JSON.parse(savedStaff);
-        if (parsed?.isTest || parsed?.isDemo) {
-          localStorage.removeItem('josan_staff_user');
-          return null;
-        }
-        const staffRole = normalizeRole(parsed?.role || parsed?.rawRole);
-        if (parsed?.id && isStaffRole(staffRole)) {
-          return parsed;
-        }
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Reload shipments when authenticated user state changes
   useEffect(() => {
@@ -824,19 +814,11 @@ export const LogisticsProvider = ({ children }) => {
       localStorage.removeItem('josan_shipments');
       localStorage.removeItem('josan_user');
       localStorage.removeItem('josan_role');
+      localStorage.removeItem('josan_staff_user');
       localStorage.removeItem('josan_airway_requests');
       localStorage.removeItem('josan_transport_partners');
       localStorage.removeItem('josan_leads');
       localStorage.removeItem('josan_addresses');
-      const savedStaff = localStorage.getItem('josan_staff_user');
-      if (savedStaff) {
-        const parsed = JSON.parse(savedStaff);
-        const staffRole = normalizeRole(parsed?.role || parsed?.rawRole);
-        if (parsed?.isTest || parsed?.isDemo || !parsed?.id || !isStaffRole(staffRole)) {
-          localStorage.removeItem('josan_staff_user');
-          setCurrentUser(null);
-        }
-      }
     } catch (e) {}
   }, []);
 
@@ -910,6 +892,17 @@ export const LogisticsProvider = ({ children }) => {
     };
 
     loadStaffQuotes();
+
+    const channel = supabase
+      .channel('quote_requests_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quote_requests' }, () => {
+        loadStaffQuotes();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentUser]);
 
   // Load customers from Supabase profiles table for logged-in staff (ADMIN, CRM, READONLY)
@@ -1051,15 +1044,12 @@ export const LogisticsProvider = ({ children }) => {
       name: details.name || details.fullName || (email ? email.split('@')[0] : 'Staff Member'),
       email: details.email || email,
       role: normRole,
-      displayRole: details.displayRole || (normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only'),
+      displayRole: details.displayRole || getRoleDisplayName(normRole),
       company: details.company || 'Josan Logistics Operations'
     };
 
     setCurrentUser(userObj);
     setCurrentRole(normRole);
-    try {
-      localStorage.setItem('josan_staff_user', JSON.stringify(userObj));
-    } catch (e) {}
 
     setIsAuthModalOpen(false);
     setAuthModalHideClose(false);
@@ -1776,52 +1766,128 @@ export const LogisticsProvider = ({ children }) => {
       id: formattedId,
       customerName: requestData.customerName || requestData.fullName || 'Commercial Shipper',
       company: requestData.company || requestData.companyName || 'Corporate Client',
-      email: requestData.email,
-      phone: requestData.phone,
+      email: requestData.email || '',
+      phone: requestData.phone || '',
       receiverName: requestData.receiverName || 'Designated Consignee',
       receiverCompany: requestData.receiverCompany || '',
       receiverEmail: requestData.receiverEmail || '',
       receiverPhone: requestData.receiverPhone || '',
-      incoterm: requestData.incoterm || 'FOB',
-      origin: requestData.origin,
-      destination: requestData.destination,
-      cargoDescription: requestData.cargoDescription,
-      packagesCount: requestData.packagesCount,
-      totalWeight: requestData.totalWeight,
-      dimensions: requestData.dimensions || 'Standard Cargo',
-      approximateValue: requestData.approximateValue || 'SGD 10,000',
-      services: requestData.services || ['AWB Preparation'],
+      shipperName: requestData.shipperName || requestData.customerName || requestData.company || 'Commercial Shipper',
+      shipperAddress: requestData.shipperAddress || '[CONFIRM]',
+      shipperContact: requestData.shipperContact || requestData.phone || requestData.email || '',
+      consigneeName: requestData.consigneeName || requestData.receiverName || requestData.receiverCompany || 'Designated Consignee',
+      consigneeAddress: requestData.consigneeAddress || '[CONFIRM]',
+      consigneeContact: requestData.consigneeContact || requestData.receiverPhone || requestData.receiverEmail || '',
+      origin: requestData.origin || 'SIN - Singapore Changi Airport',
+      destination: requestData.destination || 'BKK - Bangkok Suvarnabhumi Airport',
+      originAirport: requestData.originAirport || requestData.origin || 'SIN - Singapore Changi Airport',
+      destinationAirport: requestData.destinationAirport || requestData.destination || 'BKK - Bangkok Suvarnabhumi Airport',
+      plannedDate: requestData.plannedDate || requestData.date || '[CONFIRM]',
+      airline: requestData.airline || '',
+      flightNumber: requestData.flightNumber || '',
+      cargoDescription: requestData.cargoDescription || 'General commercial cargo',
+      packagesCount: requestData.packagesCount || 1,
+      grossWeight: requestData.grossWeight || requestData.totalWeight || '100 kg',
+      dimensions: requestData.dimensions || '100 × 80 × 80 cm',
+      lengthCm: requestData.lengthCm || 100,
+      widthCm: requestData.widthCm || 80,
+      heightCm: requestData.heightCm || 80,
+      volumetricWeight: requestData.volumetricWeight || 106.67,
+      chargeableWeight: requestData.chargeableWeight || 106.67,
+      ratePerKg: requestData.ratePerKg || 0,
+      freight: requestData.freight || 0,
+      documentFee: requestData.documentFee || '[CONFIRM]',
+      otherCharges: requestData.otherCharges || 0,
+      totalCharges: requestData.totalCharges || 0,
+      paymentTerms: requestData.paymentTerms || 'Prepaid',
+      invoiceReceived: requestData.invoiceReceived || false,
+      packingListReceived: requestData.packingListReceived || false,
+      awbDocumentIssued: requestData.awbDocumentIssued || false,
+      awbNumber: requestData.awbNumber || '',
+      quoteStatus: requestData.quoteStatus || 'Draft',
+      quoteSentDate: requestData.quoteSentDate || '',
+      quoteAmount: requestData.quoteAmount || '',
+      paymentStatus: requestData.paymentStatus || 'Unpaid',
+      paymentMethod: requestData.paymentMethod || 'Bank transfer [CONFIRM]',
+      assignedTo: requestData.assignedTo || 'Unassigned',
       documents: requestData.documents || [],
       date: new Date().toISOString().split('T')[0],
-      status: 'New',
-      adminNotes: 'New customer airway service request received.'
+      status: requestData.status || 'New',
+      adminNotes: requestData.adminNotes || requestData.notes || '',
+      history: requestData.history || [
+        {
+          date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+          user: 'System',
+          action: 'Request received from customer'
+        }
+      ]
     };
 
     setAirwayRequests(prev => [newRequest, ...prev]);
 
     if (!requestData.quoteId && !requestData.referenceNumber) {
       addNotification({
-      role: 'admin',
-      type: 'airway_request',
-      title: `✈️ New Airway Service Request (${formattedId})`,
-      message: `${newRequest.customerName} (${newRequest.company}) requested airway coordination for ${newRequest.origin} → ${newRequest.destination}.`,
-      timestamp: 'Just Now',
-      read: false
-    });
+        role: 'admin',
+        type: 'airway_request',
+        title: `✈️ New Airway Request (${formattedId})`,
+        message: `${newRequest.customerName} (${newRequest.company}) requested air freight documents for ${newRequest.origin} → ${newRequest.destination}.`,
+        timestamp: 'Just Now',
+        read: false
+      });
     }
 
-    showToast(`Airway Service Request #${formattedId} submitted successfully!`, 'success');
+    showToast(`Air Freight Request #${formattedId} submitted successfully!`, 'success');
     return newRequest;
   };
 
   const updateAirwayRequestStatus = (id, newStatus) => {
-    setAirwayRequests(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    setAirwayRequests(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const history = Array.isArray(r.history) ? [...r.history] : [];
+      history.push({
+        date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+        user: currentUser?.name || 'Operations Staff',
+        action: `Status changed from ${r.status || 'New'} to ${newStatus}`
+      });
+      return {
+        ...r,
+        status: newStatus,
+        history
+      };
+    }));
     showToast(`Airway Request #${id} status updated to ${newStatus}`, 'success');
   };
 
   const updateAirwayRequestNotes = (id, notes) => {
     setAirwayRequests(prev => prev.map(r => r.id === id ? { ...r, adminNotes: notes } : r));
-    showToast(`Admin note saved for Airway Request #${id}`, 'success');
+    showToast(`Notes saved for Airway Request #${id}`, 'success');
+  };
+
+  const updateAirwayRequest = (id, updatedFields) => {
+    setAirwayRequests(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const history = Array.isArray(r.history) ? [...r.history] : [];
+      if (updatedFields.status && updatedFields.status !== r.status) {
+        history.push({
+          date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+          user: currentUser?.name || 'Operations Staff',
+          action: `Status changed from ${r.status || 'New'} to ${updatedFields.status}`
+        });
+      }
+      if (updatedFields.assignedTo && updatedFields.assignedTo !== r.assignedTo) {
+        history.push({
+          date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+          user: currentUser?.name || 'Operations Staff',
+          action: `Assigned to ${updatedFields.assignedTo}`
+        });
+      }
+      return {
+        ...r,
+        ...updatedFields,
+        history
+      };
+    }));
+    showToast(`Airway Request #${id} updated`, 'success');
   };
 
   // ==========================================
@@ -2864,6 +2930,7 @@ export const LogisticsProvider = ({ children }) => {
       addAirwayRequest,
       updateAirwayRequestStatus,
       updateAirwayRequestNotes,
+      updateAirwayRequest,
       transportationPartners,
       setTransportationPartners,
       addTransportationPartner,

@@ -35,6 +35,12 @@ export const CRM_TABS = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
+const ROLE_MODULE_ACCESS = {
+  OPERATIONS: ['dashboard', 'customers', 'road-shipments', 'transportation-partners', 'notifications', 'reports'],
+  AIRWAY_EXECUTIVE: ['dashboard', 'customers', 'airway-requests', 'documents', 'quotations', 'billing', 'notifications', 'reports'],
+  FINANCE: ['dashboard', 'customers', 'airway-requests', 'road-shipments', 'documents', 'quotations', 'billing', 'notifications', 'reports']
+};
+
 export const CrmSidebar = ({
   activeTab,
   setActiveTab,
@@ -47,6 +53,11 @@ export const CrmSidebar = ({
   onLogout,
   onBackToWebsite
 }) => {
+  const userRole = String(currentUser?.role || currentUser?.rawRole || '').toUpperCase();
+  const visibleTabs = ROLE_MODULE_ACCESS[userRole]
+    ? CRM_TABS.filter(tab => ROLE_MODULE_ACCESS[userRole].includes(tab.id))
+    : CRM_TABS;
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -111,7 +122,7 @@ export const CrmSidebar = ({
             </div>
           )}
 
-          {CRM_TABS.map((tab) => {
+          {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             const badgeValue = tab.badgeKey ? badgeCounts[tab.badgeKey] : null;
