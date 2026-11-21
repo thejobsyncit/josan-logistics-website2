@@ -104,11 +104,15 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
       return;
     }
 
-    // Validate format: 6 to 40 characters, letters, digits, and hyphens only
-    if (!/^[A-Za-z0-9\-]{6,40}$/.test(cleanQuery)) {
-      setNotFound(true);
+    // Validate format: must start with JOS- or AWS- (or test prefixes TJOS- / TAWS-) followed by exactly 5 characters
+    const isValidTrackingFormat = 
+      /^(JOS|AWS|TJOS|TAWS)-[A-Za-z0-9]{5}$/.test(cleanQuery) || 
+      (import.meta.env.DEV && cleanQuery === 'TEST-0001');
+
+    if (!isValidTrackingFormat) {
+      setErrorMessage('Tracking number must start with JOS- or AWS- followed by exactly 5 characters (e.g. JOS-88190 or AWS-29401).');
+      setNotFound(false);
       setShipmentData(null);
-      setErrorMessage('');
       setRateLimitMessage('');
       setRateLimitSeconds(0);
       return;
@@ -319,16 +323,33 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                       id="tracking-number-input"
                       type="text"
                       value={searchInput}
+                      maxLength={searchInput.toUpperCase().startsWith('TJOS-') || searchInput.toUpperCase().startsWith('TAWS-') ? 10 : 9}
                       onChange={(e) => {
-                        setSearchInput(e.target.value);
+                        const val = sanitizeTrackingInput(e.target.value);
+                        setSearchInput(val);
                         setErrorMessage('');
                         setNotFound(false);
                       }}
-                      placeholder={formCopy.placeholder}
+                      onInput={(e) => {
+                        const val = sanitizeTrackingInput(e.target.value);
+                        if (val !== searchInput) setSearchInput(val);
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const paste = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                        const val = sanitizeTrackingInput(paste);
+                        setSearchInput(val);
+                        setErrorMessage('');
+                        setNotFound(false);
+                      }}
+                      placeholder="Enter your tracking number (e.g. JOS-88190 or AWS-29401)"
                       disabled={isLoading || rateLimitSeconds > 0}
                       className="w-full h-12 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] px-4 text-sm sm:text-base text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-navy)] focus:border-transparent transition-colors disabled:opacity-50"
                       style={{ letterSpacing: 'normal' }}
                     />
+                    <p className="mt-1.5 text-xs text-[var(--color-text-muted)]">
+                      Tracking format: <strong className="font-semibold text-[var(--color-navy)]">JOS-</strong> or <strong className="font-semibold text-[var(--color-navy)]">AWS-</strong> followed by exactly 5 characters (e.g. JOS-88190 or AWS-29401).
+                    </p>
                   </div>
 
                   {/* Cloudflare Turnstile Verification Widget - 16px spacing above and below (my-4) */}

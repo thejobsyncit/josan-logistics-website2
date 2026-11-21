@@ -220,7 +220,7 @@ declare ref text; prefix text;
 begin
   prefix := case when new.is_test then 'TJOS-' else 'JOS-' end;
   loop
-    ref := prefix || public.random_code(10);
+    ref := prefix || public.random_code(5);
     exit when not exists (select 1 from public.shipments where tracking_number = ref);
   end loop;
   new.tracking_number := ref;

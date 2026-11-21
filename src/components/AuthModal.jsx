@@ -2,13 +2,32 @@ import React, { useState, useEffect } from 'react';
 import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
 import { countryCodesList, getPhoneLength } from '../data/countryCodes';
-import { X, Lock, Mail, ArrowRight, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { X, Lock, Mail, ArrowRight, User, AlertCircle, Eye, EyeOff, Clock, Loader2 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { openLegalDialog } from './LegalDialog';
 import { normalizeRole, isStaffRole } from '../utils/roles';
+import {
+  getRegistrationCooldown,
+  setRegistrationCooldown,
+  clearRegistrationCooldown,
+  formatCountdownTimer,
+  subscribeToRegistrationCooldown,
+  normalizeEmail
+} from '../utils/registrationCooldown';
 
 export const AuthModal = ({ setActiveTab }) => {
-  const { isAuthModalOpen, setIsAuthModalOpen, authModalHideClose, setAuthModalHideClose, authRedirectTab, setAuthRedirectTab, setCurrentUser, setCurrentRole } = useLogistics();
+  const { 
+    isAuthModalOpen, 
+    setIsAuthModalOpen, 
+    authModalHideClose, 
+    setAuthModalHideClose, 
+    authRedirectTab, 
+    setAuthRedirectTab, 
+    setCurrentUser, 
+    setCurrentRole,
+    sessionExpiredMessage,
+    setSessionExpiredMessage
+  } = useLogistics();
   const [isLogin, setIsLogin] = useState(true);
   
   // Registration fields
@@ -24,6 +43,7 @@ export const AuthModal = ({ setActiveTab }) => {
   const [error, setError] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   const resetForm = () => {
     setFullName('');
@@ -37,17 +57,60 @@ export const AuthModal = ({ setActiveTab }) => {
     setConsentAgreed(false);
     setError('');
     setInfoMessage('');
+    setCooldownSeconds(0);
   };
 
   useEffect(() => {
     if (isAuthModalOpen) {
-      resetForm();
+      if (sessionExpiredMessage) {
+        setIsLogin(true);
+        setError(sessionExpiredMessage);
+      } else {
+        resetForm();
+      }
     }
-  }, [isAuthModalOpen]);
+  }, [isAuthModalOpen, sessionExpiredMessage]);
+
+  // Sync cooldown state whenever email or mode changes
+  useEffect(() => {
+    if (!isLogin && email) {
+      const cd = getRegistrationCooldown(email);
+      setCooldownSeconds(cd.active ? cd.remainingSeconds : 0);
+    } else {
+      setCooldownSeconds(0);
+    }
+  }, [isLogin, email]);
+
+  // Cross-tab cooldown subscription
+  useEffect(() => {
+    if (!isLogin && email) {
+      const unsubscribe = subscribeToRegistrationCooldown(email, (cd) => {
+        setCooldownSeconds(cd.active ? cd.remainingSeconds : 0);
+      });
+      return unsubscribe;
+    }
+  }, [isLogin, email]);
+
+  // Live countdown timer (ticks every second)
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setCooldownSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          clearRegistrationCooldown(email);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownSeconds, email]);
 
   const handleClose = () => {
     setIsAuthModalOpen(false);
     if (setAuthRedirectTab) setAuthRedirectTab(null);
+    if (setSessionExpiredMessage) setSessionExpiredMessage('');
     resetForm();
   };
 
@@ -159,6 +222,11 @@ export const AuthModal = ({ setActiveTab }) => {
         }
 
         // Customer login successful: in-memory state only, never write to localStorage
+        try {
+          localStorage.setItem('josan_last_activity', String(Date.now()));
+        } catch (e) {}
+        if (setSessionExpiredMessage) setSessionExpiredMessage('');
+
         const customerUser = {
           id: authData.user.id,
           name: profile.name || authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'Customer',
@@ -184,12 +252,47 @@ export const AuthModal = ({ setActiveTab }) => {
         return;
       }
 
-      // Customer Registration
+      // Customer Registration Cooldown Pre-checks
+      const activeCooldown = getRegistrationCooldown(cleanEmail);
+      if (activeCooldown.active) {
+        setCooldownSeconds(activeCooldown.remainingSeconds);
+        setError('');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Backend security: Server-side registration rate limit pre-check
+      try {
+        const rateRes = await fetch('/api/auth/register-rate-limit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'check', email: cleanEmail }),
+          signal: AbortSignal.timeout(3000)
+        });
+        if (rateRes.status === 429) {
+          const rateData = await rateRes.json().catch(() => ({}));
+          const retryAfter = rateData.retryAfter || 300;
+          setRegistrationCooldown(cleanEmail, retryAfter);
+          setCooldownSeconds(retryAfter);
+          setError('');
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (e) {
+        // Continue cleanly if offline or serverless cold-start
+      }
+
+      // Customer Registration with Supabase
       const cleanPhone = `${countryCode} ${phoneDigits.replace(/[^0-9]/g, '')}`.trim();
+      const redirectUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}/#email-verified`
+        : 'https://josanlogistics.com.sg/#email-verified';
+
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: cleanPassword,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName.trim(),
             phone: cleanPhone
@@ -198,6 +301,43 @@ export const AuthModal = ({ setActiveTab }) => {
       });
 
       if (signUpError) {
+        const errorMsg = (signUpError.message || '').toLowerCase();
+        const isRateLimit = 
+          signUpError.status === 429 || 
+          signUpError.code === '429' ||
+          errorMsg.includes('rate limit') || 
+          errorMsg.includes('rate_limit') || 
+          errorMsg.includes('over_email_send_rate_limit') ||
+          errorMsg.includes('too many requests') ||
+          errorMsg.includes('email rate limit exceeded');
+
+        if (isRateLimit) {
+          // Activate 5-minute (300-second) cooldown
+          setRegistrationCooldown(cleanEmail, 300);
+          setCooldownSeconds(300);
+          setError('');
+          return;
+        }
+
+        // Do not expose whether an email address is already registered
+        const isAlreadyRegistered = 
+          errorMsg.includes('already registered') || 
+          errorMsg.includes('already exists') || 
+          signUpError.code === 'user_already_exists';
+
+        if (isAlreadyRegistered) {
+          setRegistrationCooldown(cleanEmail, 300);
+          resetForm();
+          setIsLogin(true);
+          setInfoMessage('Account created. Please check your email to verify your account before signing in.');
+          return;
+        }
+
+        if (errorMsg.includes('failed to fetch') || errorMsg.includes('network') || errorMsg.includes('networkerror')) {
+          setError('Network connection error. Please check your internet connection and try again.');
+          return;
+        }
+
         setError(signUpError.message || 'Registration failed.');
         return;
       }
@@ -223,6 +363,11 @@ export const AuthModal = ({ setActiveTab }) => {
             return;
           }
         }
+
+        try {
+          localStorage.setItem('josan_last_activity', String(Date.now()));
+        } catch (e) {}
+        if (setSessionExpiredMessage) setSessionExpiredMessage('');
 
         const customerUser = {
           id: signUpData.user.id,
@@ -250,12 +395,26 @@ export const AuthModal = ({ setActiveTab }) => {
       }
 
       // Email confirmation required before session is active
+      // Set 5-minute cooldown to prevent repeated OTP / confirmation email spam
+      setRegistrationCooldown(cleanEmail, 300);
       resetForm();
       setIsLogin(true);
       setInfoMessage('Account created. Please check your email to verify your account before signing in.');
     } catch (err) {
       await supabase.auth.signOut().catch(() => {});
-      setError(err?.message || (isLogin ? 'Unable to sign in. Please try again.' : 'Registration failed.'));
+      const errMsg = (err?.message || '').toLowerCase();
+      if (
+        err?.status === 429 ||
+        errMsg.includes('rate limit') ||
+        errMsg.includes('email rate limit exceeded') ||
+        errMsg.includes('too many requests')
+      ) {
+        setRegistrationCooldown(cleanEmail, 300);
+        setCooldownSeconds(300);
+        setError('');
+      } else {
+        setError(err?.message || (isLogin ? 'Unable to sign in. Please try again.' : 'Registration failed.'));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -297,7 +456,21 @@ export const AuthModal = ({ setActiveTab }) => {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           
-          {error && (
+          {/* Registration 5-Minute Cooldown Alert Banner */}
+          {!isLogin && cooldownSeconds > 0 && (
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs shadow-sm space-y-1.5 animate-fade-in">
+              <div className="flex items-center space-x-2 text-amber-800 font-bold">
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                <span>Too many registration attempts. Please try again in 5 minutes.</span>
+              </div>
+              <div className="pl-6 text-[11px] text-amber-700 font-semibold flex items-center space-x-1.5">
+                <Clock className="w-3.5 h-3.5 inline shrink-0" />
+                <span>Try again in <span className="font-mono font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded">{formatCountdownTimer(cooldownSeconds)}</span></span>
+              </div>
+            </div>
+          )}
+
+          {error && (!cooldownSeconds || isLogin) && (
             <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-bold flex items-center space-x-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
@@ -513,11 +686,25 @@ export const AuthModal = ({ setActiveTab }) => {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (!isLogin && cooldownSeconds > 0)}
                 className="w-full h-11 bg-[#FF6B00] hover:bg-[#E55C00] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center space-x-2 mt-2 cursor-pointer"
               >
-                <span>{isSubmitting ? (isLogin ? 'Signing In...' : 'Creating Account...') : (isLogin ? 'Sign In' : 'Register Account')}</span>
-                <ArrowRight className="w-4 h-4" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                    <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
+                  </>
+                ) : (!isLogin && cooldownSeconds > 0) ? (
+                  <>
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span>Try again in {formatCountdownTimer(cooldownSeconds)}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{isLogin ? 'Sign In' : 'Register Account'}</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" />
+                  </>
+                )}
               </button>
 
               {/* Terms & Privacy Notice on Sign In */}

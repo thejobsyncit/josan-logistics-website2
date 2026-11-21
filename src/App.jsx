@@ -21,8 +21,11 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CrmPage } from './pages/CrmPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { ShippingPolicyPage } from './pages/ShippingPolicyPage';
+import { RefundPolicyPage } from './pages/RefundPolicyPage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { EmailVerifiedPage } from './pages/EmailVerifiedPage';
 import { LegalDialog, openLegalDialog } from './components/LegalDialog';
 import { CookieBanner } from './components/CookieBanner';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
@@ -124,7 +127,8 @@ const MainContent = () => {
     'terms-of-service',
     'terms',
     'staff-login',
-    'admin-login'
+    'admin-login',
+    'email-verified'
   ];
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -556,8 +560,16 @@ const MainContent = () => {
         description: 'Josan Logistics privacy policy for commercial freight enquiries under the Singapore PDPA.'
       },
       'terms-of-service': {
-        title: 'Terms of Service | Josan Logistics Pte. Ltd.',
-        description: 'Commercial road freight coordination, Air Waybill preparation, and shipment documentation Terms of Service.'
+        title: 'Terms & Conditions | Josan Logistics Pte. Ltd.',
+        description: 'Commercial road freight coordination, Air Waybill preparation, and shipment documentation Terms and Conditions.'
+      },
+      'shipping-policy': {
+        title: 'Shipping Policy | Josan Logistics Pte. Ltd.',
+        description: 'Commercial shipment booking, pickup scheduling, road transport coordination, and tracking policy in Singapore.'
+      },
+      'refund-policy': {
+        title: 'Refund & Cancellation Policy | Josan Logistics Pte. Ltd.',
+        description: 'Cancellation eligibility, abortive haulage guidelines, billing adjustments, and refund request procedures.'
       },
       'staff-login': {
         title: 'Staff Gateway | Josan Logistics Operations',
@@ -816,6 +828,19 @@ const MainContent = () => {
 
       // Services specific routes
       if (
+        path === '/email-verified' || 
+        path.endsWith('/email-verified') || 
+        rawHash === '#email-verified' || 
+        rawHash === '#/email-verified' || 
+        cleanHash === 'email-verified' ||
+        rawHash.includes('type=signup') ||
+        cleanHash.includes('type=signup')
+      ) {
+        setActiveTab('email-verified');
+        return;
+      }
+
+      if (
         path === '/services/air-freight' || 
         path.endsWith('/services/air-freight') ||
         rawHash === '#/services/air-freight' || 
@@ -911,11 +936,23 @@ const MainContent = () => {
         return <PrivacyPolicyPage setActiveTab={changeActiveTab} />;
       case 'terms-of-service':
       case 'terms':
+      case 'terms-and-conditions':
+        return <TermsOfServicePage setActiveTab={changeActiveTab} />;
+      case 'shipping-policy':
+      case 'shipping':
+        return <ShippingPolicyPage setActiveTab={changeActiveTab} />;
+      case 'refund-policy':
+      case 'refund':
+      case 'cancellation-policy':
+      case 'refund-and-cancellation':
+        return <RefundPolicyPage setActiveTab={changeActiveTab} />;
         return <TermsOfServicePage setActiveTab={changeActiveTab} />;
       case 'staff-login':
         return <StaffLoginPage setActiveTab={changeActiveTab} />;
       case 'admin-login':
         return <AdminLoginPage setActiveTab={changeActiveTab} />;
+      case 'email-verified':
+        return <EmailVerifiedPage setActiveTab={changeActiveTab} />;
       case 'track':
         return <TrackShipmentPage key={`track-${trackNavKey}`} setActiveTab={changeActiveTab} />;
       case 'quote':

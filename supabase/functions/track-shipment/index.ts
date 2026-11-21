@@ -73,16 +73,16 @@ serve(async (req: Request) => {
       );
     }
 
-    // 3. Validate tracking number: trimmed, 6 to 40 characters, letters, digits and hyphens only
-    const rawTrackingNumber = String(body.tracking_number || body.trackingNumber || "").trim();
-    if (!/^[A-Za-z0-9\-]{6,40}$/.test(rawTrackingNumber)) {
-      console.warn("[track-shipment] Invalid tracking number format");
+    // 3. Validate tracking number: must start with JOS-, AWS- (or test prefixes TJOS-, TAWS-) followed by strictly 5 characters
+    const rawTrackingNumber = String(body.tracking_number || body.trackingNumber || "").trim().toUpperCase();
+    if (!/^(JOS|AWS|TJOS|TAWS)-[A-Za-z0-9]{5}$/.test(rawTrackingNumber)) {
+      console.warn("[track-shipment] Invalid tracking number format (must be 5 characters after prefix):", rawTrackingNumber);
       return new Response(
         JSON.stringify({ error: GENERIC_NOT_FOUND_MSG, data: null }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const trackingNumber = rawTrackingNumber.toUpperCase();
+    const trackingNumber = rawTrackingNumber;
 
     // 4. Verify Cloudflare Turnstile token server-side with TURNSTILE_SECRET_KEY
     const turnstileToken = String(body.turnstile_token || body.token || "").trim();

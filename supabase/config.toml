@@ -1,0 +1,5 @@
+project_id = "tofavoanzvbzdcveqivd"
+
+[auth.email.template.confirmation]
+subject = "Welcome to Josan Logistics – Verify Your Account"
+content_path = "./supabase/templates/confirmation.html"

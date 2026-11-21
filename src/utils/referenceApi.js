@@ -32,7 +32,7 @@ function secureBrowserFallback(length) {
 export async function fetchServerQuoteReference({ isTest = false, contactEmail = '', isStaff = false } = {}) {
   try {
     const isTestMode = Boolean(
-      isTest || 
+      isTest ||
       localStorage.getItem('josan_test_mode') === 'true' ||
       (contactEmail && (contactEmail.includes('test') || contactEmail.endsWith('@josanlogistics.com')))
     );
@@ -60,7 +60,7 @@ export async function fetchServerQuoteReference({ isTest = false, contactEmail =
 
   // Fallback using cryptographically secure Web Crypto API with persistent registry
   const isTestFinal = Boolean(
-    isTest || 
+    isTest ||
     localStorage.getItem('josan_test_mode') === 'true' ||
     (contactEmail && (contactEmail.includes('test') || contactEmail.endsWith('@josanlogistics.com')))
   );
@@ -88,8 +88,9 @@ export async function fetchServerQuoteReference({ isTest = false, contactEmail =
 
 /**
  * Request server to generate an automatic random Shipment Tracking number
+ * Formats: JOS-XXXXX (road) or AWS-XXXXX (airway) with exactly 5 characters after the hyphen.
  */
-export async function fetchServerShipmentReference({ isTest = false } = {}) {
+export async function fetchServerShipmentReference({ isTest = false, service = 'road', prefix: customPrefix } = {}) {
   try {
     const isTestMode = Boolean(
       isTest || localStorage.getItem('josan_test_mode') === 'true'
@@ -100,6 +101,8 @@ export async function fetchServerShipmentReference({ isTest = false } = {}) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         isTest: isTestMode,
+        service,
+        prefix: customPrefix,
         siteMode: isTestMode ? 'test' : 'live'
       })
     });
@@ -114,11 +117,15 @@ export async function fetchServerShipmentReference({ isTest = false } = {}) {
     console.warn('[ReferenceAPI] Server shipment tracking endpoint offline, utilizing secure fallback:', err.message);
   }
 
-  // Fallback using cryptographically secure Web Crypto API with persistent registry
+  // Fallback using cryptographically secure Web Crypto API with persistent registry (5 characters)
   const isTestFinal = Boolean(
     isTest || localStorage.getItem('josan_test_mode') === 'true'
   );
-  const prefix = isTestFinal ? 'TJOS-' : 'JOS-';
+  let defaultPrefix = isTestFinal ? 'TJOS-' : 'JOS-';
+  if (service === 'air' || service === 'airway' || (customPrefix && customPrefix.startsWith('AWS'))) {
+    defaultPrefix = isTestFinal ? 'TAWS-' : 'AWS-';
+  }
+  const prefix = customPrefix || defaultPrefix;
   const usedRegistry = JSON.parse(localStorage.getItem('josan_issued_references_registry') || '[]');
   const usedSet = new Set(usedRegistry);
 
@@ -126,16 +133,19 @@ export async function fetchServerShipmentReference({ isTest = false } = {}) {
   let attempts = 0;
   do {
     attempts++;
-    candidate = `${prefix}${secureBrowserFallback(10)}`;
+    candidate = `${prefix}${secureBrowserFallback(5)}`;
   } while (usedSet.has(candidate) && attempts < 50);
 
   usedRegistry.push(candidate);
   localStorage.setItem('josan_issued_references_registry', JSON.stringify(usedRegistry));
 
+  const isAirway = prefix.includes('AWS');
   return {
     trackingNumber: candidate,
     isTest: isTestFinal,
-    type: isTestFinal ? 'TEST_SHIPMENT' : 'SHIPMENT',
+    type: isTestFinal
+      ? (isAirway ? 'TEST_AIRWAY' : 'TEST_SHIPMENT')
+      : (isAirway ? 'AIRWAY' : 'SHIPMENT'),
     createdAt: new Date().toISOString()
   };
 }

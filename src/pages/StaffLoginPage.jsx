@@ -108,6 +108,13 @@ export const StaffLoginPage = ({ setActiveTab, isCrmLogin = false }) => {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Session timeout expired notification
+  useEffect(() => {
+    if (sessionExpiredMessage) {
+      setError(sessionExpiredMessage);
+    }
+  }, [sessionExpiredMessage]);
+
   // Email Verification state (Simpler email OTP instead of 2FA authenticator app)
   const [pendingAuth, setPendingAuth] = useState(null);
   const [emailCode, setEmailCode] = useState('');
