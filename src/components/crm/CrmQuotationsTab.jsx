@@ -180,7 +180,7 @@ export const CrmQuotationsTab = ({
     phone: '',
     requestId: '',
     service: 'Air Freight Services (AWB Preparation, Billing & Documentation)',
-    amount: 650,
+    amount: '',
     status: 'Draft',
     quotationDate: new Date().toISOString().split('T')[0],
     validDays: 14,
@@ -353,7 +353,7 @@ export const CrmQuotationsTab = ({
       phone: '',
       requestId: '',
       service: 'Air Freight Services (AWB Preparation, Billing & Documentation)',
-      amount: 650,
+      amount: '',
       status: 'Draft',
       quotationDate: new Date().toISOString().split('T')[0],
       validDays: 14,
@@ -951,7 +951,7 @@ export const CrmQuotationsTab = ({
                     list="crm-quote-requests"
                     value={newQuoteData.requestId}
                     onChange={(e) => setNewQuoteData({ ...newQuoteData, requestId: e.target.value })}
-                    placeholder="e.g. AIR-0001 or Your tracking number"
+                    placeholder="e.g. Reference or Your tracking number"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
                   />
                   <datalist id="crm-quote-requests">

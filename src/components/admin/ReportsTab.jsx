@@ -138,7 +138,9 @@ export const ReportsTab = ({
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} dy={5} />
                 <YAxis tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#0B1F5B', borderRadius: '12px', border: '1px solid #1E293B', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: '#0B1F5B', borderRadius: '8px', border: 'none', color: '#ffffff', fontSize: '11px', padding: '6px 10px' }}
+                  itemStyle={{ color: '#ffffff', fontWeight: 600 }}
+                  labelStyle={{ color: '#ffffff', fontWeight: 700 }}
                 />
                 <Bar dataKey="shipments" name="Shipments" fill="#2463EB" radius={[6, 6, 0, 0]} />
                 <Bar dataKey="requests" name="Service Requests" fill="#3B82F6" radius={[6, 6, 0, 0]} />
@@ -169,7 +171,9 @@ export const ReportsTab = ({
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#0B1F5B', borderRadius: '12px', border: '1px solid #1E293B', color: '#fff', fontSize: '11px', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: '#0B1F5B', borderRadius: '8px', border: 'none', color: '#ffffff', fontSize: '11px', padding: '6px 10px' }}
+                  itemStyle={{ color: '#ffffff', fontWeight: 600 }}
+                  labelStyle={{ color: '#ffffff', fontWeight: 700 }}
                 />
               </PieChart>
             </ResponsiveContainer>

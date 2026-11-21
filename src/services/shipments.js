@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { isStaffRole } from '../utils/roles';
 
 // Valid status values defined in public.shipments schema check constraint
 export const VALID_SHIPMENT_STATUSES = [
@@ -58,18 +59,32 @@ export function normalizeServiceType(rawType) {
 
 function mapShipmentToUI(row) {
   if (!row) return null;
+
+  // Derive latest tracking event time, exactly matching track_shipment RPC on the Track page
+  let latestTrackingEventTime = null;
+  if (Array.isArray(row.tracking_events) && row.tracking_events.length > 0) {
+    const validEvents = row.tracking_events.filter(e => e.is_public !== false && e.occurred_at);
+    if (validEvents.length > 0) {
+      validEvents.sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at));
+      latestTrackingEventTime = validEvents[0].occurred_at;
+    }
+  }
+
+  const effectiveLastUpdated = latestTrackingEventTime || row.last_updated || row.updated_at || null;
+
   return {
     ...row,
+    last_updated: effectiveLastUpdated,
     trackingNumber: row.tracking_number,
     tracking_number: row.tracking_number,
-    sender: row.pickup_address || row.origin_city || 'Josan Consignor',
-    sender_address: row.pickup_address,
-    pickupAddress: row.pickup_address,
-    receiver: row.delivery_address || row.destination_city || 'Consignee',
-    receiver_address: row.delivery_address,
-    deliveryAddress: row.delivery_address,
-    origin: row.origin_city || 'Singapore Hub',
-    destination: row.destination_city || 'Singapore Delivery',
+    sender: row.pickup_address || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
+    sender_address: row.pickup_address || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
+    pickupAddress: row.pickup_address || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
+    receiver: row.delivery_address || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
+    receiver_address: row.delivery_address || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
+    deliveryAddress: row.delivery_address || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
+    origin: row.pickup_address || row.origin_city || '12 Woodlands Loop, #02-05, Singapore 738340',
+    destination: row.delivery_address || row.destination_city || '8 Changi South Street 1, Singapore 486790',
     current_location: row.origin_city || 'In System',
     service_type: row.service_type || 'ROAD_TRANSPORT',
     serviceLevel: row.service_type === 'AIR_FREIGHT_DOCS' ? 'Commercial Air Freight' : 'Commercial Road Transportation',
@@ -82,7 +97,9 @@ function mapShipmentToUI(row) {
     partner_id: row.partner_id,
     driver_id: row.partner_id,
     driver_name: row.transport_partners?.name || 'Partner Carrier',
-    estimated_delivery: row.estimated_delivery
+    estimated_delivery: row.estimated_delivery,
+    profiles: row.profiles || null,
+    customerName: row.profiles?.name || row.profiles?.company || row.customerName || null
   };
 }
 
@@ -91,22 +108,40 @@ export const shipmentsService = {
    * Fetch all shipments ordered by created_at descending from public.shipments.
    */
   getShipments: async () => {
-    if (!isSupabaseConfigured) return null;
+    if (!isSupabaseConfigured) return [];
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (!session || !session.user) {
+        return [];
+      }
+
+      // Check user role from profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      const userRole = String(profile?.role || session.user.user_metadata?.role || '').toUpperCase();
+      const isStaff = isStaffRole(userRole);
+
+      const selectClause = isStaff
+        ? '*, transport_partners(id, name, contact_name, contact_phone), tracking_events(occurred_at, is_public), profiles:customer_id(id, name, company)'
+        : '*';
+
       const { data, error } = await supabase
         .from('shipments')
-        .select('*, transport_partners(id, name, contact_name, contact_phone)')
+        .select(selectClause)
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('[ShipmentsService] Fetch shipments error:', error.message);
-        return null;
+        return [];
       }
       return (data || []).map(mapShipmentToUI);
     } catch (err) {
-      console.warn('[ShipmentsService] Error fetching shipments:', err);
-      return null;
+      return [];
     }
   },
 
@@ -120,7 +155,7 @@ export const shipmentsService = {
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idOrTracking);
       let query = supabase
         .from('shipments')
-        .select('*, transport_partners(id, name, contact_name, contact_phone)');
+        .select('*, transport_partners(id, name, contact_name, contact_phone), tracking_events(occurred_at, is_public), profiles:customer_id(id, name, company)');
 
       if (isUUID) {
         query = query.or(`id.eq.${idOrTracking},tracking_number.eq.${idOrTracking}`);
@@ -131,12 +166,12 @@ export const shipmentsService = {
       const { data, error } = await query.maybeSingle();
 
       if (error) {
-        console.warn('[ShipmentsService] Fetch shipment by ID error:', error.message);
+        console.error('[shipments] load failed');
         return null;
       }
       return mapShipmentToUI(data);
     } catch (err) {
-      console.warn('[ShipmentsService] Error in getShipmentById:', err);
+      console.error('[shipments] load failed');
       return null;
     }
   },
@@ -163,8 +198,8 @@ export const shipmentsService = {
         status: status,
         origin_city: shipmentData.origin || shipmentData.pickupCity || 'Singapore',
         destination_city: shipmentData.destination || shipmentData.deliveryCity || 'Singapore',
-        pickup_address: shipmentData.pickup_address || shipmentData.pickupAddress || shipmentData.senderAddress || 'Singapore Pickup',
-        delivery_address: shipmentData.delivery_address || shipmentData.deliveryAddress || shipmentData.receiverAddress || 'Singapore Delivery',
+        pickup_address: shipmentData.pickup_address || shipmentData.pickupAddress || shipmentData.senderAddress || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
+        delivery_address: shipmentData.delivery_address || shipmentData.deliveryAddress || shipmentData.receiverAddress || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
         cargo_description: shipmentData.cargo_description || shipmentData.package_description || shipmentData.cargoType || 'Commercial Freight',
         packages: parseInt(shipmentData.packages || shipmentData.pieces || 1, 10),
         weight_kg: parseNum(shipmentData.weight_kg || shipmentData.weight),

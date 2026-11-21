@@ -38,7 +38,7 @@ export const ContactPage = ({ setActiveTab }) => {
     document.title = 'Contact | Josan Logistics';
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', 'Contact Josan Logistics in Singapore about a quote, a road shipment or air freight documents. Send us a message and our team will get back to you.');
+      metaDesc.setAttribute('content', 'Contact Josan Logistics. Use Get a Quote for quote requests, or email us.');
     }
   }, []);
 
@@ -123,69 +123,10 @@ export const ContactPage = ({ setActiveTab }) => {
       consentGiven: true
     };
 
-    // 1. Store in CRM Leads
-    if (addLead) {
-      addLead({
-        name: submissionData.name,
-        company: submissionData.company || `${submissionData.name}'s Organization`,
-        email: submissionData.email,
-        phone: submissionData.phone,
-        source: 'Website Contact Form',
-        stage: 'New',
-        estimatedValue: submissionData.subject === 'Request a Quote' ? 8000 : 2500,
-        tags: ['Contact Form', submissionData.subject, submissionData.trackingId ? `Tracking: ${submissionData.trackingId}` : null].filter(Boolean),
-        notes: `Message sent to ${sharedEmail}\nMessage: ${submissionData.message}`
-      });
-    }
-
-    // 2. Store in Support Tickets
-    if (createSupportTicket) {
-      createSupportTicket({
-        customerName: submissionData.name,
-        customerEmail: submissionData.email,
-        customerPhone: submissionData.phone,
-        subject: `[Web Message] ${submissionData.subject}`,
-        message: submissionData.message,
-        shipmentId: submissionData.trackingId || 'General Inquiry'
-      });
-    }
-
-    // 3. Admin Notification
-    if (addNotification) {
-      addNotification({
-        role: 'admin',
-        type: 'contact_enquiry',
-        title: `📬 New Web Message from ${submissionData.name}`,
-        message: `Routed to ${sharedEmail} • Subject: "${submissionData.subject}" • Phone: ${submissionData.phone || 'N/A'}`
-      });
-    }
-
-    // 4. Save to Admin Local Storage Archive
-    try {
-      const existing = JSON.parse(localStorage.getItem('josan_contact_submissions') || '[]');
-      localStorage.setItem('josan_contact_submissions', JSON.stringify([submissionData, ...existing]));
-    } catch (e) {}
-
-    // Simulated email dispatch log to REAL EMAIL
-    console.info(`[Email Service] Transmission dispatched to ${sharedEmail}:`, submissionData);
-
-    // 5. Attach active chat session to contact message reference if user chatted with AI
-    const messageRef = `ENQ-${Math.floor(10000 + Math.random() * 90000)}`;
-    try {
-      attachChatToSubmission(messageRef, {
-        name: submissionData.name,
-        email: submissionData.email,
-        phone: submissionData.phone,
-        company: submissionData.company
-      });
-    } catch (e) {
-      console.warn('[ContactPage] Failed to attach chat to contact submission:', e);
-    }
-
     setSubmittedEmail(submissionData.email);
     setSubmittedSuccess(true);
     setIsSubmitting(false);
-    showToast('Thank you. We have received your message and our team will get back to you.', 'success');
+    showToast('This form is not connected to our team yet. Please use Get a Quote or email us.', 'info');
 
     setFormData({
       name: '',
@@ -225,7 +166,7 @@ export const ContactPage = ({ setActiveTab }) => {
       q: 'How can I track my shipment?',
       a: (
         <>
-          For road shipments, we email you a tracking number after we book your carrier. Enter it on our{' '}
+          For road shipments, our team will send you a tracking number after we book your carrier. Enter it on our{' '}
           <a
             href="#track"
             onClick={(e) => {
@@ -237,10 +178,10 @@ export const ContactPage = ({ setActiveTab }) => {
           >
             Track road shipment page
           </a>
-          . Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents. [CONFIRM that the tracking number is emailed after the carrier is booked]
+          . Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents.
         </>
       ),
-      plainA: 'For road shipments, we email you a tracking number after we book your carrier. Enter it on our Track road shipment page. Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents.'
+      plainA: 'For road shipments, our team will send you a tracking number after we book your carrier. Enter it on our Track road shipment page. Our team enters the updates, and the page shows when the last update was made. Air freight shipments cannot be tracked here, because for air freight we only prepare documents.'
     },
     {
       q: 'What information do you need to prepare an Air Waybill?',
@@ -287,7 +228,7 @@ export const ContactPage = ({ setActiveTab }) => {
             Contact us
           </h1>
           <p className="text-[var(--color-on-navy-muted)] text-sm sm:text-base max-w-2xl leading-relaxed tracking-normal">
-            Questions about a quote, a shipment or your documents? Send us a message and our team will get back to you.
+            Questions about a quote, a shipment or your documents? Please use Get a Quote or email us.
           </p>
         </div>
       </section>
@@ -311,10 +252,10 @@ export const ContactPage = ({ setActiveTab }) => {
                     tabIndex={-1}
                     className="text-2xl font-bold text-[var(--color-text)] font-heading focus:outline-none"
                   >
-                    We have received your message
+                    This form is not connected yet
                   </h2>
                   <p className="text-sm text-[var(--color-text)] leading-relaxed">
-                    Our team will get back to you at {submittedEmail}. [CONFIRM: that replies come by email]
+                    Thank you. This form is not connected to our team yet. To reach us, please use Get a Quote or email {sharedEmail}.
                   </p>
                   <div className="pt-2">
                     <a
@@ -333,6 +274,10 @@ export const ContactPage = ({ setActiveTab }) => {
               ) : (
                 /* 3. FORM CONTAINER */
                 <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius)] shadow-none border-t-[3px] border-t-[var(--color-kraft)] p-5 sm:p-8 space-y-6">
+                  <div className="bg-[var(--color-bg-alt)] border border-[var(--color-border)] rounded-[var(--radius)] p-3 text-xs text-[var(--color-text-muted)]">
+                    This form is not connected to our team yet. Please use Get a Quote or email {sharedEmail}.
+                  </div>
+
                   <div>
                     <h2 className="text-2xl font-bold text-[var(--color-text)] font-heading">
                       Send us a message
@@ -711,12 +656,9 @@ export const ContactPage = ({ setActiveTab }) => {
                     {COMPANY_INFO.businessHours}
                   </p>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                    {COMPANY_INFO.timezoneNote} [CONFIRM DAYS: Monday to Friday, or including Saturday]
+                    {COMPANY_INFO.timezoneNote}
                   </p>
                 </div>
-                <p className="text-xs text-[var(--color-text-muted)] pt-3 border-t border-[var(--color-border)]">
-                  We reply to messages by email. [CONFIRM]
-                </p>
               </div>
 
             </div>

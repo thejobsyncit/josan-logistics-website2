@@ -131,7 +131,8 @@ export const ShipmentDetailsView = ({ shipment: propShipment, onClose }) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
-      doc.text(`Assigned Driver: ${shipment.driverName || 'Tan Wei Ming'} (${shipment.driverPhone || '+65 6789 0123'})`, 18, 126);
+      const driverPhoneStr = isDisplayablePhone(shipment.driverPhone) ? ` (${shipment.driverPhone})` : '';
+      doc.text(`Assigned Driver: ${shipment.driverName || 'Tan Wei Ming'}${driverPhoneStr}`, 18, 126);
       doc.text(`Operating Vehicle: ${shipment.vehicle || 'Commercial Transport Vehicle'} | Plate: ${shipment.vehiclePlate || 'SG-8819'}`, 18, 132);
       doc.text(`Cargo Description: ${shipment.cargoType || 'General Freight'} | Weight: ${shipment.weight || '500 kg'}`, 18, 138);
 

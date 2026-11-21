@@ -47,8 +47,21 @@ export const RolesPermissionsTab = ({
     { key: 'crm_manager', label: 'Operations Manager', badge: 'Broad Access' },
     { key: 'crm_ops', label: 'Coordinator', badge: 'Operations Only' },
     { key: 'crm_finance', label: 'Finance', badge: 'Finance Only' },
-    { key: 'viewer', label: 'Read-only', badge: 'View-Only' }
+    { key: 'viewer', label: 'Read-only', badge: 'View-Only' },
+    { key: 'OPERATIONS', label: 'Operations', badge: 'Road Operations' },
+    { key: 'AIRWAY_EXECUTIVE', label: 'Airway Executive', badge: 'Airway Support' },
+    { key: 'FINANCE', label: 'Finance Executive', badge: 'Finance' }
   ];
+
+  const canWriteForRole = (roleKey, moduleKey) => {
+    const writableModulesByRole = {
+      OPERATIONS: ['road_shipments', 'transportation_partners', 'notifications'],
+      AIRWAY_EXECUTIVE: ['airway_requests', 'documents', 'quotations', 'billing', 'notifications'],
+      FINANCE: ['billing', 'notifications']
+    };
+    if (roleKey === 'admin' || roleKey === 'crm_manager' || roleKey === 'crm_ops' || roleKey === 'crm_finance') return true;
+    return writableModulesByRole[roleKey]?.includes(moduleKey) || false;
+  };
 
   const selectedUser = systemUsers.find(u => u.id === selectedUserId) || systemUsers[0];
 
@@ -64,7 +77,7 @@ export const RolesPermissionsTab = ({
         role: roleKey,
         module_key: moduleKey,
         can_access: nextValue,
-        can_write: roleKey !== 'viewer' && nextValue
+        can_write: nextValue && canWriteForRole(roleKey, moduleKey)
       });
       // Also log security audit entry
       await supabaseApi.createAuditLog({
@@ -97,7 +110,7 @@ export const RolesPermissionsTab = ({
             role: roleKey,
             module_key: m.key,
             can_access: isAllowed,
-            can_write: roleKey !== 'viewer' && isAllowed
+            can_write: isAllowed && canWriteForRole(roleKey, m.key)
           });
         }
       }

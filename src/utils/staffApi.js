@@ -8,25 +8,18 @@ import { supabase } from '../services/supabase';
 export const STAFF_USER_KEY = 'josan_staff_user';
 
 export function getStoredStaffUser() {
-  try {
-    const raw = localStorage.getItem(STAFF_USER_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) {
-    return null;
-  }
+  return null;
 }
 
 export function storeStaffAuthSession(token, user) {
-  try {
-    if (user) localStorage.setItem(STAFF_USER_KEY, JSON.stringify(user));
-  } catch (e) {
-    console.warn('[StaffApi] LocalStorage error:', e);
-  }
+  // Authentication session is handled by Supabase session and verified profile in React state
 }
 
 export function clearStoredStaffSession() {
   try {
     localStorage.removeItem(STAFF_USER_KEY);
+    localStorage.removeItem('josan_user');
+    localStorage.removeItem('josan_role');
   } catch (e) {
     // Ignore
   }
@@ -133,11 +126,11 @@ export async function fetchStaffUsers(token) {
   return staffRequest('/api/staff/users', { token });
 }
 
-export async function inviteStaffMember(token, { name, email, role }) {
+export async function inviteStaffMember(token, { name, email, password, role }) {
   return staffRequest('/api/staff/invite', {
     method: 'POST',
     token,
-    body: { name, email, role }
+    body: { name, email, password, role }
   });
 }
 

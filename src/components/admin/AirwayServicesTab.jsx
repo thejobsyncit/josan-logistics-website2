@@ -386,7 +386,7 @@ export const AirwayServicesTab = ({
                   <tr>
                     <td colSpan={8} className="p-12 text-center text-slate-400">
                       <FileCheck className="w-10 h-10 mx-auto text-slate-300 mb-3" />
-                      <p className="font-bold text-slate-700 text-sm">No airway service requests found</p>
+                      <p className="font-bold text-slate-700 text-sm">No air freight requests yet. New requests arrive under Quotations.</p>
                       <p className="text-xs text-slate-400 mt-1">
                         Requests submitted through the Airway Request form will automatically appear here.
                       </p>

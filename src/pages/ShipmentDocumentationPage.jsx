@@ -168,7 +168,7 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
                     if (!currentUser) {
                       if (setAuthRedirectTab) setAuthRedirectTab('quote');
                       setIsAuthModalOpen(true);
-                      if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                      if (showToast) showToast('Please sign in or create an account to get a quote.', 'warning');
                       return;
                     }
                     if (setActiveTab) setActiveTab('quote');
@@ -364,7 +364,7 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
                       if (!currentUser) {
                         if (setAuthRedirectTab) setAuthRedirectTab('quote');
                         setIsAuthModalOpen(true);
-                        if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                        if (showToast) showToast('Please sign in or create an account to get a quote.', 'warning');
                         return;
                       }
                       if (setActiveTab) setActiveTab('quote');
@@ -453,7 +453,7 @@ export const ShipmentDocumentationPage = ({ setActiveTab }) => {
                   if (!currentUser) {
                     if (setAuthRedirectTab) setAuthRedirectTab('quote');
                     setIsAuthModalOpen(true);
-                    if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+                    if (showToast) showToast('Please sign in or create an account to get a quote.', 'warning');
                     return;
                   }
                   if (setActiveTab) setActiveTab('quote');

@@ -119,7 +119,12 @@ export const TransportationPartnersTab = ({
 
       {/* Partners Directory Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filtered.map((p) => (
+        {filtered.length === 0 ? (
+          <div className="col-span-full bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-400 font-medium">
+            No partner carriers yet.
+          </div>
+        ) : (
+          filtered.map((p) => (
           <div
             key={p.id || p.name}
             className="p-5 rounded-2xl border border-slate-200 hover:border-[#2463EB] hover:shadow-md transition-all bg-white space-y-4"
@@ -172,7 +177,7 @@ export const TransportationPartnersTab = ({
               <span className="text-[#2463EB] font-bold">Standard Commercial SLA</span>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {/* Add Partner Modal */}

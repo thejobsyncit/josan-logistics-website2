@@ -40,44 +40,6 @@ const recordRateLimitAttempt = (windowMs = 60000) => {
   } catch (_e) {}
 };
 
-// Development-only test tracking record (TEST-0001), strictly gated by import.meta.env.DEV
-const DEV_TEST_RECORD = import.meta.env.DEV
-  ? {
-      tracking_number: 'TEST-0001',
-      status: 'Delivered',
-      last_updated: '2026-11-13T08:30:00+08:00',
-      service_type: 'Commercial Road Transportation (Test Data)',
-      origin: 'Jurong Industrial Estate (Test Data)',
-      destination: 'Changi Logistics Park (Test Data)',
-      events: [
-        { status: 'Request received', time: '2026-11-12T09:00:00+08:00' },
-        { status: 'Quote sent', time: '2026-11-12T11:15:00+08:00' },
-        { status: 'Carrier booked', time: '2026-11-12T14:30:00+08:00' },
-        { status: 'Delivered', time: '2026-11-13T08:30:00+08:00' }
-      ]
-    }
-  : null;
-
-/**
- * Strictly sanitizes and enforces tracking number input:
- * - Always uppercase
- * - Strips all spaces
- * - Allows ONLY alphanumeric characters and hyphens
- * - For JOS- and AWS-, caps at exactly 5 characters after the hyphen (e.g. JOS-88190, AWS-29401)
- * - For test shipments TJOS- and TAWS-, caps at exactly 5 characters after the hyphen
- */
-export const sanitizeTrackingInput = (input) => {
-  if (!input) return '';
-  const raw = String(input).toUpperCase().replace(/\s+/g, '');
-  const match = raw.match(/^(TJOS-|TAWS-|JOS-|AWS-)(.*)/);
-  if (match) {
-    const prefix = match[1];
-    const after = match[2].replace(/[^A-Z0-9]/g, '').slice(0, 5);
-    return `${prefix}${after}`;
-  }
-  return raw.replace(/[^A-Z0-9\-]/g, '').slice(0, 9);
-};
-
 export const TrackShipmentPage = ({ setActiveTab }) => {
   const { activeTrackingId, setActiveTrackingId, websiteContent } = useLogistics();
 
@@ -89,13 +51,10 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
   const notFoundCopy = trackingContent?.notFound || initialWebsiteContent.tracking.notFound;
   const eventsCopy = trackingContent?.events || initialWebsiteContent.tracking.events;
 
-  const [searchInput, setSearchInput] = useState(() => sanitizeTrackingInput(activeTrackingId || ''));
+  const heroSubtext = heroCopy?.subtext || 'Enter your tracking number to see the latest status of your road shipment. Updates are entered by our team, and the time of the last update is shown.';
+  const guidelinesText = guidelinesCopy?.text || 'Our team will send you a tracking number after we book your carrier. Enter it above to see the latest status of your road shipment.';
 
-  useEffect(() => {
-    if (activeTrackingId) {
-      setSearchInput(sanitizeTrackingInput(activeTrackingId));
-    }
-  }, [activeTrackingId]);
+  const [searchInput, setSearchInput] = useState(activeTrackingId || '');
   const [shipmentData, setShipmentData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -180,16 +139,6 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     setErrorMessage('');
     setRateLimitMessage('');
     setCaptchaError('');
-
-    // Dev-only test record lookup gated by import.meta.env.DEV
-    if (import.meta.env.DEV && cleanQuery === 'TEST-0001' && DEV_TEST_RECORD) {
-      setTimeout(() => {
-        setIsLoading(false);
-        setShipmentData(DEV_TEST_RECORD);
-        if (setActiveTrackingId) setActiveTrackingId('TEST-0001');
-      }, 200);
-      return;
-    }
 
     try {
       let status = 404;
@@ -337,7 +286,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
             className="mt-3.5 text-sm sm:text-base font-normal text-[var(--color-on-navy-muted)] leading-relaxed max-w-2xl"
             style={{ letterSpacing: 'normal' }}
           >
-            {heroCopy.subtext}
+            {heroSubtext}
           </p>
         </div>
       </section>
@@ -531,12 +480,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                         Origin
                       </span>
                       <p className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
-                        {(() => {
-                          const val = shipmentData.origin || shipmentData.origin_city;
-                          if (!val) return 'Not specified';
-                          if (import.meta.env.DEV) return String(val).trim();
-                          return String(val).replace(/\s*\(Test Data\)/gi, '').trim() || 'Not specified';
-                        })()}
+                        {shipmentData.origin || shipmentData.origin_city || 'Not specified'}
                       </p>
                     </div>
 
@@ -545,12 +489,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                         Destination
                       </span>
                       <p className="text-sm sm:text-base font-semibold text-[var(--color-text)]">
-                        {(() => {
-                          const val = shipmentData.destination || shipmentData.destination_city;
-                          if (!val) return 'Not specified';
-                          if (import.meta.env.DEV) return String(val).trim();
-                          return String(val).replace(/\s*\(Test Data\)/gi, '').trim() || 'Not specified';
-                        })()}
+                        {shipmentData.destination || shipmentData.destination_city || 'Not specified'}
                       </p>
                     </div>
 
@@ -637,7 +576,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                   className="text-sm sm:text-base text-[var(--color-text)] leading-relaxed"
                   style={{ letterSpacing: 'normal' }}
                 >
-                  {guidelinesCopy.text}
+                  {guidelinesText}
                 </p>
                 <p
                   className="text-xs sm:text-sm text-[var(--color-text-muted)] leading-relaxed pt-1"

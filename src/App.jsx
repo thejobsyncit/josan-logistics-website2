@@ -29,7 +29,7 @@ import { EmailVerifiedPage } from './pages/EmailVerifiedPage';
 import { LegalDialog, openLegalDialog } from './components/LegalDialog';
 import { CookieBanner } from './components/CookieBanner';
 import { CheckCircle2, AlertCircle, Info, X, ArrowLeft } from 'lucide-react';
-import { normalizeRole, isStaffRole } from './utils/roles';
+import { normalizeRole, isStaffRole, getRoleDisplayName } from './utils/roles';
 import { supabase } from './services/supabase';
 
 class ErrorBoundary extends React.Component {
@@ -133,24 +133,31 @@ const MainContent = () => {
 
   const [activeTab, setActiveTab] = useState(() => {
     const path = window.location.pathname.toLowerCase();
-    const rawHash = window.location.hash.replace('#', '').toLowerCase();
-
-    if (
-      path === '/email-verified' || 
-      path.endsWith('/email-verified') || 
-      rawHash === 'email-verified' || 
-      rawHash === '/email-verified' ||
-      rawHash.startsWith('email-verified') ||
-      rawHash.includes('type=signup')
-    ) {
-      return 'email-verified';
-    }
+    const rawHash = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
     
+    // Explicit hash routes always take priority over base pathname
+    if (rawHash === 'admin-dashboard' || rawHash === 'admin') {
+      return 'admin-dashboard';
+    }
+    if (rawHash === 'admin-login') {
+      return 'admin-login';
+    }
+    if (
+      rawHash === 'staff-login' || 
+      rawHash.startsWith('staff-login') ||
+      rawHash.startsWith('staff-setup') ||
+      rawHash.startsWith('staff-reset')
+    ) {
+      return 'staff-login';
+    }
+    if (rawHash === 'crm') {
+      return 'crm';
+    }
+
+    // Direct pathname routes
     if (
       path === '/admin-login' || 
-      path.endsWith('/admin-login') || 
-      rawHash === 'admin-login' || 
-      rawHash === '/admin-login'
+      path.endsWith('/admin-login')
     ) {
       return 'admin-login';
     }
@@ -158,11 +165,6 @@ const MainContent = () => {
     if (
       path === '/staff-login' || 
       path.endsWith('/staff-login') || 
-      rawHash === 'staff-login' || 
-      rawHash === '/staff-login' ||
-      rawHash.startsWith('staff-login') ||
-      rawHash.startsWith('staff-setup') ||
-      rawHash.startsWith('staff-reset') ||
       path.includes('staff-setup') ||
       path.includes('staff-reset')
     ) {
@@ -171,9 +173,7 @@ const MainContent = () => {
 
     if (
       path === '/crm' || 
-      path.endsWith('/crm') || 
-      rawHash === 'crm' || 
-      rawHash === '/crm'
+      path.endsWith('/crm')
     ) {
       return 'crm';
     }
@@ -181,9 +181,8 @@ const MainContent = () => {
     if (
       path === '/admin' || 
       path.endsWith('/admin') || 
-      rawHash === 'admin' || 
-      rawHash === '/admin' || 
-      rawHash === 'admin-dashboard'
+      path === '/admin-dashboard' ||
+      path.endsWith('/admin-dashboard')
     ) {
       return 'admin-dashboard';
     }
@@ -248,9 +247,12 @@ const MainContent = () => {
     if (typeof window === 'undefined') return false;
     const path = window.location.pathname.toLowerCase();
     const rawHash = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
+    if (rawHash === 'admin-login' || rawHash === 'staff-login') return false;
     return (
-      path === '/crm' || path.endsWith('/crm') || rawHash === 'crm' || rawHash === '/crm' ||
-      path === '/admin' || path.endsWith('/admin') || rawHash === 'admin' || rawHash === '/admin' || rawHash === 'admin-dashboard'
+      rawHash === 'crm' || rawHash === 'admin' || rawHash === 'admin-dashboard' ||
+      path === '/crm' || path.endsWith('/crm') ||
+      path === '/admin' || path.endsWith('/admin') || 
+      path === '/admin-dashboard' || path.endsWith('/admin-dashboard')
     );
   });
 
@@ -270,8 +272,8 @@ const MainContent = () => {
   }, [currentRole]);
 
   // Security Route Guard:
-  // On every load and refresh of /crm and /admin, get Supabase session and read role & status from public.profiles.
-  // Allow /crm only for ADMIN, CRM, or READONLY with status Active; /admin only for ADMIN.
+  // Direct /crm visits clear any existing session and require fresh credentials.
+  // /admin verifies the Supabase session, role, and status before access.
   // Wrapped in try/catch/finally with an 8-second timeout. Fails closed on timeout or error.
   const failClosedSignOut = async (destTab = 'staff-login', reasonMsg = 'Could not verify access. Please sign in again.') => {
     try {
@@ -303,12 +305,30 @@ const MainContent = () => {
     if (typeof window !== 'undefined') {
       window.location.hash = `#${destTab}`;
       if (window.history && window.history.replaceState) {
-        window.history.replaceState({ tab: destTab }, '', `#${destTab}`);
+        window.history.replaceState({ tab: destTab }, '', `/#${destTab}`);
       }
     }
   };
 
   const performSecurityCheck = async (targetTab, marker) => {
+    if (targetTab === 'crm') {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('[CRM route] Could not clear the existing session:', error);
+        }
+      } catch (error) {
+        console.error('[CRM route] Could not clear the existing session:', error);
+      }
+
+      if (marker.cancelled) return;
+      lastVerifiedTabRef.current = null;
+      if (setCurrentUser) setCurrentUser(null);
+      if (setCurrentRole) setCurrentRole('CUSTOMER');
+      setIsVerifyingRoute(false);
+      return;
+    }
+
     let timeoutId = null;
     const timeoutPromise = new Promise((_, reject) => {
       timeoutId = setTimeout(() => {
@@ -353,12 +373,7 @@ const MainContent = () => {
           // 4. Normalize role
           const normRole = normalizeRole(profile.role);
 
-          // Allow /crm only for ADMIN, CRM or READONLY with status Active
-          if (targetTab === 'crm') {
-            if (!isStaffRole(normRole)) {
-              throw new Error('UNAUTHORIZED_ROLE');
-            }
-          } else if (targetTab === 'admin-dashboard') {
+          if (targetTab === 'admin-dashboard') {
             if (normRole === 'ADMIN') {
               // Authorized
             } else if (isStaffRole(normRole)) {
@@ -392,7 +407,7 @@ const MainContent = () => {
             email: session.user.email,
             role: normRole,
             rawRole: normRole,
-            displayRole: normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only',
+            displayRole: getRoleDisplayName(normRole),
             company: profile.company || 'Josan Logistics Operations',
             status: profile.status
           };
@@ -404,9 +419,21 @@ const MainContent = () => {
     } catch (err) {
       if (marker.cancelled) return;
       marker.cancelled = true;
+      const destLogin = targetTab === 'admin-dashboard'
+        ? 'admin-login'
+        : targetTab === 'crm'
+          ? 'crm'
+          : 'staff-login';
+      const reasonMsg = err?.message === 'NO_SESSION'
+        ? targetTab === 'admin-dashboard'
+          ? 'Please sign in with administrator credentials.'
+          : targetTab === 'crm'
+            ? 'Please sign in to access the CRM portal.'
+            : 'Please sign in to access staff portal.'
+        : 'Could not verify access. Please sign in again.';
       await failClosedSignOut(
-        'staff-login',
-        'Could not verify access. Please sign in again.'
+        destLogin,
+        reasonMsg
       );
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
@@ -453,7 +480,7 @@ const MainContent = () => {
         }
         setIsAuthModalOpen(true);
         if (showToast) {
-          showToast(`Please sign in or create an account to access ${activeTab === 'quote' ? 'instant quote' : 'your dashboard'}.`, 'warning');
+          showToast(`Please sign in or create an account to ${activeTab === 'quote' ? 'request a quote' : 'access your dashboard'}.`, 'warning');
         }
         changeActiveTab('home');
       }
@@ -518,7 +545,7 @@ const MainContent = () => {
       },
       'contact': {
         title: 'Contact | Josan Logistics',
-        description: 'Contact Josan Logistics in Singapore about a quote, a road shipment or air freight documents. Send us a message and our team will get back to you.'
+        description: 'Contact Josan Logistics. Use Get a Quote for quote requests, or email us.'
       },
       'track': {
         title: 'Track road shipment | Josan Logistics',
@@ -547,6 +574,18 @@ const MainContent = () => {
       'staff-login': {
         title: 'Staff Gateway | Josan Logistics Operations',
         description: 'Restricted staff authentication gateway for Josan Logistics operations and administrative staff.'
+      },
+      'admin-login': {
+        title: 'Admin Login | Josan Logistics',
+        description: 'Restricted administrator authentication portal for Josan Logistics.'
+      },
+      'admin-dashboard': {
+        title: 'Admin Portal | Josan Logistics',
+        description: 'Josan Logistics administrator management workspace.'
+      },
+      'crm': {
+        title: 'CRM Operations | Josan Logistics',
+        description: 'Josan Logistics staff operations and CRM portal.'
       }
     };
 
@@ -571,16 +610,7 @@ const MainContent = () => {
     if (tab === 'track') {
       setTrackNavKey(prev => prev + 1);
     }
-    let savedStaffUser = null;
-    if (typeof window !== 'undefined') {
-      try {
-        const parsedStaff = JSON.parse(localStorage.getItem('josan_staff_user') || 'null');
-        if (parsedStaff?.id && isStaffRole(parsedStaff?.role || parsedStaff?.rawRole)) {
-          savedStaffUser = parsedStaff;
-        }
-      } catch (e) {}
-    }
-    const effectiveUser = (userOverride !== null && userOverride !== undefined) ? userOverride : (currentUser || savedStaffUser);
+    const effectiveUser = (userOverride !== null && userOverride !== undefined) ? userOverride : currentUser;
     const effectiveRole = normalizeRole(effectiveUser?.role || currentRole);
     const isStaffAuth = Boolean(effectiveUser && isStaffRole(effectiveRole));
 
@@ -602,7 +632,7 @@ const MainContent = () => {
       setIsAuthModalOpen(true);
       if (showToast) {
         if (tab === 'quote') {
-          showToast('Please sign in or create an account to get an instant quote.', 'warning');
+          showToast('Please sign in or create an account to request a quote.', 'warning');
         } else {
           showToast('Please sign in or create an account to view your dashboard.', 'warning');
         }
@@ -613,9 +643,15 @@ const MainContent = () => {
     // Protected CRM and Admin route checks: handled strictly by security route guard via database
     if (tab === 'crm' || tab === 'admin-dashboard' || tab === 'admin') {
       const dest = tab === 'admin' ? 'admin-dashboard' : tab;
-      if (lastVerifiedTabRef.current !== dest) {
+
+      // If caller explicitly provided a validated admin/staff userOverride, mark route as verified
+      if (userOverride && isStaffRole(userOverride.role || userOverride.rawRole)) {
+        lastVerifiedTabRef.current = dest;
+        setIsVerifyingRoute(false);
+      } else if (lastVerifiedTabRef.current !== dest) {
         setIsVerifyingRoute(true);
       }
+
       setActiveTab(dest);
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       const hash = `#${dest}`;
@@ -625,7 +661,7 @@ const MainContent = () => {
         }
         if (pushHistory && !window.location.hash.startsWith('#track-map-')) {
           try {
-            window.history.pushState({ tab: dest }, '', hash);
+            window.history.pushState({ tab: dest }, '', `/#${dest}`);
           } catch (e) {}
         }
       }
@@ -641,7 +677,7 @@ const MainContent = () => {
       }
       if (pushHistory && !window.location.hash.startsWith('#track-map-')) {
         try {
-          window.history.pushState({ tab }, '', hash);
+          window.history.pushState({ tab }, '', `/#${tab}`);
         } catch (e) {}
       }
     }
@@ -654,43 +690,32 @@ const MainContent = () => {
       const rawHash = (window.location.hash || '').toLowerCase();
       const cleanHash = rawHash.replace(/^#\/?/, '').toLowerCase();
       
-      // Staff login route
+      // 1. Explicit hash routes take priority over base pathname
+      if (cleanHash === 'admin-dashboard' || cleanHash === 'admin') {
+        if (lastVerifiedTabRef.current !== 'admin-dashboard') {
+          setIsVerifyingRoute(true);
+        }
+        setActiveTab('admin-dashboard');
+        return;
+      }
+
+      if (cleanHash === 'admin-login') {
+        setActiveTab('admin-login');
+        return;
+      }
+
       if (
-        path === '/staff-login' || 
-        path.endsWith('/staff-login') || 
-        rawHash === '#staff-login' || 
-        rawHash === '#/staff-login' ||
-        rawHash === '#staff/login' ||
-        rawHash === '#/staff/login' ||
-        cleanHash === 'staff-login'
+        cleanHash === 'staff-login' || 
+        cleanHash === 'staff/login' ||
+        cleanHash.startsWith('staff-login') ||
+        cleanHash.startsWith('staff-setup') ||
+        cleanHash.startsWith('staff-reset')
       ) {
         setActiveTab('staff-login');
         return;
       }
 
-      // Legal and Compliance Routes: direct dedicated pages
-      if (path === '/privacy-policy' || path === '/privacy' || rawHash === '#privacy-policy' || rawHash === '#/privacy-policy' || rawHash === '#privacy' || cleanHash === 'privacy-policy' || cleanHash === 'privacy') {
-        setActiveTab('privacy-policy');
-        return;
-      }
-
-      if (path === '/terms-of-service' || path === '/terms' || path === '/terms-and-conditions' || rawHash === '#terms-of-service' || rawHash === '#/terms-of-service' || rawHash === '#terms' || cleanHash === 'terms-of-service' || cleanHash === 'terms' || cleanHash === 'terms-and-conditions') {
-        setActiveTab('terms-of-service');
-        return;
-      }
-
-      if (path === '/shipping-policy' || path === '/shipping' || rawHash === '#shipping-policy' || rawHash === '#/shipping-policy' || rawHash === '#shipping' || cleanHash === 'shipping-policy' || cleanHash === 'shipping') {
-        setActiveTab('shipping-policy');
-        return;
-      }
-
-      if (path === '/refund-policy' || path === '/cancellation-policy' || path === '/refund' || rawHash === '#refund-policy' || rawHash === '#/refund-policy' || rawHash === '#refund' || cleanHash === 'refund-policy' || cleanHash === 'refund' || cleanHash === 'cancellation-policy') {
-        setActiveTab('refund-policy');
-        return;
-      }
-
-      // Direct /crm route: guarded by security route guard via database
-      if (path === '/crm' || path.endsWith('/crm') || rawHash === '#crm' || rawHash === '#/crm' || cleanHash === 'crm') {
+      if (cleanHash === 'crm') {
         if (lastVerifiedTabRef.current !== 'crm') {
           setIsVerifyingRoute(true);
         }
@@ -698,17 +723,60 @@ const MainContent = () => {
         return;
       }
 
-      // Direct /admin route: guarded by security route guard via database
-      if (path === '/admin-login' || rawHash === '#admin-login' || cleanHash === 'admin-login') {
+      if (cleanHash === 'privacy-policy' || cleanHash === 'privacy') {
+        openLegalDialog('privacy');
+        return;
+      }
+
+      if (cleanHash === 'terms-of-service' || cleanHash === 'terms') {
+        openLegalDialog('terms');
+        return;
+      }
+
+      // 2. Direct pathname routes (fallback when no explicit hash route is set)
+      if (path === '/admin-login' || path.endsWith('/admin-login')) {
         setActiveTab('admin-login');
         return;
       }
 
-      if (path === '/admin' || path.endsWith('/admin') || rawHash === '#admin' || rawHash === '#/admin' || rawHash === '#admin-dashboard' || cleanHash === 'admin' || cleanHash === 'admin-dashboard') {
+      if (
+        path === '/admin' || 
+        path.endsWith('/admin') || 
+        path === '/admin-dashboard' || 
+        path.endsWith('/admin-dashboard')
+      ) {
         if (lastVerifiedTabRef.current !== 'admin-dashboard') {
           setIsVerifyingRoute(true);
         }
         setActiveTab('admin-dashboard');
+        return;
+      }
+
+      if (
+        path === '/staff-login' || 
+        path.endsWith('/staff-login') ||
+        path.includes('staff-setup') ||
+        path.includes('staff-reset')
+      ) {
+        setActiveTab('staff-login');
+        return;
+      }
+
+      if (path === '/crm' || path.endsWith('/crm')) {
+        if (lastVerifiedTabRef.current !== 'crm') {
+          setIsVerifyingRoute(true);
+        }
+        setActiveTab('crm');
+        return;
+      }
+
+      if (path === '/privacy-policy' || path === '/privacy') {
+        openLegalDialog('privacy');
+        return;
+      }
+
+      if (path === '/terms-of-service' || path === '/terms') {
+        openLegalDialog('terms');
         return;
       }
 
@@ -734,7 +802,7 @@ const MainContent = () => {
         if (!currentUserRef.current) {
           if (setAuthRedirectTab) setAuthRedirectTab('quote');
           setIsAuthModalOpen(true);
-          if (showToast) showToast('Please sign in or create an account to get an instant quote.', 'warning');
+          if (showToast) showToast('Please sign in or create an account to request a quote.', 'warning');
           setActiveTab('home');
           return;
         }
@@ -898,7 +966,9 @@ const MainContent = () => {
       case 'admin-dashboard':
         return <AdminDashboardPage setActiveTab={changeActiveTab} />;
       case 'crm':
-        return <CrmPage setActiveTab={changeActiveTab} />;
+        return currentUser
+          ? <CrmPage setActiveTab={changeActiveTab} />
+          : <StaffLoginPage setActiveTab={changeActiveTab} isCrmLogin />;
       default:
         return <HomePage setActiveTab={changeActiveTab} />;
     }

@@ -745,6 +745,12 @@ export async function handleApiRequest(req, res, path) {
 
   // Helper guard: Admin role enforcement
   const requireAdminAuth = async () => {
+    if (!process.env.SUPABASE_URL && !process.env.VITE_SUPABASE_URL) {
+      return { error: 'Server configuration error: SUPABASE_URL is not configured.', status: 500 };
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_SERVICE_KEY) {
+      return { error: 'Server configuration error: SUPABASE_SERVICE_ROLE_KEY is not configured.', status: 500 };
+    }
     const authStaff = await getAuthStaff();
     if (!authStaff) {
       return { error: 'Unauthorized: Session invalid or expired.', status: 401 };
@@ -771,7 +777,7 @@ export async function handleApiRequest(req, res, path) {
     return res.end(JSON.stringify({ users }));
   }
 
-  // 17. POST /api/staff/invite (Admin only: invite new staff member)
+  // 17. POST /api/staff/invite (Admin only: create staff account)
   if (path === '/api/staff/invite' && req.method === 'POST') {
     const guard = await requireAdminAuth();
     if (guard.error) {
@@ -783,6 +789,7 @@ export async function handleApiRequest(req, res, path) {
     const result = await createStaffInvitation({
       name: body.name,
       email: body.email,
+      password: body.password,
       role: body.role,
       actor: guard.authStaff
     });
@@ -899,4 +906,3 @@ export async function handleApiRequest(req, res, path) {
   res.setHeader('Content-Type', 'application/json');
   return res.end(JSON.stringify({ error: 'API endpoint not found' }));
 }
-

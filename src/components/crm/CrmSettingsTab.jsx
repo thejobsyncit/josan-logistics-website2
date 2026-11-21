@@ -74,55 +74,60 @@ export const CrmSettingsTab = ({
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
       {/* Top Banner */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
+      <div className="bg-white p-5 rounded-xl border border-slate-200">
         <h2 className="text-xl font-black text-slate-900 font-heading">CRM Configuration & Settings</h2>
         <p className="text-xs text-slate-500 mt-0.5">
           Manage company operational identity, service portfolio boundaries, notification triggers, and compliance parameters.
         </p>
       </div>
 
-      {/* Strict Compliance Statement (Prominently displaying Business Model boundaries) */}
-      <div className="bg-gradient-to-r from-slate-900 to-[#0B1F5B] text-white p-6 rounded-3xl border border-slate-800 shadow-lg space-y-4">
+      {/* Compliance Mandate Card */}
+      <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200 space-y-4">
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-white">Logistics Business Model & Compliance Mandate</h3>
-            <p className="text-[11px] text-slate-400">Josan Logistics operating scope and SLA integrity</p>
+            <h3 className="text-sm font-extrabold text-slate-900">Logistics Business Model & Compliance Mandate</h3>
+            <p className="text-[11px] text-slate-500">Josan Logistics operating scope and SLA integrity</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
-            <span className="font-extrabold text-[#2463EB] block text-[11px] uppercase tracking-wider">
+          <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+            <span className="font-extrabold text-[#2463EB] block text-xs uppercase tracking-wider">
               Core Approved Service Offerings:
             </span>
-            <ul className="space-y-1 text-slate-300 text-[11px]">
-              <li>✓ <strong>Air Freight Services:</strong> AWB Preparation, AWB Billing, Shipment Documentation, Transportation Support.</li>
-              <li>✓ <strong>Road Transportation:</strong> Commercial transport of goods through audited transportation arrangements/partners.</li>
-              <li>✓ <strong>Documentation:</strong> Shipment documentation and customs-related documentation clearance support.</li>
+            <ul className="space-y-1.5 text-slate-700 text-xs">
+              <li className="flex items-start space-x-1.5">
+                <span className="text-emerald-600 font-bold shrink-0">✓</span>
+                <span><strong>Air Freight Services:</strong> AWB Preparation, AWB Billing, Shipment Documentation, Transportation Support.</span>
+              </li>
+              <li className="flex items-start space-x-1.5">
+                <span className="text-emerald-600 font-bold shrink-0">✓</span>
+                <span><strong>Road Transportation:</strong> Commercial transport of goods through audited transportation arrangements/partners.</span>
+              </li>
             </ul>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
-            <span className="font-extrabold text-amber-400 block text-[11px] uppercase tracking-wider">
+          <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+            <span className="font-extrabold text-amber-700 block text-xs uppercase tracking-wider">
               Strict Non-Operation Exclusions:
             </span>
-            <ul className="space-y-1 text-slate-300 text-[11px]">
-              <li>✕ No warehouse management operations</li>
-              <li>✕ No aircraft management or ownership</li>
-              <li>✕ No airline operations</li>
-              <li>✕ No airport terminal management</li>
-              <li>✕ Do not claim company-owned fleet</li>
-              <li>✕ Do not create fake live tracking</li>
+            <ul className="space-y-1 text-slate-600 text-xs">
+              <li className="flex items-center space-x-1.5"><span className="text-rose-500 font-bold shrink-0">✕</span><span>No warehouse management operations</span></li>
+              <li className="flex items-center space-x-1.5"><span className="text-rose-500 font-bold shrink-0">✕</span><span>No aircraft management or ownership</span></li>
+              <li className="flex items-center space-x-1.5"><span className="text-rose-500 font-bold shrink-0">✕</span><span>No airline operations</span></li>
+              <li className="flex items-center space-x-1.5"><span className="text-rose-500 font-bold shrink-0">✕</span><span>No airport terminal management</span></li>
+              <li className="flex items-center space-x-1.5"><span className="text-rose-500 font-bold shrink-0">✕</span><span>Do not claim company-owned fleet</span></li>
+              <li className="flex items-center space-x-1.5"><span className="text-rose-500 font-bold shrink-0">✕</span><span>Do not create fake live tracking</span></li>
             </ul>
           </div>
         </div>
       </div>
 
       {/* Company Profile Settings */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-5">
+      <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 space-y-5">
         <div className="border-b border-slate-100 pb-3">
           <h3 className="font-extrabold text-slate-900 text-sm">Operating Entity Profile</h3>
           <p className="text-xs text-slate-500">Corporate details printed on quotations, bills, and documents</p>
@@ -136,7 +141,7 @@ export const CrmSettingsTab = ({
                 type="text"
                 value={companySettings.companyName}
                 onChange={(e) => setCompanySettings({ ...companySettings, companyName: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:border-[#2463EB]"
               />
             </div>
             <div>
@@ -145,7 +150,7 @@ export const CrmSettingsTab = ({
                 type="text"
                 value={companySettings.uen}
                 onChange={(e) => setCompanySettings({ ...companySettings, uen: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium font-mono"
               />
             </div>
           </div>
@@ -157,7 +162,7 @@ export const CrmSettingsTab = ({
                 type="text"
                 value={companySettings.gstReg}
                 onChange={(e) => setCompanySettings({ ...companySettings, gstReg: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium font-mono"
               />
             </div>
             <div>
@@ -166,7 +171,7 @@ export const CrmSettingsTab = ({
                 type="number"
                 value={companySettings.gstRate}
                 onChange={(e) => setCompanySettings({ ...companySettings, gstRate: Number(e.target.value) })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium font-mono"
               />
             </div>
           </div>
@@ -177,7 +182,7 @@ export const CrmSettingsTab = ({
               type="text"
               value={companySettings.address}
               onChange={(e) => setCompanySettings({ ...companySettings, address: e.target.value })}
-              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
+              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium"
             />
           </div>
 
@@ -188,7 +193,7 @@ export const CrmSettingsTab = ({
                 type="tel"
                 value={companySettings.opsPhone}
                 onChange={(e) => setCompanySettings({ ...companySettings, opsPhone: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium"
               />
             </div>
             <div>
@@ -197,7 +202,7 @@ export const CrmSettingsTab = ({
                 type="email"
                 value={companySettings.crmSupportEmail}
                 onChange={(e) => setCompanySettings({ ...companySettings, crmSupportEmail: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium"
               />
             </div>
           </div>
@@ -205,7 +210,7 @@ export const CrmSettingsTab = ({
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
-              className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold flex items-center space-x-1.5 cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
+              className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-lg font-bold flex items-center space-x-1.5 cursor-pointer active:scale-95 transition-all"
             >
               <Save className="w-4 h-4" />
               <span>Save Company Settings</span>
@@ -215,7 +220,7 @@ export const CrmSettingsTab = ({
       </div>
 
       {/* Operational Notification Preferences */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-4 text-xs font-bold">
+      <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 space-y-4 text-xs font-bold">
         <div className="border-b border-slate-100 pb-3">
           <h3 className="font-extrabold text-slate-900 text-sm">Automated Alerts & Notification Triggers</h3>
           <p className="text-slate-500 font-medium">Configure real-time notifications to operators</p>
@@ -228,7 +233,7 @@ export const CrmSettingsTab = ({
             { id: 'smsOnPartnerAssigned', title: 'Road Partner Assignment Alert', desc: 'Notify transportation partners upon road haulage consignment assignment.' },
             { id: 'alertOnDocumentUploaded', title: 'Document Vault Clearance Audit', desc: 'Queue compliance officer review upon document upload.' }
           ].map((item) => (
-            <label key={item.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3 cursor-pointer">
+            <label key={item.id} className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex items-start space-x-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={notificationSettings[item.id]}

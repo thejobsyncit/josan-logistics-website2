@@ -28,6 +28,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
     addAirwayRequest,
     updateAirwayRequestStatus,
     updateAirwayRequestNotes,
+    updateAirwayRequest,
 
     shipments = [],
     addShipment,
@@ -184,29 +185,18 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
     }
   };
 
-  const activeUser = currentUser || (() => {
-    try {
-      return JSON.parse(localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user') || 'null');
-    } catch (e) {
-      return null;
-    }
-  })();
+  const activeUser = currentUser;
 
   // Guard against unauthenticated access
   useEffect(() => {
-    let saved = null;
-    try {
-      saved = JSON.parse(localStorage.getItem('josan_staff_user') || localStorage.getItem('josan_user') || 'null');
-    } catch (e) {}
-    const effectiveStaff = activeUser || saved;
-    if (!effectiveStaff) {
+    if (!currentUser) {
       if (setParentActiveTab) {
         setParentActiveTab('staff-login');
       } else if (typeof window !== 'undefined') {
         window.location.hash = '#staff-login';
       }
     }
-  }, [activeUser, setParentActiveTab]);
+  }, [currentUser, setParentActiveTab]);
 
   const handleBackToWebsite = () => {
     if (setParentActiveTab) {
@@ -328,6 +318,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
               airwayRequests={airwayRequests}
               onUpdateStatus={updateAirwayRequestStatus}
               onUpdateNotes={updateAirwayRequestNotes}
+              onUpdateRequest={updateAirwayRequest}
               onAddRequest={addAirwayRequest}
               selectedRequestFromSearch={selectedAirwayModal}
             />

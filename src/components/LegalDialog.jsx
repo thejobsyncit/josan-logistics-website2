@@ -308,6 +308,26 @@ export const LegalDialog = ({ isOpen: propIsOpen, onClose: propOnClose, initialT
                 <p>
                   Josan Logistics operates as a commercial freight coordinator in Singapore. We coordinate commercial road transportation through verified transport partner carriers and assist shippers with Air Waybill (AWB) and cargo documentation. We do not directly operate an airline fleet or motor vehicle fleet, nor do we act as a customs broker or clearance agent.
                 </p>
+                <p className="text-slate-600">
+                  Transport services are performed by independent road hauliers and commercial airlines appointed by us. We do not operate an airline or commercial road fleet directly, nor do we act as a customs broker or clearance agent.
+                </p>
+                <p className="text-slate-600 font-medium">
+                  This website and our services are intended for customers in Singapore.
+                </p>
+              </section>
+
+              {/* Section 2: Shipper & Consignor Obligations */}
+              <section id="sec-t-2" className="space-y-3 pt-2">
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center space-x-2">
+                  <span className="w-6 h-6 rounded-lg bg-orange-100 text-[#F26B21] text-xs font-black flex items-center justify-center shrink-0">2</span>
+                  <span>Shipper &amp; Consignor Obligations</span>
+                </h3>
+                <p>The customer warrants and agrees that:</p>
+                <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600">
+                  <li>All cargo dimensions, gross weights, volume metrics, and commodity classifications provided to Josan Logistics are complete, accurate, and up to date.</li>
+                  <li>Consignments are appropriately packaged, labeled, and marked to withstand the standard handling conditions of commercial road carriage and air transit.</li>
+                  <li>Shipments do not contain undeclared hazardous materials, restricted contraband, dangerous goods, or commodities prohibited under Singapore and international civil aviation standards.</li>
+                </ul>
               </section>
 
               <section className="space-y-2">

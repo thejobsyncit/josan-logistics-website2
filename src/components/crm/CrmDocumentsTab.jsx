@@ -226,7 +226,7 @@ export const CrmDocumentsTab = ({
   return (
     <div className="space-y-5 animate-fade-in">
       {/* Top Banner & Quick Metrics */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2.5">
@@ -245,7 +245,7 @@ export const CrmDocumentsTab = ({
           <button
             type="button"
             onClick={() => setIsUploadOpen(true)}
-            className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-black shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+            className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-lg text-xs font-black active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
           >
             <Upload className="w-4 h-4" />
             <span>Upload Shipment Document</span>
@@ -254,8 +254,8 @@ export const CrmDocumentsTab = ({
 
         {/* 4 Stat Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
-          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/80 flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4" />
             </div>
             <div>
@@ -264,8 +264,8 @@ export const CrmDocumentsTab = ({
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/80 flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-4 h-4" />
             </div>
             <div>
@@ -274,8 +274,8 @@ export const CrmDocumentsTab = ({
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/80 flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
@@ -284,8 +284,8 @@ export const CrmDocumentsTab = ({
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/80 flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
               <Clock className="w-4 h-4" />
             </div>
             <div>
@@ -307,9 +307,9 @@ export const CrmDocumentsTab = ({
                 key={cat}
                 type="button"
                 onClick={() => { setCategoryFilter(cat); setCurrentPage(1); }}
-                className={`px-3.5 py-2 rounded-xl whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#0B1F5B] text-white shadow-xs'
+                    ? 'bg-[#0B1F5B] text-white'
                     : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
@@ -320,13 +320,13 @@ export const CrmDocumentsTab = ({
         </div>
 
         {/* View Switcher Toggle */}
-        <div className="flex items-center space-x-1.5 bg-white p-1 rounded-xl border border-slate-200 self-end lg:self-auto shrink-0 shadow-2xs">
+        <div className="flex items-center space-x-1.5 bg-white p-1 rounded-lg border border-slate-200 self-end lg:self-auto shrink-0">
           <button
             type="button"
             onClick={() => setViewMode('table')}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'table'
-                ? 'bg-[#0B1F5B] text-white shadow-xs'
+                ? 'bg-[#0B1F5B] text-white'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
             title="List / Table View (Recommended)"
@@ -337,9 +337,9 @@ export const CrmDocumentsTab = ({
           <button
             type="button"
             onClick={() => setViewMode('grid')}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'grid'
-                ? 'bg-[#0B1F5B] text-white shadow-xs'
+                ? 'bg-[#0B1F5B] text-white'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
             title="Cards / Grid View"
@@ -351,7 +351,7 @@ export const CrmDocumentsTab = ({
       </div>
 
       {/* Search, Status & Sorting Bar */}
-      <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap gap-2.5 items-center justify-between">
+      <div className="p-3 bg-white rounded-xl border border-slate-200 flex flex-wrap gap-2.5 items-center justify-between">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
           <input
@@ -359,7 +359,7 @@ export const CrmDocumentsTab = ({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             placeholder="Search documents by title, shipper name, or reference ID..."
-            className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
+            className="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
           />
           {search && (
             <button
@@ -377,7 +377,7 @@ export const CrmDocumentsTab = ({
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="All">All Statuses</option>
             <option value="Verified">Verified</option>
@@ -391,7 +391,7 @@ export const CrmDocumentsTab = ({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -414,10 +414,10 @@ export const CrmDocumentsTab = ({
       {/* VIEW 1: CLEAN TABLE / LIST VIEW (RECOMMENDED)                           */}
       {/* ======================================================================= */}
       {viewMode === 'table' ? (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-black uppercase text-[10px] tracking-wider">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-900 font-extrabold uppercase text-[10px] tracking-wider">
                 <tr>
                   <th className="py-3 px-4">Document Title</th>
                   <th className="py-3 px-3">Category</th>
@@ -564,7 +564,7 @@ export const CrmDocumentsTab = ({
         /* ======================================================================= */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {paginatedDocs.length === 0 ? (
-            <div className="col-span-full bg-white p-12 rounded-3xl border border-slate-200 text-center text-slate-400 font-medium">
+            <div className="col-span-full bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-400 font-medium">
               No documents found matching the filter criteria.
             </div>
           ) : (
@@ -575,12 +575,12 @@ export const CrmDocumentsTab = ({
               return (
                 <div
                   key={doc.id}
-                  className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between group space-y-3.5"
+                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 hover:border-slate-300 transition-colors flex flex-col justify-between group space-y-3.5"
                 >
                   {/* Card Top: Icon, Tag & Status */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:scale-105 transition-transform">
                         {getDocTypeIcon(doc.type)}
                       </div>
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
@@ -615,7 +615,7 @@ export const CrmDocumentsTab = ({
                   </div>
 
                   {/* Metadata Box */}
-                  <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-100 space-y-1 text-[11px]">
+                  <div className="bg-slate-50/80 rounded-lg p-2.5 border border-slate-100 space-y-1 text-[11px]">
                     <div className="flex items-center space-x-1.5 text-slate-700 font-bold truncate">
                       <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span className="truncate">{doc.customerName || 'Commercial Client'}</span>
@@ -674,7 +674,7 @@ export const CrmDocumentsTab = ({
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between text-xs text-slate-500">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <span>
             Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredDocuments.length)} of {filteredDocuments.length} files
           </span>
@@ -705,7 +705,7 @@ export const CrmDocumentsTab = ({
       {/* ======================================================================= */}
       {viewingDoc && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-fade-in space-y-5">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 border border-slate-200 animate-fade-in space-y-5">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-3">
@@ -727,7 +727,7 @@ export const CrmDocumentsTab = ({
             </div>
 
             {/* Document Digital Dossier Preview */}
-            <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-4 text-xs font-mono">
+            <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl space-y-4 text-xs font-mono">
               <div className="flex items-center justify-between border-b border-slate-200 pb-3 font-sans">
                 <div>
                   <span className="font-black text-sm text-[#0B1F5B] tracking-tight block">JOSAN LOGISTICS PTE LTD</span>
@@ -771,7 +771,7 @@ export const CrmDocumentsTab = ({
               <button
                 type="button"
                 onClick={() => setViewingDoc(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs cursor-pointer"
               >
                 Close
               </button>
@@ -780,7 +780,7 @@ export const CrmDocumentsTab = ({
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs flex items-center space-x-1.5 cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-bold text-xs flex items-center space-x-1.5 cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print</span>
@@ -788,7 +788,7 @@ export const CrmDocumentsTab = ({
                 <button
                   type="button"
                   onClick={() => handleDownloadMockFile(viewingDoc)}
-                  className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold text-xs shadow-md shadow-orange-500/20 active:scale-95 flex items-center space-x-1.5 cursor-pointer transition-all"
+                  className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-lg font-bold text-xs active:scale-95 flex items-center space-x-1.5 cursor-pointer transition-all"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download Document</span>
@@ -804,7 +804,7 @@ export const CrmDocumentsTab = ({
       {/* ======================================================================= */}
       {isUploadOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-fade-in space-y-5">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 border border-slate-200 animate-fade-in space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-black text-lg text-slate-900 font-heading">Upload Logistics Document</h3>
@@ -825,7 +825,7 @@ export const CrmDocumentsTab = ({
                 <select
                   value={newDocData.type}
                   onChange={(e) => setNewDocData({ ...newDocData, type: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium cursor-pointer"
                 >
                   <option value="Commercial Invoice">Commercial Invoice</option>
                   <option value="Packing List">Packing List</option>
@@ -845,7 +845,7 @@ export const CrmDocumentsTab = ({
                   value={newDocData.name}
                   onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
                   placeholder="e.g. Commercial_Invoice_77102.pdf"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>
 
@@ -857,7 +857,7 @@ export const CrmDocumentsTab = ({
                     value={newDocData.customerName}
                     onChange={(e) => setNewDocData({ ...newDocData, customerName: e.target.value })}
                     placeholder="Company name"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium"
                   />
                 </div>
                 <div>
@@ -866,8 +866,8 @@ export const CrmDocumentsTab = ({
                     type="text"
                     value={newDocData.shipmentId}
                     onChange={(e) => setNewDocData({ ...newDocData, shipmentId: e.target.value })}
-                    placeholder="Your tracking number or AIR-0001"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
+                    placeholder="Your tracking number or Reference"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium font-mono"
                   />
                 </div>
               </div>
@@ -878,7 +878,7 @@ export const CrmDocumentsTab = ({
                   <select
                     value={newDocData.status}
                     onChange={(e) => setNewDocData({ ...newDocData, status: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium cursor-pointer"
                   >
                     <option value="Verified">Verified</option>
                     <option value="Customs Cleared">Customs Cleared</option>
@@ -891,7 +891,7 @@ export const CrmDocumentsTab = ({
                     type="text"
                     value={newDocData.fileSize}
                     onChange={(e) => setNewDocData({ ...newDocData, fileSize: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium font-mono"
                   />
                 </div>
               </div>
@@ -900,13 +900,13 @@ export const CrmDocumentsTab = ({
                 <button
                   type="button"
                   onClick={() => setIsUploadOpen(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
+                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-lg font-bold cursor-pointer active:scale-95 transition-all"
                 >
                   Upload & Archive
                 </button>
