@@ -196,7 +196,7 @@ export const generateInvoicePdf = (inv, customSiteSettings = null) => {
   doc.text('Payment Due:', 120, metaY + 21);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text(inv.dueDate || 'Net 30 Days', 190, metaY + 21, { align: 'right' });
+  doc.text(inv.dueDate || '', 190, metaY + 21, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
@@ -301,7 +301,7 @@ export const CrmBillingTab = ({
   onUpdatePaymentStatus,
   selectedInvoiceFromSearch = null
 }) => {
-  const { siteSettings } = useLogistics?.() || {};
+  const { siteSettings, showToast } = useLogistics?.() || {};
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
@@ -338,7 +338,7 @@ export const CrmBillingTab = ({
     customerPhone: '',
     requestId: '',
     service: 'Air Freight Services (AWB Preparation & Billing)',
-    amount: 520,
+    amount: '',
     paymentStatus: 'Unpaid',
     issueDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
@@ -407,6 +407,15 @@ export const CrmBillingTab = ({
     e.preventDefault();
     if (!newInvData.customerName.trim()) return;
 
+    if (newInvData.amount === '' || newInvData.amount === null || isNaN(Number(newInvData.amount)) || Number(newInvData.amount) <= 0) {
+      if (typeof showToast === 'function') {
+        showToast('Please enter a price', 'warning');
+      } else {
+        alert('Please enter a price');
+      }
+      return;
+    }
+
     const subtotal = Number(newInvData.amount) || 0;
     const gst = Number((subtotal * 0.09).toFixed(2));
     const total = Number((subtotal + gst).toFixed(2));
@@ -434,7 +443,7 @@ export const CrmBillingTab = ({
       customerPhone: '',
       requestId: '',
       service: 'Air Freight Services (AWB Preparation & Billing)',
-      amount: 520,
+      amount: '',
       paymentStatus: 'Unpaid',
       issueDate: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
@@ -587,7 +596,7 @@ export const CrmBillingTab = ({
                           #{inv.invoiceNumber || inv.id}
                         </span>
                         <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
-                          Due: {inv.dueDate || 'Net 30'}
+                          Due: {inv.dueDate || ''}
                         </span>
                       </td>
 
@@ -731,7 +740,7 @@ export const CrmBillingTab = ({
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">PAYMENT DUE DATE</span>
-                    <span className="font-mono font-bold text-slate-800">{viewingInvoice.dueDate || 'Net 30 Days'}</span>
+                    <span className="font-mono font-bold text-slate-800">{viewingInvoice.dueDate || ''}</span>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">REFERENCE CONSIGNMENT</span>
@@ -892,7 +901,7 @@ export const CrmBillingTab = ({
                     list="billing-request-datalist"
                     value={newInvData.requestId}
                     onChange={(e) => setNewInvData({ ...newInvData, requestId: e.target.value })}
-                    placeholder="Your tracking number or AIR-0001"
+                    placeholder="Your tracking number or Reference"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
                   />
                   <datalist id="billing-request-datalist">

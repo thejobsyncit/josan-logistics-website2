@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
+import { CUSTOMER_DEMO_TABS, isDisplayablePhone } from '../config/siteConfig';
+import { formatSingaporeDateTime } from '../utils/dateTime';
 import { 
   Package, 
   Search, 
@@ -268,73 +270,13 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
   const isAddressFormValid = Boolean(newLabel.trim() && newAddress.trim());
   const isSupportFormValid = Boolean(ticketSubject.trim() && ticketMessage.trim());
 
-  // Dev-only test data for customer.test@example.com
-  const isDevTestCustomer = Boolean(
-    import.meta.env.DEV &&
-    currentUser?.email?.toLowerCase() === 'customer.test@example.com'
-  );
-
-  const DEV_TEST_SHIPMENTS = [
-    {
-      id: 'TEST-0001',
-      trackingNumber: 'TEST-0001',
-      service: 'Road transport',
-      status: 'Delivered',
-      lastUpdated: '12 Nov 2026, 14:30 SGT',
-      createdDate: '2026-11-12 14:30',
-      origin: '10 Jalan Besar, #15-02 Sim Lim Tower, Singapore 208787',
-      destination: 'Changi Airport Cargo Complex, Singapore 819642',
-      price: 'S$ 350.00',
-      date: '12 Nov 2026',
-      paymentStatus: 'Paid',
-      isTest: true
-    },
-    {
-      id: 'TEST-0002',
-      trackingNumber: 'TEST-0002',
-      service: 'Road transport',
-      status: 'In transit',
-      lastUpdated: '13 Nov 2026, 09:15 SGT',
-      createdDate: '2026-11-13 09:15',
-      origin: '20 Orchard Road, Singapore 238864',
-      destination: 'Pioneer Sector 1, Jurong, Singapore 628437',
-      price: 'S$ 280.00',
-      date: '13 Nov 2026',
-      paymentStatus: 'Pending payment',
-      isTest: true
-    }
-  ];
-
-  const DEV_TEST_QUOTES = [
-    {
-      id: 'Q-TEST-001',
-      date: '13 Nov 2026',
-      service: 'Road transport',
-      status: 'Sent',
-      price: 'S$ 280.00',
-      origin: '20 Orchard Road, Singapore 238864',
-      destination: 'Pioneer Sector 1, Jurong, Singapore 628437',
-      isTest: true
-    },
-    {
-      id: 'Q-TEST-002',
-      date: '11 Nov 2026',
-      service: 'Air freight documentation',
-      status: 'Accepted',
-      price: 'S$ 150.00',
-      origin: 'Changi Airport, Singapore',
-      destination: 'London Heathrow (LHR)',
-      isTest: true
-    }
-  ];
-
   const displayShipments = (shipments && shipments.length > 0)
     ? shipments
-    : (isDevTestCustomer ? DEV_TEST_SHIPMENTS : []);
+    : [];
 
   const displayQuotes = (quotes && quotes.length > 0)
     ? quotes
-    : (isDevTestCustomer ? DEV_TEST_QUOTES : []);
+    : [];
 
   const handleStartEdit = (addr) => {
     setEditingAddressId(addr.id);
@@ -409,14 +351,14 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
       icon: Package,
       action: () => setActiveSubTab('orders')
     },
-    {
+    ...(CUSTOMER_DEMO_TABS ? [{
       id: 'quotes',
       label: 'Quotations',
       count: displayQuotes.length,
       countLabel: 'quotations',
       icon: DollarSign,
       action: () => setActiveSubTab('quotes')
-    },
+    }] : []),
     {
       id: 'notifications',
       label: 'Notifications',
@@ -433,14 +375,14 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
         if (setActiveTab) setActiveTab('track');
       }
     },
-    {
+    ...(CUSTOMER_DEMO_TABS ? [{
       id: 'billing',
       label: 'Invoices',
       count: displayShipments.length,
       countLabel: 'invoices',
       icon: CreditCard,
       action: () => setActiveSubTab('billing')
-    },
+    }] : []),
     {
       id: 'documents',
       label: 'Documents vault',
@@ -449,17 +391,17 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
       icon: FileText,
       action: () => setActiveSubTab('documents')
     },
-    {
+    ...(CUSTOMER_DEMO_TABS ? [{
       id: 'addresses',
       label: 'Saved addresses',
       count: (addressList || []).length,
       countLabel: 'saved addresses',
       icon: MapPin,
       action: () => setActiveSubTab('addresses')
-    }
+    }] : [])
   ];
 
-  const secondaryMenuItems = [
+  const secondaryMenuItems = CUSTOMER_DEMO_TABS ? [
     {
       id: 'manage',
       label: 'Manage orders',
@@ -475,7 +417,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
       icon: LifeBuoy,
       action: () => setActiveSubTab('support')
     }
-  ];
+  ] : [];
 
   if (!currentUser) return null;
 
@@ -563,40 +505,42 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 );
               })}
 
-              {/* 1px Divider */}
-              <hr className="hidden lg:block my-2 border-[var(--color-border)]" />
-              <div className="lg:hidden w-[1px] h-6 bg-[var(--color-border)] shrink-0 mx-1" aria-hidden="true" />
-
               {/* Secondary Menu Items: Manage orders & Support */}
-              {secondaryMenuItems.map((item) => {
-                const IconComponent = item.icon;
-                const isActive = activeSubTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={item.action}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`min-h-[44px] px-3.5 py-2.5 rounded-[var(--radius)] flex items-center gap-2.5 text-sm transition-colors text-left cursor-pointer shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)] ${
-                      isActive
-                        ? 'bg-transparent lg:bg-[var(--color-bg-alt)] border-b-[3px] lg:border-b-0 lg:border-l-[3px] font-bold text-[var(--color-navy)]'
-                        : 'bg-transparent text-[var(--color-text)] hover:underline font-normal border-b-[3px] border-b-transparent lg:border-b-0 lg:border-l-[3px] lg:border-l-transparent'
-                    }`}
-                    style={isActive ? { borderBottomColor: 'var(--color-kraft)', borderLeftColor: 'var(--color-kraft)' } : undefined}
-                  >
-                    <IconComponent className="w-5 h-5 shrink-0 text-[var(--color-navy)]" aria-hidden="true" />
-                    <span className="truncate lg:whitespace-normal lg:break-words leading-tight">{item.label}</span>
-                    {item.count !== undefined && item.count !== null && (
-                      <span
-                        className="text-sm tabular-nums text-[var(--color-text-muted)] font-normal ml-auto shrink-0 pl-2"
-                        aria-label={`${item.count} ${item.countLabel || item.label}`}
+              {secondaryMenuItems.length > 0 && (
+                <>
+                  <hr className="hidden lg:block my-2 border-[var(--color-border)]" />
+                  <div className="lg:hidden w-[1px] h-6 bg-[var(--color-border)] shrink-0 mx-1" aria-hidden="true" />
+                  {secondaryMenuItems.map((item) => {
+                    const IconComponent = item.icon;
+                    const isActive = activeSubTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={item.action}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`min-h-[44px] px-3.5 py-2.5 rounded-[var(--radius)] flex items-center gap-2.5 text-sm transition-colors text-left cursor-pointer shrink-0 lg:shrink lg:w-full whitespace-nowrap lg:whitespace-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-navy)] ${
+                          isActive
+                            ? 'bg-transparent lg:bg-[var(--color-bg-alt)] border-b-[3px] lg:border-b-0 lg:border-l-[3px] font-bold text-[var(--color-navy)]'
+                            : 'bg-transparent text-[var(--color-text)] hover:underline font-normal border-b-[3px] border-b-transparent lg:border-b-0 lg:border-l-[3px] lg:border-l-transparent'
+                        }`}
+                        style={isActive ? { borderBottomColor: 'var(--color-kraft)', borderLeftColor: 'var(--color-kraft)' } : undefined}
                       >
-                        {item.count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+                        <IconComponent className="w-5 h-5 shrink-0 text-[var(--color-navy)]" aria-hidden="true" />
+                        <span className="truncate lg:whitespace-normal lg:break-words leading-tight">{item.label}</span>
+                        {item.count !== undefined && item.count !== null && (
+                          <span
+                            className="text-sm tabular-nums text-[var(--color-text-muted)] font-normal ml-auto shrink-0 pl-2"
+                            aria-label={`${item.count} ${item.countLabel || item.label}`}
+                          >
+                            {item.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </>
+              )}
 
               {/* Divider and Log out */}
               <hr className="hidden lg:block my-2 border-[var(--color-border)]" />
@@ -650,7 +594,10 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                   <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
                     {displayShipments.map((s) => {
                       const trackingNum = s.trackingNumber || s.id;
-                      const lastUpdated = s.lastUpdated || s.lastUpdatedTime || (s.createdDate ? s.createdDate.split(' ')[0] : '—');
+                      const rawLastUpdated = s.last_updated || s.lastUpdated || s.lastUpdatedTime;
+                      const lastUpdated = rawLastUpdated
+                        ? (formatSingaporeDateTime(rawLastUpdated) || formatSingaporeDateTime(String(rawLastUpdated).replace(/SGT/i, '+08:00')) || rawLastUpdated)
+                        : '—';
                       return (
                         <tr key={s.id} className="hover:bg-[var(--color-bg-alt)] transition-colors">
                           <td className="py-3.5 pr-4 font-bold tabular-nums text-[var(--color-navy)]">
@@ -689,7 +636,10 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
               <div className="md:hidden divide-y divide-[var(--color-border)]">
                 {displayShipments.map((s) => {
                   const trackingNum = s.trackingNumber || s.id;
-                  const lastUpdated = s.lastUpdated || s.lastUpdatedTime || (s.createdDate ? s.createdDate.split(' ')[0] : '—');
+                  const rawLastUpdated = s.last_updated || s.lastUpdated || s.lastUpdatedTime;
+                  const lastUpdated = rawLastUpdated
+                    ? (formatSingaporeDateTime(rawLastUpdated) || formatSingaporeDateTime(String(rawLastUpdated).replace(/SGT/i, '+08:00')) || rawLastUpdated)
+                    : '—';
                   return (
                     <div key={s.id} className="py-4 space-y-2.5 text-sm">
                       <div className="flex justify-between items-baseline">
@@ -732,6 +682,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
       {/* SUB-TAB: MANAGE ORDERS (Legacy Management) */}
       {activeSubTab === 'manage' && (
+        !CUSTOMER_DEMO_TABS ? (
+          <PortalCard>
+            <p className="text-sm text-[var(--color-text-muted)] font-normal">This section is coming in the next phase.</p>
+          </PortalCard>
+        ) : (
         <div className="bg-white rounded-[var(--radius)] p-6 sm:p-8 border border-[var(--color-border)] border-t-[3px] shadow-none space-y-6" style={{ borderTopColor: 'var(--color-kraft)' }}>
           <div className="flex items-center justify-between">
             <div>
@@ -846,7 +801,9 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     <div className="min-w-0 flex-1">
                       <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Assigned Driver</span>
                       <p className="text-xs font-bold text-slate-900 truncate">{s.driverName || s.driver || 'Tan Wei Ming'}</p>
-                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">{s.driverPhone || '+65 6789 0123'}</p>
+                      {isDisplayablePhone(s.driverPhone) && (
+                        <p className="text-[11px] text-slate-500 font-mono mt-0.5">{s.driverPhone}</p>
+                      )}
                     </div>
                   </div>
 
@@ -1066,10 +1023,16 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             ))}
           </div>
         </div>
+        )
       )}
 
       {/* SUB-TAB 2: QUOTATIONS */}
       {activeSubTab === 'quotes' && (
+        !CUSTOMER_DEMO_TABS ? (
+          <PortalCard>
+            <p className="text-sm text-[var(--color-text-muted)] font-normal">This section is coming in the next phase.</p>
+          </PortalCard>
+        ) : (
         <PortalCard>
           <PortalHeader
             title="Your quotes"
@@ -1270,6 +1233,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             </div>
           )}
         </PortalCard>
+        )
       )}
 
       {/* SUB-TAB: NOTIFICATIONS PANEL (Requirement 3) */}
@@ -1356,6 +1320,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
       {/* SUB-TAB 3: INVOICES */}
       {activeSubTab === 'billing' && (
+        !CUSTOMER_DEMO_TABS ? (
+          <PortalCard>
+            <p className="text-sm text-[var(--color-text-muted)] font-normal">This section is coming in the next phase.</p>
+          </PortalCard>
+        ) : (
         <PortalCard>
           <PortalHeader
             title="Your invoices"
@@ -1383,7 +1352,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                     {displayShipments.map((s) => {
                       const dateStr = s.createdDate ? s.createdDate.split(' ')[0] : (s.date || '—');
                       const isPaid = s.paymentStatus === 'Paid' || (s.paymentStatus !== 'Unpaid' && !s.isUnpaid);
-                      const amountStr = s.price || 'S$ 350.00';
+                      const amountStr = s.price || '—';
 
                       return (
                         <tr key={s.id} className="hover:bg-[var(--color-bg-alt)] transition-colors">
@@ -1432,7 +1401,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
                 {displayShipments.map((s) => {
                   const dateStr = s.createdDate ? s.createdDate.split(' ')[0] : (s.date || '—');
                   const isPaid = s.paymentStatus === 'Paid' || (s.paymentStatus !== 'Unpaid' && !s.isUnpaid);
-                  const amountStr = s.price || 'S$ 350.00';
+                  const amountStr = s.price || '—';
 
                   return (
                     <div key={s.id} className="py-4 space-y-2.5 text-sm">
@@ -1480,6 +1449,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             </div>
           )}
         </PortalCard>
+        )
       )}
 
       {/* SUB-TAB: YOUR PROFILE */}
@@ -1600,6 +1570,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
       {/* SUB-TAB 4: SAVED ADDRESSES */}
       {activeSubTab === 'addresses' && (
+        !CUSTOMER_DEMO_TABS ? (
+          <PortalCard>
+            <p className="text-sm text-[var(--color-text-muted)] font-normal">This section is coming in the next phase.</p>
+          </PortalCard>
+        ) : (
         <PortalCard className="space-y-8">
           <PortalHeader
             title="Saved addresses"
@@ -1788,6 +1763,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             ))}
           </div>
         </PortalCard>
+        )
       )}
 
       {/* SUB-TAB 7: CONSIGNMENT DOCUMENT VAULT (Requirement 3) */}
@@ -1797,26 +1773,15 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-black text-[#2463EB] uppercase tracking-wider bg-[#EAF2FF] px-2.5 py-0.5 rounded-full border border-[#DCE5F0]">
-                  Regulatory & Shipping Dossiers
-                </span>
                 <span className="text-xs font-bold text-slate-500 font-mono">
-                  {customerDocuments.length} Verified Files
+                  {customerDocuments.length} files
                 </span>
               </div>
-              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Consignment Document Management Vault</h2>
+              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Documents</h2>
               <p className="text-xs text-slate-500 font-semibold">
                 Access invoices, packing lists, delivery notes and proof-of-delivery (POD) shared by Josan Logistics.
               </p>
             </div>
-
-            <button
-              onClick={() => setIsUploadCustDocOpen(true)}
-              className="px-4 py-2.5 bg-[#EAF2FF]0 hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
-            >
-              <Upload className="w-4 h-4" />
-              <span>Attach Consignment File</span>
-            </button>
           </div>
 
           {/* Document Cards / Table */}
@@ -1900,6 +1865,11 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
 
       {/* SUB-TAB 5: SUPPORT */}
       {activeSubTab === 'support' && (
+        !CUSTOMER_DEMO_TABS ? (
+          <PortalCard>
+            <p className="text-sm text-[var(--color-text-muted)] font-normal">This section is coming in the next phase.</p>
+          </PortalCard>
+        ) : (
         <PortalCard className="space-y-8">
           <PortalHeader
             title="Support"
@@ -2053,6 +2023,7 @@ export const CustomerDashboardPage = ({ setActiveTab, initialSubTab = 'orders' }
             )}
           </div>
         </PortalCard>
+        )
       )}
 
 

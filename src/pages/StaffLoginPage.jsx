@@ -19,9 +19,8 @@ import {
 import { useLogistics } from '../context/LogisticsContext';
 import { openLegalDialog } from '../components/LegalDialog';
 import { supabase } from '../services/supabase';
-import { normalizeRole, isStaffRole, canEditRole } from '../utils/roles';
+import { normalizeRole, isStaffRole, canEditRole, getRoleDisplayName } from '../utils/roles';
 import { 
-  storeStaffAuthSession,
   checkStaffInvitation, 
   acceptStaffInvitation 
 } from '../utils/staffApi';
@@ -95,8 +94,8 @@ function recordSuccessfulAttempt(email) {
   } catch (e) {}
 }
 
-export const StaffLoginPage = ({ setActiveTab }) => {
-  const { loginUser, showToast, currentUser } = useLogistics();
+export const StaffLoginPage = ({ setActiveTab, isCrmLogin = false }) => {
+  const { loginUser, showToast, currentUser, setCurrentUser, setCurrentRole } = useLogistics();
 
   // Mode: 'login' | '2fa' | 'must_change_password' | 'forgot_password' | 'reset_password' | 'invite_setup'
   const [authMode, setAuthMode] = useState('login');
@@ -104,9 +103,17 @@ export const StaffLoginPage = ({ setActiveTab }) => {
   // Login credentials
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Session timeout expired notification
+  useEffect(() => {
+    if (sessionExpiredMessage) {
+      setError(sessionExpiredMessage);
+    }
+  }, [sessionExpiredMessage]);
 
   // Email Verification state (Simpler email OTP instead of 2FA authenticator app)
   const [pendingAuth, setPendingAuth] = useState(null);
@@ -282,20 +289,21 @@ export const StaffLoginPage = ({ setActiveTab }) => {
         return;
       }
 
-      // Role check: Allow only CRM and READONLY with status Active
       const normalizedRole = normalizeRole(profile.role);
 
-      // If the account is ADMIN: refuse it, sign out, run clean-up, stay on staff login page
-      if (normalizedRole === 'ADMIN') {
+      // Admin credentials can use the unified CRM sign-in, while staff login remains staff-only.
+      if (normalizedRole === 'ADMIN' && !isCrmLogin) {
         await purgeFullSession();
         setError('Administrator accounts must sign in through the Admin login.');
         return;
       }
 
       // If the account is CUSTOMER or has an unknown role: refuse it, run clean-up, stay on staff login page
-      if (normalizedRole !== 'CRM' && normalizedRole !== 'READONLY') {
+      if (!isStaffRole(normalizedRole)) {
         await purgeFullSession();
-        setError('Access denied. Staff credentials required. Customer accounts cannot access the staff portal.');
+        setError(isCrmLogin
+          ? 'Access denied. An active staff account is required.'
+          : 'Access denied. Staff credentials required. Customer accounts cannot access the staff portal.');
         return;
       }
 
@@ -311,14 +319,14 @@ export const StaffLoginPage = ({ setActiveTab }) => {
       // Toggle REQUIRE_EMAIL_OTP to true to restore the 6-digit email verification step.
       const REQUIRE_EMAIL_OTP = false;
 
-      if (REQUIRE_EMAIL_OTP) {
+      if (REQUIRE_EMAIL_OTP && normalizedRole !== 'ADMIN') {
         await sendEmailVerificationCode(cleanEmail);
         setAuthMode('email_code');
         return;
       }
 
       // Check if user must change password (e.g. first login)
-      if (activeProfile?.must_change_password) {
+      if (activeProfile?.must_change_password && normalizedRole !== 'ADMIN') {
         setAuthMode('must_change_password');
         if (showToast) showToast('First-time login: Please set a new strong password.', 'info');
         return;
@@ -562,7 +570,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
   // Finalize successful authentication & navigate
   const completeSuccessfulStaffAuth = (token, user, profile) => {
     const normRole = normalizeRole(profile?.role);
-    const displayRole = normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only';
+    const displayRole = getRoleDisplayName(normRole);
     const displayName = profile?.name || profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Staff Member';
 
     const staffUser = {
@@ -577,12 +585,12 @@ export const StaffLoginPage = ({ setActiveTab }) => {
       token: token || 'supabase_token_' + Date.now()
     };
 
-    storeStaffAuthSession(null, staffUser);
-    try {
-      localStorage.setItem('josan_user', JSON.stringify(staffUser));
-      localStorage.setItem('josan_role', normRole);
-      localStorage.setItem('josan_staff_user', JSON.stringify(staffUser));
-    } catch (e) {}
+    if (typeof setCurrentUser === 'function') {
+      setCurrentUser(staffUser);
+    }
+    if (typeof setCurrentRole === 'function') {
+      setCurrentRole(normRole);
+    }
 
     // Staff portal signs in to CRM only
     const destination = 'crm';
@@ -611,19 +619,30 @@ export const StaffLoginPage = ({ setActiveTab }) => {
     } catch (e) {}
 
     if (showToast) {
-      showToast(`Staff access authorized. Welcome, ${staffUser.name}.`, 'success');
+      if (normRole === 'READONLY') {
+        showToast('Signed in as Read-only.', 'success');
+      } else if (normRole === 'ADMIN' && isCrmLogin) {
+        showToast(`Welcome back, ${staffUser.name}! (CRM Portal)`, 'success');
+      } else {
+        showToast(`Staff access authorized. Welcome, ${staffUser.name}.`, 'success');
+      }
     }
 
-    loginUser(
-      staffUser.email,
-      'authenticated_session',
-      normRole,
-      null,
-      staffUser
-    );
+    if (normRole !== 'ADMIN') {
+      loginUser(
+        staffUser.email,
+        'authenticated_session',
+        normRole,
+        null,
+        staffUser
+      );
+    }
 
     if (setActiveTab) {
-      setActiveTab(destination, true, staffUser);
+      setActiveTab(destination, !isCrmLogin, staffUser);
+      if (isCrmLogin && typeof window !== 'undefined' && window.history?.replaceState) {
+        window.history.replaceState({ tab: destination }, '', '/crm');
+      }
     }
   };
 
@@ -640,7 +659,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
         <div className="text-center space-y-3">
           <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-semibold backdrop-blur-md">
             <Shield className="w-3.5 h-3.5 text-orange-400" />
-            <span>Josan Logistics Staff Gateway</span>
+            <span>{isCrmLogin ? 'Josan Logistics CRM Portal' : 'Josan Logistics Staff Gateway'}</span>
           </div>
 
           <div className="flex justify-center">
@@ -652,12 +671,14 @@ export const StaffLoginPage = ({ setActiveTab }) => {
           </div>
 
           <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            Staff Portal Sign In
+            {isCrmLogin ? 'CRM Portal Sign In' : 'Staff Portal Sign In'}
           </h1>
 
           {/* Description strictly updated per Requirement 8 */}
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Restricted access for Josan Logistics staff
+            {isCrmLogin
+              ? 'Sign in with your administrator or staff credentials'
+              : 'Restricted access for Josan Logistics staff'}
           </p>
         </div>
 
@@ -686,26 +707,30 @@ export const StaffLoginPage = ({ setActiveTab }) => {
           {authMode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               
-              {/* Administrator login link */}
-              <div className="flex items-center justify-between text-xs px-1 text-slate-400">
-                <span>Administrator?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (setActiveTab) {
-                      setActiveTab('admin-login');
-                      if (typeof window !== 'undefined') window.location.hash = '#admin-login';
-                    }
-                  }}
-                  className="text-orange-400 font-semibold hover:underline cursor-pointer"
-                >
-                  Use the Admin login &rarr;
-                </button>
-              </div>
+              {!isCrmLogin && (
+                <div className="flex items-center justify-between text-xs px-1 text-slate-400">
+                  <span>Administrator?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (setActiveTab) {
+                        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+                          window.history.replaceState({ tab: 'admin-login' }, '', '/#admin-login');
+                        }
+                        setActiveTab('admin-login');
+                        if (typeof window !== 'undefined') window.location.hash = '#admin-login';
+                      }
+                    }}
+                    className="text-orange-400 font-semibold hover:underline cursor-pointer"
+                  >
+                    Use the Admin login &rarr;
+                  </button>
+                </div>
+              )}
 
               {/* Work Email */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">Staff Work Email</label>
+                <label className="text-xs font-bold text-slate-300">{isCrmLogin ? 'Email' : 'Staff Work Email'}</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
@@ -744,15 +769,25 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
                     name="password"
-                    type="password"
+                    type={showLoginPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
                     required
                     disabled={loading}
-                    className="w-full pl-10 pr-4 py-2.5 bg-[#071326] border border-slate-700 rounded-xl text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full pl-10 pr-11 py-2.5 bg-[#071326] border border-slate-700 rounded-xl text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-orange-500 transition-colors"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((visible) => !visible)}
+                    disabled={loading}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                    title={showLoginPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -769,7 +804,7 @@ export const StaffLoginPage = ({ setActiveTab }) => {
                   </span>
                 ) : (
                   <>
-                    <span>Sign In to Staff Portal</span>
+                    <span>{isCrmLogin ? 'Sign In to CRM' : 'Sign In to Staff Portal'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

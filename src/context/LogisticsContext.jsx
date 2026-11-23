@@ -25,7 +25,7 @@ import {
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
 import { fetchServerShipmentReference } from '../utils/referenceApi';
-import { normalizeRole, isStaffRole, canEditRole } from '../utils/roles';
+import { normalizeRole, isStaffRole, canEditRole, getRoleDisplayName } from '../utils/roles';
 import {
   COMPANY_INFO,
   PLACEHOLDER_PHONE,
@@ -99,58 +99,9 @@ export const deduplicateNotifications = (list) => {
 const LogisticsContext = createContext();
 
 export const LogisticsProvider = ({ children }) => {
-  // Load state from localStorage or initial mock data
-  const [shipments, setShipments] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_shipments');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Retain only domestic Singapore roadways freight shipments
-        const domesticOnly = (parsed || []).filter((s) => {
-          if (!s || !s.id) return false;
-          // Filter out legacy non-domestic dummy shipments
-          if (
-            s.id.endsWith('-EU') ||
-            s.id.endsWith('-IN') ||
-            s.id.endsWith('-UK') ||
-            s.id.endsWith('-US') ||
-            s.id.includes('-EU') ||
-            s.id.includes('-IN') ||
-            s.id.includes('-UK') ||
-            s.id.includes('-US')
-          ) {
-            return false;
-          }
-          if (
-            s.origin?.includes('Germany') ||
-            s.origin?.includes('Noida') ||
-            s.origin?.includes('Edinburgh') ||
-            s.destination?.includes('Rotterdam') ||
-            s.destination?.includes('Mumbai') ||
-            s.destination?.includes('London')
-          ) {
-            return false;
-          }
-          return true;
-        });
+  // Shipments state loaded solely from database
+  const [shipments, setShipments] = useState([]);
 
-        // If user already booked domestic orders (like JOS-17133-SG), keep them!
-        if (domesticOnly.length > 0) {
-          return domesticOnly;
-        }
-      }
-      return initialShipments;
-    } catch (e) {
-      return initialShipments;
-    }
-  });
-
-  // Sync sanitized domestic shipments back to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_shipments', JSON.stringify(shipments));
-    } catch (e) {}
-  }, [shipments]);
 
   const [drivers, setDrivers] = useState(() => {
     try {
@@ -174,121 +125,13 @@ export const LogisticsProvider = ({ children }) => {
   const [quotes, setQuotes] = useState([]);
 
   // Airway Service Requests State (AWB Preparation, Billing, Documentation, Transportation Support)
-  const [airwayRequests, setAirwayRequests] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_airway_requests');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      {
-        id: 'AIR-0001',
-        customerName: 'Marcus Lim',
-        company: 'Changi Aviation Logistics Pte Ltd',
-        email: 'ops@changiaviation.sg',
-        phone: '+65 6543 2100',
-        receiverName: 'Somchai Prasert',
-        receiverCompany: 'Bangkok Air Logistics Co., Ltd',
-        receiverEmail: 'import@bangkokairlogistics.co.th',
-        receiverPhone: '+66 2 134 8888',
-        incoterm: 'FOB',
-        origin: 'SIN - Singapore Changi Airport (Air Cargo Complex)',
-        destination: 'BKK - Bangkok Suvarnabhumi Airport',
-        cargoDescription: 'Precision aircraft avionics replacement components & calibration units',
-        packagesCount: '4 wooden crates',
-        totalWeight: '320 kg',
-        dimensions: '120 x 80 x 75 cm per crate',
-        approximateValue: 'SGD 45,000',
-        services: ['AWB Preparation', 'AWB Billing', 'Shipment Documentation', 'Transportation Support'],
-        documents: [
-          { name: 'Commercial_Invoice_Avionics_001.pdf', type: 'Commercial Invoice', size: '245 KB' },
-          { name: 'Packing_List_Crates_1-4.pdf', type: 'Packing List', size: '110 KB' },
-          { name: 'Certificate_of_Origin_SG_Avionics.pdf', type: 'Certificate of Origin', size: '180 KB' }
-        ],
-        date: '2026-09-24',
-        status: 'Under Review',
-        adminNotes: 'IATA master AWB draft prepared with Singapore Airlines Cargo (SQ). Validated shipper export code.'
-      },
-      {
-        id: 'AIR-0002',
-        customerName: 'Elena Rostova',
-        company: 'BioPharma Asia Express',
-        email: 'supplychain@biopharma-asia.com',
-        phone: '+65 8234 5678',
-        receiverName: 'Kenji Takahashi',
-        receiverCompany: 'Narita Clinical Distribution KK',
-        receiverEmail: 'k.takahashi@naritaclinical.co.jp',
-        receiverPhone: '+81 3 5555 0142',
-        incoterm: 'FOB',
-        origin: 'HarbourFront Biomedical Hub, Singapore',
-        destination: 'NRT - Tokyo Narita International Airport',
-        cargoDescription: 'Temperature-controlled diagnostic reagents & cold-chain test kits',
-        packagesCount: '12 insulated cartons',
-        totalWeight: '185 kg',
-        dimensions: '50 x 50 x 40 cm',
-        approximateValue: 'SGD 28,000',
-        services: ['AWB Preparation', 'Shipment Documentation'],
-        documents: [
-          { name: 'Biopharma_Commercial_Invoice.pdf', type: 'Commercial Invoice', size: '320 KB' },
-          { name: 'Cold_Chain_Certificate_Of_Origin.pdf', type: 'Certificate of Origin', size: '195 KB' }
-        ],
-        date: '2026-09-23',
-        status: 'Documentation',
-        adminNotes: 'Chemical export clearance permit attached.'
-      },
-      {
-        id: 'AIR-0003',
-        customerName: 'Darren Koh',
-        company: 'Customer Company',
-        email: 'logistics.sg@customercompany.com',
-        phone: '+65 6789 0123',
-        receiverName: 'Min-Jun Park',
-        receiverCompany: 'Seoul E-Sports Hardware Hub',
-        receiverEmail: 'park.mj@seoulelectronics.co.kr',
-        receiverPhone: '+82 2 3456 7890',
-        incoterm: 'FOB',
-        origin: 'Raffles Logistics Bay, Singapore',
-        destination: 'ICN - Seoul Incheon Airport',
-        cargoDescription: 'High-end gaming microprocessor prototype samples',
-        packagesCount: '2 secure palletized boxes',
-        totalWeight: '95 kg',
-        dimensions: '80 x 60 x 50 cm',
-        approximateValue: 'SGD 62,000',
-        services: ['AWB Preparation', 'AWB Billing', 'Transportation Support'],
-        documents: [
-          { name: 'Commercial_Invoice_KR.pdf', type: 'Commercial Invoice', size: '185 KB' },
-          { name: 'Dangerous_Goods_Exemption_Declaration.pdf', type: 'Other Shipment Documents', size: '140 KB' }
-        ],
-        date: '2026-09-22',
-        status: 'Billing',
-        adminNotes: 'AWB billing invoice sent to customer finance department.'
-      }
-    ];
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_airway_requests', JSON.stringify(airwayRequests));
-    } catch (e) {}
-  }, [airwayRequests]);
+  const [airwayRequests, setAirwayRequests] = useState([]);
 
   // Website Notification System State (Loaded from Supabase notifications table for logged-in user)
   const [notifications, setNotifications] = useState([]);
 
-  // Phase 3: Customers Directory
-  const [customers, setCustomers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_customers');
-      return saved ? JSON.parse(saved) : initialCustomers;
-    } catch (e) {
-      return initialCustomers;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_customers', JSON.stringify(customers));
-    } catch (e) {}
-  }, [customers]);
+  // Phase 3: Customers Directory (Loaded from database only)
+  const [customers, setCustomers] = useState([]);
 
   // Phase 3: Linked Shipment Documents
   const [documents, setDocuments] = useState(() => {
@@ -339,35 +182,10 @@ export const LogisticsProvider = ({ children }) => {
   }, [tickets]);
 
   // Transportation Partners (Contracted Commercial Roadway Haulers)
-  const [transportationPartners, setTransportationPartners] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_transport_partners');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return initialTransportationPartners;
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_transport_partners', JSON.stringify(transportationPartners));
-    } catch (e) {}
-  }, [transportationPartners]);
+  const [transportationPartners, setTransportationPartners] = useState([]);
 
   // CRM Module: Leads & Pipeline
-  const [leads, setLeads] = useState(() => {
-    try {
-      const saved = localStorage.getItem('josan_leads');
-      return saved ? JSON.parse(saved) : initialLeads;
-    } catch (e) {
-      return initialLeads;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('josan_leads', JSON.stringify(leads));
-    } catch (e) {}
-  }, [leads]);
+  const [leads, setLeads] = useState([]);
 
   // CRM Module: Communications Log
   const [communications, setCommunications] = useState(() => {
@@ -566,7 +384,15 @@ export const LogisticsProvider = ({ children }) => {
   const [crmRolePermissions, setCrmRolePermissions] = useState(() => {
     try {
       const saved = localStorage.getItem('josan_crm_permissions');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return Object.fromEntries(
+          Object.entries(initialCrmRolePermissions).map(([role, defaults]) => [
+            role,
+            { ...defaults, ...(parsed?.[role] || {}) }
+          ])
+        );
+      }
     } catch (e) {}
     return initialCrmRolePermissions;
   });
@@ -666,7 +492,8 @@ export const LogisticsProvider = ({ children }) => {
             text: 'Air freight documentation support and road transportation coordination in Singapore.'
           },
           airFreight: initialWebsiteContent.airFreight,
-          roadFreight: initialWebsiteContent.roadFreight
+          roadFreight: initialWebsiteContent.roadFreight,
+          tracking: initialWebsiteContent.tracking
         };
       }
     } catch (e) {}
@@ -906,6 +733,8 @@ export const LogisticsProvider = ({ children }) => {
       const dbShipments = await supabaseApi.getShipments();
       if (dbShipments && dbShipments.length > 0) {
         setShipments(dbShipments);
+      } else {
+        setShipments([]);
       }
 
       const dbDrivers = await supabaseApi.getDrivers();
@@ -932,17 +761,25 @@ export const LogisticsProvider = ({ children }) => {
       }
 
       const dbCustomers = await supabaseApi.getCustomers();
-      if (dbCustomers && dbCustomers.length > 0) {
-        setCustomers(prev => {
-          const dbIds = new Set(dbCustomers.map(c => c.id));
-          const localOnly = (prev || []).filter(c => c && c.id && !dbIds.has(c.id));
-          return [...dbCustomers, ...localOnly];
-        });
+      if (Array.isArray(dbCustomers) && dbCustomers.length > 0) {
+        setCustomers(dbCustomers);
+      } else {
+        setCustomers([]);
       }
     };
 
     loadSupabaseData();
 
+    // Listen to Auth state changes to reload shipments on sign-in and sign-out
+    const unsubscribe = supabaseApi.onAuthStateChange(() => {
+      loadSupabaseData();
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, []);
 
   // Real-time Connection State
@@ -958,40 +795,30 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [driverIntimations]);
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const savedStaff = localStorage.getItem('josan_staff_user');
-      if (savedStaff) {
-        const parsed = JSON.parse(savedStaff);
-        if (parsed?.isTest || parsed?.isDemo) {
-          localStorage.removeItem('josan_staff_user');
-          return null;
-        }
-        const staffRole = normalizeRole(parsed?.role || parsed?.rawRole);
-        if (parsed?.id && isStaffRole(staffRole)) {
-          return parsed;
-        }
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Ensure any stale client-side customer/role localStorage keys or invalid test sessions are removed
+  // Reload shipments when authenticated user state changes
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    const reloadShipments = async () => {
+      const dbShipments = await supabaseApi.getShipments();
+      setShipments(Array.isArray(dbShipments) ? dbShipments : []);
+    };
+    reloadShipments();
+  }, [currentUser]);
+
+  // Ensure any stale client-side customer/role/shipment localStorage keys or invalid test sessions are removed
   useEffect(() => {
     try {
+      localStorage.removeItem('josan_customers');
+      localStorage.removeItem('josan_shipments');
       localStorage.removeItem('josan_user');
       localStorage.removeItem('josan_role');
-      const savedStaff = localStorage.getItem('josan_staff_user');
-      if (savedStaff) {
-        const parsed = JSON.parse(savedStaff);
-        const staffRole = normalizeRole(parsed?.role || parsed?.rawRole);
-        if (parsed?.isTest || parsed?.isDemo || !parsed?.id || !isStaffRole(staffRole)) {
-          localStorage.removeItem('josan_staff_user');
-          setCurrentUser(null);
-        }
-      }
+      localStorage.removeItem('josan_staff_user');
+      localStorage.removeItem('josan_airway_requests');
+      localStorage.removeItem('josan_transport_partners');
+      localStorage.removeItem('josan_leads');
+      localStorage.removeItem('josan_addresses');
     } catch (e) {}
   }, []);
 
@@ -1065,6 +892,44 @@ export const LogisticsProvider = ({ children }) => {
     };
 
     loadStaffQuotes();
+
+    const channel = supabase
+      .channel('quote_requests_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quote_requests' }, () => {
+        loadStaffQuotes();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser]);
+
+  // Load customers from Supabase profiles table for logged-in staff (ADMIN, CRM, READONLY)
+  useEffect(() => {
+    const canLoadCustomers = Boolean(
+      currentUser &&
+      isStaffRole(currentUser?.role || currentUser?.rawRole)
+    );
+    if (!canLoadCustomers) {
+      setCustomers([]);
+      return;
+    }
+
+    const loadStaffCustomers = async () => {
+      try {
+        const dbCustomers = await supabaseApi.getCustomers();
+        if (Array.isArray(dbCustomers)) {
+          setCustomers(dbCustomers);
+        } else {
+          setCustomers([]);
+        }
+      } catch (e) {
+        setCustomers([]);
+      }
+    };
+
+    loadStaffCustomers();
   }, [currentUser]);
 
   // Load staff notifications from Supabase notifications table for logged-in user
@@ -1131,27 +996,7 @@ export const LogisticsProvider = ({ children }) => {
   const [driverSubTab, setDriverSubTab] = useState('dashboard');
 
   // Saved Addresses State
-  const [addressList, setAddressList] = useState(() => {
-    const defaultAddresses = [
-      { id: 1, label: 'Primary Sim Lim Tower HQ Office', address: COMPANY_INFO.address, contact: 'Tan Wei Ming (Operations)', type: 'pickup' },
-      { id: 2, label: 'Changi Air Cargo Logistics Hub', address: 'Air Cargo Road, Complex Bay #4, Singapore 819830', contact: 'Gurpreet Singh (Dispatch Spec)', type: 'pickup' },
-      { id: 3, label: 'Downtown Retail Outlet', address: '89 Orchard Road, Singapore 238854', contact: 'Store Manager', type: 'drop' },
-      { id: 4, label: 'West Coast Hub Terminal', address: '12 Pioneer Sector 3, Singapore 628349', contact: 'Receiving Dock', type: 'drop' }
-    ];
-    try {
-      const saved = localStorage.getItem('josan_addresses');
-      if (!saved) return defaultAddresses;
-      const parsed = JSON.parse(saved);
-      if (!Array.isArray(parsed)) return defaultAddresses;
-      return parsed.map(item =>
-        item && (item.id === 1 || isLegacyOfficeAddress(item.address))
-          ? { ...item, label: 'Primary Sim Lim Tower HQ Office', address: COMPANY_INFO.address }
-          : item
-      );
-    } catch (e) {
-      return defaultAddresses;
-    }
-  });
+  const [addressList, setAddressList] = useState([]);
 
   const addSavedAddress = (newAddressObj) => {
     setAddressList(prev => [...prev, newAddressObj]);
@@ -1165,14 +1010,6 @@ export const LogisticsProvider = ({ children }) => {
     setAddressList(prev => prev.filter(a => a.id !== id));
   };
 
-  useEffect(() => {
-    localStorage.setItem('josan_addresses', JSON.stringify(addressList));
-  }, [addressList]);
-
-  // Save to localStorage
-  useEffect(() => {
-    localStorage.setItem('josan_shipments', JSON.stringify(shipments));
-  }, [shipments]);
 
   useEffect(() => {
     localStorage.setItem('josan_drivers', JSON.stringify(drivers));
@@ -1207,15 +1044,12 @@ export const LogisticsProvider = ({ children }) => {
       name: details.name || details.fullName || (email ? email.split('@')[0] : 'Staff Member'),
       email: details.email || email,
       role: normRole,
-      displayRole: details.displayRole || (normRole === 'ADMIN' ? 'Admin' : normRole === 'CRM' ? 'CRM Operations' : 'Read-only'),
+      displayRole: details.displayRole || getRoleDisplayName(normRole),
       company: details.company || 'Josan Logistics Operations'
     };
 
     setCurrentUser(userObj);
     setCurrentRole(normRole);
-    try {
-      localStorage.setItem('josan_staff_user', JSON.stringify(userObj));
-    } catch (e) {}
 
     setIsAuthModalOpen(false);
     setAuthModalHideClose(false);
@@ -1228,8 +1062,12 @@ export const LogisticsProvider = ({ children }) => {
       }
     }
 
-    const portalName = normRole === 'ADMIN' ? 'Admin Hub' : 'CRM Portal';
-    showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
+    if (normRole === 'READONLY') {
+      showToast('Signed in as Read-only.', 'success');
+    } else {
+      const portalName = normRole === 'ADMIN' ? 'Admin Hub' : 'CRM Portal';
+      showToast(`Logged in successfully as ${userObj.name} (${portalName})`);
+    }
     return { success: true, user: userObj };
   };
 
@@ -1240,7 +1078,7 @@ export const LogisticsProvider = ({ children }) => {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('josan_')) {
+        if (key && key.startsWith('josan_') && key !== 'josan_registration_cooldowns') {
           keysToRemove.push(key);
         }
       }
@@ -1265,6 +1103,141 @@ export const LogisticsProvider = ({ children }) => {
       showToast('Logged out successfully', 'info');
     }
   };
+
+  // Expire authenticated session after 15 minutes of inactivity
+  const handleSessionExpiration = React.useCallback((options = {}) => {
+    if (isExpiringSessionRef.current) return;
+    isExpiringSessionRef.current = true;
+
+    const userToLogout = options.user || currentUser;
+    const wasStaff = userToLogout && isStaffRole(userToLogout.role || userToLogout.rawRole);
+    const wasAdmin = userToLogout && (userToLogout.role === 'ADMIN');
+
+    setCurrentUser(null);
+    setCurrentRole('CUSTOMER');
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('josan_') && key !== 'josan_registration_cooldowns') {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch (e) {}
+
+    try {
+      if (supabase && supabase.auth) {
+        supabase.auth.signOut().catch(() => {});
+      }
+    } catch (e) {}
+
+    const expiredMsg = 'Your session has expired. Please log in again.';
+    setSessionExpiredMessage(expiredMsg);
+    showToast(expiredMsg, 'warning', 15000);
+
+    if (wasStaff) {
+      const dest = wasAdmin ? 'admin-login' : 'staff-login';
+      if (typeof window !== 'undefined') {
+        window.location.hash = '#' + dest;
+        if (window.history && window.history.pushState) {
+          window.history.pushState({ tab: dest }, '', '#' + dest);
+        }
+      }
+    } else {
+      if (typeof window !== 'undefined') {
+        window.location.hash = '#home';
+        if (window.history && window.history.pushState) {
+          window.history.pushState({ tab: 'home' }, '', '#home');
+        }
+      }
+      setIsAuthModalOpen(true);
+    }
+
+    setTimeout(() => {
+      isExpiringSessionRef.current = false;
+    }, 1000);
+  }, [currentUser, showToast, setIsAuthModalOpen]);
+
+  // Reset activity timestamp when currentUser logs in
+  useEffect(() => {
+    if (currentUser) {
+      const now = Date.now();
+      lastRecordedActivityRef.current = now;
+      try {
+        localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(now));
+      } catch (e) {}
+    }
+  }, [currentUser?.id]);
+
+  // Track user interactions to update activity timestamp (throttled to 5 seconds)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const recordUserActivity = () => {
+      const now = Date.now();
+      if (now - lastRecordedActivityRef.current >= 5000) {
+        lastRecordedActivityRef.current = now;
+        try {
+          localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(now));
+        } catch (e) {}
+      }
+    };
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach(evt => window.addEventListener(evt, recordUserActivity, { passive: true }));
+
+    return () => {
+      activityEvents.forEach(evt => window.removeEventListener(evt, recordUserActivity));
+    };
+  }, [currentUser]);
+
+  // Inactivity watchdog: checks every 2 seconds, on tab focus, and visibility change
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const checkInactivity = () => {
+      if (!currentUser || isExpiringSessionRef.current) return;
+      const now = Date.now();
+      let lastActive = lastRecordedActivityRef.current;
+      try {
+        const stored = localStorage.getItem(LAST_ACTIVITY_STORAGE_KEY);
+        if (stored) {
+          lastActive = parseInt(stored, 10);
+        }
+      } catch (e) {}
+
+      if (now - lastActive >= SESSION_INACTIVITY_LIMIT_MS) {
+        handleSessionExpiration();
+      }
+    };
+
+    const interval = setInterval(checkInactivity, 2000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkInactivity();
+      }
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === LAST_ACTIVITY_STORAGE_KEY && e.newValue) {
+        lastRecordedActivityRef.current = parseInt(e.newValue, 10);
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', checkInactivity);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', checkInactivity);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [currentUser, handleSessionExpiration]);
 
   const updateUserProfile = (updatedDetails) => {
     setCurrentUser(prev => ({
@@ -1294,12 +1267,14 @@ export const LogisticsProvider = ({ children }) => {
       isTest,
       sender: newShipmentData.senderName || currentUser?.name || 'Valued Customer',
       senderPhone: newShipmentData.senderPhone || '+65 6789 0123',
-      senderAddress: newShipmentData.pickupAddress || 'Singapore Logistics Terminal 4',
+      senderAddress: newShipmentData.pickupAddress || newShipmentData.senderAddress || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
+      pickupAddress: newShipmentData.pickupAddress || newShipmentData.senderAddress || '12 Woodlands Loop, #02-05, Woodlands East, Singapore 738340',
       receiver: newShipmentData.receiverName || 'Recipient',
       receiverPhone: newShipmentData.receiverPhone || '+65 6789 0123',
-      receiverAddress: newShipmentData.deliveryAddress || 'Singapore Destination Address',
-      origin: newShipmentData.pickupCity || 'Changi Air Cargo Hub',
-      destination: newShipmentData.deliveryCity || 'West Coast Hub Terminal',
+      receiverAddress: newShipmentData.deliveryAddress || newShipmentData.receiverAddress || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
+      deliveryAddress: newShipmentData.deliveryAddress || newShipmentData.receiverAddress || '8 Changi South Street 1, JTC Logistics Hub, Singapore 486790',
+      origin: newShipmentData.pickupAddress || newShipmentData.pickupCity || newShipmentData.origin || '12 Woodlands Loop, #02-05, Singapore 738340',
+      destination: newShipmentData.deliveryAddress || newShipmentData.deliveryCity || newShipmentData.destination || '8 Changi South Street 1, Singapore 486790',
       currentLocation: `${newShipmentData.pickupCity || 'Changi Hub'} Sorting Facility`,
       status: 'ASSIGNED',
       statusType: 'active',
@@ -1357,13 +1332,7 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const deleteShipment = async (shipmentId) => {
-    setShipments(prev => {
-      const updated = prev.filter(s => s.id !== shipmentId);
-      try {
-        localStorage.setItem('josan_shipments', JSON.stringify(updated));
-      } catch (e) {}
-      return updated;
-    });
+    setShipments(prev => prev.filter(s => s.id !== shipmentId));
 
     if (isSupabaseConfigured) {
       await supabaseApi.deleteShipment(shipmentId);
@@ -1774,114 +1743,6 @@ export const LogisticsProvider = ({ children }) => {
     showToast('Notifications cleared', 'info');
   };
 
-  // Quotation Management Operations
-  const requestQuote = (quoteData) => {
-    const isTestRequest = Boolean(quoteData.isTest || quoteData.status === 'Test');
-    const quoteId = quoteData.id || quoteData.referenceNumber || (isTestRequest ? 'TQ-TEST-0001' : 'QR-REFD-0001');
-    const weightVal = Number(quoteData.cargoWeight) || 100;
-
-    const newQuote = {
-      id: quoteId,
-      referenceNumber: quoteId,
-      requestId: quoteId,
-      customerId: currentUser?.id || 'USR-GUEST',
-      customerName: quoteData.contactName || currentUser?.name || 'Customer',
-      customerEmail: quoteData.contactEmail || currentUser?.email || 'contact@client.com',
-      customerPhone: quoteData.contactPhone || currentUser?.phone || '+65 6789 0123',
-      company: quoteData.contactCompany || currentUser?.company || 'Commercial Shipper',
-      origin: quoteData.originAddress || quoteData.originZone || 'Singapore Central Logistics Hub',
-      destination: quoteData.destinationAddress || quoteData.destinationZone || 'Woodlands Distribution Complex',
-      service: quoteData.service || (quoteData.serviceCategory === 'air-freight' ? 'Air Freight Documentation Support' : quoteData.serviceCategory === 'road-transport' ? 'Commercial Road Transportation Coordination' : 'Shipment Documentation Support'),
-      cargoCategory: quoteData.cargoCategory || 'General Commercial Cargo',
-      cargoWeight: weightVal,
-      freightMode: quoteData.roadLoadType || quoteData.freightMode || 'ltl',
-      deliverySpeed: quoteData.deliverySpeed || 'standard',
-      notes: quoteData.cargoDescription || quoteData.specialInstructions || '',
-      isTest: isTestRequest,
-      status: isTestRequest ? 'Test' : 'Requested',
-      staffPriced: false,
-      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      validUntil: new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-      total: null,
-      amount: null,
-      lineItems: null,
-      adminNotes: 'Awaiting operations review and vehicle allocation.'
-    };
-
-    setQuotes(prev => {
-      const filtered = (prev || []).filter(q => q.id !== quoteId && q.referenceNumber !== quoteId);
-      const updated = [newQuote, ...filtered];
-      
-      return updated;
-    });
-
-    // If Air Freight, also route into airwayRequests so CRM Air Freight tab shows it immediately
-    if (quoteData.serviceCategory === 'air-freight' || (newQuote.service && newQuote.service.toLowerCase().includes('air'))) {
-      const airwayReq = {
-        id: `AIR-${quoteId.replace(/[^0-9]/g, '').slice(-4) || String(Math.floor(1000 + Math.random() * 9000))}`,
-        quoteId: quoteId,
-        referenceNumber: quoteId,
-        customerName: newQuote.customerName,
-        company: newQuote.company,
-        email: newQuote.customerEmail,
-        phone: newQuote.customerPhone,
-        origin: newQuote.origin,
-        destination: newQuote.destination,
-        cargoDescription: quoteData.cargoDescription || newQuote.notes || 'Air freight consignment',
-        packagesCount: quoteData.packageCount ? `${quoteData.packageCount} packages` : '1 package',
-        totalWeight: `${weightVal} kg`,
-        dimensions: quoteData.dimensions || 'Standard Cargo',
-        services: ['AWB Preparation', 'Shipment Documentation', 'Air Freight Support'],
-        date: new Date().toISOString().split('T')[0],
-        status: 'New',
-        adminNotes: `Generated from quote request #${quoteId}.`
-      };
-      setAirwayRequests(prev => {
-        const filtered = (prev || []).filter(r => r.quoteId !== quoteId && r.referenceNumber !== quoteId);
-        const updatedAir = [airwayReq, ...filtered];
-        try {
-          localStorage.setItem('josan_airway_requests', JSON.stringify(updatedAir));
-        } catch (e) {}
-        return updatedAir;
-      });
-    }
-
-    // Auto-add customer to CRM customers list if not present
-    if (newQuote.customerEmail) {
-      setCustomers(prev => {
-        const exists = (prev || []).some(c => c.email?.toLowerCase() === newQuote.customerEmail.toLowerCase());
-        if (!exists) {
-          const newCust = {
-            id: `CUST-${Date.now().toString().slice(-4)}`,
-            name: newQuote.customerName,
-            email: newQuote.customerEmail,
-            phone: newQuote.customerPhone,
-            company: newQuote.company,
-            tier: 'Standard Corporate',
-            status: 'Active',
-            joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          };
-          const updatedCust = [newCust, ...(prev || [])];
-          try {
-            localStorage.setItem('josan_customers', JSON.stringify(updatedCust));
-          } catch (e) {}
-          return updatedCust;
-        }
-        return prev;
-      });
-    }
-
-    addNotification({
-      role: 'admin',
-      type: 'quote_request',
-      title: `📥 New Quote Request #${quoteId}`,
-      message: `${newQuote.customerName} (${newQuote.company}) requested a quote for ${newQuote.origin} → ${newQuote.destination}.`,
-      quoteId
-    });
-
-    showToast(`Quotation #${quoteId} created! Our operations desk has been notified.`, 'success');
-    return newQuote;
-  };
 
   const updateAdminQuote = async (quoteId, quotedAmount, adminNotes) => {
     const rawRole = currentUser?.role || currentUser?.rawRole || currentRole;
@@ -1974,7 +1835,7 @@ export const LogisticsProvider = ({ children }) => {
       ? `S$ ${Number(q.total).toFixed(2)}`
       : (q.amount !== null && q.amount !== undefined ? `S$ ${Number(q.amount).toFixed(2)}` : (q.lineItems?.finalAmount ? `S$ ${Number(q.lineItems.finalAmount).toFixed(2)}` : 'S$ 0.00'));
 
-    const newShipmentId = `JOS-${Math.floor(10000 + Math.random() * 90000)}-SG`;
+    const newShipmentId = `JOS-${Math.floor(10000 + Math.random() * 90000)}`;
     const newShipment = {
       id: newShipmentId,
       referenceNumber: `REF-${q.id.replace(/[^0-9]/g, '').slice(-4)}-SG`,
@@ -2034,58 +1895,134 @@ export const LogisticsProvider = ({ children }) => {
       return isNaN(num) ? 0 : num;
     });
     const nextNum = (existingNums.length > 0 ? Math.max(...existingNums) : 0) + 1;
-    const formattedId = `AIR-${String(nextNum).padStart(4, '0')}`;
+    const formattedId = `AWS-${String(nextNum).padStart(5, '0')}`;
 
     const newRequest = {
       id: formattedId,
       customerName: requestData.customerName || requestData.fullName || 'Commercial Shipper',
       company: requestData.company || requestData.companyName || 'Corporate Client',
-      email: requestData.email,
-      phone: requestData.phone,
+      email: requestData.email || '',
+      phone: requestData.phone || '',
       receiverName: requestData.receiverName || 'Designated Consignee',
       receiverCompany: requestData.receiverCompany || '',
       receiverEmail: requestData.receiverEmail || '',
       receiverPhone: requestData.receiverPhone || '',
-      incoterm: requestData.incoterm || 'FOB',
-      origin: requestData.origin,
-      destination: requestData.destination,
-      cargoDescription: requestData.cargoDescription,
-      packagesCount: requestData.packagesCount,
-      totalWeight: requestData.totalWeight,
-      dimensions: requestData.dimensions || 'Standard Cargo',
-      approximateValue: requestData.approximateValue || 'SGD 10,000',
-      services: requestData.services || ['AWB Preparation'],
+      shipperName: requestData.shipperName || requestData.customerName || requestData.company || 'Commercial Shipper',
+      shipperAddress: requestData.shipperAddress || '[CONFIRM]',
+      shipperContact: requestData.shipperContact || requestData.phone || requestData.email || '',
+      consigneeName: requestData.consigneeName || requestData.receiverName || requestData.receiverCompany || 'Designated Consignee',
+      consigneeAddress: requestData.consigneeAddress || '[CONFIRM]',
+      consigneeContact: requestData.consigneeContact || requestData.receiverPhone || requestData.receiverEmail || '',
+      origin: requestData.origin || 'SIN - Singapore Changi Airport',
+      destination: requestData.destination || 'BKK - Bangkok Suvarnabhumi Airport',
+      originAirport: requestData.originAirport || requestData.origin || 'SIN - Singapore Changi Airport',
+      destinationAirport: requestData.destinationAirport || requestData.destination || 'BKK - Bangkok Suvarnabhumi Airport',
+      plannedDate: requestData.plannedDate || requestData.date || '[CONFIRM]',
+      airline: requestData.airline || '',
+      flightNumber: requestData.flightNumber || '',
+      cargoDescription: requestData.cargoDescription || 'General commercial cargo',
+      packagesCount: requestData.packagesCount || 1,
+      grossWeight: requestData.grossWeight || requestData.totalWeight || '100 kg',
+      dimensions: requestData.dimensions || '100 × 80 × 80 cm',
+      lengthCm: requestData.lengthCm || 100,
+      widthCm: requestData.widthCm || 80,
+      heightCm: requestData.heightCm || 80,
+      volumetricWeight: requestData.volumetricWeight || 106.67,
+      chargeableWeight: requestData.chargeableWeight || 106.67,
+      ratePerKg: requestData.ratePerKg || 0,
+      freight: requestData.freight || 0,
+      documentFee: requestData.documentFee || '[CONFIRM]',
+      otherCharges: requestData.otherCharges || 0,
+      totalCharges: requestData.totalCharges || 0,
+      paymentTerms: requestData.paymentTerms || 'Prepaid',
+      invoiceReceived: requestData.invoiceReceived || false,
+      packingListReceived: requestData.packingListReceived || false,
+      awbDocumentIssued: requestData.awbDocumentIssued || false,
+      awbNumber: requestData.awbNumber || '',
+      quoteStatus: requestData.quoteStatus || 'Draft',
+      quoteSentDate: requestData.quoteSentDate || '',
+      quoteAmount: requestData.quoteAmount || '',
+      paymentStatus: requestData.paymentStatus || 'Unpaid',
+      paymentMethod: requestData.paymentMethod || 'Bank transfer [CONFIRM]',
+      assignedTo: requestData.assignedTo || 'Unassigned',
       documents: requestData.documents || [],
       date: new Date().toISOString().split('T')[0],
-      status: 'New',
-      adminNotes: 'New customer airway service request received.'
+      status: requestData.status || 'New',
+      adminNotes: requestData.adminNotes || requestData.notes || '',
+      history: requestData.history || [
+        {
+          date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+          user: 'System',
+          action: 'Request received from customer'
+        }
+      ]
     };
 
     setAirwayRequests(prev => [newRequest, ...prev]);
 
     if (!requestData.quoteId && !requestData.referenceNumber) {
       addNotification({
-      role: 'admin',
-      type: 'airway_request',
-      title: `✈️ New Airway Service Request (${formattedId})`,
-      message: `${newRequest.customerName} (${newRequest.company}) requested airway coordination for ${newRequest.origin} → ${newRequest.destination}.`,
-      timestamp: 'Just Now',
-      read: false
-    });
+        role: 'admin',
+        type: 'airway_request',
+        title: `✈️ New Airway Request (${formattedId})`,
+        message: `${newRequest.customerName} (${newRequest.company}) requested air freight documents for ${newRequest.origin} → ${newRequest.destination}.`,
+        timestamp: 'Just Now',
+        read: false
+      });
     }
 
-    showToast(`Airway Service Request #${formattedId} submitted successfully!`, 'success');
+    showToast(`Air Freight Request #${formattedId} submitted successfully!`, 'success');
     return newRequest;
   };
 
   const updateAirwayRequestStatus = (id, newStatus) => {
-    setAirwayRequests(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    setAirwayRequests(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const history = Array.isArray(r.history) ? [...r.history] : [];
+      history.push({
+        date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+        user: currentUser?.name || 'Operations Staff',
+        action: `Status changed from ${r.status || 'New'} to ${newStatus}`
+      });
+      return {
+        ...r,
+        status: newStatus,
+        history
+      };
+    }));
     showToast(`Airway Request #${id} status updated to ${newStatus}`, 'success');
   };
 
   const updateAirwayRequestNotes = (id, notes) => {
     setAirwayRequests(prev => prev.map(r => r.id === id ? { ...r, adminNotes: notes } : r));
-    showToast(`Admin note saved for Airway Request #${id}`, 'success');
+    showToast(`Notes saved for Airway Request #${id}`, 'success');
+  };
+
+  const updateAirwayRequest = (id, updatedFields) => {
+    setAirwayRequests(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const history = Array.isArray(r.history) ? [...r.history] : [];
+      if (updatedFields.status && updatedFields.status !== r.status) {
+        history.push({
+          date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+          user: currentUser?.name || 'Operations Staff',
+          action: `Status changed from ${r.status || 'New'} to ${updatedFields.status}`
+        });
+      }
+      if (updatedFields.assignedTo && updatedFields.assignedTo !== r.assignedTo) {
+        history.push({
+          date: new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'short', timeStyle: 'short' }),
+          user: currentUser?.name || 'Operations Staff',
+          action: `Assigned to ${updatedFields.assignedTo}`
+        });
+      }
+      return {
+        ...r,
+        ...updatedFields,
+        history
+      };
+    }));
+    showToast(`Airway Request #${id} updated`, 'success');
   };
 
   // ==========================================
@@ -2129,7 +2066,7 @@ export const LogisticsProvider = ({ children }) => {
       shipmentId: ticketData.shipmentId !== 'General Inquiry' ? ticketData.shipmentId : null
     });
 
-    showToast(`Support Ticket #${ticketId} submitted to operations team!`, 'success');
+    showToast('This form is not connected to our team yet. Please use Get a Quote or email us.', 'info');
     return newTicket;
   };
 
@@ -2335,9 +2272,9 @@ export const LogisticsProvider = ({ children }) => {
       phone: targetLead.phone,
       company: targetLead.company || targetLead.name,
       address: extraDetails.address || 'Singapore Logistics Hub, SG',
-      tier: extraDetails.tier || 'Standard Corporate',
+      tier: extraDetails.tier || '',
       creditLimit: extraDetails.creditLimit || 'S$ 35,000',
-      paymentTerms: extraDetails.paymentTerms || 'Net 30 Days',
+      paymentTerms: extraDetails.paymentTerms || '',
       totalOrders: 0,
       totalSpent: 0,
       activeShipments: 0,
@@ -2830,7 +2767,7 @@ export const LogisticsProvider = ({ children }) => {
       email: customerData.email,
       phone: customerData.phone,
       address: customerData.address || 'Singapore',
-      tier: customerData.tier || 'Standard Corporate',
+      tier: customerData.tier || '',
       totalSpent: 'S$ 0.00',
       totalShipments: 0,
       status: 'Active',
@@ -2894,9 +2831,9 @@ export const LogisticsProvider = ({ children }) => {
       email: customerData.email,
       phone: customerData.phone,
       address: customerData.address || 'Singapore',
-      tier: customerData.tier || 'Standard Corporate',
+      tier: customerData.tier || '',
       creditLimit: customerData.creditLimit || 'S$ 30,000',
-      paymentTerms: customerData.paymentTerms || 'Net 30 Days',
+      paymentTerms: customerData.paymentTerms || '',
       totalOrders: 0,
       totalSpent: 0,
       activeShipments: 0,
@@ -3049,6 +2986,9 @@ export const LogisticsProvider = ({ children }) => {
       setIsAuthModalOpen,
       loginUser,
       logoutUser,
+      handleSessionExpiration,
+      sessionExpiredMessage,
+      setSessionExpiredMessage,
       updateUserProfile,
       addShipment,
       deleteShipment,
@@ -3120,7 +3060,6 @@ export const LogisticsProvider = ({ children }) => {
       reachDestination,
       verifyDeliveryOtp,
       submitPod,
-      requestQuote,
       updateAdminQuote,
       sendQuoteToCustomer,
       customerRespondQuote,
@@ -3129,6 +3068,7 @@ export const LogisticsProvider = ({ children }) => {
       addAirwayRequest,
       updateAirwayRequestStatus,
       updateAirwayRequestNotes,
+      updateAirwayRequest,
       transportationPartners,
       setTransportationPartners,
       addTransportationPartner,

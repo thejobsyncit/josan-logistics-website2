@@ -244,7 +244,7 @@ export const WebsiteContentTab = ({
           >
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Website Service Descriptions</h3>
-              <p className="text-xs text-slate-500">Descriptions for Josan's three core commercial services.</p>
+              <p className="text-xs text-slate-500">Descriptions for Josan's core commercial services.</p>
             </div>
 
             <div className="space-y-5">
@@ -294,31 +294,6 @@ export const WebsiteContentTab = ({
                     road: { ...servicesForm.road, shortDesc: e.target.value }
                   })}
                   placeholder="Short summary description"
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
-                />
-              </div>
-
-              {/* Documentation */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <span className="text-xs font-black uppercase text-slate-900 block">3. Shipment Documentation Support</span>
-                <input
-                  type="text"
-                  value={servicesForm.documentation?.title || ''}
-                  onChange={(e) => setServicesForm({
-                    ...servicesForm,
-                    documentation: { ...servicesForm.documentation, title: e.target.value }
-                  })}
-                  placeholder="Shipment Documentation Support"
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
-                />
-                <textarea
-                  rows="2"
-                  value={servicesForm.documentation?.shortDesc || ''}
-                  onChange={(e) => setServicesForm({
-                    ...servicesForm,
-                    documentation: { ...servicesForm.documentation, shortDesc: e.target.value }
-                  })}
-                  placeholder="Help preparing and organising shipment documents. Documentation support only; we do not provide customs clearance."
                   className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                 />
               </div>

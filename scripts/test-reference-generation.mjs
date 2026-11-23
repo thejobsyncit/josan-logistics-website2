@@ -36,33 +36,44 @@ for (let i = 0; i < 25; i++) {
   });
 }
 
-// 3. Generate 25 Real Shipments (JOS-XXXXXXXXXX)
+// 3. Generate 25 Real Road Shipments (JOS-XXXXX, strictly 5 characters)
 for (let i = 0; i < 25; i++) {
-  const s = generateShipmentTrackingNumberServer({ isTest: false });
+  const s = generateShipmentTrackingNumberServer({ isTest: false, service: 'road' });
   generatedNumbers.push({
-    category: 'Real Shipment',
+    category: 'Real Road',
     number: s.trackingNumber,
     isTest: s.isTest,
     expectedPrefix: 'JOS-'
   });
 }
 
-// 4. Generate 25 Test Shipments (TJOS-XXXXXXXXXX)
+// 4. Generate 25 Real Airway Shipments (AWS-XXXXX, strictly 5 characters)
 for (let i = 0; i < 25; i++) {
-  const s = generateShipmentTrackingNumberServer({ isTest: true });
+  const s = generateShipmentTrackingNumberServer({ isTest: false, service: 'airway' });
+  generatedNumbers.push({
+    category: 'Real Airway',
+    number: s.trackingNumber,
+    isTest: s.isTest,
+    expectedPrefix: 'AWS-'
+  });
+}
+
+// 5. Generate 25 Test Shipments (TJOS-XXXXX / TAWS-XXXXX, strictly 5 characters)
+for (let i = 0; i < 25; i++) {
+  const s = generateShipmentTrackingNumberServer({ isTest: true, service: i % 2 === 0 ? 'road' : 'airway' });
   generatedNumbers.push({
     category: 'Test Shipment',
     number: s.trackingNumber,
     isTest: s.isTest,
-    expectedPrefix: 'TJOS-'
+    expectedPrefix: i % 2 === 0 ? 'TJOS-' : 'TAWS-'
   });
 }
 
 // --- VERIFICATION SUITE ---
 
 // 1. Check Total Count
-if (generatedNumbers.length !== 100) {
-  errors.push(`Expected 100 numbers, generated ${generatedNumbers.length}`);
+if (generatedNumbers.length !== 125) {
+  errors.push(`Expected 125 numbers, generated ${generatedNumbers.length}`);
 }
 
 // 2. Check for Duplicate Numbers
@@ -98,11 +109,12 @@ if (illegalCharOccurrences.length > 0) {
   errors.push(`Found ${illegalCharOccurrences.length} illegal characters in random portions!`);
 }
 
-// 4. Check Format & Prefixes
+// 4. Check Format & Prefixes (Strictly 5 characters after JOS- and AWS-)
 const regexQuoteReal = /^QR-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}$/;
 const regexQuoteTest = /^TQ-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}$/;
-const regexShipmentReal = /^JOS-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{10}$/;
-const regexShipmentTest = /^TJOS-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{10}$/;
+const regexShipmentRoad = /^JOS-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{5}$/;
+const regexShipmentAirway = /^AWS-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{5}$/;
+const regexShipmentTest = /^(TJOS|TAWS)-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{5}$/;
 
 const formatFailures = [];
 generatedNumbers.forEach((item, idx) => {
@@ -110,10 +122,12 @@ generatedNumbers.forEach((item, idx) => {
     formatFailures.push({ index: idx + 1, item, expected: 'QR-XXXX-XXXX' });
   } else if (item.category === 'Test Quote' && !regexQuoteTest.test(item.number)) {
     formatFailures.push({ index: idx + 1, item, expected: 'TQ-XXXX-XXXX' });
-  } else if (item.category === 'Real Shipment' && !regexShipmentReal.test(item.number)) {
-    formatFailures.push({ index: idx + 1, item, expected: 'JOS-XXXXXXXXXX' });
+  } else if (item.category === 'Real Road' && !regexShipmentRoad.test(item.number)) {
+    formatFailures.push({ index: idx + 1, item, expected: 'JOS-XXXXX (5 chars)' });
+  } else if (item.category === 'Real Airway' && !regexShipmentAirway.test(item.number)) {
+    formatFailures.push({ index: idx + 1, item, expected: 'AWS-XXXXX (5 chars)' });
   } else if (item.category === 'Test Shipment' && !regexShipmentTest.test(item.number)) {
-    formatFailures.push({ index: idx + 1, item, expected: 'TJOS-XXXXXXXXXX' });
+    formatFailures.push({ index: idx + 1, item, expected: 'TJOS-XXXXX / TAWS-XXXXX (5 chars)' });
   }
 });
 

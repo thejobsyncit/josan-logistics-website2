@@ -186,8 +186,8 @@ export const CrmTransportationPartnersTab = ({
       {/* Partners Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredPartners.length === 0 ? (
-          <div className="col-span-full bg-white p-12 rounded-3xl border border-slate-200 text-center text-slate-400 font-medium">
-            No transportation partners found matching your search.
+          <div className="col-span-full bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-400 font-medium">
+            No partner carriers yet.
           </div>
         ) : (
           filteredPartners.map((partner) => {
@@ -393,7 +393,7 @@ export const CrmTransportationPartnersTab = ({
                   required
                   value={newPartnerData.name}
                   onChange={(e) => setNewPartnerData({ ...newPartnerData, name: e.target.value })}
-                  placeholder="e.g. Woodlands Roadways Logistics Pte Ltd"
+                  placeholder="Partner carrier name"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-[#2463EB]"
                 />
               </div>

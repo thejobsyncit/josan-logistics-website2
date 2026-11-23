@@ -13,7 +13,7 @@ import {
   FileText, 
   ExternalLink
 } from 'lucide-react';
-import { canEditRole, normalizeRole } from '../../utils/roles';
+import { canEditRole, getRoleDisplayName, normalizeRole } from '../../utils/roles';
 import { formatNotificationTime } from '../../utils/dateTime';
 
 export const CrmHeader = ({
@@ -149,7 +149,7 @@ export const CrmHeader = ({
 
         <div className="flex items-center space-x-2">
           <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider hidden sm:inline">
-            Josan CRM
+            JOSAN CRM
           </span>
           <span className="text-slate-300 hidden sm:inline">/</span>
           <h1 className="text-base sm:text-lg font-black text-slate-900 font-heading tracking-tight capitalize">
@@ -234,7 +234,7 @@ export const CrmHeader = ({
                     <Truck className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="font-extrabold text-slate-900 leading-tight">Road Coordination</p>
+                    <p className="font-extrabold text-slate-900 leading-tight">Road Jobs</p>
                     <p className="text-[10px] text-slate-500 font-medium">Book commercial roadway</p>
                   </div>
                 </button>
@@ -390,7 +390,7 @@ export const CrmHeader = ({
         {(() => {
           const staffName = currentUser?.name || currentUser?.fullName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Staff Member');
           const normRole = normalizeRole(currentUser?.role || currentUser?.rawRole);
-          const staffRole = currentUser?.displayRole || (normRole === 'ADMIN' ? 'Administrator' : normRole === 'READONLY' ? 'Read-only' : 'CRM Operations');
+          const staffRole = currentUser?.displayRole || getRoleDisplayName(normRole);
           const staffInitial = (staffName.charAt(0) || currentUser?.email?.charAt(0) || 'S').toUpperCase();
 
           return (

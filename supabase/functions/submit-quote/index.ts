@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { sendDriverAlert } from "../_shared/driverAlert.ts";
 
 // Simple email regex validation
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -285,7 +286,7 @@ serve(async (req: Request) => {
           quoted_amount: null,
         },
       ])
-      .select("reference")
+      .select("id, reference")
       .single();
 
     if (insertError || !inserted?.reference) {
@@ -315,6 +316,30 @@ serve(async (req: Request) => {
       }
     } catch (_notifErr) {
       // Non-blocking for the customer response
+    }
+
+    // 8. Driver alert trigger (switched OFF by default; fail-safe)
+    // Driver alerts configuration secrets: DRIVER_ALERTS_ENABLED, DRIVER_LINK_URL, DRIVER_LINK_SECRET
+    try {
+      const alertQuote = {
+        id: inserted.id,
+        service_type: serviceType,
+        pickup_location: pickupLocation,
+        delivery_location: deliveryLocation,
+        cargo_classification: cargoClassification,
+        gross_weight_kg: grossWeight,
+        preferred_pickup_date: preferredPickupDateStr,
+      };
+
+      if (typeof (globalThis as any).EdgeRuntime?.waitUntil === "function") {
+        (globalThis as any).EdgeRuntime.waitUntil(
+          sendDriverAlert(alertQuote, supabaseAdmin)
+        );
+      } else {
+        sendDriverAlert(alertQuote, supabaseAdmin).catch(() => {});
+      }
+    } catch (_alertErr) {
+      // Non-blocking for customer response
     }
 
     // 9. Return only { reference } on success

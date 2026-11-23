@@ -21,6 +21,7 @@ import {
   Clock, 
   RefreshCw,
   Eye,
+  EyeOff,
   Check
 } from 'lucide-react';
 import { useLogistics } from '../../context/LogisticsContext';
@@ -45,14 +46,22 @@ export const UserManagementTab = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('Operations Manager'); // 'Admin' | 'Operations Manager' | 'Coordinator' | 'Finance' | 'Read-only'
+  const [inviteRole, setInviteRole] = useState('OPERATIONS');
+  const [invitePassword, setInvitePassword] = useState('');
+  const [confirmInvitePassword, setConfirmInvitePassword] = useState('');
+  const [showInvitePassword, setShowInvitePassword] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState('');
 
-  // Invitation Success Dialog
-  const [invitationResult, setInvitationResult] = useState(null);
-  const [copiedLink, setCopiedLink] = useState(false);
+  const closeInviteModal = () => {
+    setIsInviteModalOpen(false);
+    setInvitePassword('');
+    setConfirmInvitePassword('');
+    setShowInvitePassword(false);
+  };
 
+  // Temporary-password account creation result
+  const [invitationResult, setInvitationResult] = useState(null);
   // Forced Reset Dialog
   const [forcedResetResult, setForcedResetResult] = useState(null);
   const [copiedResetLink, setCopiedResetLink] = useState(false);
@@ -72,9 +81,10 @@ export const UserManagementTab = () => {
   const normalizeRoleLabel = (rawRole) => {
     const r = (rawRole || '').toUpperCase();
     if (r === 'ADMIN') return 'Admin';
-    if (r === 'CRM' || r === 'CRM_MANAGER' || r === 'OPERATIONS MANAGER') return 'Operations Manager';
-    if (r === 'CRM_OPS' || r === 'COORDINATOR' || r === 'LOGISTICS DISPATCHER') return 'Coordinator';
-    if (r === 'CRM_FINANCE' || r === 'FINANCE' || r === 'BILLING & COMMERCIAL') return 'Finance';
+    if (r === 'CRM' || r === 'CRM_MANAGER' || r === 'CRM_OPS' || r === 'COORDINATOR') return 'CRM Operations (legacy)';
+    if (r === 'OPERATIONS') return 'Operations';
+    if (r === 'AIRWAY_EXECUTIVE') return 'Airway Executive';
+    if (r === 'FINANCE' || r === 'CRM_FINANCE' || r === 'BILLING & COMMERCIAL') return 'Finance Executive';
     if (r === 'READONLY' || r === 'VIEWER' || r === 'READ-ONLY' || r === 'OBSERVER') return 'Read-only';
     return rawRole || 'Operations Manager';
   };
@@ -87,7 +97,11 @@ export const UserManagementTab = () => {
       const { data: profiles, error: pError } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['ADMIN', 'CRM', 'READONLY', 'admin', 'crm', 'readonly', 'crm_manager', 'crm_ops', 'crm_finance', 'viewer']);
+        .in('role', [
+          'ADMIN', 'CRM', 'READONLY', 'OPERATIONS', 'FINANCE', 'AIRWAY_EXECUTIVE',
+          'admin', 'crm', 'readonly', 'operations', 'finance', 'airway_executive',
+          'crm_manager', 'crm_ops', 'crm_finance', 'viewer'
+        ]);
 
       let loaded = [];
       if (!pError && Array.isArray(profiles) && profiles.length > 0) {
@@ -214,7 +228,7 @@ export const UserManagementTab = () => {
     }
   }, [isAdmin]);
 
-  // Handle Send Invitation
+  // Create a staff account with an Admin-issued temporary password for testing.
   const handleSendInvite = async (e) => {
     e.preventDefault();
     setInviteError('');
@@ -222,48 +236,60 @@ export const UserManagementTab = () => {
       setInviteError('Please fill in both name and work email.');
       return;
     }
+    if (invitePassword.length < 6) {
+      setInviteError('Temporary password must be at least 06 characters.');
+      return;
+    }
+    if (invitePassword !== confirmInvitePassword) {
+      setInviteError('The passwords do not match.');
+      return;
+    }
 
     setInviteLoading(true);
     try {
       const cleanEmail = inviteEmail.trim().toLowerCase();
       const cleanName = inviteName.trim();
-      let dbRole = 'CRM';
-      if (inviteRole === 'Admin') dbRole = 'ADMIN';
-      else if (inviteRole === 'Read-only') dbRole = 'READONLY';
-
       // Requirement 4: Create staff only through a server function that uses the service-role key (server only)
       // Never set a role directly from the browser!
-      const token = (await supabase.auth.getSession())?.data?.session?.access_token;
+      const { data: refreshedSessionData, error: refreshError } = await supabase.auth.refreshSession();
+      let token = refreshedSessionData?.session?.access_token;
+      if (refreshError || !token) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        token = sessionData?.session?.access_token;
+      }
+      if (!token) {
+        throw new Error('Your administrator session is missing or expired. Please sign out and sign in again.');
+      }
       
       const res = await inviteStaffMember(token, {
         name: cleanName,
         email: cleanEmail,
-        role: dbRole
+        password: invitePassword,
+        role: inviteRole
       });
 
       if (res?.error) {
         throw new Error(res.error);
       }
 
-      setIsInviteModalOpen(false);
       setInvitationResult({
         email: cleanEmail,
         name: cleanName,
-        role: inviteRole,
-        inviteLink: `${window.location.origin}/#staff-setup?token=inv_${Date.now()}&email=${encodeURIComponent(cleanEmail)}`,
-        expiresAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString()
+        role: normalizeRoleLabel(inviteRole),
+        temporaryPassword: invitePassword
       });
+      closeInviteModal();
       setInviteName('');
       setInviteEmail('');
       if (typeof addNotification === 'function') {
         addNotification({
           role: 'admin',
           type: 'staff_invite',
-          title: `👤 Staff Invitation Dispatched: ${cleanName}`,
-          message: `Staff invitation link generated for ${cleanEmail} (${inviteRole}).`
+          title: `Staff Account Created: ${cleanName}`,
+          message: `Temporary-password account created for ${cleanEmail} (${normalizeRoleLabel(inviteRole)}).`
         });
       }
-      if (showToast) showToast('Staff invitation dispatched and saved to database.', 'success');
+      if (showToast) showToast('Staff account created. Share the temporary password securely.', 'success');
       loadUsers();
       loadAuditLogs();
     } catch (err) {
@@ -562,9 +588,10 @@ export const UserManagementTab = () => {
                 >
                   <option value="All">All Roles</option>
                   <option value="Admin">Admin</option>
-                  <option value="Operations Manager">Operations Manager</option>
-                  <option value="Coordinator">Coordinator</option>
-                  <option value="Finance">Finance</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Airway Executive">Airway Executive</option>
+                  <option value="Finance Executive">Finance Executive</option>
+                  <option value="CRM Operations (legacy)">CRM Operations (legacy)</option>
                   <option value="Read-only">Read-only</option>
                 </select>
               </div>
@@ -648,11 +675,11 @@ export const UserManagementTab = () => {
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${
                               user.role === 'Admin'
                                 ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                : user.role === 'Operations Manager'
+                                : user.role === 'Operations'
                                 ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                                : user.role === 'Coordinator'
+                                : user.role === 'Airway Executive'
                                 ? 'bg-teal-100 text-teal-800 border border-teal-200'
-                                : user.role === 'Finance'
+                                : user.role === 'Finance Executive'
                                 ? 'bg-amber-100 text-amber-800 border border-amber-200'
                                 : 'bg-slate-100 text-slate-700 border border-slate-200'
                             }`}>
@@ -867,12 +894,12 @@ export const UserManagementTab = () => {
                   <UserPlus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-sm">Add Staff Member</h3>
-                  <p className="text-[11px] text-slate-300">Generates a one-time 48-hour invitation link</p>
+                  <h3 className="font-extrabold text-sm">Create Staff Account</h3>
+                  <p className="text-[11px] text-slate-300">Testing mode: set a temporary password for the employee</p>
                 </div>
               </div>
               <button
-                onClick={() => setIsInviteModalOpen(false)}
+                onClick={closeInviteModal}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -915,6 +942,45 @@ export const UserManagementTab = () => {
                 />
               </div>
 
+              <div className="space-y-1">
+                <label htmlFor="staff-temp-password" className="text-xs font-bold text-slate-700">Temporary Password</label>
+                <div className="relative">
+                  <input
+                    id="staff-temp-password"
+                    type={showInvitePassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={invitePassword}
+                    onChange={(e) => setInvitePassword(e.target.value)}
+                    minLength={12}
+                    required
+                    className="w-full px-3.5 py-2.5 pr-11 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowInvitePassword((visible) => !visible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+                    aria-label={showInvitePassword ? 'Hide temporary password' : 'Show temporary password'}
+                  >
+                    {showInvitePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500">Use at least 12 characters. The employee will be asked to change it after signing in.</p>
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="staff-temp-password-confirm" className="text-xs font-bold text-slate-700">Confirm Temporary Password</label>
+                <input
+                  id="staff-temp-password-confirm"
+                  type={showInvitePassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={confirmInvitePassword}
+                  onChange={(e) => setConfirmInvitePassword(e.target.value)}
+                  minLength={12}
+                  required
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                />
+              </div>
+
               {/* Role Selector: Exactly the 3 required options */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700">Staff Role Assignment</label>
@@ -923,11 +989,12 @@ export const UserManagementTab = () => {
                   onChange={(e) => setInviteRole(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
                 >
-                  <option value="Admin">Admin (Full administrative &amp; user management governance)</option>
-                  <option value="Operations Manager">Operations Manager (Broad CRM &amp; operations access)</option>
-                  <option value="Coordinator">Coordinator (Freight requests &amp; logistics dispatch)</option>
-                  <option value="Finance">Finance (Invoicing, billing &amp; quotations)</option>
-                  <option value="Read-only">Read-only (Inspection &amp; audit visibility only)</option>
+                  <option value="OPERATIONS">Operations</option>
+                  <option value="FINANCE">Finance Executive</option>
+                  <option value="AIRWAY_EXECUTIVE">Airway Executive</option>
+                  <option value="CRM">CRM Operations (legacy)</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="READONLY">Read-only</option>
                 </select>
                 <p className="text-[11px] text-slate-500 mt-1">
                   Role permissions are strictly enforced on the server for all pages and actions.
@@ -938,10 +1005,10 @@ export const UserManagementTab = () => {
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
                 <div className="font-bold text-slate-800 flex items-center space-x-1.5">
                   <KeyRound className="w-3.5 h-3.5 text-orange-600" />
-                  <span>Credential Security Policy</span>
+                  <span>Testing Credential Notice</span>
                 </div>
                 <p>
-                  No passwords are transmitted via email. The staff member will receive a secure one-time link (expires in 48 hours) to configure their own 12+ character password and email verification.
+                  The password is sent only to the server for account creation and is not stored in the employee profile. Share it with the employee securely.
                 </p>
               </div>
 
@@ -949,7 +1016,7 @@ export const UserManagementTab = () => {
               <div className="pt-2 flex items-center justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setIsInviteModalOpen(false)}
+                  onClick={closeInviteModal}
                   className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancel
@@ -960,11 +1027,11 @@ export const UserManagementTab = () => {
                   className="px-5 py-2.5 rounded-xl bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold shadow-md shadow-orange-500/20 active:scale-95 transition-all cursor-pointer flex items-center space-x-2"
                 >
                   {inviteLoading ? (
-                    <span>Issuing Link...</span>
+                    <span>Creating Account...</span>
                   ) : (
                     <>
                       <UserPlus className="w-4 h-4" />
-                      <span>Issue 48-Hour Invitation</span>
+                      <span>Create Account</span>
                     </>
                   )}
                 </button>
@@ -984,8 +1051,8 @@ export const UserManagementTab = () => {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-900 text-base">Staff Invitation Link Generated</h3>
-                <p className="text-xs text-slate-500">One-time registration link • Valid for 48 hours</p>
+                <h3 className="font-extrabold text-slate-900 text-base">Staff Account Created</h3>
+                <p className="text-xs text-slate-500">Share the temporary password securely with the employee.</p>
               </div>
             </div>
 
@@ -998,37 +1065,21 @@ export const UserManagementTab = () => {
                 <span className="font-semibold">Role:</span>
                 <span className="font-bold text-orange-600">{invitationResult.role}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span className="font-semibold">Link Expiration:</span>
-                <span className="font-mono text-slate-700">{formatDate(invitationResult.expiresAt)}</span>
-              </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">One-Time Invitation Link:</label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={invitationResult.inviteLink}
-                  className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono text-slate-800 select-all focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(invitationResult.inviteLink);
-                    setCopiedLink(true);
-                    setTimeout(() => setCopiedLink(false), 3000);
-                  }}
-                  className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center space-x-1 shrink-0 transition-colors cursor-pointer"
-                >
-                  {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedLink ? 'Copied' : 'Copy'}</span>
-                </button>
-              </div>
+              <label htmlFor="created-staff-temp-password" className="text-xs font-bold text-slate-700">Temporary Password</label>
+              <input
+                id="created-staff-temp-password"
+                type="text"
+                readOnly
+                value={invitationResult.temporaryPassword}
+                className="w-full px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs font-mono text-slate-900 select-all focus:outline-none"
+              />
             </div>
 
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Transmit this link securely to the staff member. When opened, the portal will guide them to set a 12+ character password. The link expires automatically in 48 hours.
+            The employee can sign in at /crm. They will be required to set a new password on their first login.
             </p>
 
             <div className="pt-2 flex justify-end">

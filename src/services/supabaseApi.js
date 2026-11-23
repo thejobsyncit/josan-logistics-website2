@@ -290,7 +290,11 @@ export const supabaseApi = {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['ADMIN', 'CRM', 'READONLY', 'admin', 'crm', 'readonly', 'crm_manager', 'crm_ops', 'crm_finance', 'viewer']);
+        .in('role', [
+          'ADMIN', 'CRM', 'READONLY', 'OPERATIONS', 'FINANCE', 'AIRWAY_EXECUTIVE',
+          'admin', 'crm', 'readonly', 'operations', 'finance', 'airway_executive',
+          'crm_manager', 'crm_ops', 'crm_finance', 'viewer'
+        ]);
 
       if (error) {
         console.warn('[Supabase] Fetch staff profiles note:', error.message);

@@ -6,13 +6,18 @@ export const authService = {
    * Public sign-up always creates a CUSTOMER role via the database trigger.
    * The database trigger on auth.users automatically creates the profile row.
    */
-  signUp: async ({ email, password, fullName, phone, company }) => {
+  signUp: async ({ email, password, fullName, phone, company, emailRedirectTo }) => {
     if (!isSupabaseConfigured) return { error: 'Supabase is not configured' };
+
+    const redirectUrl = emailRedirectTo || (typeof window !== 'undefined'
+      ? `${window.location.origin}/#email-verified`
+      : 'https://josanlogistics.com.sg/#email-verified');
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
           phone,

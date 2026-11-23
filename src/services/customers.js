@@ -1,13 +1,33 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { isStaffRole } from '../utils/roles';
 
 export const customersService = {
   /**
    * Fetch corporate customers directory from public.profiles table (role = 'CUSTOMER').
+   * Permitted only when the signed-in user has an active staff role.
    */
   getCustomers: async () => {
-    if (!isSupabaseConfigured) return null;
+    if (!isSupabaseConfigured) return [];
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) {
+        return [];
+      }
+
+      // Verify the user's role in profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const userRole = String(profile?.role || user.user_metadata?.role || '').toUpperCase();
+      if (!isStaffRole(userRole)) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -15,8 +35,7 @@ export const customersService = {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('[CustomersService] Fetch customers from profiles error:', error.message);
-        return null;
+        return [];
       }
 
       return (data || []).map(p => ({
@@ -29,15 +48,15 @@ export const customersService = {
         status: p.status || 'Active',
         created_at: p.created_at,
         role: p.role || 'CUSTOMER',
-        tier: 'Standard Corporate',
+        tier: p.tier || '',
+        paymentTerms: p.payment_terms || p.paymentTerms || '',
         total_spent: 'S$ 0.00',
         total_shipments: 0,
-        address: 'Singapore',
+        address: p.address || 'Singapore',
         tags: ['Corporate']
       }));
-    } catch (err) {
-      console.warn('[CustomersService] Error querying profiles:', err);
-      return null;
+    } catch (_err) {
+      return [];
     }
   }
 };

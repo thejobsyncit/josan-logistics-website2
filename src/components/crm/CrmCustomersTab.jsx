@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { COMPANY_INFO } from '../../config/siteConfig';
+import { useLogistics } from '../../context/LogisticsContext';
 
 /**
  * Calculates correct invoice total (Subtotal + 9% GST) consistently
@@ -64,8 +65,12 @@ export const CrmCustomersTab = ({
   onDeleteCustomer,
   selectedCustomerFromSearch = null
 }) => {
+  const { currentUser, currentRole } = useLogistics?.() || {};
+  const activeRole = String(currentUser?.role || currentUser?.rawRole || currentRole || '').toUpperCase();
+  const isAdmin = activeRole === 'ADMIN';
+  const isReadOnly = activeRole === 'READONLY';
+
   const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -102,15 +107,19 @@ export const CrmCustomersTab = ({
     email: '',
     phone: '',
     address: '',
-    tier: 'Standard Corporate',
-    creditLimit: 'S$ 30,000',
-    paymentTerms: 'Net 30 Days',
+    tier: '',
+    creditLimit: '',
+    paymentTerms: '',
     notes: '',
-    status: 'Active'
+    status: 'Active',
+    role: 'CUSTOMER'
   });
 
-  // Filter logic
+  // Filter logic: show only profiles with role CUSTOMER
   const filteredCustomers = customers.filter(c => {
+    const role = String(c.role || 'CUSTOMER').toUpperCase();
+    if (role !== 'CUSTOMER') return false;
+
     const term = search.trim().toLowerCase();
     const matchesSearch = !term ||
       c.name?.toLowerCase().includes(term) ||
@@ -119,10 +128,9 @@ export const CrmCustomersTab = ({
       c.phone?.toLowerCase().includes(term) ||
       c.address?.toLowerCase().includes(term);
 
-    const matchesTier = tierFilter === 'All' || c.tier === tierFilter;
     const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
 
-    return matchesSearch && matchesTier && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / pageSize));
@@ -221,11 +229,12 @@ export const CrmCustomersTab = ({
       email: '',
       phone: '',
       address: '',
-      tier: 'Standard Corporate',
-      creditLimit: 'S$ 30,000',
-      paymentTerms: 'Net 30 Days',
+      tier: '',
+      creditLimit: '',
+      paymentTerms: '',
       notes: '',
-      status: 'Active'
+      status: 'Active',
+      role: 'CUSTOMER'
     });
   };
 
@@ -256,8 +265,7 @@ export const CrmCustomersTab = ({
 
   const handleArchiveCustomer = (cust) => {
     if (!cust) return;
-    const label = cust.company || cust.name || cust.id;
-    if (window.confirm(`Archive customer account "${label}"?`)) {
+    if (window.confirm("Delete this customer? This cannot be undone.")) {
       if (onDeleteCustomer) {
         onDeleteCustomer(cust.id);
       }
@@ -279,26 +287,19 @@ export const CrmCustomersTab = ({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Top Banner & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-xl border border-slate-200">
         <div>
-          <h2 className="text-xl font-black text-slate-900 font-heading">Corporate Customer Directory</h2>
+          <h2 className="text-xl font-bold text-slate-900 font-sans">Customers</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage shipper corporate accounts, track linked airway requests, road transport bookings, document vault, and billing history.
+            Manage customer accounts and their requests.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-extrabold shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Customer</span>
-        </button>
+        {/* Add New Customer button hidden until Step 0 item 1 is reviewed */}
       </div>
 
       {/* Filter and Search Controls */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
+      <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 flex flex-wrap gap-3 items-center justify-between">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
           <input
@@ -306,27 +307,15 @@ export const CrmCustomersTab = ({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             placeholder="Search by customer name, company, email, phone, or address..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2463EB]/20 focus:border-[#2463EB]"
           />
         </div>
 
         <div className="flex items-center space-x-2.5">
           <select
-            value={tierFilter}
-            onChange={(e) => { setTierFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
-          >
-            <option value="All">All Account Tiers</option>
-            <option value="Enterprise Key Account">Enterprise Key Account</option>
-            <option value="Standard Corporate">Standard Corporate</option>
-            <option value="GDP Certified Medical Shipper">GDP Certified Medical Shipper</option>
-            <option value="Aviation Express Client">Aviation Express Client</option>
-          </select>
-
-          <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="All">All Statuses</option>
             <option value="Active">Active</option>
@@ -334,10 +323,10 @@ export const CrmCustomersTab = ({
             <option value="Inactive">Inactive</option>
           </select>
 
-          {(search || tierFilter !== 'All' || statusFilter !== 'All') && (
+          {(search || statusFilter !== 'All') && (
             <button
               type="button"
-              onClick={() => { setSearch(''); setTierFilter('All'); setStatusFilter('All'); setCurrentPage(1); }}
+              onClick={() => { setSearch(''); setStatusFilter('All'); setCurrentPage(1); }}
               className="text-xs text-slate-500 hover:text-slate-800 font-bold px-2 py-1 cursor-pointer"
             >
               Reset
@@ -347,19 +336,19 @@ export const CrmCustomersTab = ({
       </div>
 
       {/* Customers Table View */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
+            <thead className="bg-slate-100 border-b border-slate-300 text-slate-900 font-extrabold uppercase text-[11px] tracking-wider">
               <tr>
-                <th className="p-4">Customer & Company</th>
-                <th className="p-4">Contact Details</th>
-                <th className="p-4">Account Tier</th>
-                <th className="p-4 text-center">Air Freight Req.</th>
-                <th className="p-4 text-center">Road Coordination</th>
-                <th className="p-4 text-center">Shipment Documents</th>
-                <th className="p-4">Billing History</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4 text-slate-900">Customer & Company</th>
+                <th className="p-4 text-slate-900">Contact Details</th>
+                <th className="p-4 text-slate-900">Account Tier</th>
+                <th className="p-4 text-center text-slate-900">Air Freight Req.</th>
+                <th className="p-4 text-center text-slate-900">Road Jobs</th>
+                <th className="p-4 text-center text-slate-900">Shipment Documents</th>
+                <th className="p-4 text-slate-900">Billing History</th>
+                <th className="p-4 text-right text-slate-900">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
@@ -378,39 +367,46 @@ export const CrmCustomersTab = ({
                       {/* Name & Company */}
                       <td className="p-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-700 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                          <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
                             {cust.company?.charAt(0).toUpperCase() || cust.name?.charAt(0).toUpperCase() || 'C'}
                           </div>
                           <div className="leading-tight">
-                            <p className="font-extrabold text-slate-900 text-xs hover:text-[#2463EB] cursor-pointer" onClick={() => setViewingCustomer(cust)}>
+                            <p
+                              className="font-bold text-slate-900 text-sm hover:text-blue-600 cursor-pointer"
+                              onClick={() => setViewingCustomer(cust)}
+                            >
                               {cust.company || cust.name}
                             </p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{cust.name}</p>
-                            <p className="text-[10px] font-mono text-slate-400 mt-0.5">#{cust.id}</p>
+                            {cust.company && cust.name && cust.company.trim().toLowerCase() !== cust.name.trim().toLowerCase() && (
+                              <p className="text-xs text-slate-600 mt-0.5">{cust.name}</p>
+                            )}
                           </div>
                         </div>
                       </td>
 
                       {/* Contact */}
-                      <td className="p-4 text-slate-600">
-                        <p className="flex items-center space-x-1.5 text-[11px] truncate max-w-[200px]">
-                          <Mail className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="truncate">{cust.email}</span>
-                        </p>
-                        <p className="flex items-center space-x-1.5 text-[11px] mt-1 text-slate-500">
-                          <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{cust.phone || '—'}</span>
-                        </p>
+                      <td className="p-4">
+                        <div className="space-y-1">
+                          <p className="flex items-center space-x-2 text-xs font-semibold text-slate-900 truncate max-w-[220px]">
+                            <Mail className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+                            <span className="truncate select-all">{cust.email}</span>
+                          </p>
+                          <p className="flex items-center space-x-2 text-xs font-medium text-slate-800">
+                            <Phone className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+                            <span>{cust.phone || '—'}</span>
+                          </p>
+                        </div>
                       </td>
 
                       {/* Tier & Status */}
                       <td className="p-4">
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-bold text-[10px] border border-slate-200 block w-fit">
-                          {cust.tier || 'Standard Corporate'}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium block mt-1">
-                          Terms: {cust.paymentTerms || 'Net 30'}
-                        </span>
+                        {cust.tier ? (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-bold text-[10px] border border-slate-200 block w-fit">
+                            {cust.tier}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-medium">—</span>
+                        )}
                       </td>
 
                       {/* Airway Requests count */}
@@ -454,22 +450,26 @@ export const CrmCustomersTab = ({
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingCustomer(cust)}
-                          className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                          title="Edit Customer Info"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleArchiveCustomer(cust)}
-                          className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                          title="Archive Customer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {!isReadOnly && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingCustomer(cust)}
+                            className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                            title="Edit Customer Info"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => handleArchiveCustomer(cust)}
+                            className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                            title="Delete Customer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -607,15 +607,15 @@ export const CrmCustomersTab = ({
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-medium">
                         <div>
                           <span className="text-slate-400 block text-[10px]">Tier Category</span>
-                          <span className="font-bold text-slate-800">{viewingCustomer.tier || 'Standard Corporate'}</span>
+                          <span className="font-bold text-slate-800">{viewingCustomer.tier || '—'}</span>
                         </div>
                         <div>
                           <span className="text-slate-400 block text-[10px]">Credit Facility</span>
-                          <span className="font-bold text-slate-800">{viewingCustomer.creditLimit || 'S$ 50,000'}</span>
+                          <span className="font-bold text-slate-800">{viewingCustomer.creditLimit || '—'}</span>
                         </div>
                         <div>
                           <span className="text-slate-400 block text-[10px]">Settlement Terms</span>
-                          <span className="font-bold text-slate-800">{viewingCustomer.paymentTerms || 'Net 30 Days'}</span>
+                          <span className="font-bold text-slate-800">{viewingCustomer.paymentTerms || '—'}</span>
                         </div>
                       </div>
                     </div>
@@ -764,13 +764,15 @@ export const CrmCustomersTab = ({
                           'Internal notes visible to CRM team only.'
                         )}
                       </span>
-                      <button
-                        type="button"
-                        onClick={handleSaveNotes}
-                        className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm"
-                      >
-                        Save Notes
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={handleSaveNotes}
+                          className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm"
+                        >
+                          Save Notes
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -865,7 +867,7 @@ export const CrmCustomersTab = ({
                     onChange={(e) => setNewCustomerData({ ...newCustomerData, tier: e.target.value })}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
                   >
-                    <option value="Standard Corporate">Standard Corporate</option>
+                    <option value="">Select Tier (Optional)</option>
                     <option value="Enterprise Key Account">Enterprise Key Account</option>
                     <option value="GDP Certified Medical Shipper">GDP Certified Medical Shipper</option>
                     <option value="Aviation Express Client">Aviation Express Client</option>
@@ -878,7 +880,7 @@ export const CrmCustomersTab = ({
                     onChange={(e) => setNewCustomerData({ ...newCustomerData, paymentTerms: e.target.value })}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
                   >
-                    <option value="Net 30 Days">Net 30 Days</option>
+                    <option value="">Select Payment Terms (Optional)</option>
                     <option value="Net 15 Days">Net 15 Days</option>
                     <option value="Prepaid / Advanced">Prepaid / Advanced</option>
                     <option value="Cash On Delivery">Cash On Delivery</option>
@@ -905,12 +907,14 @@ export const CrmCustomersTab = ({
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
-                >
-                  Create Account
-                </button>
+                {!isReadOnly && (
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
+                  >
+                    Create Account
+                  </button>
+                )}
               </div>
             </form>
           </div>
@@ -993,11 +997,11 @@ export const CrmCustomersTab = ({
                 <div>
                   <label className="text-slate-700 block mb-1">Account Tier</label>
                   <select
-                    value={editingCustomer.tier || 'Standard Corporate'}
+                    value={editingCustomer.tier || ''}
                     onChange={(e) => setEditingCustomer({ ...editingCustomer, tier: e.target.value })}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   >
-                    <option value="Standard Corporate">Standard Corporate</option>
+                    <option value="">Select Tier (Optional)</option>
                     <option value="Enterprise Key Account">Enterprise Key Account</option>
                     <option value="GDP Certified Medical Shipper">GDP Certified Medical Shipper</option>
                     <option value="Aviation Express Client">Aviation Express Client</option>
@@ -1006,11 +1010,11 @@ export const CrmCustomersTab = ({
                 <div>
                   <label className="text-slate-700 block mb-1">Payment Terms</label>
                   <select
-                    value={editingCustomer.paymentTerms || 'Net 30 Days'}
+                    value={editingCustomer.paymentTerms || ''}
                     onChange={(e) => setEditingCustomer({ ...editingCustomer, paymentTerms: e.target.value })}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   >
-                    <option value="Net 30 Days">Net 30 Days</option>
+                    <option value="">Select Payment Terms (Optional)</option>
                     <option value="Net 15 Days">Net 15 Days</option>
                     <option value="Prepaid / Advanced">Prepaid / Advanced</option>
                     <option value="Cash On Delivery">Cash On Delivery</option>
@@ -1026,12 +1030,14 @@ export const CrmCustomersTab = ({
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
-                >
-                  Save Changes
-                </button>
+                {!isReadOnly && (
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white rounded-xl font-bold cursor-pointer shadow-md shadow-orange-500/20 active:scale-95 transition-all"
+                  >
+                    Save Changes
+                  </button>
+                )}
               </div>
             </form>
           </div>
