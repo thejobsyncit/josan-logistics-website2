@@ -121,13 +121,16 @@ const MainContent = () => {
     'my-shipments', 
     'manage-shipment', 
     'admin-dashboard',
+    'admin_dashboard',
     'crm',
     'privacy-policy',
     'privacy',
     'terms-of-service',
     'terms',
     'staff-login',
+    'staff_login',
     'admin-login',
+    'admin_login',
     'email-verified'
   ];
 
@@ -136,15 +139,18 @@ const MainContent = () => {
     const rawHash = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
     
     // Explicit hash routes always take priority over base pathname
-    if (rawHash === 'admin-dashboard' || rawHash === 'admin') {
+    if (rawHash === 'admin-dashboard' || rawHash === 'admin_dashboard' || rawHash === 'admin') {
       return 'admin-dashboard';
     }
-    if (rawHash === 'admin-login') {
+    if (rawHash === 'admin-login' || rawHash === 'admin_login' || rawHash === 'admin/login') {
       return 'admin-login';
     }
     if (
       rawHash === 'staff-login' || 
+      rawHash === 'staff_login' ||
+      rawHash === 'staff/login' ||
       rawHash.startsWith('staff-login') ||
+      rawHash.startsWith('staff_login') ||
       rawHash.startsWith('staff-setup') ||
       rawHash.startsWith('staff-reset')
     ) {
@@ -249,7 +255,7 @@ const MainContent = () => {
     const rawHash = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
     if (rawHash === 'admin-login' || rawHash === 'staff-login') return false;
     return (
-      rawHash === 'crm' || rawHash === 'admin' || rawHash === 'admin-dashboard' ||
+      rawHash === 'crm' || rawHash === 'admin' || rawHash === 'admin-dashboard' || rawHash === 'admin_dashboard' ||
       path === '/crm' || path.endsWith('/crm') ||
       path === '/admin' || path.endsWith('/admin') || 
       path === '/admin-dashboard' || path.endsWith('/admin-dashboard')
@@ -489,9 +495,12 @@ const MainContent = () => {
     // Automatically log out admin session when returning to public website pages
     const isSpecialAdminPortalTab = 
       activeTab === 'admin-dashboard' || 
+      activeTab === 'admin_dashboard' ||
       activeTab === 'crm' || 
       activeTab === 'staff-login' || 
-      activeTab === 'admin-login';
+      activeTab === 'staff_login' ||
+      activeTab === 'admin-login' ||
+      activeTab === 'admin_login';
 
     const effectiveRole = normalizeRole(currentUser?.role || currentRole);
     if (!isSpecialAdminPortalTab && effectiveRole === 'ADMIN') {
@@ -691,7 +700,7 @@ const MainContent = () => {
       const cleanHash = rawHash.replace(/^#\/?/, '').toLowerCase();
       
       // 1. Explicit hash routes take priority over base pathname
-      if (cleanHash === 'admin-dashboard' || cleanHash === 'admin') {
+      if (cleanHash === 'admin-dashboard' || cleanHash === 'admin_dashboard' || cleanHash === 'admin') {
         if (lastVerifiedTabRef.current !== 'admin-dashboard') {
           setIsVerifyingRoute(true);
         }
@@ -699,15 +708,17 @@ const MainContent = () => {
         return;
       }
 
-      if (cleanHash === 'admin-login') {
+      if (cleanHash === 'admin-login' || cleanHash === 'admin_login' || cleanHash === 'admin/login') {
         setActiveTab('admin-login');
         return;
       }
 
       if (
         cleanHash === 'staff-login' || 
+        cleanHash === 'staff_login' ||
         cleanHash === 'staff/login' ||
         cleanHash.startsWith('staff-login') ||
+        cleanHash.startsWith('staff_login') ||
         cleanHash.startsWith('staff-setup') ||
         cleanHash.startsWith('staff-reset')
       ) {
@@ -946,10 +957,11 @@ const MainContent = () => {
       case 'cancellation-policy':
       case 'refund-and-cancellation':
         return <RefundPolicyPage setActiveTab={changeActiveTab} />;
-        return <TermsOfServicePage setActiveTab={changeActiveTab} />;
       case 'staff-login':
+      case 'staff_login':
         return <StaffLoginPage setActiveTab={changeActiveTab} />;
       case 'admin-login':
+      case 'admin_login':
         return <AdminLoginPage setActiveTab={changeActiveTab} />;
       case 'email-verified':
         return <EmailVerifiedPage setActiveTab={changeActiveTab} />;
@@ -964,6 +976,7 @@ const MainContent = () => {
       case 'manage-shipment':
         return <CustomerDashboardPage setActiveTab={changeActiveTab} initialSubTab="manage" />;
       case 'admin-dashboard':
+      case 'admin_dashboard':
         return <AdminDashboardPage setActiveTab={changeActiveTab} />;
       case 'crm':
         return currentUser

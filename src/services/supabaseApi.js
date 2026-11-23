@@ -6,6 +6,7 @@ import { customersService } from './customers';
 import { trackingService } from './tracking';
 import { notificationsService } from './notifications';
 import { documentsService } from './documents';
+import { accountingService, TAX_CODES, INVOICE_STATUSES, PAYMENT_METHODS } from './accounting';
 
 export {
   authService,
@@ -15,6 +16,10 @@ export {
   trackingService,
   notificationsService,
   documentsService,
+  accountingService,
+  TAX_CODES,
+  INVOICE_STATUSES,
+  PAYMENT_METHODS,
   normalizeStatus,
   SHIPMENT_STATUS_MAP
 };

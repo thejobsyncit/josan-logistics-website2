@@ -338,6 +338,11 @@ export const AuthModal = ({ setActiveTab }) => {
           return;
         }
 
+        if (errorMsg.includes('error sending confirmation email') || errorMsg.includes('confirmation email')) {
+          setError('Error sending confirmation email. Your SMTP settings (Gmail) in Supabase could not authenticate. Please verify your Google App Password or disable email confirmations in Supabase.');
+          return;
+        }
+
         setError(signUpError.message || 'Registration failed.');
         return;
       }

@@ -8,24 +8,48 @@ import {
   Clock, 
   Printer, 
   Download, 
-  X
+  X,
+  Trash2,
+  Tag
 } from 'lucide-react';
 import { useLogistics } from '../../context/LogisticsContext';
 import { COMPANY_INFO } from '../../config/siteConfig';
+import { TAX_CODES, INVOICE_STATUSES, accountingService } from '../../services/accounting';
 
 export const BILLING_PAYMENT_STATUSES = [
+  'Draft',
+  'Sent',
+  'Partially Paid',
   'Paid',
-  'Unpaid',
-  'Pending',
-  'Refunded'
+  'Overdue',
+  'Void'
 ];
 
 /**
- * Calculates Subtotal, 9% GST, and Total Payable consistently for any invoice object
+ * Calculates Subtotal, GST, and Total Payable consistently for any invoice object
+ * Supports itemized Singapore tax codes (SR 9%, ZR 0%, ES 0%, OS 0%)
  */
 export const calculateInvoiceAmounts = (inv) => {
   if (!inv) return { subtotal: 0, gst: 0, total: 0 };
   
+  if (Array.isArray(inv.items) && inv.items.length > 0) {
+    let subtotal = 0;
+    let gst = 0;
+    inv.items.forEach(item => {
+      const qty = Math.max(0, Number(item.qty || 1));
+      const price = Math.max(0, Number(item.unitPrice ?? item.unit_price ?? 0));
+      const code = (item.taxCode || item.tax_code || 'SR').toUpperCase();
+      const lineBase = qty * price;
+      const rate = code === 'SR' ? 0.09 : 0.00;
+      subtotal += lineBase;
+      gst += lineBase * rate;
+    });
+    subtotal = Number(subtotal.toFixed(2));
+    gst = Number(gst.toFixed(2));
+    const total = Number((subtotal + gst).toFixed(2));
+    return { subtotal, gst, total };
+  }
+
   let subtotal = 0;
   let gst = 0;
   let total = 0;
@@ -34,7 +58,7 @@ export const calculateInvoiceAmounts = (inv) => {
     subtotal = Number(inv.subtotal);
     gst = inv.taxAmount !== undefined && inv.taxAmount !== null && !isNaN(Number(inv.taxAmount))
       ? Number(inv.taxAmount)
-      : Number((subtotal * 0.09).toFixed(2));
+      : (inv.gst !== undefined && inv.gst !== null && !isNaN(Number(inv.gst)) ? Number(inv.gst) : Number((subtotal * 0.09).toFixed(2)));
     total = inv.total !== undefined && inv.total !== null && !isNaN(Number(inv.total))
       ? Number(inv.total)
       : Number((subtotal + gst).toFixed(2));
@@ -42,6 +66,9 @@ export const calculateInvoiceAmounts = (inv) => {
     total = Number(inv.total);
     if (inv.taxAmount !== undefined && inv.taxAmount !== null && !isNaN(Number(inv.taxAmount))) {
       gst = Number(inv.taxAmount);
+      subtotal = Number((total - gst).toFixed(2));
+    } else if (inv.gst !== undefined && inv.gst !== null && !isNaN(Number(inv.gst))) {
+      gst = Number(inv.gst);
       subtotal = Number((total - gst).toFixed(2));
     } else {
       subtotal = Number((total / 1.09).toFixed(2));
@@ -57,22 +84,24 @@ export const calculateInvoiceAmounts = (inv) => {
 };
 
 /**
- * Generates a unique invoice number if none provided
+ * Generates sequential gap-free invoice number INV-YYYY-XXXXX
  */
 export const generateUniqueInvoiceNumber = (existingInvoices = []) => {
-  const existingSet = new Set(
-    existingInvoices.map(i => (i.invoiceNumber || i.id || '').toString().toUpperCase())
-  );
   const year = new Date().getFullYear();
+  const prefix = `INV-${year}-`;
+  let maxSeq = 0;
 
-  for (let attempt = 0; attempt < 25; attempt++) {
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const candidate = `INV-${year}-${randomSuffix}`;
-    if (!existingSet.has(candidate)) {
-      return candidate;
+  for (const inv of existingInvoices) {
+    const num = (inv.invoiceNumber || inv.invoice_number || inv.id || '').toString();
+    if (num.startsWith(prefix)) {
+      const suffix = parseInt(num.slice(prefix.length), 10);
+      if (!isNaN(suffix) && suffix > maxSeq) {
+        maxSeq = suffix;
+      }
     }
   }
-  return `INV-${year}-${Date.now().toString().slice(-4)}`;
+  const nextSeq = maxSeq + 1;
+  return `INV-${year}-${String(nextSeq).padStart(5, '0')}`;
 };
 
 /**
@@ -205,7 +234,7 @@ export const generateInvoicePdf = (inv, customSiteSettings = null) => {
   doc.setTextColor(15, 23, 42);
   doc.text(`#${inv.shipmentId || inv.requestId || 'REQ-GENERAL'}`, 190, metaY + 28, { align: 'right' });
 
-  // Line Items Table
+  // Line Items Table Header
   const tableY = 94;
   doc.setFillColor(241, 245, 249);
   doc.rect(15, tableY, 180, 8, 'F');
@@ -214,59 +243,94 @@ export const generateInvoicePdf = (inv, customSiteSettings = null) => {
   doc.line(15, tableY + 8, 195, tableY + 8);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setTextColor(71, 85, 105);
   doc.text('DESCRIPTION OF SERVICES', 20, tableY + 5.5);
+  doc.text('QTY', 115, tableY + 5.5, { align: 'center' });
+  doc.text('RATE (SGD)', 138, tableY + 5.5, { align: 'right' });
+  doc.text('TAX', 158, tableY + 5.5, { align: 'center' });
   doc.text('AMOUNT (SGD)', 190, tableY + 5.5, { align: 'right' });
 
   // Line item detail
-  const rowY = tableY + 16;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text(inv.service || 'Air Freight Services & Documentation', 20, rowY);
+  let curY = tableY + 14;
+  const itemsList = Array.isArray(inv.items) && inv.items.length > 0 
+    ? inv.items 
+    : [{ description: inv.service || 'Commercial Freight Logistics Coordination', qty: 1, unitPrice: subtotal, taxCode: 'SR', lineTotal: subtotal }];
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Consignment handling, freight coordination, documentation SLA', 20, rowY + 5);
+  itemsList.forEach((it) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(it.description || 'Freight Services', 20, curY);
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text(`S$ ${subtotal.toFixed(2)}`, 190, rowY, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(String(it.qty || 1), 115, curY, { align: 'center' });
+    doc.text(`$${Number(it.unitPrice ?? it.unit_price ?? 0).toFixed(2)}`, 138, curY, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 107, 0);
+    const taxLabel = it.taxCode || it.tax_code || 'SR';
+    doc.text(taxLabel, 158, curY, { align: 'center' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    const lineAmt = Number(it.lineTotal ?? it.line_total ?? (Number(it.qty || 1) * Number(it.unitPrice ?? 0))).toFixed(2);
+    doc.text(`$${lineAmt}`, 190, curY, { align: 'right' });
+
+    curY += 7;
+  });
 
   doc.setDrawColor(241, 245, 249);
-  doc.line(15, rowY + 9, 195, rowY + 9);
+  doc.line(15, curY, 195, curY);
+  curY += 6;
 
   // Financial Summary Breakdown
-  const calcBoxY = rowY + 16;
+  const calcBoxY = curY;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(71, 85, 105);
-  doc.text('Subtotal:', 135, calcBoxY);
+  doc.text('Subtotal (excl. GST):', 125, calcBoxY);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
   doc.text(`S$ ${subtotal.toFixed(2)}`, 190, calcBoxY, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  doc.text('Singapore GST (9%):', 135, calcBoxY + 7);
+  doc.text('Singapore GST:', 125, calcBoxY + 6);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text(`S$ ${gst.toFixed(2)}`, 190, calcBoxY + 7, { align: 'right' });
+  doc.text(`S$ ${gst.toFixed(2)}`, 190, calcBoxY + 6, { align: 'right' });
 
   doc.setDrawColor(203, 213, 225);
-  doc.line(135, calcBoxY + 11, 195, calcBoxY + 11);
+  doc.line(125, calcBoxY + 10, 195, calcBoxY + 10);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
+  doc.setFontSize(9.5);
   doc.setTextColor(255, 107, 0);
-  doc.text('Total Payable:', 135, calcBoxY + 18);
-  doc.text(`S$ ${total.toFixed(2)}`, 190, calcBoxY + 18, { align: 'right' });
+  doc.text('Total Payable:', 125, calcBoxY + 16);
+  doc.text(`S$ ${total.toFixed(2)}`, 190, calcBoxY + 16, { align: 'right' });
+
+  const amountPaid = Number(inv.amount_paid ?? inv.amountPaid ?? 0);
+  const balanceDue = Number(inv.balance_due ?? inv.balanceDue ?? Math.max(0, total - amountPaid));
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Amount Paid:', 125, calcBoxY + 22);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(52, 211, 153);
+  doc.text(`S$ ${amountPaid.toFixed(2)}`, 190, calcBoxY + 22, { align: 'right' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(balanceDue > 0 ? 220 : 100, balanceDue > 0 ? 38 : 116, balanceDue > 0 ? 38 : 139);
+  doc.text('Balance Due:', 125, calcBoxY + 28);
+  doc.text(`S$ ${balanceDue.toFixed(2)}`, 190, calcBoxY + 28, { align: 'right' });
 
   // Bank Remittance Section
-  const remitY = calcBoxY + 28;
+  const remitY = calcBoxY + 36;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.roundedRect(15, remitY, 180, 26, 2, 2, 'FD');
@@ -338,17 +402,20 @@ export const CrmBillingTab = ({
     customerPhone: '',
     requestId: '',
     service: 'Air Freight Services (AWB Preparation & Billing)',
-    amount: '',
-    paymentStatus: 'Unpaid',
+    paymentStatus: 'Sent',
     issueDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
     notes: 'Tax Invoice for logistics services performed under SLA agreement.'
   });
 
+  const [lineItems, setLineItems] = useState([
+    { description: 'Commercial Freight Coordination', qty: 1, unitPrice: '350.00', taxCode: 'SR' }
+  ]);
+
   // Filter logic
   const filteredInvoices = invoices.filter(inv => {
     const term = search.trim().toLowerCase();
-    const invNum = (inv.invoiceNumber || inv.id || '').toLowerCase();
+    const invNum = (inv.invoiceNumber || inv.invoice_number || inv.id || '').toLowerCase();
     const cust = (inv.customerName || '').toLowerCase();
     const req = (inv.shipmentId || inv.requestId || '').toLowerCase();
     const srv = (inv.service || '').toLowerCase();
@@ -361,7 +428,8 @@ export const CrmBillingTab = ({
       srv.includes(term) ||
       email.includes(term);
 
-    const matchesStatus = statusFilter === 'All' || inv.paymentStatus === statusFilter;
+    const currentStatus = inv.status || inv.paymentStatus;
+    const matchesStatus = statusFilter === 'All' || currentStatus === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -370,27 +438,34 @@ export const CrmBillingTab = ({
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedInvoices = filteredInvoices.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
 
-  // Computed summary metrics with correct Subtotal, 9% GST, and Total Payable logic
+  // Computed summary metrics with correct Subtotal, Singapore GST, and Total Payable logic
   const totalBilled = invoices.reduce((sum, i) => sum + calculateInvoiceAmounts(i).total, 0);
   const collectedPaid = invoices
-    .filter(i => i.paymentStatus === 'Paid')
-    .reduce((sum, i) => sum + calculateInvoiceAmounts(i).total, 0);
+    .filter(i => (i.status === 'Paid' || i.paymentStatus === 'Paid'))
+    .reduce((sum, i) => sum + Number(i.amount_paid || calculateInvoiceAmounts(i).total), 0);
   const pendingReceivables = invoices
-    .filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Pending')
-    .reduce((sum, i) => sum + calculateInvoiceAmounts(i).total, 0);
+    .filter(i => ['Unpaid', 'Pending', 'Sent', 'Partially Paid', 'Overdue'].includes(i.status || i.paymentStatus))
+    .reduce((sum, i) => {
+      const { total } = calculateInvoiceAmounts(i);
+      const paid = Number(i.amount_paid || 0);
+      return sum + Math.max(0, total - paid);
+    }, 0);
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Paid':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'Unpaid':
+      case 'Partially Paid':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Sent':
+        return 'bg-sky-50 text-sky-700 border-sky-200';
+      case 'Overdue':
         return 'bg-rose-50 text-rose-700 border-rose-200';
-      case 'Pending':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'Refunded':
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+      case 'Void':
+        return 'bg-slate-100 text-slate-500 border-slate-200';
+      case 'Draft':
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-amber-50 text-amber-700 border-amber-200';
     }
   };
 
@@ -399,7 +474,7 @@ export const CrmBillingTab = ({
       onUpdatePaymentStatus(invoiceId, newStatus);
     }
     if (viewingInvoice && (viewingInvoice.id === invoiceId || viewingInvoice.invoiceNumber === invoiceId)) {
-      setViewingInvoice(prev => prev ? { ...prev, paymentStatus: newStatus } : null);
+      setViewingInvoice(prev => prev ? { ...prev, status: newStatus, paymentStatus: newStatus } : null);
     }
   };
 
@@ -407,17 +482,43 @@ export const CrmBillingTab = ({
     e.preventDefault();
     if (!newInvData.customerName.trim()) return;
 
-    if (newInvData.amount === '' || newInvData.amount === null || isNaN(Number(newInvData.amount)) || Number(newInvData.amount) <= 0) {
+    if (lineItems.length === 0 || lineItems.some(it => !it.description.trim() || Number(it.unitPrice) < 0)) {
       if (typeof showToast === 'function') {
-        showToast('Please enter a price', 'warning');
+        showToast('Please provide valid line items and rates', 'warning');
       } else {
-        alert('Please enter a price');
+        alert('Please provide valid line items and rates');
       }
       return;
     }
 
-    const subtotal = Number(newInvData.amount) || 0;
-    const gst = Number((subtotal * 0.09).toFixed(2));
+    let subtotal = 0;
+    let gst = 0;
+    const formattedItems = lineItems.map(it => {
+      const q = Math.max(1, Number(it.qty || 1));
+      const p = Math.max(0, Number(it.unitPrice || 0));
+      const base = q * p;
+      const rate = it.taxCode === 'SR' ? 0.09 : 0.00;
+      const itemGst = Number((base * rate).toFixed(2));
+      const lineTot = Number((base + itemGst).toFixed(2));
+      subtotal += base;
+      gst += itemGst;
+
+      return {
+        description: it.description,
+        qty: q,
+        unitPrice: p,
+        unit_price: p,
+        taxCode: it.taxCode || 'SR',
+        tax_code: it.taxCode || 'SR',
+        taxAmount: itemGst,
+        tax_amount: itemGst,
+        lineTotal: lineTot,
+        line_total: lineTot
+      };
+    });
+
+    subtotal = Number(subtotal.toFixed(2));
+    gst = Number(gst.toFixed(2));
     const total = Number((subtotal + gst).toFixed(2));
     const invoiceNumber = generateUniqueInvoiceNumber(invoices);
 
@@ -425,11 +526,19 @@ export const CrmBillingTab = ({
       ...newInvData,
       id: invoiceNumber,
       invoiceNumber: invoiceNumber,
+      invoice_number: invoiceNumber,
       amount: subtotal,
       subtotal,
-      taxRate: 0.09,
+      amount_excl_gst: subtotal,
+      gst,
       taxAmount: gst,
-      total
+      total,
+      amount_paid: 0.00,
+      balance_due: total,
+      status: newInvData.paymentStatus || 'Sent',
+      paymentStatus: newInvData.paymentStatus || 'Sent',
+      currency: 'SGD',
+      items: formattedItems
     };
 
     if (onCreateInvoice) {
@@ -443,12 +552,14 @@ export const CrmBillingTab = ({
       customerPhone: '',
       requestId: '',
       service: 'Air Freight Services (AWB Preparation & Billing)',
-      amount: '',
-      paymentStatus: 'Unpaid',
+      paymentStatus: 'Sent',
       issueDate: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
       notes: 'Tax Invoice for logistics services performed under SLA agreement.'
     });
+    setLineItems([
+      { description: 'Commercial Freight Coordination', qty: 1, unitPrice: '350.00', taxCode: 'SR' }
+    ]);
   };
 
   return (
@@ -628,9 +739,9 @@ export const CrmBillingTab = ({
                       {/* Payment Status Dropdown */}
                       <td className="p-4">
                         <select
-                          value={inv.paymentStatus || 'Unpaid'}
+                          value={inv.status || inv.paymentStatus || 'Sent'}
                           onChange={(e) => handleStatusChange(invoiceIdKey, e.target.value)}
-                          className={`px-2 py-1 rounded-lg text-[11px] font-extrabold border cursor-pointer ${getStatusBadge(inv.paymentStatus)}`}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-extrabold border cursor-pointer ${getStatusBadge(inv.status || inv.paymentStatus)}`}
                         >
                           {BILLING_PAYMENT_STATUSES.map(st => (
                             <option key={st} value={st}>{st}</option>
@@ -755,33 +866,72 @@ export const CrmBillingTab = ({
                   <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold text-[10px] uppercase">
                     <tr>
                       <th className="p-3">Description</th>
+                      <th className="p-3 text-center">Tax Code</th>
                       <th className="p-3 text-right">Amount (SGD)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
-                    <tr>
-                      <td className="p-3">
-                        <p className="font-bold text-slate-900">{viewingInvoice.service || 'Air Freight Services & Documentation'}</p>
-                        <p className="text-[10px] text-slate-400">Consignment handling, freight coordination, documentation SLA</p>
-                      </td>
-                      <td className="p-3 text-right font-mono font-bold">
-                        S$ {subtotal.toFixed(2)}
-                      </td>
-                    </tr>
+                    {Array.isArray(viewingInvoice.items) && viewingInvoice.items.length > 0 ? (
+                      viewingInvoice.items.map((it, idx) => (
+                        <tr key={it.id || idx}>
+                          <td className="p-3">
+                            <p className="font-bold text-slate-900">{it.description}</p>
+                            <p className="text-[10px] text-slate-400">
+                              Qty: {it.qty || 1} • Rate: S$ {Number(it.unitPrice ?? it.unit_price ?? 0).toFixed(2)}
+                            </p>
+                          </td>
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-orange-50 text-[#FF6B00] border border-orange-200 font-mono">
+                              {it.taxCode || it.tax_code || 'SR'}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-slate-900">
+                            S$ {Number(it.lineTotal ?? it.line_total ?? (Number(it.qty || 1) * Number(it.unitPrice ?? 0))).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="p-3">
+                          <p className="font-bold text-slate-900">{viewingInvoice.service || 'Air Freight Services & Documentation'}</p>
+                          <p className="text-[10px] text-slate-400">Consignment handling, freight coordination, documentation SLA</p>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-orange-50 text-[#FF6B00] border border-orange-200 font-mono">
+                            SR (9%)
+                          </span>
+                        </td>
+                        <td className="p-3 text-right font-mono font-bold">
+                          S$ {subtotal.toFixed(2)}
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                   <tfoot className="bg-slate-50/70 border-t border-slate-200 font-medium">
                     <tr>
-                      <td className="p-2.5 text-right font-bold text-slate-600">Subtotal</td>
+                      <td colSpan="2" className="p-2.5 text-right font-bold text-slate-600">Subtotal (excl. GST)</td>
                       <td className="p-2.5 text-right font-mono font-bold">S$ {subtotal.toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 text-right font-bold text-slate-600">Singapore GST (9%)</td>
+                      <td colSpan="2" className="p-2.5 text-right font-bold text-slate-600">Singapore GST</td>
                       <td className="p-2.5 text-right font-mono font-bold">S$ {gst.toFixed(2)}</td>
                     </tr>
                     <tr className="border-t border-slate-200 font-black text-sm text-slate-900">
-                      <td className="p-3 text-right">Total Payable</td>
+                      <td colSpan="2" className="p-3 text-right">Total Payable</td>
                       <td className="p-3 text-right font-mono text-base text-[#2463EB]">S$ {total.toFixed(2)}</td>
                     </tr>
+                    {Number(viewingInvoice.amount_paid ?? viewingInvoice.amountPaid ?? 0) > 0 && (
+                      <tr>
+                        <td colSpan="2" className="p-2 text-right font-bold text-emerald-600">Amount Paid</td>
+                        <td className="p-2 text-right font-mono font-bold text-emerald-600">S$ {Number(viewingInvoice.amount_paid ?? viewingInvoice.amountPaid ?? 0).toFixed(2)}</td>
+                      </tr>
+                    )}
+                    {(viewingInvoice.balance_due !== undefined || viewingInvoice.balanceDue !== undefined) && (
+                      <tr className="border-t border-slate-200 font-black text-rose-600">
+                        <td colSpan="2" className="p-2 text-right font-bold">Balance Due</td>
+                        <td className="p-2 text-right font-mono font-bold">S$ {Number(viewingInvoice.balance_due ?? viewingInvoice.balanceDue ?? (total - Number(viewingInvoice.amount_paid ?? 0))).toFixed(2)}</td>
+                      </tr>
+                    )}
                   </tfoot>
                 </table>
               </div>
@@ -929,19 +1079,7 @@ export const CrmBillingTab = ({
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-slate-700 block mb-1">Subtotal (SGD) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    value={newInvData.amount}
-                    onChange={(e) => setNewInvData({ ...newInvData, amount: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium font-mono"
-                  />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-slate-700 block mb-1">Issue Date</label>
                   <input
@@ -962,34 +1100,145 @@ export const CrmBillingTab = ({
                 </div>
               </div>
 
-              {/* Tax & Total Calculation Preview */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                <div className="space-y-0.5">
-                  <span className="text-slate-500 font-medium block">
-                    Subtotal: S$ {(Number(newInvData.amount) || 0).toFixed(2)}
-                  </span>
-                  <span className="text-slate-500 font-medium block">
-                    Singapore GST (9%): S$ {((Number(newInvData.amount) || 0) * 0.09).toFixed(2)}
-                  </span>
+              {/* Itemized Line Items & Singapore Tax Codes */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-slate-700 block text-xs font-bold">Line Items &amp; Tax Codes *</label>
+                  <button
+                    type="button"
+                    onClick={() => setLineItems([...lineItems, { description: '', qty: 1, unitPrice: '', taxCode: 'SR' }])}
+                    className="text-[#FF6B00] hover:underline flex items-center space-x-1 text-[11px] font-bold cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Item</span>
+                  </button>
                 </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 uppercase font-black block tracking-wider">Total Payable</span>
-                  <span className="font-mono font-black text-sm text-[#2463EB]">
-                    S$ {((Number(newInvData.amount) || 0) * 1.09).toFixed(2)}
-                  </span>
+
+                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                  {lineItems.map((item, idx) => (
+                    <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-5">
+                        <input
+                          type="text"
+                          required
+                          value={item.description}
+                          onChange={(e) => {
+                            const updated = [...lineItems];
+                            updated[idx].description = e.target.value;
+                            setLineItems(updated);
+                          }}
+                          placeholder="Description of supply"
+                          className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          value={item.qty}
+                          onChange={(e) => {
+                            const updated = [...lineItems];
+                            updated[idx].qty = Math.max(1, Number(e.target.value));
+                            setLineItems(updated);
+                          }}
+                          placeholder="Qty"
+                          className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs text-center"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          value={item.unitPrice}
+                          onChange={(e) => {
+                            const updated = [...lineItems];
+                            updated[idx].unitPrice = e.target.value;
+                            setLineItems(updated);
+                          }}
+                          placeholder="Rate"
+                          className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs text-right font-mono"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <select
+                          value={item.taxCode}
+                          onChange={(e) => {
+                            const updated = [...lineItems];
+                            updated[idx].taxCode = e.target.value;
+                            setLineItems(updated);
+                          }}
+                          className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-[#FF6B00] cursor-pointer"
+                          title="SR: 9% GST, ZR: 0% Zero-Rated, ES: 0% Exempt, OS: 0% Out of Scope"
+                        >
+                          <option value="SR">SR (9%)</option>
+                          <option value="ZR">ZR (0%)</option>
+                          <option value="ES">ES (0%)</option>
+                          <option value="OS">OS (0%)</option>
+                        </select>
+                      </div>
+                      <div className="col-span-1 text-center">
+                        {lineItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setLineItems(lineItems.filter((_, i) => i !== idx))}
+                            className="text-slate-400 hover:text-rose-500 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
+              {/* Tax & Total Calculation Preview */}
+              {(() => {
+                let previewSubtotal = 0;
+                let previewGst = 0;
+                lineItems.forEach(it => {
+                  const q = Math.max(1, Number(it.qty || 1));
+                  const p = Math.max(0, Number(it.unitPrice || 0));
+                  const base = q * p;
+                  const rate = it.taxCode === 'SR' ? 0.09 : 0.00;
+                  previewSubtotal += base;
+                  previewGst += base * rate;
+                });
+                const previewTotal = previewSubtotal + previewGst;
+
+                return (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div className="space-y-0.5">
+                      <span className="text-slate-500 font-medium block">
+                        Subtotal: S$ {previewSubtotal.toFixed(2)}
+                      </span>
+                      <span className="text-slate-500 font-medium block">
+                        Singapore GST: S$ {previewGst.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 uppercase font-black block tracking-wider">Total Payable</span>
+                      <span className="font-mono font-black text-sm text-[#2463EB]">
+                        S$ {previewTotal.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div>
-                <label className="text-slate-700 block mb-1">Payment Status</label>
+                <label className="text-slate-700 block mb-1">Invoice Status</label>
                 <select
                   value={newInvData.paymentStatus}
                   onChange={(e) => setNewInvData({ ...newInvData, paymentStatus: e.target.value })}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium cursor-pointer"
                 >
-                  <option value="Unpaid">Unpaid</option>
-                  <option value="Paid">Paid / Settled</option>
-                  <option value="Pending">Pending Clearance</option>
+                  {BILLING_PAYMENT_STATUSES.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
                 </select>
               </div>
 

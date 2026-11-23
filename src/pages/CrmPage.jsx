@@ -12,6 +12,7 @@ import { CrmRoadShipmentsTab } from '../components/crm/CrmRoadShipmentsTab';
 import { CrmDocumentsTab } from '../components/crm/CrmDocumentsTab';
 import { CrmQuotationsTab } from '../components/crm/CrmQuotationsTab';
 import { CrmBillingTab } from '../components/crm/CrmBillingTab';
+import { CrmAccountingTab } from '../components/crm/CrmAccountingTab';
 import { CrmTransportationPartnersTab } from '../components/crm/CrmTransportationPartnersTab';
 import { CrmNotificationsTab } from '../components/crm/CrmNotificationsTab';
 import { CrmReportsTab } from '../components/crm/CrmReportsTab';
@@ -100,7 +101,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
     return {
       customers: customers.length,
       airway: airwayRequests.filter(r => r.status === 'New' || r.status === 'Under Review').length,
-      road: shipments.filter(s =>!['Delivered','Completed','Cancelled'].includes(s.status)).length,
+      road: shipments.filter(s => !['Delivered', 'Completed', 'Cancelled'].includes(s.status)).length,
       docs: documents.length,
       quotes: quotes.filter(q => q.status === 'New').length,
       billing: invoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Pending').length,
@@ -172,7 +173,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
               created_at: dbQuote.created_at
             };
           }
-        } catch (_) {}
+        } catch (_) { }
       }
       setSelectedQuoteModal(targetQuote || { id: ref || 'quote', reference: ref || 'Quotation', status: 'New' });
       setActiveTab('quotations');
@@ -233,10 +234,9 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
       />
 
       {/* 2. MAIN CONTENT WRAPPER */}
-      <div 
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'
-        }`}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'
+          }`}
       >
         {/* 3. SEPARATE CRM TOP HEADER */}
         <CrmHeader
@@ -365,7 +365,7 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
               onSendQuote={sendQuoteToCustomer}
               onUpdateQuoteStatus={customerRespondQuote}
               onUpdateQuotePricing={updateAdminQuote}
-              onConvertQuote={() => {}}
+              onConvertQuote={() => { }}
               selectedQuoteFromSearch={selectedQuoteModal}
             />
           )}
@@ -380,6 +380,16 @@ export const CrmPage = ({ setActiveTab: setParentActiveTab }) => {
               onCreateInvoice={addInvoice}
               onUpdatePaymentStatus={updateInvoicePaymentStatus}
               selectedInvoiceFromSearch={selectedInvoiceModal}
+            />
+          )}
+
+          {/* TAB 7.5: ACCOUNTING */}
+          {activeTab === 'accounting' && (
+            <CrmAccountingTab
+              invoices={invoices}
+              customers={customers}
+              shipments={shipments}
+              currentUser={currentUser}
             />
           )}
 

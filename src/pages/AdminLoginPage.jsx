@@ -29,6 +29,9 @@ export const AdminLoginPage = ({ setActiveTab }) => {
   React.useEffect(() => {
     if (sessionExpiredMessage) {
       setErrorMessage(sessionExpiredMessage);
+      if (setSessionExpiredMessage) {
+        setSessionExpiredMessage('');
+      }
     }
   }, [sessionExpiredMessage]);
 

@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { formatSingaporeDateTime } from '../utils/dateTime';
 import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
 import { initialWebsiteContent } from '../data/adminCrmData';
+import { sanitizeTrackingInput, isValidTrackingNumber, getTrackingMaxLength } from '../utils/trackingFormat';
 import { 
   RotateCw, 
   Copy 
@@ -105,9 +106,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
     }
 
     // Validate format: must start with JOS- or AWS- (or test prefixes TJOS- / TAWS-) followed by exactly 5 characters
-    const isValidTrackingFormat = 
-      /^(JOS|AWS|TJOS|TAWS)-[A-Za-z0-9]{5}$/.test(cleanQuery) || 
-      (import.meta.env.DEV && cleanQuery === 'TEST-0001');
+    const isValidTrackingFormat = isValidTrackingNumber(cleanQuery);
 
     if (!isValidTrackingFormat) {
       setErrorMessage('Tracking number must start with JOS- or AWS- followed by exactly 5 characters (e.g. JOS-88190 or AWS-29401).');
@@ -323,7 +322,7 @@ export const TrackShipmentPage = ({ setActiveTab }) => {
                       id="tracking-number-input"
                       type="text"
                       value={searchInput}
-                      maxLength={searchInput.toUpperCase().startsWith('TJOS-') || searchInput.toUpperCase().startsWith('TAWS-') ? 10 : 9}
+                      maxLength={getTrackingMaxLength(searchInput)}
                       onChange={(e) => {
                         const val = sanitizeTrackingInput(e.target.value);
                         setSearchInput(val);

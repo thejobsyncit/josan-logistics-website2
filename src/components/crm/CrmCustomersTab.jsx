@@ -68,7 +68,7 @@ export const CrmCustomersTab = ({
   const { currentUser, currentRole } = useLogistics?.() || {};
   const activeRole = String(currentUser?.role || currentUser?.rawRole || currentRole || '').toUpperCase();
   const isAdmin = activeRole === 'ADMIN';
-  const isReadOnly = activeRole === 'READONLY';
+  const isReadOnly = activeRole === 'READONLY' || activeRole === 'ACCOUNTANT' || activeRole === 'FINANCE' || activeRole === 'CRM_FINANCE';
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');

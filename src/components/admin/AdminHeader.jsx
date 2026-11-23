@@ -48,7 +48,7 @@ export const AdminHeader = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const unreadNotifications = notifications.filter(n => !n.read_at);
+  const unreadNotifications = Array.isArray(notifications) ? notifications.filter(n => n && !n.read_at) : [];
 
   // Filter matching system records
   const q = (searchQuery || '').trim().toLowerCase();

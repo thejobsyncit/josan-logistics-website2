@@ -95,7 +95,15 @@ function recordSuccessfulAttempt(email) {
 }
 
 export const StaffLoginPage = ({ setActiveTab, isCrmLogin = false }) => {
-  const { loginUser, showToast, currentUser, setCurrentUser, setCurrentRole } = useLogistics();
+  const { 
+    loginUser, 
+    showToast, 
+    currentUser, 
+    setCurrentUser, 
+    setCurrentRole,
+    sessionExpiredMessage,
+    setSessionExpiredMessage 
+  } = useLogistics();
 
   // Mode: 'login' | '2fa' | 'must_change_password' | 'forgot_password' | 'reset_password' | 'invite_setup'
   const [authMode, setAuthMode] = useState('login');
@@ -112,6 +120,9 @@ export const StaffLoginPage = ({ setActiveTab, isCrmLogin = false }) => {
   useEffect(() => {
     if (sessionExpiredMessage) {
       setError(sessionExpiredMessage);
+      if (setSessionExpiredMessage) {
+        setSessionExpiredMessage('');
+      }
     }
   }, [sessionExpiredMessage]);
 

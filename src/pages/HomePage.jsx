@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLogistics } from '../context/LogisticsContext';
 import { getPhoneLinks, isDisplayablePhone } from '../config/siteConfig';
+import { sanitizeTrackingInput, isValidTrackingNumber, getTrackingMaxLength } from '../utils/trackingFormat';
 import { 
   Search, 
   Truck, 
@@ -69,11 +70,7 @@ export const HomePage = ({ setActiveTab }) => {
       return;
     }
 
-    // Must have exactly 5 characters after JOS- or AWS- (or test prefixes TJOS- / TAWS-)
-    const isJos = /^(TJOS|JOS)-[A-Z0-9]{5}$/i.test(term);
-    const isAws = /^(TAWS|AWS)-[A-Z0-9]{5}$/i.test(term);
-
-    if (!isJos && !isAws) {
+    if (!isValidTrackingNumber(term)) {
       if (showToast) {
         showToast('Tracking number must start with JOS- or AWS- followed by exactly 5 characters (e.g. JOS-88190 or AWS-29401).', 'warning');
       }
@@ -85,20 +82,8 @@ export const HomePage = ({ setActiveTab }) => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
-  const sanitizeTracking = (raw) => {
-    if (!raw) return '';
-    const val = String(raw).toUpperCase().replace(/\s+/g, '');
-    const match = val.match(/^(TJOS-|TAWS-|JOS-|AWS-)(.*)/);
-    if (match) {
-      const prefix = match[1];
-      const after = match[2].replace(/[^A-Z0-9]/g, '').slice(0, 5);
-      return `${prefix}${after}`;
-    }
-    return val.replace(/[^A-Z0-9\-]/g, '').slice(0, 9);
-  };
-
   const handleTrackingInputChange = (e) => {
-    setTrackingNumber(sanitizeTracking(e.target.value));
+    setTrackingNumber(sanitizeTrackingInput(e.target.value));
   };
 
   const handleTrackAction = () => {
@@ -267,16 +252,16 @@ export const HomePage = ({ setActiveTab }) => {
                   id="hero-tracking-input"
                   type="text"
                   value={trackingNumber}
-                  maxLength={trackingNumber.toUpperCase().startsWith('TJOS-') || trackingNumber.toUpperCase().startsWith('TAWS-') ? 10 : 9}
+                  maxLength={getTrackingMaxLength(trackingNumber)}
                   onChange={handleTrackingInputChange}
                   onInput={(e) => {
-                    const val = sanitizeTracking(e.target.value);
+                    const val = sanitizeTrackingInput(e.target.value);
                     if (val !== trackingNumber) setTrackingNumber(val);
                   }}
                   onPaste={(e) => {
                     e.preventDefault();
                     const paste = (e.clipboardData || window.clipboardData)?.getData('text') || '';
-                    setTrackingNumber(sanitizeTracking(paste));
+                    setTrackingNumber(sanitizeTrackingInput(paste));
                   }}
                   placeholder="Enter your tracking number (starts with JOS- or AWS-)"
                   className="w-full flex-1 bg-[var(--color-surface)] px-3.5 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] font-normal rounded-[var(--radius)] focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[var(--color-navy)]"

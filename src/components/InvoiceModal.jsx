@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import josanLogo from '../assets/josan_logo.png';
 import { useLogistics } from '../context/LogisticsContext';
+import { COMPANY_INFO } from '../config/siteConfig';
 import { X, Printer, Download, Truck, CheckCircle2, ShieldCheck, FileText, CreditCard, QrCode, Lock, Loader2, ExternalLink } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { safeDownloadPdf, openPdfInNewTab } from '../utils/pdfDownload';
@@ -46,7 +47,7 @@ export const InvoiceModal = () => {
   const basePriceNum = parseFloat(priceVal.replace(/[^0-9.]/g, '')) || 350;
   const fuelSurcharge = (basePriceNum * 0.08).toFixed(2);
   const insuranceFee = (basePriceNum * 0.05).toFixed(2);
-  const tax = (basePriceNum * 0.07).toFixed(2);
+  const tax = (basePriceNum * 0.09).toFixed(2);
   const totalPrice = (basePriceNum + parseFloat(fuelSurcharge) + parseFloat(insuranceFee) + parseFloat(tax)).toFixed(2);
 
   const handlePrint = () => {
@@ -109,8 +110,8 @@ export const InvoiceModal = () => {
             <div>
               <img src="${logoUrl}" class="logo" alt="Josan Logistics Logo" />
               <p class="subtitle">Regional & Global Supply Chain Management</p>
-              <p class="address">450 Logistics Parkway, Chicago, IL 60607</p>
-              <p class="address">Tax Registration ID: US-JOS-98210492</p>
+              <p class="address">${COMPANY_INFO.address}</p>
+              <p class="address">UEN: ${COMPANY_INFO.uen} | Singapore GST Registered</p>
             </div>
             <div style="text-align: right;">
               <span class="badge">PAID & VERIFIED</span>
@@ -187,12 +188,12 @@ export const InvoiceModal = () => {
                 <td style="text-align: right; font-family: monospace;">$${insuranceFee}</td>
               </tr>
               <tr>
-                <td>GST / Sales Tax (7%)</td>
+                <td>Singapore GST (9% - Standard Rated)</td>
                 <td style="text-align: right; font-family: monospace;">$${tax}</td>
               </tr>
               <tr class="total-row">
                 <td>TOTAL DUE / PAID</td>
-                <td style="text-align: right;" class="total-amount">$${totalPrice} USD</td>
+                <td style="text-align: right;" class="total-amount">$${totalPrice} SGD</td>
               </tr>
             </tbody>
           </table>
@@ -243,253 +244,253 @@ export const InvoiceModal = () => {
 
   const generateInvoiceDoc = () => {
     const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
 
-      // 1. Top Brand Accent Banner
-      doc.setFillColor(255, 107, 0); // #2463EB
-      doc.rect(0, 0, 210, 5, 'F');
+    // 1. Top Brand Accent Banner
+    doc.setFillColor(255, 107, 0); // #2463EB
+    doc.rect(0, 0, 210, 5, 'F');
 
-      // 2. Company Brand & Metadata
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
-      doc.setTextColor(16, 24, 45); // #0B1F5B
-      doc.text('JOSAN', 15, 20);
-      doc.setTextColor(255, 107, 0); // #2463EB
-      doc.text('LOGISTICS', 44, 20);
+    // 2. Company Brand & Metadata
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(16, 24, 45); // #0B1F5B
+    doc.text('JOSAN', 15, 20);
+    doc.setTextColor(255, 107, 0); // #2463EB
+    doc.text('LOGISTICS', 44, 20);
 
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 116, 139);
-      doc.text('Regional & Global Supply Chain Management', 15, 26);
-      doc.text('10 Marina Boulevard, Marina Bay Financial Centre, Singapore 018983', 15, 30.5);
-      doc.text('Tax Reg / UEN: 202418920K · GST Reg No: M9-0218492-X', 15, 35);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('Regional & Global Supply Chain Management', 15, 26);
+    doc.text('10 Marina Boulevard, Marina Bay Financial Centre, Singapore 018983', 15, 30.5);
+    doc.text('Tax Reg / UEN: 202418920K · GST Reg No: M9-0218492-X', 15, 35);
 
-      // Status Badge (Top Right)
-      if (isPaid) {
-        doc.setFillColor(209, 250, 229); // emerald-100
-        doc.roundedRect(142, 12, 53, 7.5, 3, 3, 'F');
-        doc.setTextColor(6, 95, 70); // emerald-800
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.text('PAID & VERIFIED', 168.5, 17, { align: 'center' });
-      } else {
-        doc.setFillColor(254, 226, 226); // red-100
-        doc.roundedRect(142, 12, 53, 7.5, 3, 3, 'F');
-        doc.setTextColor(153, 27, 27); // red-800
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.text('PAYMENT PENDING', 168.5, 17, { align: 'center' });
-      }
-
-      // Invoice Header Info
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(16, 24, 45);
-      doc.text(`INVOICE #${shipment.id}`, 195, 26, { align: 'right' });
-
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}`, 195, 31, { align: 'right' });
-      doc.text(`Payment Terms: ${shipment.paymentTerms || ''}`, 195, 35.5, { align: 'right' });
-
-      // Divider line
-      doc.setDrawColor(226, 232, 240);
-      doc.setLineWidth(0.4);
-      doc.line(15, 40, 195, 40);
-
-      // 3. Barcode & Bill of Lading Box
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(15, 45, 180, 18, 3, 3, 'FD');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(148, 163, 184);
-      doc.text('TRACKING BILL OF LADING', 22, 51.5);
-
-      doc.setFontSize(14);
-      doc.setFont('courier', 'bold');
-      doc.setTextColor(255, 107, 0);
-      doc.text(String(shipment.id), 22, 58);
-
-      // Barcode graphic lines
-      const barPattern = [3, 1, 4, 1, 2, 4, 1, 3, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2, 3, 1];
-      let barX = 145;
-      doc.setFillColor(16, 24, 45);
-      barPattern.forEach((w) => {
-        doc.rect(barX, 48.5, w * 0.45, 11, 'F');
-        barX += w * 0.45 + 0.9;
-      });
-
-      // 4. Ship From & Ship To Cards
-      // Origin Card
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(15, 68, 87, 34, 3, 3, 'FD');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(148, 163, 184);
-      doc.text('SHIP FROM (ORIGIN)', 20, 74.5);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9.5);
-      doc.setTextColor(16, 24, 45);
-      const senderName = doc.splitTextToSize(shipment.senderName || shipment.sender || 'Customer Company', 77)[0];
-      doc.text(senderName, 20, 80);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(71, 85, 105);
-      const senderAddrLines = doc.splitTextToSize(shipment.pickupAddress || shipment.senderAddress || '1 Raffles Place, Singapore', 77).slice(0, 2);
-      doc.text(senderAddrLines, 20, 85);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Hub: ${shipment.pickupCity || shipment.origin || 'Singapore Central'}`, 20, 97);
-
-      // Destination Card
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(108, 68, 87, 34, 3, 3, 'FD');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(148, 163, 184);
-      doc.text('SHIP TO (DESTINATION)', 113, 74.5);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9.5);
-      doc.setTextColor(16, 24, 45);
-      const receiverName = doc.splitTextToSize(shipment.receiverName || shipment.receiver || 'West Coast Hub Terminal', 77)[0];
-      doc.text(receiverName, 113, 80);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(71, 85, 105);
-      const receiverAddrLines = doc.splitTextToSize(shipment.deliveryAddress || shipment.receiverAddress || '12 Pioneer Sector 3, Singapore 628349', 77).slice(0, 2);
-      doc.text(receiverAddrLines, 113, 85);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Hub: ${shipment.deliveryCity || shipment.destination || 'West Coast Hub Complex'}`, 113, 97);
-
-      // 5. Freight Specifications Table
+    // Status Badge (Top Right)
+    if (isPaid) {
+      doc.setFillColor(209, 250, 229); // emerald-100
+      doc.roundedRect(142, 12, 53, 7.5, 3, 3, 'F');
+      doc.setTextColor(6, 95, 70); // emerald-800
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
-      doc.setTextColor(71, 85, 105);
-      doc.text('FREIGHT SPECIFICATIONS', 15, 110);
-
-      doc.setFillColor(241, 245, 249);
-      doc.rect(15, 113, 180, 7, 'F');
-
+      doc.text('PAID & VERIFIED', 168.5, 17, { align: 'center' });
+    } else {
+      doc.setFillColor(254, 226, 226); // red-100
+      doc.roundedRect(142, 12, 53, 7.5, 3, 3, 'F');
+      doc.setTextColor(153, 27, 27); // red-800
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(71, 85, 105);
-      doc.text('Service Level', 18, 117.5);
-      doc.text('Cargo Type', 80, 117.5);
-      doc.text('Weight / Pieces', 130, 117.5);
-      doc.text('Declared Value', 190, 117.5, { align: 'right' });
-
-      doc.setDrawColor(241, 245, 249);
-      doc.line(15, 129, 195, 129);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 107, 0);
       doc.setFontSize(8);
-      doc.text(doc.splitTextToSize(shipment.serviceLevel || 'Express Freight', 58)[0], 18, 124.5);
+      doc.text('PAYMENT PENDING', 168.5, 17, { align: 'center' });
+    }
 
+    // Invoice Header Info
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(16, 24, 45);
+    doc.text(`INVOICE #${shipment.id}`, 195, 26, { align: 'right' });
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Date Issued: ${shipment.createdDate || 'Aug 29, 2026'}`, 195, 31, { align: 'right' });
+    doc.text(`Payment Terms: ${shipment.paymentTerms || ''}`, 195, 35.5, { align: 'right' });
+
+    // Divider line
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.4);
+    doc.line(15, 40, 195, 40);
+
+    // 3. Barcode & Bill of Lading Box
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(15, 45, 180, 18, 3, 3, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('TRACKING BILL OF LADING', 22, 51.5);
+
+    doc.setFontSize(14);
+    doc.setFont('courier', 'bold');
+    doc.setTextColor(255, 107, 0);
+    doc.text(String(shipment.id), 22, 58);
+
+    // Barcode graphic lines
+    const barPattern = [3, 1, 4, 1, 2, 4, 1, 3, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2, 3, 1];
+    let barX = 145;
+    doc.setFillColor(16, 24, 45);
+    barPattern.forEach((w) => {
+      doc.rect(barX, 48.5, w * 0.45, 11, 'F');
+      barX += w * 0.45 + 0.9;
+    });
+
+    // 4. Ship From & Ship To Cards
+    // Origin Card
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(15, 68, 87, 34, 3, 3, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('SHIP FROM (ORIGIN)', 20, 74.5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(16, 24, 45);
+    const senderName = doc.splitTextToSize(shipment.senderName || shipment.sender || 'Customer Company', 77)[0];
+    doc.text(senderName, 20, 80);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    const senderAddrLines = doc.splitTextToSize(shipment.pickupAddress || shipment.senderAddress || '1 Raffles Place, Singapore', 77).slice(0, 2);
+    doc.text(senderAddrLines, 20, 85);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Hub: ${shipment.pickupCity || shipment.origin || 'Singapore Central'}`, 20, 97);
+
+    // Destination Card
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(108, 68, 87, 34, 3, 3, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('SHIP TO (DESTINATION)', 113, 74.5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(16, 24, 45);
+    const receiverName = doc.splitTextToSize(shipment.receiverName || shipment.receiver || 'West Coast Hub Terminal', 77)[0];
+    doc.text(receiverName, 113, 80);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    const receiverAddrLines = doc.splitTextToSize(shipment.deliveryAddress || shipment.receiverAddress || '12 Pioneer Sector 3, Singapore 628349', 77).slice(0, 2);
+    doc.text(receiverAddrLines, 113, 85);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Hub: ${shipment.deliveryCity || shipment.destination || 'West Coast Hub Complex'}`, 113, 97);
+
+    // 5. Freight Specifications Table
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text('FREIGHT SPECIFICATIONS', 15, 110);
+
+    doc.setFillColor(241, 245, 249);
+    doc.rect(15, 113, 180, 7, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Service Level', 18, 117.5);
+    doc.text('Cargo Type', 80, 117.5);
+    doc.text('Weight / Pieces', 130, 117.5);
+    doc.text('Declared Value', 190, 117.5, { align: 'right' });
+
+    doc.setDrawColor(241, 245, 249);
+    doc.line(15, 129, 195, 129);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 107, 0);
+    doc.setFontSize(8);
+    doc.text(doc.splitTextToSize(shipment.serviceLevel || 'Express Freight', 58)[0], 18, 124.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    doc.text(doc.splitTextToSize(shipment.cargoType || 'General Cargo', 45)[0], 80, 124.5);
+
+    doc.setFont('courier', 'normal');
+    doc.text(`${shipment.weight} (${shipment.pieces || 1} Pcs)`, 130, 124.5);
+    doc.text(shipment.declaredValue ? `S$ ${shipment.declaredValue}` : 'S$ 10,000', 190, 124.5, { align: 'right' });
+
+    // 6. Itemized Charges Table
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text('ITEMIZED CHARGES', 15, 137);
+
+    doc.setFillColor(241, 245, 249);
+    doc.rect(15, 140, 180, 7, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Description', 18, 144.5);
+    doc.text('Amount (SGD)', 190, 144.5, { align: 'right' });
+
+    const lineItems = [
+      { desc: 'Base Freight Transportation Fee', amt: `$${basePriceNum.toFixed(2)}` },
+      { desc: 'Fuel Surcharge (8%)', amt: `$${fuelSurcharge}` },
+      { desc: 'Cargo Security & Insurance Policy (5%)', amt: `$${insuranceFee}` },
+      { desc: 'Singapore GST (9% - Standard Rated)', amt: `$${tax}` }
+    ];
+
+    let rowY = 152;
+    lineItems.forEach((item) => {
       doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
       doc.setTextColor(51, 65, 85);
-      doc.text(doc.splitTextToSize(shipment.cargoType || 'General Cargo', 45)[0], 80, 124.5);
+      doc.text(item.desc, 18, rowY);
 
       doc.setFont('courier', 'normal');
-      doc.text(`${shipment.weight} (${shipment.pieces || 1} Pcs)`, 130, 124.5);
-      doc.text(shipment.declaredValue ? `S$ ${shipment.declaredValue}` : 'S$ 10,000', 190, 124.5, { align: 'right' });
+      doc.text(item.amt, 190, rowY, { align: 'right' });
 
-      // 6. Itemized Charges Table
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(71, 85, 105);
-      doc.text('ITEMIZED CHARGES', 15, 137);
+      doc.setDrawColor(248, 250, 252);
+      doc.line(15, rowY + 2.5, 195, rowY + 2.5);
+      rowY += 7.5;
+    });
 
-      doc.setFillColor(241, 245, 249);
-      doc.rect(15, 140, 180, 7, 'F');
+    // Total Row
+    doc.setFillColor(255, 244, 238); // #EAF2FF
+    doc.rect(15, rowY, 180, 10, 'F');
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(71, 85, 105);
-      doc.text('Description', 18, 144.5);
-      doc.text('Amount (SGD)', 190, 144.5, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(16, 24, 45);
+    doc.text('TOTAL DUE / PAID', 18, rowY + 6.5);
 
-      const lineItems = [
-        { desc: 'Base Freight Transportation Fee', amt: `$${basePriceNum.toFixed(2)}` },
-        { desc: 'Fuel Surcharge (8%)', amt: `$${fuelSurcharge}` },
-        { desc: 'Cargo Security & Insurance Policy (5%)', amt: `$${insuranceFee}` },
-        { desc: 'GST / Sales Tax (7%)', amt: `$${tax}` }
-      ];
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(255, 107, 0);
+    doc.text(`$${totalPrice} SGD`, 190, rowY + 6.5, { align: 'right' });
 
-      let rowY = 152;
-      lineItems.forEach((item) => {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(51, 65, 85);
-        doc.text(item.desc, 18, rowY);
+    // 7. Footer
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.4);
+    doc.line(15, 205, 195, 205);
 
-        doc.setFont('courier', 'normal');
-        doc.text(item.amt, 190, rowY, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Full Cargo Loss Protection Guarantee by Josan Cover', 15, 212);
 
-        doc.setDrawColor(248, 250, 252);
-        doc.line(15, rowY + 2.5, 195, rowY + 2.5);
-        rowY += 7.5;
-      });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Authorized Electronic Consignment Waybill · Josan Logistics Singapore Pte. Ltd.', 15, 217);
+    doc.text('Generated electronically · Valid without physical signature', 15, 221.5);
 
-      // Total Row
-      doc.setFillColor(255, 244, 238); // #EAF2FF
-      doc.rect(15, rowY, 180, 10, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Thank you for choosing Josan Logistics!', 195, 212, { align: 'right' });
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9.5);
-      doc.setTextColor(16, 24, 45);
-      doc.text('TOTAL DUE / PAID', 18, rowY + 6.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 107, 0);
+    doc.text('support@josanlogistics.com', 195, 217, { align: 'right' });
 
-      doc.setFont('courier', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(255, 107, 0);
-      doc.text(`$${totalPrice} SGD`, 190, rowY + 6.5, { align: 'right' });
-
-      // 7. Footer
-      doc.setDrawColor(226, 232, 240);
-      doc.setLineWidth(0.4);
-      doc.line(15, 205, 195, 205);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(71, 85, 105);
-      doc.text('Full Cargo Loss Protection Guarantee by Josan Cover', 15, 212);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(148, 163, 184);
-      doc.text('Authorized Electronic Consignment Waybill · Josan Logistics Singapore Pte. Ltd.', 15, 217);
-      doc.text('Generated electronically · Valid without physical signature', 15, 221.5);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
-      doc.setTextColor(51, 65, 85);
-      doc.text('Thank you for choosing Josan Logistics!', 195, 212, { align: 'right' });
-
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(255, 107, 0);
-      doc.text('support@josanlogistics.com', 195, 217, { align: 'right' });
-
-      return doc;
+    return doc;
   };
 
   const handleDownloadPDF = () => {
@@ -524,14 +525,14 @@ export const InvoiceModal = () => {
   };
 
   return (
-    <div 
+    <div
       onClick={(e) => {
         if (e.target === e.currentTarget) setSelectedInvoiceShipment(null);
       }}
       className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
     >
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-scale-up">
-        
+
         {/* Action Controls Bar */}
         <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center space-x-2">
@@ -576,7 +577,7 @@ export const InvoiceModal = () => {
 
         {/* Printable Area */}
         <div id="printable-invoice" className="p-8 space-y-6 bg-white text-slate-900">
-          
+
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-[#2463EB] pb-6">
             <div>
@@ -641,11 +642,10 @@ export const InvoiceModal = () => {
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('card')}
-                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${
-                    paymentMethod === 'card'
+                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${paymentMethod === 'card'
                       ? 'bg-[#EAF2FF]0/20 border-[#2463EB] text-white ring-1 ring-[#2463EB]/25'
                       : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-[#2463EB]' : ''}`} />
                   <span className="text-[11px] font-bold">Credit Card</span>
@@ -654,11 +654,10 @@ export const InvoiceModal = () => {
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('paynow')}
-                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${
-                    paymentMethod === 'paynow'
+                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${paymentMethod === 'paynow'
                       ? 'bg-[#EAF2FF]0/20 border-[#2463EB] text-white ring-1 ring-[#2463EB]/25'
                       : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   <QrCode className={`w-5 h-5 ${paymentMethod === 'paynow' ? 'text-[#2463EB]' : ''}`} />
                   <span className="text-[11px] font-bold">PayNow QR</span>
@@ -728,26 +727,26 @@ export const InvoiceModal = () => {
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Scan SG PayNow QR</p>
                     <div className="bg-white p-3 rounded-2xl border-2 border-[#2463EB] shadow-md">
                       <svg className="w-24 h-24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="100" height="100" fill="white"/>
-                        <rect x="10" y="10" width="30" height="30" fill="#0f172a"/>
-                        <rect x="15" y="15" width="20" height="20" fill="white"/>
-                        <rect x="20" y="20" width="10" height="10" fill="#2463EB"/>
-                        <rect x="60" y="10" width="30" height="30" fill="#0f172a"/>
-                        <rect x="65" y="15" width="20" height="20" fill="white"/>
-                        <rect x="70" y="20" width="10" height="10" fill="#2463EB"/>
-                        <rect x="10" y="60" width="30" height="30" fill="#0f172a"/>
-                        <rect x="15" y="65" width="20" height="20" fill="white"/>
-                        <rect x="20" y="70" width="10" height="10" fill="#2463EB"/>
-                        <rect x="45" y="10" width="10" height="10" fill="#0f172a"/>
-                        <rect x="45" y="25" width="10" height="15" fill="#2463EB"/>
-                        <rect x="10" y="45" width="15" height="10" fill="#0f172a"/>
-                        <rect x="30" y="45" width="20" height="10" fill="#0f172a"/>
-                        <rect x="55" y="45" width="15" height="10" fill="#2463EB"/>
-                        <rect x="75" y="45" width="15" height="10" fill="#0f172a"/>
-                        <rect x="45" y="60" width="10" height="20" fill="#0f172a"/>
-                        <rect x="60" y="60" width="15" height="15" fill="#0f172a"/>
-                        <rect x="80" y="60" width="10" height="10" fill="#2463EB"/>
-                        <rect x="60" y="80" width="30" height="10" fill="#0f172a"/>
+                        <rect width="100" height="100" fill="white" />
+                        <rect x="10" y="10" width="30" height="30" fill="#0f172a" />
+                        <rect x="15" y="15" width="20" height="20" fill="white" />
+                        <rect x="20" y="20" width="10" height="10" fill="#2463EB" />
+                        <rect x="60" y="10" width="30" height="30" fill="#0f172a" />
+                        <rect x="65" y="15" width="20" height="20" fill="white" />
+                        <rect x="70" y="20" width="10" height="10" fill="#2463EB" />
+                        <rect x="10" y="60" width="30" height="30" fill="#0f172a" />
+                        <rect x="15" y="65" width="20" height="20" fill="white" />
+                        <rect x="20" y="70" width="10" height="10" fill="#2463EB" />
+                        <rect x="45" y="10" width="10" height="10" fill="#0f172a" />
+                        <rect x="45" y="25" width="10" height="15" fill="#2463EB" />
+                        <rect x="10" y="45" width="15" height="10" fill="#0f172a" />
+                        <rect x="30" y="45" width="20" height="10" fill="#0f172a" />
+                        <rect x="55" y="45" width="15" height="10" fill="#2463EB" />
+                        <rect x="75" y="45" width="15" height="10" fill="#0f172a" />
+                        <rect x="45" y="60" width="10" height="20" fill="#0f172a" />
+                        <rect x="60" y="60" width="15" height="15" fill="#0f172a" />
+                        <rect x="80" y="60" width="10" height="10" fill="#2463EB" />
+                        <rect x="60" y="80" width="30" height="10" fill="#0f172a" />
                       </svg>
                     </div>
                     <p className="text-[11px] text-slate-300 font-semibold">PayNow UEN: <span className="font-mono text-[#2463EB]">202012345M-JOS</span></p>
@@ -761,13 +760,12 @@ export const InvoiceModal = () => {
                 type="button"
                 onClick={handlePayInvoice}
                 disabled={isProcessingPayment || isPaymentSuccess}
-                className={`w-full py-3.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-lg ${
-                  isPaymentSuccess
+                className={`w-full py-3.5 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-lg ${isPaymentSuccess
                     ? 'bg-emerald-500 text-white shadow-emerald-500/30'
                     : isProcessingPayment
-                    ? 'bg-[#1D4ED8]/90 text-white cursor-wait ring-2 ring-[#2463EB]/25'
-                    : 'bg-[#2463EB]-gradient hover:bg-[#1D4ED8] text-white shadow-sm active:scale-95'
-                }`}
+                      ? 'bg-[#1D4ED8]/90 text-white cursor-wait ring-2 ring-[#2463EB]/25'
+                      : 'bg-[#2463EB]-gradient hover:bg-[#1D4ED8] text-white shadow-sm active:scale-95'
+                  }`}
               >
                 {isPaymentSuccess ? (
                   <>

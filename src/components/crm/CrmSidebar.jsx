@@ -7,6 +7,7 @@ import {
   FileText,
   FileSpreadsheet,
   Receipt,
+  Landmark,
   Handshake,
   Bell,
   BarChart3,
@@ -20,6 +21,7 @@ import {
   PackageCheck,
   Tag
 } from 'lucide-react';
+import { normalizeRole } from '../../utils/roles';
 
 export const CRM_TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,6 +31,7 @@ export const CRM_TABS = [
   { id: 'documents', label: 'Shipment Documents', icon: FileText, badgeKey: 'docs' },
   { id: 'quotations', label: 'Quotations', icon: FileSpreadsheet, badgeKey: 'quotes' },
   { id: 'billing', label: 'Billing', icon: Receipt, badgeKey: 'billing' },
+  { id: 'accounting', label: 'Accounting', icon: Landmark, badgeKey: 'accounting' },
   { id: 'transportation-partners', label: 'Partner Carriers', icon: Handshake, badgeKey: 'partners' },
   { id: 'notifications', label: 'Notifications', icon: Bell, badgeKey: 'notifs' },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
@@ -38,7 +41,8 @@ export const CRM_TABS = [
 const ROLE_MODULE_ACCESS = {
   OPERATIONS: ['dashboard', 'customers', 'road-shipments', 'transportation-partners', 'notifications', 'reports'],
   AIRWAY_EXECUTIVE: ['dashboard', 'customers', 'airway-requests', 'documents', 'quotations', 'billing', 'notifications', 'reports'],
-  FINANCE: ['dashboard', 'customers', 'airway-requests', 'road-shipments', 'documents', 'quotations', 'billing', 'notifications', 'reports']
+  FINANCE: ['dashboard', 'customers', 'billing', 'accounting', 'reports', 'notifications'],
+  ACCOUNTANT: ['dashboard', 'customers', 'billing', 'accounting', 'reports', 'notifications']
 };
 
 export const CrmSidebar = ({
@@ -53,7 +57,9 @@ export const CrmSidebar = ({
   onLogout,
   onBackToWebsite
 }) => {
-  const userRole = String(currentUser?.role || currentUser?.rawRole || '').toUpperCase();
+  const rawRole = currentUser?.role || currentUser?.rawRole || '';
+  const normalizedRole = normalizeRole(rawRole);
+  const userRole = normalizedRole || String(rawRole).toUpperCase();
   const visibleTabs = ROLE_MODULE_ACCESS[userRole]
     ? CRM_TABS.filter(tab => ROLE_MODULE_ACCESS[userRole].includes(tab.id))
     : CRM_TABS;
@@ -136,8 +142,8 @@ export const CrmSidebar = ({
                   if (setMobileOpen) setMobileOpen(false);
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer group relative ${isActive
-                    ? 'bg-[#FF6B00] text-white shadow-orange-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                  ? 'bg-[#FF6B00] text-white shadow-orange-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                   }`}
                 title={isCollapsed ? tab.label : undefined}
               >
@@ -152,8 +158,8 @@ export const CrmSidebar = ({
                 {!isCollapsed && badgeValue !== null && badgeValue !== undefined && badgeValue > 0 && (
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-800 text-slate-300 border border-slate-700'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-800 text-slate-300 border border-slate-700'
                       }`}
                   >
                     {badgeValue}

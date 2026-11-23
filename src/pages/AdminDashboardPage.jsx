@@ -143,9 +143,9 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   };
 
   const badgeCounts = {
-    users: systemUsers.length,
-    notifications: notifications.filter(n => !n.read_at).length,
-    quotes: quotes.filter(q => q.status === 'New').length || quotes.length
+    users: Array.isArray(systemUsers) ? systemUsers.length : 0,
+    notifications: Array.isArray(notifications) ? notifications.filter(n => n && !n.read_at).length : 0,
+    quotes: Array.isArray(quotes) ? (quotes.filter(q => q && q.status === 'New').length || quotes.length) : 0
   };
 
   return (

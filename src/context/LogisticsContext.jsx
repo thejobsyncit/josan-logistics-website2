@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   initialShipments, 
   initialDrivers, 
@@ -24,6 +24,7 @@ import {
 } from '../data/adminCrmData';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { supabaseApi } from '../services/supabaseApi';
+import { accountingService } from '../services/accounting';
 import { fetchServerShipmentReference } from '../utils/referenceApi';
 import { normalizeRole, isStaffRole, canEditRole, getRoleDisplayName } from '../utils/roles';
 import {
@@ -164,6 +165,19 @@ export const LogisticsProvider = ({ children }) => {
       localStorage.setItem('josan_invoices', JSON.stringify(invoices));
     } catch (e) {}
   }, [invoices]);
+
+  // Load invoices from Supabase Database on mount
+  useEffect(() => {
+    let isMounted = true;
+    accountingService.getInvoices().then(({ data }) => {
+      if (isMounted && Array.isArray(data) && data.length > 0) {
+        setInvoices(data);
+      }
+    }).catch(err => {
+      console.warn('[LogisticsContext] Error loading remote invoices:', err);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // Phase 3: Support Tickets System
   const [tickets, setTickets] = useState(() => {
@@ -796,6 +810,8 @@ export const LogisticsProvider = ({ children }) => {
   }, [driverIntimations]);
 
   const [currentUser, setCurrentUser] = useState(null);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
+  const isExpiringSessionRef = useRef(false);
 
   // Reload shipments when authenticated user state changes
   useEffect(() => {
@@ -2145,6 +2161,7 @@ export const LogisticsProvider = ({ children }) => {
       if (inv.id === invoiceId || inv.invoiceNumber === invoiceId) {
         targetInv = {
           ...inv,
+          status: newStatus,
           paymentStatus: newStatus,
           notes: notes || inv.notes
         };
@@ -2152,6 +2169,13 @@ export const LogisticsProvider = ({ children }) => {
       }
       return inv;
     }));
+
+    // Sync to Supabase DB via accountingService
+    if (invoiceId) {
+      accountingService.updateInvoiceStatus(invoiceId, newStatus).catch(err => {
+        console.warn('[LogisticsContext] DB updateInvoiceStatus async sync:', err);
+      });
+    }
 
     // If invoice is linked to a shipment, sync shipment.paymentStatus
     if (targetInv && targetInv.shipmentId) {
@@ -2164,8 +2188,6 @@ export const LogisticsProvider = ({ children }) => {
         }
         return s;
       }));
-
-      // Payment status updated
     }
 
     showToast(`Invoice #${targetInv?.invoiceNumber || invoiceId} payment status updated to "${newStatus}"!`, 'success');
@@ -2858,25 +2880,60 @@ export const LogisticsProvider = ({ children }) => {
   };
 
   const addInvoice = (invoiceData) => {
-    const invId = invoiceData.invoiceNumber || `INV-2026-${Date.now().toString().slice(-4)}`;
+    const invId = invoiceData.invoiceNumber || invoiceData.id || `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
+    const items = Array.isArray(invoiceData.items) && invoiceData.items.length > 0
+      ? invoiceData.items
+      : [{
+          description: invoiceData.service || 'Commercial Freight Services / Road Transportation',
+          qty: 1,
+          unitPrice: Number(invoiceData.amount || invoiceData.subtotal || 0),
+          taxCode: 'SR',
+          lineTotal: Number(invoiceData.total || (Number(invoiceData.amount || 0) * 1.09))
+        }];
+
+    const subtotal = Number(invoiceData.amount || invoiceData.subtotal || 0);
+    const gst = invoiceData.gst !== undefined ? Number(invoiceData.gst) : (invoiceData.taxAmount !== undefined ? Number(invoiceData.taxAmount) : Number((subtotal * 0.09).toFixed(2)));
+    const total = Number(invoiceData.total || (subtotal + gst));
+
     const newInv = {
       id: invId,
       invoiceNumber: invId,
+      invoice_number: invId,
       shipmentId: invoiceData.shipmentId || invoiceData.requestId || 'REQ-GENERAL',
       customerName: invoiceData.customerName || 'Commercial Client',
       customerEmail: invoiceData.customerEmail || '',
       customerPhone: invoiceData.customerPhone || '',
       service: invoiceData.service || 'Air Freight Services / Road Transportation',
-      subtotal: Number(invoiceData.amount || invoiceData.subtotal || 0),
+      subtotal,
+      amount_excl_gst: subtotal,
+      gst,
       taxRate: 0.09,
-      taxAmount: Number(((Number(invoiceData.amount || invoiceData.subtotal || 0)) * 0.09).toFixed(2)),
-      total: Number(((Number(invoiceData.amount || invoiceData.subtotal || 0)) * 1.09).toFixed(2)),
-      paymentStatus: invoiceData.paymentStatus || 'Unpaid',
+      taxAmount: gst,
+      total,
+      amount_paid: Number(invoiceData.amount_paid || 0),
+      balance_due: Number(invoiceData.balance_due ?? total),
+      status: invoiceData.status || invoiceData.paymentStatus || 'Sent',
+      paymentStatus: invoiceData.status || invoiceData.paymentStatus || 'Sent',
       issueDate: invoiceData.issueDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       dueDate: invoiceData.dueDate || new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      notes: invoiceData.notes || 'Tax invoice for logistics services provided.'
+      notes: invoiceData.notes || 'Tax invoice for logistics services provided.',
+      items
     };
+
     setInvoices(prev => [newInv, ...prev]);
+
+    // Persist to Supabase Database
+    accountingService.createInvoice({
+      customerName: newInv.customerName,
+      customerEmail: newInv.customerEmail,
+      customerPhone: newInv.customerPhone,
+      shipmentId: newInv.shipmentId,
+      items: newInv.items,
+      status: newInv.status
+    }).catch(err => {
+      console.warn('[LogisticsContext] DB createInvoice async sync:', err);
+    });
+
     addNotification({
       role: 'admin',
       type: 'billing',
