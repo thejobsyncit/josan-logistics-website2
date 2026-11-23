@@ -946,7 +946,6 @@ const MainContent = () => {
       case 'cancellation-policy':
       case 'refund-and-cancellation':
         return <RefundPolicyPage setActiveTab={changeActiveTab} />;
-        return <TermsOfServicePage setActiveTab={changeActiveTab} />;
       case 'staff-login':
         return <StaffLoginPage setActiveTab={changeActiveTab} />;
       case 'admin-login':

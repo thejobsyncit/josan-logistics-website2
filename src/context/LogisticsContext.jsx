@@ -795,6 +795,14 @@ export const LogisticsProvider = ({ children }) => {
     } catch (e) {}
   }, [driverIntimations]);
 
+  // 15-minute inactivity session timeout constant
+  const SESSION_INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 minutes = 900 seconds
+  const LAST_ACTIVITY_STORAGE_KEY = 'josan_last_activity';
+
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
+  const lastRecordedActivityRef = React.useRef(Date.now());
+  const isExpiringSessionRef = React.useRef(false);
+
   const [currentUser, setCurrentUser] = useState(null);
 
   // Reload shipments when authenticated user state changes
