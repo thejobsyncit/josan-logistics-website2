@@ -14,6 +14,7 @@ import { NotificationsTab } from '../components/admin/NotificationsTab';
 import { SystemReportsTab } from '../components/admin/SystemReportsTab';
 import { SettingsTab } from '../components/admin/SettingsTab';
 import { CrmQuotationsTab } from '../components/crm/CrmQuotationsTab';
+import { KnowledgeBaseTab } from '../components/admin/KnowledgeBaseTab';
 
 export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
   const { 
@@ -205,6 +206,11 @@ export const AdminDashboardPage = ({ setActiveTab: setParentActiveTab }) => {
               onConvertQuote={() => {}}
               selectedQuoteFromSearch={selectedQuoteModal}
             />
+          )}
+
+          {/* TAB: CHATBOT KNOWLEDGE BASE & FAQS */}
+          {adminTab === 'knowledge_base' && (
+            <KnowledgeBaseTab />
           )}
 
           {/* TAB 2: USER MANAGEMENT (ADMIN ONLY) */}

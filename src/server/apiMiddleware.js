@@ -4,10 +4,17 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { generateEmbedding } from './rag/embeddings.js';
-import { searchRelevantChunks } from './rag/retrieval.js';
-import { generateGroundedResponse, MIN_MATCH_THRESHOLD } from './rag/generation.js';
-import { ingestDocument, SAMPLE_KNOWLEDGE_DOCUMENTS } from './rag/ingestion.js';
+import { processChatQuery, matchQuestion } from './faqMatcher.js';
+import { 
+  getAllFaqs, 
+  getActiveFaqs, 
+  addFaq, 
+  updateFaq, 
+  deleteFaq, 
+  getUnansweredQuestions, 
+  deleteUnansweredQuestion,
+  INITIAL_FAQS 
+} from './faqData.js';
 import { supabase, isSupabaseConfigured } from '../services/supabase.js';
 import { 
   generateQuoteReferenceServer, 
@@ -102,42 +109,6 @@ function trackChatSession(sessionId) {
   }
 }
 
-// Initialize seed documents in memory
-(async function initSeedInMemory() {
-  try {
-    for (const sample of SAMPLE_KNOWLEDGE_DOCUMENTS) {
-      const res = await ingestDocument({
-        fileBuffer: Buffer.from(sample.content, 'utf-8'),
-        fileName: sample.fileName,
-        fileType: 'txt',
-        title: sample.title,
-        category: sample.category,
-        description: sample.description,
-        source: sample.source,
-        date: sample.date,
-        isOfficialJosan: sample.isOfficialJosan
-      });
-      if (res.success && res.chunks) {
-        inMemoryDocuments.push({
-          id: res.documentId,
-          file_name: sample.fileName,
-          title: sample.title,
-          category: sample.category,
-          source: sample.source,
-          date: sample.date,
-          isOfficialJosan: sample.isOfficialJosan,
-          chunk_count: res.chunkCount,
-          status: 'COMPLETED',
-          created_at: sample.date ? `${sample.date}T00:00:00Z` : new Date().toISOString()
-        });
-        inMemoryChunks.push(...res.chunks);
-      }
-    }
-  } catch (e) {
-    console.warn('[ApiMiddleware] Seed init warning:', e.message);
-  }
-})();
-
 export async function handleApiRequest(req, res, path) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -149,31 +120,43 @@ export async function handleApiRequest(req, res, path) {
     return res.end();
   }
 
-  // Parse JSON Body & measure payload size
+  // Parse JSON Body & measure payload size (Supports Vercel serverless pre-parsed req.body and raw streams)
   let body = {};
   let rawBodyLength = 0;
   if (req.method === 'POST' || req.method === 'DELETE' || req.method === 'PUT' || req.method === 'PATCH') {
-    try {
-      const buffers = [];
-      for await (const chunk of req) {
-        buffers.push(chunk);
+    if (req.body && typeof req.body === 'object') {
+      body = req.body;
+      rawBodyLength = Buffer.byteLength(JSON.stringify(body), 'utf-8');
+    } else if (typeof req.body === 'string') {
+      try {
+        body = JSON.parse(req.body);
+        rawBodyLength = Buffer.byteLength(req.body, 'utf-8');
+      } catch (_e) {
+        body = {};
       }
-      const rawBuffer = Buffer.concat(buffers);
-      rawBodyLength = rawBuffer.length;
-      const raw = rawBuffer.toString('utf-8');
-      body = raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      body = {};
+    } else {
+      try {
+        const buffers = [];
+        for await (const chunk of req) {
+          buffers.push(chunk);
+        }
+        const rawBuffer = Buffer.concat(buffers);
+        rawBodyLength = rawBuffer.length;
+        const raw = rawBuffer.toString('utf-8');
+        body = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        body = {};
+      }
     }
   }
 
-  // 1. POST /api/chat
+  // 1. POST /api/chat - Manual Rule-Based FAQ Matching
   if (path === '/api/chat' && req.method === 'POST') {
     const forwarded = req.headers['x-forwarded-for'];
     const clientIp = forwarded ? forwarded.split(',')[0].trim() : (req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1');
 
-    // 10 requests per minute rate limit per visitor
-    const rateCheck = checkRateLimit(chatIpRateLimits, clientIp, 10, 60000);
+    // 15 requests per minute rate limit per visitor
+    const rateCheck = checkRateLimit(chatIpRateLimits, clientIp, 15, 60000);
     if (!rateCheck.allowed) {
       res.statusCode = 429;
       res.setHeader('Content-Type', 'application/json');
@@ -188,7 +171,6 @@ export async function handleApiRequest(req, res, path) {
       ? body.sessionId.trim()
       : crypto.randomUUID();
     trackChatSession(sessionId);
-    const history = body.history || [];
 
     if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
       res.statusCode = 400;
@@ -196,67 +178,40 @@ export async function handleApiRequest(req, res, path) {
       return res.end(JSON.stringify({ error: 'Message content is required.' }));
     }
 
-    // Reject messages longer than 1000 characters
-    if (userMessage.length > 1000) {
+    // Reject messages longer than 500 characters
+    if (userMessage.length > 500) {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ error: 'Message exceeds maximum length of 1000 characters.' }));
+      return res.end(JSON.stringify({ error: 'Message exceeds maximum length of 500 characters.' }));
     }
 
     try {
-      // 1. Generate Question Vector Embedding
-      const queryEmbedding = await generateEmbedding(userMessage);
-
-      // 2. Perform Vector Search in Supabase (or in-memory fallback)
-      let chunks = await searchRelevantChunks(queryEmbedding, userMessage, {
-        matchThreshold: MIN_MATCH_THRESHOLD,
-        matchCount: 5
+      const matchResult = await processChatQuery(userMessage, {
+        sessionId,
+        ip: clientIp
       });
-
-      // In-memory fallback search if Supabase search returned nothing
-      if ((!chunks || chunks.length === 0) && inMemoryChunks.length > 0) {
-        chunks = inMemoryChunks.map(c => {
-          const doc = inMemoryDocuments.find(d => d.id === c.document_id) || {};
-          const lowerText = c.content.toLowerCase();
-          const queryLower = userMessage.toLowerCase();
-          let score = 0.25;
-          if (queryLower.split(/\s+/).some(term => term.length > 3 && lowerText.includes(term))) {
-            score += 0.55;
-          }
-          return {
-            chunkId: c.id,
-            documentId: c.document_id,
-            documentName: doc.file_name || 'Knowledge Base Document',
-            documentTitle: doc.title || doc.file_name || 'Josan Knowledge Base',
-            page: c.metadata?.page || 1,
-            content: c.content,
-            source: doc.source,
-            date: doc.date,
-            isOfficialJosan: doc.isOfficialJosan,
-            similarity: score.toFixed(2),
-            metadata: c.metadata
-          };
-        }).filter(c => parseFloat(c.similarity) >= MIN_MATCH_THRESHOLD).sort((a, b) => b.similarity - a.similarity).slice(0, 4);
-      }
-
-      // 3. Generate Grounded AI Response
-      const result = await generateGroundedResponse(userMessage, chunks, history);
 
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({
-        answer: result.answer,
-        sources: result.sources,
-        hasQuoteAction: result.hasQuoteAction || false,
-        sessionId,
-        retrievedCount: chunks.length
+        success: true,
+        matched: matchResult.matched !== false && !matchResult.isFallback,
+        reason: matchResult.reason || null,
+        answer: matchResult.answer,
+        confidence: matchResult.confidence,
+        category: matchResult.category,
+        matchLayer: matchResult.matchLayer,
+        matchedFaqId: matchResult.matchedFaqId,
+        hasQuoteAction: Boolean(matchResult.hasQuoteAction),
+        sessionId
       }));
     } catch (_err) {
-      console.error('[ApiMiddleware] /api/chat error');
+      console.error('[ApiMiddleware] /api/chat error:', _err);
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({
-        answer: "I don't know enough to answer that accurately. Please check with our team on our [Contact our team](/contact) page.",
+        success: false,
+        answer: "I don't have an approved answer for that specific question. Our operations team will be happy to assist you directly — please contact us on our [Contact our team](/contact) page, or submit your cargo details on our [Request a Quote](/quote) page.",
         sources: [],
         hasQuoteAction: false,
         error: 'Unable to process chat request'
@@ -785,6 +740,127 @@ export async function handleApiRequest(req, res, path) {
     res.statusCode = result.status || 200;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify(result));
+  }
+
+  // =========================================================================
+  // CHATBOT FAQ & KNOWLEDGE BASE MANAGEMENT ENDPOINTS (Admin Only)
+  // =========================================================================
+
+  // GET /api/admin/faqs (List all FAQs)
+  if (path === '/api/admin/faqs' && req.method === 'GET') {
+    const guard = await requireAdminAuth();
+    if (guard.error) {
+      res.statusCode = guard.status;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: guard.error }));
+    }
+
+    const faqs = await getAllFaqs();
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ faqs }));
+  }
+
+  // POST /api/admin/faqs (Create new FAQ)
+  if (path === '/api/admin/faqs' && req.method === 'POST') {
+    const guard = await requireAdminAuth();
+    if (guard.error) {
+      res.statusCode = guard.status;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: guard.error }));
+    }
+
+    if (!body.mainQuestion || !body.approvedAnswer) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Main question and approved answer are required.' }));
+    }
+
+    const newFaq = await addFaq(body);
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ success: true, faq: newFaq }));
+  }
+
+  // PUT /api/admin/faqs (Update existing FAQ)
+  if (path === '/api/admin/faqs' && req.method === 'PUT') {
+    const guard = await requireAdminAuth();
+    if (guard.error) {
+      res.statusCode = guard.status;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: guard.error }));
+    }
+
+    const faqId = body.id;
+    if (!faqId) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'FAQ id is required.' }));
+    }
+
+    const updated = await updateFaq(faqId, body);
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ success: true, faq: updated }));
+  }
+
+  // DELETE /api/admin/faqs (Delete FAQ)
+  if (path === '/api/admin/faqs' && req.method === 'DELETE') {
+    const guard = await requireAdminAuth();
+    if (guard.error) {
+      res.statusCode = guard.status;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: guard.error }));
+    }
+
+    const faqId = body.id || (req.url.includes('?') ? new URL(req.url, 'http://localhost').searchParams.get('id') : '');
+    if (!faqId) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'FAQ id is required.' }));
+    }
+
+    const delRes = await deleteFaq(faqId);
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify(delRes));
+  }
+
+  // GET /api/admin/chatbot/unanswered (List unanswered questions)
+  if (path === '/api/admin/chatbot/unanswered' && req.method === 'GET') {
+    const guard = await requireAdminAuth();
+    if (guard.error) {
+      res.statusCode = guard.status;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: guard.error }));
+    }
+
+    const unanswered = await getUnansweredQuestions();
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ items: unanswered }));
+  }
+
+  // DELETE /api/admin/chatbot/unanswered (Dismiss unanswered question log)
+  if (path === '/api/admin/chatbot/unanswered' && req.method === 'DELETE') {
+    const guard = await requireAdminAuth();
+    if (guard.error) {
+      res.statusCode = guard.status;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: guard.error }));
+    }
+
+    const logId = body.id || (req.url.includes('?') ? new URL(req.url, 'http://localhost').searchParams.get('id') : '');
+    if (!logId) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Log id is required.' }));
+    }
+
+    const delRes = await deleteUnansweredQuestion(logId);
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify(delRes));
   }
 
   // 23. Server-side role guard for all generic /api/admin/* endpoints

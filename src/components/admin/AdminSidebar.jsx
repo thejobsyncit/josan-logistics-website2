@@ -10,7 +10,8 @@ import {
   BarChart3, 
   Settings, 
   ArrowLeft,
-  FileSpreadsheet
+  FileSpreadsheet,
+  HelpCircle
 } from 'lucide-react';
 
 export const AdminSidebar = ({ 
@@ -22,6 +23,7 @@ export const AdminSidebar = ({
   const navItems = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'quotations', label: 'Quotations', icon: FileSpreadsheet, count: counts.quotes },
+    { id: 'knowledge_base', label: 'Chatbot FAQ & KB', icon: HelpCircle },
     { id: 'users', label: 'User Management', icon: Users, count: counts.users },
     { id: 'roles', label: 'Roles & Permissions', icon: ShieldCheck },
     { id: 'website_content', label: 'Website Content', icon: Globe },

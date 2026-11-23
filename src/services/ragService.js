@@ -1,17 +1,16 @@
 /**
- * RAG Service Client for Josan Frontend App
- * Communicates with /api/chat and /api/documents endpoints with resilient fallbacks.
+ * Josan Logistics Chatbot & Knowledge Base Service Client
+ * Handles communication with /api/chat and admin FAQ management endpoints
+ * with resilient offline rule-based fallback.
  */
 
-import { generateEmbedding } from '../server/rag/embeddings';
-import { searchRelevantChunks } from '../server/rag/retrieval';
-import { generateGroundedResponse, MIN_MATCH_THRESHOLD } from '../server/rag/generation';
-import { SAMPLE_KNOWLEDGE_DOCUMENTS } from '../server/rag/ingestion';
+import { matchQuestion } from '../server/faqMatcher';
+import { INITIAL_FAQS } from '../server/faqData';
 import { deleteChatSession, deleteCustomerChatsOnRequest } from './chatStorageService';
 
 export const ragService = {
   /**
-   * Send user message to RAG Chat Engine
+   * Send user question to Chatbot Backend Engine
    */
   sendMessage: async (message, sessionId = null, history = []) => {
     const activeSessionId = sessionId || `session_${Date.now()}`;
@@ -32,78 +31,39 @@ export const ragService = {
         return {
           success: true,
           answer: data.answer,
-          sources: data.sources || [],
-          hasQuoteAction: data.hasQuoteAction || false,
+          confidence: data.confidence,
+          hasQuoteAction: Boolean(data.hasQuoteAction),
+          category: data.category || 'General',
+          matchLayer: data.matchLayer || 'UNKNOWN',
+          sources: [],
           sessionId: data.sessionId || activeSessionId
         };
       }
     } catch (e) {
-      console.warn('[RagService] API request error, running client RAG fallback:', e.message);
+      console.warn('[RagService] API request failed, executing client-side rule matching fallback:', e.message);
     }
 
-    // Client-side execution fallback
+    // Client-side rule-based fallback using official Josan FAQs
     try {
-      const embedding = await generateEmbedding(message);
-      const chunks = await searchRelevantChunks(embedding, message, { matchThreshold: MIN_MATCH_THRESHOLD, matchCount: 5 });
-
-      // If no chunks match from remote database, use sample knowledge documents
-      let selectedChunks = chunks;
-      if (!selectedChunks || selectedChunks.length === 0) {
-        const queryLower = message.toLowerCase();
-        selectedChunks = SAMPLE_KNOWLEDGE_DOCUMENTS.map((doc, idx) => {
-          const docLower = doc.content.toLowerCase();
-          let score = 0.25;
-          if (queryLower.split(/\s+/).some(word => word.length > 3 && docLower.includes(word))) {
-            score += 0.55;
-          }
-          return {
-            chunkId: `sample_${idx}`,
-            documentName: doc.fileName,
-            documentTitle: doc.title,
-            page: 1,
-            content: doc.content,
-            source: doc.source,
-            date: doc.date,
-            isOfficialJosan: doc.isOfficialJosan,
-            similarity: score.toFixed(2)
-          };
-        }).filter(c => parseFloat(c.similarity) >= MIN_MATCH_THRESHOLD).slice(0, 3);
-      }
-
-      if (!selectedChunks || selectedChunks.length === 0) {
-        const isQuoteOrPricing = /\b(quote|quotes|pricing|prices|rate|rates|cost|costs|fee|fees|per kg|estimate|specific shipment|shipment details|book a shipment)\b/i.test(message || '');
-        if (isQuoteOrPricing) {
-          return {
-            success: true,
-            answer: "Quotes are prepared by our team after reviewing your request. We do not provide fixed prices, delivery times, or guarantees online. Please submit your shipment details on our [Request a Quote](/quote) page, or [Contact our team](/contact).",
-            sources: [],
-            hasQuoteAction: true,
-            sessionId: activeSessionId
-          };
-        }
-        return {
-          success: true,
-          answer: "I don't know enough to answer that accurately. Please check with our team on our [Contact our team](/contact) page.",
-          sources: [],
-          hasQuoteAction: false,
-          sessionId: activeSessionId
-        };
-      }
-
-      const res = await generateGroundedResponse(message, selectedChunks, history);
+      const result = matchQuestion(message, INITIAL_FAQS);
       return {
         success: true,
-        answer: res.answer,
-        sources: res.sources || [],
-        hasQuoteAction: res.hasQuoteAction || false,
+        answer: result.answer,
+        confidence: result.confidence,
+        hasQuoteAction: Boolean(result.hasQuoteAction),
+        category: result.category || 'General',
+        matchLayer: result.matchLayer,
+        sources: [],
         sessionId: activeSessionId
       };
     } catch (err) {
       return {
         success: false,
-        answer: "I don't know enough to answer that accurately. Please check with our team on our [Contact our team](/contact) page.",
-        sources: [],
+        answer: "I don't have an approved answer for that specific question. Please check with our team on our [Contact our team](/contact) page, or submit your cargo details on our [Request a Quote](/quote) page.",
+        confidence: 0,
         hasQuoteAction: false,
+        category: 'General',
+        sources: [],
         sessionId: activeSessionId,
         error: err.message
       };
@@ -111,75 +71,121 @@ export const ragService = {
   },
 
   /**
-   * Get all knowledge documents
+   * Get all FAQs (Admin)
    */
-  getDocuments: async () => {
+  getFaqs: async () => {
     try {
-      const response = await fetch('/api/documents');
+      const response = await fetch('/api/admin/faqs');
       if (response.ok) {
         const data = await response.json();
-        return data.documents || [];
+        return data.faqs || [];
       }
     } catch (e) {
-      console.warn('[RagService] Fetch documents warning:', e.message);
+      console.warn('[RagService] Get FAQs error:', e.message);
     }
-
-    return SAMPLE_KNOWLEDGE_DOCUMENTS.map((doc, idx) => ({
-      id: `doc_sample_${idx}`,
-      file_name: doc.fileName,
-      title: doc.title,
-      category: doc.category,
-      source: doc.source,
-      date: doc.date,
-      isOfficialJosan: doc.isOfficialJosan,
-      chunk_count: 1,
-      status: 'COMPLETED',
-      created_at: doc.date ? `${doc.date}T00:00:00Z` : new Date().toISOString()
-    }));
+    return INITIAL_FAQS;
   },
 
   /**
-   * Upload & Ingest Knowledge Base Document
+   * Add new FAQ (Admin)
    */
-  ingestDocument: async ({ title, fileName, content, category, description }) => {
+  addFaq: async (faqData) => {
     try {
-      const response = await fetch('/api/documents/ingest', {
+      const response = await fetch('/api/admin/faqs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, fileName, content, category, description })
+        body: JSON.stringify(faqData)
       });
-
       if (response.ok) {
         return await response.json();
       }
     } catch (e) {
-      console.warn('[RagService] Ingest API warning:', e.message);
+      console.warn('[RagService] Add FAQ error:', e.message);
     }
-
-    return {
-      success: true,
-      documentId: `doc_${Date.now()}`,
-      title: title || fileName,
-      fileName,
-      chunkCount: 3,
-      status: 'COMPLETED'
-    };
+    return { success: true, faq: faqData };
   },
 
   /**
-   * Seed Sample Josan Logistics Knowledge Base
+   * Update existing FAQ (Admin)
    */
-  seedKnowledgeBase: async () => {
+  updateFaq: async (id, faqData) => {
     try {
-      const response = await fetch('/api/documents/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      const response = await fetch('/api/admin/faqs', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...faqData })
       });
       if (response.ok) {
         return await response.json();
       }
-    } catch (e) {}
-    return { success: true, message: 'Seeded 4 sample knowledge documents.' };
+    } catch (e) {
+      console.warn('[RagService] Update FAQ error:', e.message);
+    }
+    return { success: true, faq: { id, ...faqData } };
+  },
+
+  /**
+   * Delete FAQ (Admin)
+   */
+  deleteFaq: async (id) => {
+    try {
+      const response = await fetch(`/api/admin/faqs?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('[RagService] Delete FAQ error:', e.message);
+    }
+    return { success: true, deletedId: id };
+  },
+
+  /**
+   * Get all Unanswered Inquiries (Admin)
+   */
+  getUnansweredQuestions: async () => {
+    try {
+      const response = await fetch('/api/admin/chatbot/unanswered');
+      if (response.ok) {
+        const data = await response.json();
+        return data.items || [];
+      }
+    } catch (e) {
+      console.warn('[RagService] Get unanswered questions error:', e.message);
+    }
+    return [];
+  },
+
+  /**
+   * Dismiss an unanswered question log (Admin)
+   */
+  deleteUnansweredQuestion: async (id) => {
+    try {
+      const response = await fetch(`/api/admin/chatbot/unanswered?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('[RagService] Delete unanswered error:', e.message);
+    }
+    return { success: true, deletedId: id };
+  },
+
+  /**
+   * Legacy method preserved for compatibility
+   */
+  getDocuments: async () => {
+    return INITIAL_FAQS.map(faq => ({
+      id: faq.id,
+      title: faq.mainQuestion,
+      category: faq.category,
+      chunk_count: 1,
+      status: 'Approved',
+      created_at: faq.createdAt
+    }));
   },
 
   /**
@@ -187,10 +193,8 @@ export const ragService = {
    */
   deleteSession: async (sessionId) => {
     if (!sessionId) return { success: true };
-    // 1. Purge from local admin storage
     deleteChatSession(sessionId);
 
-    // 2. Request server deletion
     try {
       const response = await fetch('/api/chat/session', {
         method: 'DELETE',
